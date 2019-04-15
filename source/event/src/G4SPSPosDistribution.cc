@@ -47,6 +47,15 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
+
+// RadMapModification 2018-11-08 by Klas Marcks
+// File location: source\event\src
+
+//RadMap
+#include <experimental/filesystem>
+//EndRadMap
+
+
 #include "G4SPSPosDistribution.hh"
 
 #include "G4PhysicalConstants.hh"
@@ -1207,6 +1216,31 @@ G4ThreeVector G4SPSPosDistribution::GenerateOne()
           msg << "may not exist\n"<< G4endl;
           msg << "If you have set confine then this will be ignored\n";
           msg << "for this event.\n" << G4endl;
+
+		  //RadMap
+		  auto stripPostFixLambda = [](const std::string &name)
+		  {
+			  //Strip postfix _phys or _log from name if exists.
+			  auto l = name.length();
+			  if (name.find("_phys", l - 5) != name.npos) return name.substr(0, l - 5);
+			  if (name.find("_log", l - 4) != name.npos) return name.substr(0, l - 4);
+		      return name;
+		  };
+
+		  G4ExceptionDescription msgRadMap;
+		  std::experimental::filesystem::resize_file("process", 0);
+		  G4cerr.seekp(0);
+		  std::string stripedName = stripPostFixLambda(VolName);
+		  msgRadMap << "Source sampling took too long time. Simulation aborted!\n\n";
+      	  msgRadMap << "Solid " + stripedName + " has too small volume compared to its bounding box to host a source.\n";
+		  msgRadMap << "This might happen if the ratio between a solid's volume and the volume of its bounding box is smaller than \~10\^-6";
+		  msgRadMap << G4endl;
+		  G4cerr << msgRadMap.str();
+		  G4cerr.rdbuf(nullptr);
+		  G4cout.rdbuf(nullptr);
+		  exit(-1);
+		  //End RadMap
+
           G4Exception("G4SPSPosDistribution::GenerateOne()","G4GPS001",JustWarning,msg);
           srcconf = true; //Avoids an infinite loop
       }
