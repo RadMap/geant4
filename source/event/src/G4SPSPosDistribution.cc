@@ -1228,7 +1228,7 @@ G4ThreeVector G4SPSPosDistribution::GenerateOne()
 		  };
 
 		  G4ExceptionDescription msgRadMap;
-		  std::experimental::filesystem::resize_file("process", 0);
+		  std::filesystem::resize_file("process", 0);
 		  G4cerr.seekp(0);
 		  std::string stripedName = stripPostFixLambda(VolName);
 		  msgRadMap << "Source sampling took too long time. Simulation aborted!\n\n";
