@@ -61,7 +61,7 @@ public:
   // delete all models
 
   void InitialiseModels();
-  // delete all models
+  // initialise all models before the run
 
   G4HadronicInteraction* FindModel(const G4String& name);
   // find existing hadronic interaction by name
@@ -75,9 +75,7 @@ private:
 
   static G4ThreadLocal G4HadronicInteractionRegistry* instance;
 
-  std::vector <G4HadronicInteraction*>  allModels;
-  G4bool isInitialized;
-
+  std::vector<G4HadronicInteraction*> allModels;
 };
 
 #endif

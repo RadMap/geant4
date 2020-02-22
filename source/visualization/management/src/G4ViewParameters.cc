@@ -29,18 +29,20 @@
 // John Allison  19th July 1996
 // View parameters and options.
 
-#include <sstream>
-
 #include "G4ViewParameters.hh"
 
 #include "G4VisManager.hh"
 #include "G4VPhysicalVolume.hh"
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
-#include "G4ios.hh"
+#include "G4Polyhedron.hh"
+
+#include <sstream>
+#include <cmath>
 
 G4ViewParameters::G4ViewParameters ():
   fDrawingStyle (wireframe),
+  fNumberOfCloudPoints(10000),
   fAuxEdgeVisible (false),
   fCulling (true),
   fCullInvisible (true),
@@ -53,7 +55,7 @@ G4ViewParameters::G4ViewParameters ():
   fCutawayMode (cutawayUnion),
   fCutawayPlanes (),
   fExplodeFactor (1.),
-  fNoOfSides (24),
+  fNoOfSides (),
   fViewpointDirection (G4Vector3D (0., 0., 1.)),  // On z-axis.
   fUpVector (G4Vector3D (0., 1., 0.)),            // y-axis up.
   fFieldHalfAngle (0.),                           // Orthogonal projection.
@@ -100,6 +102,15 @@ G4ViewParameters::G4ViewParameters ():
   fDisplayLightFrontGreen(1.),
   fDisplayLightFrontBlue(0.)
 {
+  // Pick up default no of sides from G4Polyhedron.
+  // Note that this parameter is variously called:
+  //   No of sides
+  //   NumberOfRotationSteps
+  //   Line segments per circle
+  // It refers to the approximation of a circle by a polygon of
+  // stated number of sides.
+  fNoOfSides = G4Polyhedron::GetNumberOfRotationSteps();
+  
   fDefaultMarker.SetScreenSize (5.);
   // Markers are 5 pixels "overall" size, i.e., diameter.
 }
@@ -210,11 +221,23 @@ G4int G4ViewParameters::SetNoOfSides (G4int nSides) {
   if (nSides < nSidesMin) {
     nSides = nSidesMin;
     G4cout << "G4ViewParameters::SetNoOfSides: attempt to set the"
-      "\nnumber of sides per circle < " << nSidesMin
-	 << "; forced to " << nSides << G4endl;
+    "\nnumber of sides per circle < " << nSidesMin
+    << "; forced to " << nSides << G4endl;
   }
   fNoOfSides = nSides;
   return fNoOfSides;
+}
+
+G4int G4ViewParameters::SetNumberOfCloudPoints(G4int nPoints) {
+  const G4int nPointsMin = 100;
+  if (nPoints < nPointsMin) {
+    nPoints = nPointsMin;
+    G4cout << "G4ViewParameters::SetNumberOfCloudPoints:"
+    "\nnumber of points per cloud set to minimum " << nPoints
+    << G4endl;
+  }
+  fNumberOfCloudPoints = nPoints;
+  return fNumberOfCloudPoints;
 }
 
 void G4ViewParameters::SetViewAndLights
@@ -230,7 +253,7 @@ void G4ViewParameters::SetViewAndLights
       firstTime = false;
       G4cout <<
       "WARNING: Viewpoint direction is very close to the up vector direction."
-      "\n  Consider setting the up vector to obtain definable behaviour."
+      "\n  Change the up vector or \"/vis/viewer/set/rotationStyle freeRotation\"."
       << G4endl;
     }
   }
@@ -384,12 +407,20 @@ G4String G4ViewParameters::DrawingStyleCommands() const
   oss << "#\n# Drawing style commands";
   
   oss << "\n/vis/viewer/set/style ";
-  if (fDrawingStyle == wireframe || fDrawingStyle == hlr) {
-    oss << "wireframe";
-  } else {
-    oss << "surface";
+  switch (fDrawingStyle) {
+    case wireframe:
+    case hlr:
+      oss << "wireframe";
+      break;
+    case hsr:
+    case hlhsr:
+      oss << "surface";
+      break;
+    case cloud:
+      oss << "cloud";
+      break;
   }
-  
+
   oss << "\n/vis/viewer/set/hiddenEdge ";
   if (fDrawingStyle == hlr || fDrawingStyle == hlhsr) {
     oss << "true";
@@ -416,7 +447,10 @@ G4String G4ViewParameters::DrawingStyleCommands() const
   
   oss << "\n/vis/viewer/set/globalMarkerScale "
   << fGlobalMarkerScale;
-  
+
+  oss << "\n/vis/viewer/set/numberOfCloudPoints "
+  << fNumberOfCloudPoints;
+
   oss << std::endl;
   
   return oss.str();
@@ -610,6 +644,18 @@ G4String G4ViewParameters::TouchableCommands() const
           }
         }
         break;
+      case G4ModelingParameters::VASForceCloud:
+        if (vamVisAtts.IsForceDrawingStyle()) {
+          if (vamVisAtts.GetForcedDrawingStyle() == G4VisAttributes::cloud) {
+            oss << "\n/vis/touchable/set/forceCloud ";
+            if (vamVisAtts.IsForceDrawingStyle()) {
+              oss << "true";
+            } else {
+              oss << "false";
+            }
+          }
+        }
+        break;
       case G4ModelingParameters::VASForceAuxEdgeVisible:
         if (vamVisAtts.IsForceAuxEdgeVisible()) {
           oss << "\n/vis/touchable/set/forceAuxEdgeVisible ";
@@ -621,10 +667,12 @@ G4String G4ViewParameters::TouchableCommands() const
         }
         break;
       case G4ModelingParameters::VASForceLineSegmentsPerCircle:
-        if (vamVisAtts.GetForcedLineSegmentsPerCircle() > 0) {
-          oss << "\n/vis/touchable/set/lineSegmentsPerCircle "
-          << vamVisAtts.GetForcedLineSegmentsPerCircle();
-        }
+        oss << "\n/vis/touchable/set/lineSegmentsPerCircle "
+        << vamVisAtts.GetForcedLineSegmentsPerCircle();
+        break;
+      case G4ModelingParameters::VASForceNumberOfCloudPoints:
+        oss << "\n/vis/touchable/set/numberOfCloudPoints "
+        << vamVisAtts.GetForcedNumberOfCloudPoints();
         break;
     }
   }
@@ -698,6 +746,7 @@ void G4ViewParameters::PrintDifferences (const G4ViewParameters& v) const {
 
       // No particular order from here on.
       (fDrawingStyle         != v.fDrawingStyle)         ||
+      (fNumberOfCloudPoints  != v.fNumberOfCloudPoints)  ||
       (fAuxEdgeVisible       != v.fAuxEdgeVisible)       ||
       (fCulling              != v.fCulling)              ||
       (fCullInvisible        != v.fCullInvisible)        ||
@@ -817,6 +866,8 @@ std::ostream& operator <<
     os << "hsr - hidden surfaces removed"; break;
   case G4ViewParameters::hlhsr:
     os << "hlhsr - hidden line, hidden surface removed"; break;
+  case G4ViewParameters::cloud:
+    os << "cloud - draw volume as a cloud of dots"; break;
   default: os << "unrecognised"; break;
   }
   return os;
@@ -825,18 +876,9 @@ std::ostream& operator <<
 std::ostream& operator << (std::ostream& os, const G4ViewParameters& v) {
   os << "View parameters and options:";
 
-  os << "\n  Drawing style: ";
-  switch (v.fDrawingStyle) {
-  case G4ViewParameters::wireframe:
-    os << "edges, wireframe"; break;
-  case G4ViewParameters::hlr:
-    os << "edges, hidden line removal"; break;
-  case G4ViewParameters::hsr:
-    os << "surfaces, hidden surface removal"; break;
-  case G4ViewParameters::hlhsr:
-    os << "surfaces and edges, hidden line and surface removal"; break;
-  default: os << "unrecognised"; break;
-  }
+  os << "\n  Drawing style: " << v.fDrawingStyle;
+
+  os << "\n  Number of cloud points: " << v.fNumberOfCloudPoints;
 
   os << "\n  Auxiliary edges: ";
   if (!v.fAuxEdgeVisible) os << "in";
@@ -1020,6 +1062,7 @@ G4bool G4ViewParameters::operator != (const G4ViewParameters& v) const {
 
       // No particular order from here on.
       (fDrawingStyle         != v.fDrawingStyle)         ||
+      (fNumberOfCloudPoints  != v.fNumberOfCloudPoints)  ||
       (fAuxEdgeVisible       != v.fAuxEdgeVisible)       ||
       (fCulling              != v.fCulling)              ||
       (fCullInvisible        != v.fCullInvisible)        ||
@@ -1413,42 +1456,55 @@ G4ViewParameters* G4ViewParameters::CatmullRomCubicSplineInterpolation
 
   // Catmull-Rom cubic spline interpolation
 #define INTERPOLATE(param) \
-  /* This works out the interpolated param in i'th interval */ \
-  /* Assumes n >= 1 */ \
-  if (i == 0) { \
-    /* First interval */ \
-    mi = v[1].param - v[0].param; \
-    /* If there is only one interval, make start and end slopes equal */ \
-    /* (This results in a linear interpolation) */ \
-    if (n == 1) mi1 = mi; \
-    /* else the end slope of the interval takes account of the next waypoint along */ \
-    else mi1 = 0.5 * (v[2].param - v[0].param); \
-  } else if (i >= n - 1) { \
-    /* Similarly for last interval */ \
-    mi1 = v[i+1].param - v[i].param; \
-    /* If there is only one interval, make start and end slopes equal */ \
-    if (n == 1) mi = mi1; \
-    /* else the start slope of the interval takes account of the previous waypoint */ \
-    else mi = 0.5 * (v[i+1].param - v[i-1].param); \
-  } else { \
-    /* Full Catmull-Rom slopes use previous AND next waypoints */ \
-    mi  = 0.5 * (v[i+1].param - v[i-1].param); \
-    mi1 = 0.5 * (v[i+2].param - v[i  ].param); \
-  } \
-  real = h00 * v[i].param + h10 * mi + h01 * v[i+1].param + h11 * mi1;
+/* This works out the interpolated param in i'th interval */ \
+/* Assumes n >= 1 */ \
+if (i == 0) { \
+/* First interval */ \
+mi = v[1].param - v[0].param; \
+/* If there is only one interval, make start and end slopes equal */ \
+/* (This results in a linear interpolation) */ \
+if (n == 1) mi1 = mi; \
+/* else the end slope of the interval takes account of the next waypoint along */ \
+else mi1 = 0.5 * (v[2].param - v[0].param); \
+} else if (i >= n - 1) { \
+/* Similarly for last interval */ \
+mi1 = v[i+1].param - v[i].param; \
+/* If there is only one interval, make start and end slopes equal */ \
+if (n == 1) mi = mi1; \
+/* else the start slope of the interval takes account of the previous waypoint */ \
+else mi = 0.5 * (v[i+1].param - v[i-1].param); \
+} else { \
+/* Full Catmull-Rom slopes use previous AND next waypoints */ \
+mi  = 0.5 * (v[i+1].param - v[i-1].param); \
+mi1 = 0.5 * (v[i+2].param - v[i  ].param); \
+} \
+real = h00 * v[i].param + h10 * mi + h01 * v[i+1].param + h11 * mi1;
+
+#define INTERPOLATELOG(param) \
+if (i == 0) { \
+mi = std::log(v[1].param) - std::log(v[0].param); \
+if (n == 1) mi1 = mi; \
+else mi1 = 0.5 * (std::log(v[2].param) - std::log(v[0].param)); \
+} else if (i >= n - 1) { \
+mi1 = std::log(v[i+1].param) - std::log(v[i].param); \
+if (n == 1) mi = mi1; \
+else mi = 0.5 * (std::log(v[i+1].param) - std::log(v[i-1].param)); \
+} else { \
+mi  = 0.5 * (std::log(v[i+1].param) - std::log(v[i-1].param)); \
+mi1 = 0.5 * (std::log(v[i+2].param) - std::log(v[i  ].param)); \
+} \
+real = std::exp(h00 * std::log(v[i].param) + h10 * mi + h01 * std::log(v[i+1].param) + h11 * mi1);
 
   // Real parameters
   INTERPOLATE(fVisibleDensity);
   if (real < 0.) real = 0.;
   holdingValues.fVisibleDensity = real;
-  INTERPOLATE(fExplodeFactor);
-  if (real < 0.) real = 0.;
+  INTERPOLATELOG(fExplodeFactor);
   holdingValues.fExplodeFactor = real;
   INTERPOLATE(fFieldHalfAngle);
   if (real < 0.) real = 0.;
   holdingValues.fFieldHalfAngle = real;
-  INTERPOLATE(fZoomFactor);
-  if (real < 0.) real = 0.;
+  INTERPOLATELOG(fZoomFactor);
   holdingValues.fZoomFactor = real;
   INTERPOLATE(fDolly);
   holdingValues.fDolly = real;

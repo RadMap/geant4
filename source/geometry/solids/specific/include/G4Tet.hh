@@ -27,30 +27,20 @@
 // *                                                                  *
 // ********************************************************************
 //
-//
-//
-//
-// --------------------------------------------------------------------
-// GEANT 4 class header file
-//
 // G4Tet
 //
 // Class description:
 //
-//   A G4Tet is a tetrahedrasolid.
-//
+// A G4Tet is a tetrahedra solid.
 
-// History:
-// -------
 // 03.09.2004 - M.H.Mendenhall & R.A.Weller (Vanderbilt University, USA)
-// 10.02.2005 - D.Anninos (CERN) - Added GetPointOnSurface() method.
-// 12.11.2006 - M.H.Mendenhall - Added GetSurfaceArea() concrete implementation.
-// 20.09.2010 - G.Cosmo (CERN) - Added copy-ctor and operator=().
-// 24.09.2016 - E.Tcherniaev - Removed CreateRotatedVertices().
+// 08.01.2020 - E.Tcherniaev, complete revision, speed up
 // --------------------------------------------------------------------
 #ifndef G4TET_HH
 #define G4TET_HH
-/*
+
+#include "G4GeomTypes.hh"
+
 #if defined(G4GEOM_USE_USOLIDS)
 #define G4GEOM_USE_UTET 1
 #endif
@@ -59,7 +49,7 @@
   #define G4UTet G4Tet
   #include "G4UTet.hh"
 #else
-*/
+
 #include "G4VSolid.hh"
 
 class G4Tet : public G4VSolid
@@ -67,43 +57,61 @@ class G4Tet : public G4VSolid
 
   public:  // with description
 
-    G4Tet(const G4String& pName, 
-                G4ThreeVector anchor,
-                G4ThreeVector p2,
-                G4ThreeVector p3,
-                G4ThreeVector p4, 
-                G4bool *degeneracyFlag=0);
+    // Constructor
+    G4Tet(const G4String& pName,
+          const G4ThreeVector& anchor,
+          const G4ThreeVector& p1,
+          const G4ThreeVector& p2,
+          const G4ThreeVector& p3,
+                G4bool* degeneracyFlag = nullptr);
 
+    // Destructor
     virtual ~G4Tet();
 
+    // Modifier
+    void SetVertices(const G4ThreeVector& anchor,
+                     const G4ThreeVector& p1,
+                     const G4ThreeVector& p2,
+                     const G4ThreeVector& p3);
+
+    // Accessors, return the four vertices of the shape
+    void GetVertices(G4ThreeVector& anchor,
+                     G4ThreeVector& p1,
+                     G4ThreeVector& p2,
+                     G4ThreeVector& p3) const;
+    std::vector<G4ThreeVector> GetVertices() const;
+
+    // Set warning flag - depricated (dummy)
+    void PrintWarnings(G4bool) {};
+
+    // Return true if the tetrahedron is degenerate
+    G4bool CheckDegeneracy(const G4ThreeVector& p0,
+                           const G4ThreeVector& p1,
+                           const G4ThreeVector& p2,
+                           const G4ThreeVector& p3) const;
+
+    // Standard methods
     void ComputeDimensions(G4VPVParameterisation* p,
                            const G4int n,
                            const G4VPhysicalVolume* pRep);
 
     void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const;
-
     G4bool CalculateExtent(const EAxis pAxis,
                            const G4VoxelLimits& pVoxelLimit,
                            const G4AffineTransform& pTransform,
                                  G4double& pmin, G4double& pmax) const;
-    // Methods for solid
 
     EInside Inside(const G4ThreeVector& p) const;
-
     G4ThreeVector SurfaceNormal( const G4ThreeVector& p) const;
-
-    G4double DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const;
-
+    G4double DistanceToIn(const G4ThreeVector& p,
+                          const G4ThreeVector& v) const;
     G4double DistanceToIn(const G4ThreeVector& p) const;
-
-    G4double DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v,
-                           const G4bool calcNorm=false,
-                                 G4bool *validNorm=0, G4ThreeVector *n=0) const;
-
+    G4double DistanceToOut(const G4ThreeVector& p,
+                           const G4ThreeVector& v,
+                           const G4bool calcNorm = false,
+                                 G4bool* validNorm = nullptr,
+                                 G4ThreeVector* n = nullptr) const;
     G4double DistanceToOut(const G4ThreeVector& p) const;
-
-    G4double GetCubicVolume();
-    G4double GetSurfaceArea();
 
     G4GeometryType GetEntityType() const;
 
@@ -111,62 +119,56 @@ class G4Tet : public G4VSolid
 
     std::ostream& StreamInfo(std::ostream& os) const;
 
+    G4double GetCubicVolume();
+    G4double GetSurfaceArea();
+
     G4ThreeVector GetPointOnSurface() const;
 
-    // Functions for visualization
-
-    void          DescribeYourselfTo (G4VGraphicsScene& scene) const;
-    G4VisExtent   GetExtent          () const;
-    G4Polyhedron* CreatePolyhedron   () const;
-    G4Polyhedron* GetPolyhedron      () const;
+    // Methods for visualization
+    void DescribeYourselfTo (G4VGraphicsScene& scene) const;
+    G4VisExtent GetExtent () const;
+    G4Polyhedron* CreatePolyhedron () const;
+    G4Polyhedron* GetPolyhedron () const;
 
   public:   // without description
 
+    // Fake default constructor for usage restricted to direct object
+    // persistency for clients requiring preallocation of memory for
+    // persistifiable objects
     G4Tet(__void__&);
-      // Fake default constructor for usage restricted to direct object
-      // persistency for clients requiring preallocation of memory for
-      // persistifiable objects.
 
+    // Copy constructor
     G4Tet(const G4Tet& rhs);
-    G4Tet& operator=(const G4Tet& rhs); 
-      // Copy constructor and assignment operator.
 
-    const char* CVSHeaderVers()
-      { return "$Id: G4Tet.hh 113723 2018-12-06 14:12:07Z gunter $"; }
-    const char* CVSFileVers()
-      { return CVSVers; }
-    void PrintWarnings(G4bool flag)
-      { warningFlag=flag; }
-    static G4bool CheckDegeneracy(G4ThreeVector anchor,
-                                  G4ThreeVector p2,
-                                  G4ThreeVector p3,
-                                  G4ThreeVector p4);
-    std::vector<G4ThreeVector> GetVertices() const;
-      // Return the four vertices of the shape.
+    // Assignment operator
+    G4Tet& operator=(const G4Tet& rhs);
 
   private:
 
-    G4double fCubicVolume, fSurfaceArea;
+    // Set data members
+    void Initialize(const G4ThreeVector& p0,
+                    const G4ThreeVector& p1,
+                    const G4ThreeVector& p2,
+                    const G4ThreeVector& p3);
 
-    mutable G4bool fRebuildPolyhedron;
-    mutable G4Polyhedron* fpPolyhedron;
-
-    G4ThreeVector GetPointOnFace(G4ThreeVector p1, G4ThreeVector p2, 
-                                 G4ThreeVector p3, G4double& area) const;
-    static const char CVSVers[];
+    // Return normal to surface closest to p
+    G4ThreeVector ApproxSurfaceNormal(const G4ThreeVector& p) const;
 
   private:
 
-    G4ThreeVector fAnchor, fP2, fP3, fP4, fMiddle;
-    G4ThreeVector fNormal123, fNormal142, fNormal134, fNormal234;
+    G4double halfTolerance = 0;
+    G4double fCubicVolume = 0; // Volume
+    G4double fSurfaceArea = 0; // Surface area
+    mutable G4bool fRebuildPolyhedron = false;
+    mutable G4Polyhedron* fpPolyhedron = nullptr;
 
-    G4bool warningFlag;
-
-    G4double fCdotN123, fCdotN142, fCdotN134, fCdotN234;
-    G4double fXMin, fXMax, fYMin, fYMax, fZMin, fZMax;
-    G4double fDx, fDy, fDz, fTol, fMaxSize;
+    G4ThreeVector fVertex[4];   // thetrahedron vertices
+    G4ThreeVector fNormal[4];   // normals to faces
+    G4double fDist[4] = {0};    // distances from origin to faces
+    G4double fArea[4] = {0};    // face areas
+    G4ThreeVector fBmin, fBmax; // bounding box
 };
 
-//#endif
+#endif
 
 #endif

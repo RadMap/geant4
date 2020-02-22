@@ -24,7 +24,7 @@
 // ********************************************************************
 //
 //
-/// \file parallel/ParN04/include/ExN04MuonHit.hh
+/// \file ExN04MuonHit.hh
 /// \brief Definition of the ExN04MuonHit class
 //
 
@@ -49,7 +49,7 @@ class ExN04MuonHit : public G4VHit
       ~ExN04MuonHit();
       ExN04MuonHit(const ExN04MuonHit &right);
       const ExN04MuonHit& operator=(const ExN04MuonHit &right);
-      G4int operator==(const ExN04MuonHit &right) const;
+      G4bool operator==(const ExN04MuonHit &right) const;
 
 
       inline void *operator new(size_t);

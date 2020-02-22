@@ -23,13 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
-// --------------------------------------------------------------------
-// GEANT 4 class header file
-//
-// 
 // G4Tubs
 //
 // Class description:
@@ -57,15 +50,12 @@
 //
 //   fPhiFullTube   Boolean variable used for indicate the Phi Section
 
-// History:
-// 10.08.95 P.Kent: General cleanup, use G4VSolid extent helper functions
-//                  to CalculateExtent()
-// 23.01.94 P.Kent: Converted to `tolerant' geometry
-// 19.07.96 J.Allison: G4GraphicsScene - see G4Box
-// 22.07.96 J.Allison: Changed SendPolyhedronTo to CreatePolyhedron
+// 23.01.94 P.Kent: First version. Converted to `tolerant' geometry
 // --------------------------------------------------------------------
 #ifndef G4TUBS_HH
 #define G4TUBS_HH
+
+#include "G4GeomTypes.hh"
 
 #if defined(G4GEOM_USE_USOLIDS)
 #define G4GEOM_USE_UTUBS 1
@@ -99,7 +89,7 @@ class G4Tubs : public G4CSGSolid
       // Destructor
 
     // Accessors
-    
+
     inline G4double GetInnerRadius   () const;
     inline G4double GetOuterRadius   () const;
     inline G4double GetZHalfLength   () const;
@@ -117,7 +107,7 @@ class G4Tubs : public G4CSGSolid
     inline void SetZHalfLength   (G4double newDz);
     inline void SetStartPhiAngle (G4double newSPhi, G4bool trig=true);
     inline void SetDeltaPhiAngle (G4double newDPhi);
-    
+
     // Methods for solid
 
     inline G4double GetCubicVolume();
@@ -141,8 +131,9 @@ class G4Tubs : public G4CSGSolid
     G4double DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const;
     G4double DistanceToIn(const G4ThreeVector& p) const;
     G4double DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v,
-                           const G4bool calcNorm=G4bool(false),
-                                 G4bool *validNorm=0, G4ThreeVector *n=0) const;
+                           const G4bool calcNorm = false,
+                                 G4bool* validNorm = nullptr,
+                                 G4ThreeVector* n = nullptr) const;
     G4double DistanceToOut(const G4ThreeVector& p) const;
 
     G4GeometryType GetEntityType() const;
@@ -167,7 +158,7 @@ class G4Tubs : public G4CSGSolid
       // persistifiable objects.
 
     G4Tubs(const G4Tubs& rhs);
-    G4Tubs& operator=(const G4Tubs& rhs); 
+    G4Tubs& operator=(const G4Tubs& rhs);
       // Copy constructor and assignment operator.
 
     //  Older names for access functions
@@ -194,6 +185,13 @@ class G4Tubs : public G4CSGSolid
       //
       // Recompute relevant trigonometric values and cache them
 
+    inline G4double FastInverseRxy( const G4ThreeVector& pos, G4double invRad,
+                                    G4double normalTolerance ) const;
+      //
+      // Compute fast inverse cylindrical (Rxy) radius for points expected to
+      // be on a cylindrical surface. Ensures that surface normal vector
+      // produced has magnitude with 'normalTolerance' of unit
+
     virtual G4ThreeVector ApproxSurfaceNormal( const G4ThreeVector& p ) const;
       //
       // Algorithm for SurfaceNormal() following the original
@@ -213,11 +211,16 @@ class G4Tubs : public G4CSGSolid
       //
       // Radial and angular tolerances
 
+    static constexpr G4double kNormTolerance = 1.0e-6;
+      // 
+      // Tolerance of unity for surface normal
+      // (for speedup - use fInvRmax if possible )
+   
     G4double fRMin, fRMax, fDz, fSPhi, fDPhi;
       //
       // Radial and angular dimensions
 
-    G4double sinCPhi, cosCPhi, cosHDPhiOT, cosHDPhiIT,
+    G4double sinCPhi, cosCPhi, cosHDPhi, cosHDPhiOT, cosHDPhiIT,
              sinSPhi, cosSPhi, sinEPhi, cosEPhi;
       //
       // Cached trigonometric values
@@ -226,6 +229,10 @@ class G4Tubs : public G4CSGSolid
       //
       // Flag for identification of section or full tube
 
+    G4double fInvRmax, fInvRmin;
+      // 
+      // More cached values - inverse of Rmax, Rmin.
+   
     G4double halfCarTolerance, halfRadTolerance, halfAngTolerance;
       //
       // Cached half tolerance values

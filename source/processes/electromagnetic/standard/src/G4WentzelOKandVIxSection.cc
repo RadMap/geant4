@@ -123,20 +123,24 @@ void G4WentzelOKandVIxSection::Initialise(const G4ParticleDefinition* p,
 
   // cosThetaMax is below 1.0 only when MSC is combined with SS
   if(isCombined) { cosThetaMax = cosThetaLim; } 
-  
-  G4double a = G4EmParameters::Instance()->FactorForAngleLimit()
-    *CLHEP::hbarc/CLHEP::fermi;
+  G4EmParameters* param = G4EmParameters::Instance();
+  G4double a = param->FactorForAngleLimit()*CLHEP::hbarc/CLHEP::fermi;
   factorA2 = 0.5*a*a;
   currentMaterial = nullptr;
 
-  fNucFormfactor = G4EmParameters::Instance()->NuclearFormfactorType();
+  fNucFormfactor = param->NuclearFormfactorType();
   if(0.0 == ScreenRSquare[0]) { InitialiseA(); }
 
-  // Mott corrections
+  // Mott corrections always added
   if((p == theElectron || p == thePositron) && !fMottXSection) {
     fMottXSection = new G4ScreeningMottCrossSection();
     fMottXSection->Initialise(p, 1.0);
   }
+  /*
+  G4cout << "G4WentzelOKandVIxSection::Initialise for " 
+	 << p->GetParticleName() << " cosThetaMax= " << cosThetaMax 
+	 << "  " << ScreenRSquare[0] << " coeff= " << coeff << G4endl;
+  */
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -153,7 +157,7 @@ void G4WentzelOKandVIxSection::InitialiseA()
     G4double constn = 6.937e-6/(MeV*MeV);
     G4double fct = G4EmParameters::Instance()->ScreeningFactor();
 
-    G4double afact = fct*0.5*alpha2*a0*a0;
+    G4double afact = 0.5*fct*alpha2*a0*a0;
     ScreenRSquare[0] = afact;
     ScreenRSquare[1] = afact;
     ScreenRSquareElec[1] = afact; 
@@ -181,11 +185,6 @@ void G4WentzelOKandVIxSection::InitialiseA()
 
 void G4WentzelOKandVIxSection::SetupParticle(const G4ParticleDefinition* p)
 {
-  /*
-  G4cout << "G4WentzelOKandVIxSection::SetupParticle " << p 
-	 << "  " << particle << "  " << this << G4endl; 
-  G4cout << this << "  " << p->GetParticleName() << G4endl; 
-  */
   particle = p;
   mass = particle->GetPDGMass();
   spin = particle->GetPDGSpin();
@@ -253,6 +252,8 @@ G4WentzelOKandVIxSection::SetupTarget(G4int Z, G4double cut)
     cosTetMaxElec = 1.0;
     ComputeMaxElectronScattering(cut); 
   }
+  //G4cout << "SetupTarget:  Z= " << targetZ << " kinFactor= " << kinFactor
+  //	 << " fMottFactor= " << fMottFactor << " screenZ= " << screenZ <<G4endl;
   return cosTetMaxNuc2;
 } 
 
@@ -386,14 +387,14 @@ G4WentzelOKandVIxSection::SampleSingleScattering(G4double cosTMin,
     }
     G4double grej;
     if(fMottXSection) {
-      fMottXSection->SetupKinematic(tkin, (G4double)targetZ);
+      fMottXSection->SetupKinematic(tkin, targetZ);
       grej = fMottXSection->RatioMottRutherfordCosT(std::sqrt(z1))*fm*fm;
     } else {
       grej = (1. - z1*factB + factB1*targetZ*sqrt(z1*factB)*(2. - z1))
       *fm*fm/(1.0 + z1*factD);
     }
-    //G4cout << "SampleSingleScattering: E= " << tkin << " z1= " 
-    //	   << z1 << " grej= " << grej << G4endl;
+    // G4cout << "SampleSingleScattering: E= " << tkin << " z1= " 
+    //	   << z1 << " grej= "<< grej << " mottFact= "<< fMottFactor<< G4endl;
     if(fMottFactor*rndmEngineMod->flat() <= grej ) {
       // exclude "false" scattering due to formfactor and spin effect
       G4double cost = 1.0 - z1;

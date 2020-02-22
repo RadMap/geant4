@@ -52,6 +52,7 @@
 #include "G4NucleusLimits.hh"
 #include "G4ThreeVector.hh"
 #include "G4Threading.hh"
+#include "G4RadioactiveDecayMode.hh"
 
 class G4Fragment;
 class G4RadioactiveDecayBaseMessenger;
@@ -127,10 +128,6 @@ class G4RadioactiveDecayBase : public G4VRestDiscreteProcess
     // by G4RadioactiveDecay
     inline G4NucleusLimits GetNucleusLimits() const {return theNucleusLimits;}
 
-    // Controls whether G4RadioactiveDecay uses fast beta simulation mode
-    // Currently does nothing - kept for backward compatibility
-    inline void SetFBeta (G4bool r ) { FBeta  = r; }
-
     inline void SetDecayDirection(const G4ThreeVector& theDir) {
       forceDecayDirection = theDir.unit();
     }
@@ -160,6 +157,8 @@ class G4RadioactiveDecayBase : public G4VRestDiscreteProcess
 
   protected:
 
+    void DecayAnalog(const G4Track& theTrack);
+
     G4DecayProducts* DoDecay(const G4ParticleDefinition& theParticleDef);
 
     // Apply directional bias for "visible" daughters (e+-, gamma, n, p, alpha)
@@ -173,8 +172,6 @@ class G4RadioactiveDecayBase : public G4VRestDiscreteProcess
     G4double GetMeanLifeTime(const G4Track& theTrack,
                              G4ForceCondition* condition);
 
-//    G4double GetDecayTime();
-
     // ParticleChange for decay process
     G4ParticleChangeForRadDecay fParticleChangeForRadDecay;
 
@@ -186,7 +183,15 @@ class G4RadioactiveDecayBase : public G4VRestDiscreteProcess
 
     static const G4double levelTolerance;
 
+    // Library of decay tables
+    DecayTableMap* dkmap;
+#ifdef G4MULTITHREADED
+    static DecayTableMap* master_dkmap;
+#endif
+
   private:
+
+    void StreamInfo(std::ostream& os, const G4String& endline);
 
     G4RadioactiveDecayBase(const G4RadioactiveDecayBase &right);
     G4RadioactiveDecayBase& operator=(const G4RadioactiveDecayBase &right);
@@ -194,7 +199,6 @@ class G4RadioactiveDecayBase : public G4VRestDiscreteProcess
     G4NucleusLimits theNucleusLimits;
 
     G4bool isInitialised;
-    G4bool FBeta;
 
     G4bool applyICM;
     G4bool applyARM;
@@ -210,11 +214,14 @@ class G4RadioactiveDecayBase : public G4VRestDiscreteProcess
     //User define radioactive decay data files replacing some files in the G4RADECAY database
     std::map<G4int, G4String> theUserRadioactiveDataFiles;
 
-    // Library of decay tables
-    DecayTableMap* dkmap;
-#ifdef G4MULTITHREADED
-    static DecayTableMap* master_dkmap;
-#endif
+    //The last RadDecayMode
+    G4RadioactiveDecayMode theRadDecayMode;
+
+//    // Library of decay tables
+//    DecayTableMap* dkmap;
+// #ifdef G4MULTITHREADED
+//     static DecayTableMap* master_dkmap;
+// #endif
 
     // Remainder of life time at rest
     G4double fRemainderLifeTime;
@@ -244,6 +251,8 @@ class G4RadioactiveDecayBase : public G4VRestDiscreteProcess
 #ifdef G4MULTITHREADED
   public:
     static G4Mutex radioactiveDecayMutex;
+  protected:
+    G4int& NumberOfInstances();
 #endif
 };
 

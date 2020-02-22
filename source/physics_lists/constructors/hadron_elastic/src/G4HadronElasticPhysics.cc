@@ -40,12 +40,6 @@
 //
 //----------------------------------------------------------------------------
 //
-// CHIPS for sampling scattering for p and n
-// Glauber model for samplimg of high energy pi+- (E > 1GeV)
-// LHEP sampling model for the other particle
-// BBG cross sections for p, n and pi+- 
-// LHEP cross sections for other particles
-
 #include "G4HadronElasticPhysics.hh"
 
 #include "G4SystemOfUnits.hh"
@@ -109,14 +103,12 @@ void G4HadronElasticPhysics::ConstructParticle()
 
 void G4HadronElasticPhysics::ConstructProcess()
 {
-  const G4double elimitPi = 1.0*GeV;
   const G4double elimitAntiNuc = 100.*MeV;
   const G4double delta = 0.1*MeV;
   if(verbose > 1) {
-    G4cout << "### HadronElasticPhysics::ConstructProcess: Elimit for pi " 
-	   << elimitPi/GeV << " GeV" << G4endl;
-    G4cout << "                                         for anti-neuclei " 
-	   << elimitAntiNuc/GeV << " GeV"	   << G4endl;
+    G4cout << "### HadronElasticPhysics::ConstructProcess: "
+	   << "Elimit for for anti-neuclei " << elimitAntiNuc/GeV << " GeV"
+           << G4endl;
   }
 
   G4AntiNuclElastic* anuc = new G4AntiNuclElastic();
@@ -125,16 +117,16 @@ void G4HadronElasticPhysics::ConstructProcess()
     new G4CrossSectionElastic(anuc->GetComponentCrossSection());
 
   G4HadronElastic* lhep0 = new G4HadronElastic();
-  G4HadronElastic* lhep1 = new G4HadronElastic();
   G4HadronElastic* lhep2 = new G4HadronElastic();
-  lhep1->SetMaxEnergy(elimitPi+delta);
   lhep2->SetMaxEnergy(elimitAntiNuc+delta);
 
   G4ElasticHadrNucleusHE* he = new G4ElasticHadrNucleusHE(); 
-  he->SetMinEnergy(elimitPi);
 
   G4VCrossSectionDataSet* theComponentGGHadronNucleusData = 
     new G4CrossSectionElastic( new G4ComponentGGHadronNucleusXsc );
+
+  G4VCrossSectionDataSet* theComponentGGNuclNuclData = 
+    new G4CrossSectionElastic( new G4ComponentGGNuclNuclXsc );
 
   G4HadronElasticProcess* hel = nullptr; 
 
@@ -146,34 +138,36 @@ void G4HadronElasticPhysics::ConstructProcess()
     G4ProcessManager* pmanager = particle->GetProcessManager();
     G4String pname = particle->GetParticleName();
     if(pname == "anti_lambda"  ||
-       pname == "anti_neutron" ||
        pname == "anti_omega-"  || 
        pname == "anti_sigma-"  || 
+       pname == "anti_sigma0"  || 
        pname == "anti_sigma+"  || 
-       pname == "anti_xi-"  || 
-       pname == "anti_xi0"  || 
-       pname == "lambda"    || 
-       pname == "omega-"    || 
-       pname == "sigma-"    || 
-       pname == "sigma+"    || 
-       pname == "xi-"       || 
-       pname == "alpha"     ||
-       pname == "deuteron"  ||
-       pname == "triton"   
+       pname == "anti_xi-"     || 
+       pname == "anti_xi0"     || 
+       pname == "lambda"       || 
+       pname == "omega-"       || 
+       pname == "sigma-"       || 
+       pname == "sigma0"       || 
+       pname == "sigma+"       || 
+       pname == "xi-"          ||
+       pname == "xi0"
        ) {
       
       hel = new G4HadronElasticProcess();
       hel->RegisterMe(lhep0);
+      hel->AddDataSet( theComponentGGHadronNucleusData );
       pmanager->AddDiscreteProcess(hel);
       if(verbose > 1) {
 	G4cout << "### HadronElasticPhysics: " << hel->GetProcessName()
 	       << " added for " << particle->GetParticleName() << G4endl;
       }
 
-    } else if(pname == "He3") {
+    } else if(pname == "alpha"     ||
+              pname == "deuteron"  ||
+              pname == "triton"    ||
+              pname == "He3"
+             ) {
       hel = new G4HadronElasticProcess();
-      G4VCrossSectionDataSet* theComponentGGNuclNuclData = 
-        new G4CrossSectionElastic(new G4ComponentGGNuclNuclXsc());
       hel->AddDataSet(theComponentGGNuclNuclData);
       hel->RegisterMe(lhep0);
       pmanager->AddDiscreteProcess(hel);
@@ -186,9 +180,6 @@ void G4HadronElasticPhysics::ConstructProcess()
 
       hel = new G4HadronElasticProcess();
       hel->AddDataSet(new G4BGGNucleonElasticXS(particle));
-
-      //hel->AddDataSet(G4CrossSectionDataSetRegistry::Instance()->GetCrossSectionDataSet(G4ChipsProtonElasticXS::Default_Name()));
-     
       hel->RegisterMe(new G4ChipsElasticModel());
       pmanager->AddDiscreteProcess(hel);
       if(verbose > 1) {
@@ -199,7 +190,7 @@ void G4HadronElasticPhysics::ConstructProcess()
     } else if(pname == "neutron") {   
 
       hel = new G4HadronElasticProcess();
-      hel->AddDataSet(G4CrossSectionDataSetRegistry::Instance()->GetCrossSectionDataSet(G4NeutronElasticXS::Default_Name()));
+      hel->AddDataSet(new G4NeutronElasticXS());
       hel->RegisterMe(new G4ChipsElasticModel());
       pmanager->AddDiscreteProcess(hel);
       if(verbose > 1) {
@@ -211,7 +202,6 @@ void G4HadronElasticPhysics::ConstructProcess()
 
       hel = new G4HadronElasticProcess();
       hel->AddDataSet(new G4BGGPionElasticXS(particle));
-      hel->RegisterMe(lhep1);
       hel->RegisterMe(he);
       pmanager->AddDiscreteProcess(hel);
       if(verbose > 1) {
@@ -242,6 +232,7 @@ void G4HadronElasticPhysics::ConstructProcess()
 
     } else if(
        pname == "anti_proton"    || 
+       pname == "anti_neutron"   ||
        pname == "anti_alpha"     ||
        pname == "anti_deuteron"  ||
        pname == "anti_triton"    ||

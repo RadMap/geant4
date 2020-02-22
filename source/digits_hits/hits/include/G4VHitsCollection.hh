@@ -47,7 +47,7 @@ class G4VHitsCollection
       G4VHitsCollection();
       G4VHitsCollection(G4String detName,G4String colNam);
       virtual ~G4VHitsCollection();
-      G4int operator==(const G4VHitsCollection &right) const;
+      G4bool operator==(const G4VHitsCollection &right) const;
 
       virtual void DrawAllHits();
       virtual void PrintAllHits();
@@ -61,9 +61,9 @@ class G4VHitsCollection
       G4int colID;
 
   public:
-      inline G4String& GetName()
+      inline const G4String& GetName() const
       { return collectionName; }
-      inline G4String& GetSDname()
+      inline const G4String& GetSDname() const
       { return SDname; }
       inline void SetColID(G4int i)
       { colID = i; }

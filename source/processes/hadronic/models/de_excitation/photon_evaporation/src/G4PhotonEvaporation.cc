@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 // -------------------------------------------------------------------
 //
 //      GEANT4 class file
@@ -63,14 +62,13 @@ G4Mutex G4PhotonEvaporation::PhotonEvaporationMutex = G4MUTEX_INITIALIZER;
 
 G4PhotonEvaporation::G4PhotonEvaporation(G4GammaTransition* p)
   : fLevelManager(nullptr), fTransition(p), fPolarization(nullptr),
-    fVerbose(0), fPoints(0), vShellNumber(-1), fIndex(0), 
+    fVerbose(1), fPoints(0), vShellNumber(-1), fIndex(0), 
     fMaxLifeTime(DBL_MAX), 
     fICM(true), fRDM(false), fSampleTime(true), 
     fCorrelatedGamma(false), isInitialised(false)
 {
   //G4cout << "### New G4PhotonEvaporation() " << this << G4endl;   
   fNuclearLevelData = G4NuclearLevelData::GetInstance(); 
-  fNucPStore = G4NuclearPolarizationStore::GetInstance();
   Tolerance = 20*CLHEP::eV;
 
   if(!fTransition) { fTransition = new G4GammaTransition(); }
@@ -92,18 +90,19 @@ void G4PhotonEvaporation::Initialise()
   if(isInitialised) { return; }
   isInitialised = true;
 
-  if(fVerbose > 0) {
-    G4cout << "### G4PhotonEvaporation is initialized " << this << G4endl;   
-  }
   G4DeexPrecoParameters* param = fNuclearLevelData->GetParameters();
   Tolerance = param->GetMinExcitation();
   fMaxLifeTime = param->GetMaxLifeTime();
   fCorrelatedGamma = param->CorrelatedGamma();
   fICM = param->GetInternalConversionFlag();
+  fVerbose = param->GetVerbose();
 
   fTransition->SetPolarizationFlag(fCorrelatedGamma);
   fTransition->SetTwoJMAX(param->GetTwoJMAX());
   fTransition->SetVerbose(fVerbose);
+  if(fVerbose > 1) {
+    G4cout << "### G4PhotonEvaporation is initialized " << this << G4endl;   
+  }
 }
 
 void G4PhotonEvaporation::InitialiseGRData()
@@ -113,7 +112,7 @@ void G4PhotonEvaporation::InitialiseGRData()
 #endif
   if(0.0f == GREnergy[1]) { 
     G4Pow* g4calc = G4Pow::GetInstance();
-    static const G4float GRWfactor = 0.3f;
+    const G4float GRWfactor = 0.3f;
     for (G4int A=1; A<MAXGRDATA; ++A) {
       GREnergy[A] = (G4float)(40.3*CLHEP::MeV/g4calc->powZ(A,0.2));
       GRWidth[A] = GRWfactor*GREnergy[A];
@@ -132,39 +131,41 @@ G4PhotonEvaporation::EmittedFragment(G4Fragment* nucleus)
 
   // potentially external code may set initial polarization
   // but only for radioactive decay nuclear polarization is considered
+  G4NuclearPolarizationStore* fNucPStore = nullptr;
   if(fCorrelatedGamma && fRDM) {
+    fNucPStore = G4NuclearPolarizationStore::GetInstance();
     if(nucleus->GetNuclearPolarization()) { 
       fNucPStore->RemoveMe(nucleus->GetNuclearPolarization());
       delete nucleus->GetNuclearPolarization(); 
     } 
     fPolarization = fNucPStore->FindOrBuild(nucleus->GetZ_asInt(),
-					    nucleus->GetA_asInt(),
-					    nucleus->GetExcitationEnergy());
+                                            nucleus->GetA_asInt(),
+                                            nucleus->GetExcitationEnergy());
     nucleus->SetNuclearPolarization(fPolarization);
   }
-  if(fVerbose > 1) { 
+  if(fVerbose > 2) { 
     G4cout << "G4PhotonEvaporation::EmittedFragment: " 
-	   << *nucleus << G4endl;
+           << *nucleus << G4endl;
     if(fPolarization) { G4cout << "NucPolar: " << fPolarization << G4endl; }
     G4cout << " CorrGamma: " << fCorrelatedGamma << " RDM: " << fRDM
-	   << " fPolarization: " << fPolarization << G4endl;
+           << " fPolarization: " << fPolarization << G4endl;
   }
   G4Fragment* gamma = GenerateGamma(nucleus);
 
   // remove G4NuclearPolarizaton when reach ground state
-  if(fPolarization && 0 == fIndex) {
-    if(fVerbose > 1) { 
+  if(fNucPStore && fPolarization && 0 == fIndex) {
+    if(fVerbose > 3) { 
       G4cout << "G4PhotonEvaporation::EmittedFragment: remove " 
-	     << fPolarization << G4endl;
+             << fPolarization << G4endl;
     }
     fNucPStore->RemoveMe(fPolarization);
     fPolarization = nullptr;
     nucleus->SetNuclearPolarization(fPolarization);
   }
 
-  if(fVerbose > 1) {
+  if(fVerbose > 2) {
     G4cout << "G4PhotonEvaporation::EmittedFragment: RDM= " 
-	   << fRDM << " done:" << G4endl; 
+           << fRDM << " done:" << G4endl; 
     if(gamma) { G4cout << *gamma << G4endl; }
     G4cout << "   Residual: " << *nucleus << G4endl;
   }
@@ -174,7 +175,7 @@ G4PhotonEvaporation::EmittedFragment(G4Fragment* nucleus)
 G4FragmentVector* 
 G4PhotonEvaporation::BreakItUp(const G4Fragment& nucleus)
 {
-  if(fVerbose > 0) {
+  if(fVerbose > 1) {
     G4cout << "G4PhotonEvaporation::BreakItUp" << G4endl;
   }
   G4Fragment* aNucleus = new G4Fragment(nucleus);
@@ -185,12 +186,12 @@ G4PhotonEvaporation::BreakItUp(const G4Fragment& nucleus)
 }
 
 G4bool G4PhotonEvaporation::BreakUpChain(G4FragmentVector* products,
-					 G4Fragment* nucleus)
+                                         G4Fragment* nucleus)
 {
   if(!isInitialised) { Initialise(); }
-  if(fVerbose > 0) {
+  if(fVerbose > 1) {
     G4cout << "G4PhotonEvaporation::BreakUpChain RDM= " << fRDM << " "
-	   << *nucleus << G4endl;
+           << *nucleus << G4endl;
   }
   G4Fragment* gamma = nullptr;
   fSampleTime = (fRDM) ? false : true;
@@ -198,8 +199,8 @@ G4bool G4PhotonEvaporation::BreakUpChain(G4FragmentVector* products,
   // start decay chain from unpolarized state
   if(fCorrelatedGamma) {
     fPolarization = new G4NuclearPolarization(nucleus->GetZ_asInt(),
-					      nucleus->GetA_asInt(),
-					      nucleus->GetExcitationEnergy());
+                                              nucleus->GetA_asInt(),
+                                              nucleus->GetExcitationEnergy());
     nucleus->SetNuclearPolarization(fPolarization);
   }
 
@@ -207,10 +208,10 @@ G4bool G4PhotonEvaporation::BreakUpChain(G4FragmentVector* products,
     gamma = GenerateGamma(nucleus);
     if(gamma) { 
       products->push_back(gamma);
-      if(fVerbose > 0) {
-	G4cout << "G4PhotonEvaporation::BreakUpChain: "   
-	       << *gamma << G4endl;
-	G4cout << "   Residual: " << *nucleus << G4endl;
+      if(fVerbose > 2) {
+        G4cout << "G4PhotonEvaporation::BreakUpChain: "   
+               << *gamma << G4endl;
+        G4cout << "   Residual: " << *nucleus << G4endl;
       }
       // for next decays in the chain always sample time
       fSampleTime = true;
@@ -236,9 +237,9 @@ G4PhotonEvaporation::GetEmissionProbability(G4Fragment* nucleus)
   G4int Z = nucleus->GetZ_asInt();
   G4int A = nucleus->GetA_asInt();
   fCode   = 1000*Z + A; 
-  if(fVerbose > 1) {
+  if(fVerbose > 2) {
     G4cout << "G4PhotonEvaporation::GetEmissionProbability: Z=" 
-	   << Z << " A=" << A << " Eexc(MeV)= " << fExcEnergy << G4endl; 
+           << Z << " A=" << A << " Eexc(MeV)= " << fExcEnergy << G4endl; 
   }
   // ignore gamma de-excitation for exotic fragments 
   // and for very low excitations
@@ -265,12 +266,12 @@ G4PhotonEvaporation::GetEmissionProbability(G4Fragment* nucleus)
   if(0.0 == emax || fExcEnergy*eexcfac <= emax) { emax = fExcEnergy*eexcfac; }
 
   fStep = emax;
-  static const G4double MaxDeltaEnergy = CLHEP::MeV;
+  const G4double MaxDeltaEnergy = CLHEP::MeV;
   fPoints = std::min((G4int)(fStep/MaxDeltaEnergy) + 2, MAXDEPOINT);
   fStep /= ((G4double)(fPoints - 1));
-  if(fVerbose > 1) {
+  if(fVerbose > 2) {
     G4cout << "Emax= " << emax << " Npoints= " << fPoints 
-	   << "  Eex= " << fExcEnergy << G4endl;
+           << "  Eex= " << fExcEnergy << G4endl;
   }
   // integrate probabilities
   G4double eres = (G4double)GREnergy[A];
@@ -297,8 +298,11 @@ G4PhotonEvaporation::GetEmissionProbability(G4Fragment* nucleus)
       *gammaR2*gammaE2/(egdp2*egdp2 + gammaR2);
     fProbability += (p1 + p0);
     fCummProbability[i] = fProbability;
-    //G4cout << "Egamma= " << egam << "  Eex= " << fExcEnergy
-    //<< "  p0= " << p0 << " p1= " << p1 << " sum= " << fCummProbability[i] <<G4endl;
+    if(fVerbose > 3) {
+      G4cout << "Egamma= " << egam << "  Eex= " << fExcEnergy
+             << "  p0= " << p0 << " p1= " << p1 << " sum= " 
+             << fCummProbability[i] <<G4endl;
+    }
     p0 = p1;
   }
 
@@ -351,125 +355,154 @@ G4PhotonEvaporation::GenerateGamma(G4Fragment* nucleus)
   const G4NucLevel* level = nullptr;
   size_t ntrans = 0;
 
+  if(fVerbose > 2) {
+    G4cout << "GenerateGamma: " << " Eex= " << eexc
+           << " Eexmax= " << fLevelEnergyMax << G4endl;
+  }
   // initial discrete state
   if(fLevelManager && eexc <= fLevelEnergyMax + Tolerance) {
     fIndex = fLevelManager->NearestLevelIndex(eexc, fIndex);
+    // initial state below 1st level
+    if(0 == fIndex && eexc >= Tolerance 
+       && fLevelManager->NumberOfTransitions() > 0) { fIndex = 1; }
+    isDiscrete = true; 
+    if(fVerbose > 2) {
+      G4cout << "              index= " << fIndex 
+             << " lTime= " << fLevelManager->LifeTime(fIndex) << G4endl;
+    }
     if(0 < fIndex) {
       // for discrete transition  
       level = fLevelManager->GetLevel(fIndex);
       if(level) { 
-	ntrans = level->NumberOfTransitions();
+        ntrans = level->NumberOfTransitions();
         JP1 = fLevelManager->SpinTwo(fIndex); 
-        if(ntrans > 0) { 
-	  isDiscrete = true; 
-	} else {
-	  // if no transition available nothing is done for RDM
-	  if(fRDM) {return result; }
-	  if(fLevelManager->FloatingLevel(fIndex) > 0) {
-	    --fIndex;
-	    level = fLevelManager->GetLevel(fIndex);
-	    ntrans = level->NumberOfTransitions();
-	    JP1 = fLevelManager->SpinTwo(fIndex); 
-	    if(ntrans > 0) { isDiscrete = true; }
-	  }
-	}
+        if(fVerbose > 2) {
+          G4cout << "              ntrans= " << ntrans << " JP= " << JP1
+                 << " RDM: " << fRDM << G4endl;
+        }
+        if(0 == ntrans && fLevelManager->FloatingLevel(fIndex) > 0) {
+          --fIndex;
+          level = fLevelManager->GetLevel(fIndex);
+          ntrans = level->NumberOfTransitions();
+          JP1 = fLevelManager->SpinTwo(fIndex); 
+        }
       }
     }
   }
-  if(fVerbose > 1) {
+  if(fVerbose > 2) {
     G4int prec = G4cout.precision(4);
     G4cout << "GenerateGamma: Z= " << nucleus->GetZ_asInt()
-	   << " A= " << nucleus->GetA_asInt() 
-	   << " Exc= " << eexc << " Emax= " 
-	   << fLevelEnergyMax << " idx= " << fIndex
-	   << " fCode= " << fCode << " fPoints= " << fPoints
-	   << " Ntr= " << ntrans << " discrete: " << isDiscrete
-	   << " fProb= " << fProbability << G4endl;
+           << " A= " << nucleus->GetA_asInt() 
+           << " Exc= " << eexc << " Emax= " 
+           << fLevelEnergyMax << " idx= " << fIndex
+           << " fCode= " << fCode << " fPoints= " << fPoints
+           << " Ntr= " << ntrans << " discrete: " << isDiscrete
+           << " fProb= " << fProbability << G4endl;
     G4cout.precision(prec);
   }
 
   // continues part
   if(!isDiscrete) {
-    // G4cout << "Continues fIndex= " << fIndex << G4endl;
-
     // we compare current excitation versus value used for probability 
     // computation and also Z and A used for probability computation 
     if(fCode != 1000*theZ + theA || eexc != fExcEnergy) { 
       GetEmissionProbability(nucleus); 
     }
-    if(fProbability == 0.0) { return result; }
-    G4double y = fCummProbability[fPoints-1]*G4UniformRand();
-    for(G4int i=1; i<fPoints; ++i) {
-      //G4cout << "y= " << y << " cummProb= " << fCummProbability[i] << G4endl;
-      if(y <= fCummProbability[i]) {
-	efinal = fStep*((i - 1) + (y - fCummProbability[i-1])
-			/(fCummProbability[i] - fCummProbability[i-1]));
-	break;
+    if(fProbability == 0.0) { 
+      fPoints = 1; 
+      efinal = 0.0; 
+    } else {
+      G4double y = fCummProbability[fPoints-1]*G4UniformRand();
+      for(G4int i=1; i<fPoints; ++i) {
+        if(fVerbose > 3) {
+          G4cout << "y= " << y << " cummProb= " << fCummProbability[i] 
+                 << " fPoints= " << fPoints << " fStep= " << fStep << G4endl;
+        }
+        if(y <= fCummProbability[i]) {
+          efinal = fStep*((i - 1) + (y - fCummProbability[i-1])
+                          /(fCummProbability[i] - fCummProbability[i-1]));
+          break;
+        }
       }
     }
     // final discrete level
+    if(fVerbose > 2) {
+      G4cout << "Continues proposes Efinal= " << efinal << G4endl;
+    }
     if(fLevelManager) {
       if(efinal < fLevelEnergyMax) {
-	//G4cout << "Efinal= " << efinal << "  idx= " << fIndex << G4endl;
-	fIndex = fLevelManager->NearestLevelIndex(efinal, fIndex);
-	efinal = fLevelManager->LevelEnergy(fIndex);
-	// protection - take level below
-	if(efinal >= eexc && 0 < fIndex) {
-	  --fIndex;
-	  efinal = fLevelManager->LevelEnergy(fIndex);
-	} 
-	nucleus->SetFloatingLevelNumber(fLevelManager->FloatingLevel(fIndex));
+        fIndex = fLevelManager->NearestLevelIndex(efinal, fIndex);
+        efinal = fLevelManager->LevelEnergy(fIndex);
+        // protection - take level below
+        if(efinal >= eexc && 0 < fIndex) {
+          --fIndex;
+          efinal = fLevelManager->LevelEnergy(fIndex);
+        } 
+        nucleus->SetFloatingLevelNumber(fLevelManager->FloatingLevel(fIndex));
 
-	// not allowed to have final energy above max energy
-	// if G4LevelManager exist
+        // not allowed to have final energy above max energy
+        // if G4LevelManager exist
       } else {
-	efinal = fLevelEnergyMax;
-	fIndex = fLevelManager->NearestLevelIndex(efinal, fIndex);
+        efinal = fLevelEnergyMax;
+        fIndex = fLevelManager->NearestLevelIndex(efinal, fIndex);
       }
     }
-    if(fVerbose > 1) {
+    if(fVerbose > 2) {
       G4cout << "Continues emission efinal(MeV)= " << efinal << G4endl; 
     }
+    //discrete part ground state
+  } else if(0 == fIndex) {
+    return result;
+
     //discrete part
-  } else { 
-    if(fVerbose > 1) {
+  } else {
+ 
+    if(fVerbose > 2) {
       G4cout << "Discrete emission from level Index= " << fIndex 
-	     << " Elevel= " << fLevelManager->LevelEnergy(fIndex)
+             << " Elevel= " << fLevelManager->LevelEnergy(fIndex)
              << " Ltime= " << fLevelManager->LifeTime(fIndex)
              << " LtimeMax= " << fMaxLifeTime
-	     << "  RDM= " << fRDM << "  ICM= " << fICM << G4endl;
+             << "  RDM= " << fRDM << "  ICM= " << fICM << G4endl;
     }
-    if(0 == fIndex || !level) { return result; }
 
-    // stable fragment has life time -1
-    // if called from radioactive decay the life time is not checked
+    // stable fragment has life time -1 or above the limit
+    // if is called from the radioactive decay the life time is not checked
     G4double ltime = fLevelManager->LifeTime(fIndex);
     if(ltime < 0.0 || (!fRDM && ltime > fMaxLifeTime)) { return result; }
 
-    size_t idx = 0;
-    if(1 < ntrans) {
-      idx = level->SampleGammaTransition(G4UniformRand());
-    }
-    if(fVerbose > 1) {
-      G4cout << "Ntrans= " << ntrans << " idx= " << idx
-	     << " ICM= " << fICM << "  JP1= " << JP1 << G4endl;
-    }
-    G4double prob = (G4double)level->GammaProbability(idx);
-    // prob = 0 means that there is only internal conversion
-    if(fICM && prob < 1.0) {
-      G4double rndm = G4UniformRand();
-      if(rndm > prob) {
-	isGamma = false;
-	rndm = (rndm - prob)/(1.0 - prob);
-	vShellNumber = level->SampleShell(idx, rndm);
+    // no transitions: force transition to the closest level 
+    if(0 == ntrans) {
+      G4int ii = fIndex - 1;
+      for(; ii>0; --ii) {
+	const G4NucLevel* fl = fLevelManager->GetLevel(ii);
+	if(fl && 0 < fl->NumberOfTransitions()) { break; }
       }
+      fIndex = ii;
+    } else {
+      size_t idx = 0;
+      if(1 < ntrans) {
+	idx = level->SampleGammaTransition(G4UniformRand());
+      }
+      if(fVerbose > 2) {
+	G4cout << "Ntrans= " << ntrans << " idx= " << idx
+	       << " ICM= " << fICM << "  JP1= " << JP1 << G4endl;
+      }
+      G4double prob = (G4double)level->GammaProbability(idx);
+      // prob = 0 means that there is only internal conversion
+      if(fICM && prob < 1.0) {
+	G4double rndm = G4UniformRand();
+	if(rndm > prob) {
+	  isGamma = false;
+	  rndm = (rndm - prob)/(1.0 - prob);
+	  vShellNumber = level->SampleShell(idx, rndm);
+	}
+      }
+      // it is discrete transition with possible gamma correlation
+      ratio  = level->MultipolarityRatio(idx);
+      multiP = level->TransitionType(idx);
+      fIndex = level->FinalExcitationIndex(idx);
     }
-    // it is discrete transition with possible gamma correlation
-    isDiscrete = true;
-    ratio  = level->MultipolarityRatio(idx);
-    multiP = level->TransitionType(idx);
-    fIndex = level->FinalExcitationIndex(idx);
-    JP2    = fLevelManager->SpinTwo(fIndex); 
+    JP2 = fLevelManager->SpinTwo(fIndex); 
 
     // final energy and time
     efinal = fLevelManager->LevelEnergy(fIndex);
@@ -482,8 +515,8 @@ G4PhotonEvaporation::GenerateGamma(G4Fragment* nucleus)
   if(std::abs(efinal - eexc) <= Tolerance) { return result; }
 
   result = fTransition->SampleTransition(nucleus, efinal, ratio, JP1,
-					 JP2, multiP, vShellNumber, 
-					 isDiscrete, isGamma);
+                                         JP2, multiP, vShellNumber, 
+                                         isDiscrete, isGamma);
   if(result) { result->SetCreationTime(time); }
 
   // updated residual nucleus
@@ -497,12 +530,12 @@ G4PhotonEvaporation::GenerateGamma(G4Fragment* nucleus)
     nucleus->SetFloatingLevelNumber(fLevelManager->FloatingLevel(fIndex));
   }
       
-  if(fVerbose > 1) { 
+  if(fVerbose > 2) { 
     G4cout << "Final level E= " << efinal << " time= " << time 
-	   << " idxFinal= " << fIndex << " isDiscrete: " << isDiscrete
-	   << " isGamma: " << isGamma << " multiP= " << multiP 
-	   << " shell= " << vShellNumber 
-	   << " JP1= " << JP1 << " JP2= " << JP2 << G4endl;
+           << " idxFinal= " << fIndex << " isDiscrete: " << isDiscrete
+           << " isGamma: " << isGamma << " multiP= " << multiP 
+           << " shell= " << vShellNumber 
+           << " JP1= " << JP1 << " JP2= " << JP2 << G4endl;
   }
   return result;
 }

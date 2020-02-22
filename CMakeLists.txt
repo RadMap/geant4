@@ -1,10 +1,5 @@
 #-----------------------------------------------------------------------
 # - Top Level CMakeLists.txt for Geant4 Build
-#
-# 21st September 2010 Ben Morgan
-#
-#
-
 #-----------------------------------------------------------------------
 # - Enforce an out-of-source builds before anything else
 #
@@ -21,7 +16,7 @@ endif()
 #-----------------------------------------------------------------------
 # - Define CMake requirements and override make rules as needed
 #
-cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
 # - Any policy requirements should go here
 
@@ -36,8 +31,8 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
 #   the same form.
 project(Geant4)
 set(${PROJECT_NAME}_VERSION_MAJOR 10)
-set(${PROJECT_NAME}_VERSION_MINOR  5)
-set(${PROJECT_NAME}_VERSION_PATCH  0)
+set(${PROJECT_NAME}_VERSION_MINOR  6)
+set(${PROJECT_NAME}_VERSION_PATCH  1)
 set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}")
 
 # - Prepend our own CMake Modules to the search path

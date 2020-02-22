@@ -47,7 +47,7 @@ class G4VDigiCollection
       G4VDigiCollection();
       G4VDigiCollection(G4String DMnam,G4String colNam);
       virtual ~G4VDigiCollection();
-      G4int operator==(const G4VDigiCollection &right) const;
+      G4bool operator==(const G4VDigiCollection &right) const;
 
       virtual void DrawAllDigi();
       virtual void PrintAllDigi();
@@ -59,10 +59,10 @@ class G4VDigiCollection
       G4String DMname;
 
   public:
-      inline G4String GetName()
-      { return collectionName; };
-      inline G4String GetDMname()
-      { return DMname; };
+      inline const G4String& GetName() const
+      { return collectionName; }
+      inline const G4String& GetDMname() const
+      { return DMname; }
 
   public:
       // GetDigi and GetSize are given a default implementation here so

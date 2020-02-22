@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
 // Implementation of G4UTessellatedSolid wrapper class
+//
+// 11.01.18 G.Cosmo, CERN
 // --------------------------------------------------------------------
 
 #include "G4TessellatedSolid.hh"
@@ -52,7 +51,6 @@ G4UTessellatedSolid::G4UTessellatedSolid()
 {
 }
 
-
 G4UTessellatedSolid::G4UTessellatedSolid(const G4String& name)
  : Base_t(name)
 {
@@ -68,7 +66,6 @@ G4UTessellatedSolid::G4UTessellatedSolid(__void__& a)
 {
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Destructor
@@ -80,7 +77,6 @@ G4UTessellatedSolid::~G4UTessellatedSolid()
   fFacets.clear();
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Copy constructor
@@ -89,7 +85,6 @@ G4UTessellatedSolid::G4UTessellatedSolid(const G4UTessellatedSolid& source)
   : Base_t(source)
 {
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -104,7 +99,6 @@ G4UTessellatedSolid::operator=(const G4UTessellatedSolid& source)
   
   return *this;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -264,7 +258,7 @@ G4int G4UTessellatedSolid::AllocatedMemoryWithoutVoxels()
   base += fVertexList.capacity() * sizeof(G4ThreeVector);
 
   G4int limit = fFacets.size();
-  for (G4int i = 0; i < limit; i++)
+  for (G4int i = 0; i < limit; ++i)
   {
     G4VFacet &facet = *fFacets[i];
     base += facet.AllocatedMemory();
@@ -326,19 +320,23 @@ G4UTessellatedSolid::CalculateExtent(const EAxis pAxis,
                                            G4double& pMin, G4double& pMax) const
 {
   G4ThreeVector bmin, bmax;
-  G4bool exist;
-  G4double kCarToleranceHalf = 0.5*kCarTolerance;
 
   // Check bounding box (bbox)
   //
   BoundingLimits(bmin,bmax);
   G4BoundingEnvelope bbox(bmin,bmax);
-#ifdef G4BBOX_EXTENT
-  if (true) return bbox.CalculateExtent(pAxis,pVoxelLimit,pTransform,pMin,pMax);
-#endif
+
+  // Use simple bounding-box to help in the case of complex meshes
+  //
+  return bbox.CalculateExtent(pAxis,pVoxelLimit,pTransform,pMin,pMax);
+
+#if 0
+  // Precise extent computation (disabled by default for this shape)
+  //
+  G4double kCarToleranceHalf = 0.5*kCarTolerance;
   if (bbox.BoundingBoxVsVoxelLimits(pAxis,pVoxelLimit,pTransform,pMin,pMax))
   {
-    return exist = (pMin < pMax) ? true : false;
+    return (pMin < pMax) ? true : false;
   }
 
   // The extent is calculated as cumulative extent of the pyramids
@@ -373,6 +371,7 @@ G4UTessellatedSolid::CalculateExtent(const EAxis pAxis,
     if (eminlim > pMin && emaxlim < pMax) break; // max possible extent
   }
   return (pMin < pMax);
+#endif
 }
 
 

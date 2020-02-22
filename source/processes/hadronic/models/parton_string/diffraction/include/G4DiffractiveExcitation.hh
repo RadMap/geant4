@@ -42,6 +42,8 @@
 #include "G4FTFParameters.hh"
 #include "G4ElasticHNScattering.hh"
 #include "G4ThreeVector.hh"
+#include "G4LorentzVector.hh"
+#include "G4LorentzRotation.hh"
 
 class G4VSplitableHadron;
 class G4ExcitedString;
@@ -66,8 +68,8 @@ class G4DiffractiveExcitation {
   private:
     G4DiffractiveExcitation( const G4DiffractiveExcitation& right );
     const G4DiffractiveExcitation& operator=( const G4DiffractiveExcitation& right );
-    int operator==( const G4DiffractiveExcitation& right ) const;
-    int operator!=( const G4DiffractiveExcitation& right ) const;
+    G4bool operator==( const G4DiffractiveExcitation& right ) const;
+    G4bool operator!=( const G4DiffractiveExcitation& right ) const;
 
     G4double LambdaF(G4double sqrM, G4double sqrM1, G4double sqrM2) const;
       

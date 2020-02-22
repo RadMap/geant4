@@ -123,11 +123,11 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
     set(G4_BUILTWITH_MULTITHREADING "no")
   endif()
 
-  # - Muonic Atom support
-  if(GEANT4_BUILD_MUONIC_ATOMS_IN_USE)
-    set(G4_BUILTWITH_MUONIC_ATOMS "yes")
+  # - Smart Stack
+  if(GEANT4_USE_SMARTSTACK)
+    set(G4_BUILTWITH_SMARTSTACK "yes")
   else()
-    set(G4_BUILTWITH_MUONIC_ATOMS "no")
+    set(G4_BUILTWITH_SMARTSTACK "no")
   endif()
 
   # - CLHEP
@@ -170,7 +170,7 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
   # - GDML
   if(GEANT4_USE_GDML)
     set(G4_BUILTWITH_GDML "yes")
-    set(G4_XERCESC_INCLUDE_DIRS ${XERCESC_INCLUDE_DIRS})
+    set(G4_XERCESC_INCLUDE_DIRS ${XercesC_INCLUDE_DIR})
     list(REMOVE_DUPLICATES G4_XERCESC_INCLUDE_DIRS)
     list(REMOVE_ITEM G4_XERCESC_INCLUDE_DIRS ${_cxx_compiler_dirs})
 
@@ -196,7 +196,7 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
     list(REMOVE_DUPLICATES G4_USOLIDS_INCLUDE_DIRS)
     list(REMOVE_ITEM G4_USOLIDS_INCLUDE_DIRS ${_cxx_compiler_dirs})
 
-    string(REPLACE ";" " " G4_USOLIDS_CFLAGS "${GEANT4_USOLIDS_COMPILE_DEFINITIONS}")
+    string(REPLACE ";" " " G4_USOLIDS_CFLAGS "${VECGEOM_DEFINITIONS}")
     foreach(_dir ${G4_USOLIDS_INCLUDE_DIRS})
       set(G4_USOLIDS_CFLAGS "${G4_USOLIDS_CFLAGS} -I${_dir}")
     endforeach()
@@ -240,18 +240,18 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
   endif()
 
   # - Wt
-  if(GEANT4_USE_WT)
-    set(G4_BUILTWITH_WT "yes")
-    set(G4_WT_INCLUDE_DIRS ${Wt_INCLUDE_DIR} ${Boost_INCLUDE_DIR} )
+  #if(GEANT4_USE_WT)
+  #  set(G4_BUILTWITH_WT "yes")
+  #  set(G4_WT_INCLUDE_DIRS ${Wt_INCLUDE_DIR} ${Boost_INCLUDE_DIR} )
 
-    set(G4_WT_CFLAGS )
-    foreach(_dir ${G4_WT_INCLUDE_DIRS})
-      set(G4_WT_CFLAGS "${G4_WT_CFLAGS} -I${_dir}")
-    endforeach()
+  #  set(G4_WT_CFLAGS )
+  #  foreach(_dir ${G4_WT_INCLUDE_DIRS})
+  #    set(G4_WT_CFLAGS "${G4_WT_CFLAGS} -I${_dir}")
+  #  endforeach()
 
-  else()
-    set(G4_BUILTWITH_WT "no")
-  endif()
+  #else()
+  #  set(G4_BUILTWITH_WT "no")
+  #endif()
 
   # - Motif
   if(GEANT4_USE_XM)

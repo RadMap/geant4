@@ -28,7 +28,6 @@
 
 #include "G4ScoringBox.hh"
 
-#include "G4SystemOfUnits.hh"
 #include "G4Box.hh"
 #include "G4LogicalVolume.hh"
 #include "G4VPhysicalVolume.hh"
@@ -47,13 +46,15 @@
 #include "G4ScoringManager.hh"
 #include "G4StatDouble.hh"
 
+#include "G4SystemOfUnits.hh"
+
 #include <map>
 #include <fstream>
 
 G4ScoringBox::G4ScoringBox(G4String wName)
   :G4VScoringMesh(wName), fSegmentDirection(-1)
 {
-  fShape = boxMesh;
+  fShape = MeshShape::box;
   fDivisionAxisNames[0] = "X";
   fDivisionAxisNames[1] = "Y";
   fDivisionAxisNames[2] = "Z";

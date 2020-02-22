@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 // -------------------------------------------------------------------
 //
 // GEANT4 Class header file
@@ -62,6 +61,7 @@
 #include <vector>
 
 class G4ParticleChangeForMSC;
+class G4ParticleDefinition;
 
 class G4VMscModel : public G4VEmModel
 {
@@ -70,24 +70,25 @@ public:
 
   explicit G4VMscModel(const G4String& nam);
 
-  virtual ~G4VMscModel();
+  ~G4VMscModel() override;
 
   virtual G4double ComputeTruePathLengthLimit(const G4Track& track,  
-					      G4double& stepLimit);
+					      G4double& stepLimit) = 0;
 
-  virtual G4double ComputeGeomPathLength(G4double truePathLength);
+  virtual G4double ComputeGeomPathLength(G4double truePathLength) = 0;
 
-  virtual G4double ComputeTrueStepLength(G4double geomPathLength);
+  virtual G4double ComputeTrueStepLength(G4double geomPathLength) = 0;
 
   virtual G4ThreeVector& SampleScattering(const G4ThreeVector&,
-					  G4double safety);
+					  G4double safety) = 0;
+
+  void InitialiseParameters(const G4ParticleDefinition*);
 
   // empty method
-  virtual void SampleSecondaries(std::vector<G4DynamicParticle*>*,
-				 const G4MaterialCutsCouple*,
-				 const G4DynamicParticle*,
-				 G4double tmin,
-				 G4double tmax) override;
+  void SampleSecondaries(std::vector<G4DynamicParticle*>*,
+			 const G4MaterialCutsCouple*,
+			 const G4DynamicParticle*,
+			 G4double tmin, G4double tmax) override;
 
   //================================================================
   //  Set parameters of multiple scattering models
@@ -102,6 +103,10 @@ public:
   inline void SetGeomFactor(G4double);
 
   inline void SetSkin(G4double);
+
+  inline void SetLambdaLimit(G4double);
+
+  inline void SetSafetyFactor(G4double);
 
   inline void SetSampleZ(G4bool);
 
@@ -139,12 +144,20 @@ public:
 				   G4double limit);
 
   inline G4double GetDEDX(const G4ParticleDefinition* part,
-			  G4double kineticEnergy,
-			  const G4MaterialCutsCouple* couple);
+                          G4double kineticEnergy,
+                          const G4MaterialCutsCouple* couple);
+  inline G4double GetDEDX(const G4ParticleDefinition* part,
+                          G4double kineticEnergy,
+                          const G4MaterialCutsCouple* couple,
+                          G4double logKineticEnergy);
 
   inline G4double GetRange(const G4ParticleDefinition* part,
                            G4double kineticEnergy,
-			   const G4MaterialCutsCouple* couple);
+                           const G4MaterialCutsCouple* couple);
+  inline G4double GetRange(const G4ParticleDefinition* part,
+                           G4double kineticEnergy,
+                           const G4MaterialCutsCouple* couple,
+                           G4double logKineticEnergy);
 
   inline G4double GetEnergy(const G4ParticleDefinition* part,
 			    G4double range,
@@ -153,7 +166,11 @@ public:
   // G4MaterialCutsCouple should be defined before call to this method
   inline 
   G4double GetTransportMeanFreePath(const G4ParticleDefinition* part,
-				    G4double kinEnergy);
+                                    G4double kinEnergy);
+  inline
+  G4double GetTransportMeanFreePath(const G4ParticleDefinition* part,
+                                    G4double kinEnergy,
+                                    G4double logKinEnergy);
 
 private:
 
@@ -219,6 +236,20 @@ inline void G4VMscModel::SetGeomFactor(G4double val)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+inline void G4VMscModel::SetLambdaLimit(G4double val)
+{
+  if(!IsLocked()) { lambdalimit = val; }
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+inline void G4VMscModel::SetSafetyFactor(G4double val)
+{
+  if(!IsLocked()) { facsafety = val; }
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
 inline void G4VMscModel::SetStepLimitType(G4MscStepLimitType val)
 {
   if(!IsLocked()) { steppingAlgorithm = val; }
@@ -264,13 +295,28 @@ inline G4double G4VMscModel::ComputeGeomLimit(const G4Track& track,
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 inline G4double 
-G4VMscModel::GetDEDX(const G4ParticleDefinition* part,
-		     G4double kinEnergy, const G4MaterialCutsCouple* couple)
+G4VMscModel::GetDEDX(const G4ParticleDefinition* part, G4double kinEnergy,
+                     const G4MaterialCutsCouple* couple)
 {
   G4double x;
-  if(ionisation) { x = ionisation->GetDEDX(kinEnergy, couple); }
-  else { 
-    G4double q = part->GetPDGCharge()*inveplus;
+  if (ionisation) {
+    x = ionisation->GetDEDX(kinEnergy, couple);
+  } else {
+    const G4double q = part->GetPDGCharge()*inveplus;
+    x = dedx*q*q;
+  }
+  return x;
+}
+
+inline G4double 
+G4VMscModel::GetDEDX(const G4ParticleDefinition* part, G4double kinEnergy,
+                     const G4MaterialCutsCouple* couple, G4double logKinEnergy)
+{
+  G4double x;
+  if (ionisation) {
+    x = ionisation->GetDEDX(kinEnergy, couple, logKinEnergy);
+  } else {
+    const G4double q = part->GetPDGCharge()*inveplus;
     x = dedx*q*q;
   }
   return x;
@@ -279,18 +325,36 @@ G4VMscModel::GetDEDX(const G4ParticleDefinition* part,
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 inline G4double 
-G4VMscModel::GetRange(const G4ParticleDefinition* part,
-		      G4double kinEnergy, const G4MaterialCutsCouple* couple)
+G4VMscModel::GetRange(const G4ParticleDefinition* part,G4double kinEnergy,
+                      const G4MaterialCutsCouple* couple)
 {
   //G4cout << "G4VMscModel::GetRange E(MeV)= " << kinEnergy << "  " 
   //  << ionisation << "  " << part->GetParticleName()
-  //	 << G4endl;
+  //  << G4endl;
   localtkin  = kinEnergy;
-  if(ionisation) { 
+  if (ionisation) {
     localrange = ionisation->GetRangeForLoss(kinEnergy, couple); 
-  } else { 
-    G4double q = part->GetPDGCharge()*inveplus;
+  } else {
+    const G4double q = part->GetPDGCharge()*inveplus;
     localrange = kinEnergy/(dedx*q*q*couple->GetMaterial()->GetDensity()); 
+  }
+  //G4cout << "R(mm)= " << localrange << "  "  << ionisation << G4endl;
+  return localrange;
+}
+
+inline G4double 
+G4VMscModel::GetRange(const G4ParticleDefinition* part,G4double kinEnergy, 
+                      const G4MaterialCutsCouple* couple, G4double logKinEnergy)
+{
+  //G4cout << "G4VMscModel::GetRange E(MeV)= " << kinEnergy << "  " 
+  //  << ionisation << "  " << part->GetParticleName()
+  //	<< G4endl;
+  localtkin  = kinEnergy;
+  if (ionisation) { 
+    localrange = ionisation->GetRangeForLoss(kinEnergy, couple, logKinEnergy);
+  } else { 
+    const G4double q = part->GetPDGCharge()*inveplus;
+    localrange = kinEnergy/(dedx*q*q*couple->GetMaterial()->GetDensity());
   }
   //G4cout << "R(mm)= " << localrange << "  "  << ionisation << G4endl;
   return localrange;
@@ -337,16 +401,30 @@ inline void G4VMscModel::SetIonisation(G4VEnergyLossProcess* p,
 
 inline G4double 
 G4VMscModel::GetTransportMeanFreePath(const G4ParticleDefinition* part,
-				      G4double ekin)
+                                      G4double ekin)
 {
   G4double x;
-  if(xSectionTable) {
-    G4int idx = CurrentCouple()->GetIndex();
-    x = (*xSectionTable)[(*theDensityIdx)[idx]]->Value(ekin, idxTable)
-      *(*theDensityFactor)[idx]/(ekin*ekin);
+  if (xSectionTable) {
+    const G4int idx = CurrentCouple()->GetIndex();
+    x =  (*xSectionTable)[idx]->Value(ekin, idxTable)/(ekin*ekin);
   } else { 
     x = CrossSectionPerVolume(CurrentCouple()->GetMaterial(), part, ekin, 
-			      0.0, DBL_MAX); 
+                              0.0, DBL_MAX); 
+  }
+  return (x > 0.0) ? 1.0/x : DBL_MAX;
+}
+
+inline G4double 
+G4VMscModel::GetTransportMeanFreePath(const G4ParticleDefinition* part,
+                                      G4double ekin, G4double logekin)
+{
+  G4double x;
+  if (xSectionTable) {
+    const G4int idx = CurrentCouple()->GetIndex();
+    x =  (*xSectionTable)[idx]->LogVectorValue(ekin, logekin)/(ekin*ekin);
+  } else { 
+    x = CrossSectionPerVolume(CurrentCouple()->GetMaterial(), part, ekin, 
+                              0.0, DBL_MAX); 
   }
   return (x > 0.0) ? 1.0/x : DBL_MAX;
 }

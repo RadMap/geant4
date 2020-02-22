@@ -23,13 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-//
-// --------------------------------------------------------------------
-// GEANT 4 class header file
-//
-//
 // G4ExtrudedSolid
 //
 // Class description:
@@ -42,7 +35,7 @@
 // Parameters in the constructor:
 // const G4String& pName             - solid name
 // std::vector<G4TwoVector> polygon  - the vertices of the outlined polygon
-//                                     defined in clockwise or anti-clockwise order     
+//                                     defined in clockwise or anti-clockwise order
 // std::vector<ZSection>             - the z-sections defined by
 //                                     z position, offset and scale
 //                                     in increasing z-position order
@@ -54,13 +47,12 @@
 // G4TwoVector off2                  - offset of the side in +halfZ
 // G4double scale2                   - scale of the side in -halfZ
 
-// Author:
-//   Ivana Hrivnacova, IPN Orsay
-//
+// Author: Ivana Hrivnacova, IPN Orsay
 // --------------------------------------------------------------------
+#ifndef G4EXTRUDEDSOLID_HH
+#define G4EXTRUDEDSOLID_HH
 
-#ifndef G4ExtrudedSolid_HH
-#define G4ExtrudedSolid_HH
+#include "G4GeomTypes.hh"
 
 #if defined(G4GEOM_USE_USOLIDS)
 #define G4GEOM_USE_UEXTRUDEDSOLID 1
@@ -74,10 +66,7 @@
 #include <vector>
 
 #include "G4TwoVector.hh"
-
 #include "G4TessellatedSolid.hh"
-
-class G4VFacet;
 
 class G4ExtrudedSolid : public G4TessellatedSolid
 {
@@ -96,20 +85,20 @@ class G4ExtrudedSolid : public G4TessellatedSolid
 
   public:  // with description
 
-     G4ExtrudedSolid( const G4String&                 pName,
-                      const std::vector<G4TwoVector>& polygon,
-                      const std::vector<ZSection>&    zsections);
-       // General constructor
+    G4ExtrudedSolid( const G4String&                 pName,
+                     const std::vector<G4TwoVector>& polygon,
+                     const std::vector<ZSection>&    zsections);
+      // General constructor
 
-     G4ExtrudedSolid( const G4String&                 pName,
-                      const std::vector<G4TwoVector>& polygon,
-                            G4double                  halfZ,
-                      const G4TwoVector& off1, G4double scale1,
-                      const G4TwoVector& off2, G4double scale2 );
-       // Special constructor for solid with 2 z-sections
+    G4ExtrudedSolid( const G4String&                 pName,
+                     const std::vector<G4TwoVector>& polygon,
+                           G4double                  halfZ,
+                     const G4TwoVector& off1, G4double scale1,
+                     const G4TwoVector& off2, G4double scale2 );
+      // Special constructor for solid with 2 z-sections
 
-     virtual ~G4ExtrudedSolid();
-       // Destructor
+    virtual ~G4ExtrudedSolid();
+      // Destructor
 
     // Accessors
 
@@ -123,15 +112,16 @@ class G4ExtrudedSolid : public G4TessellatedSolid
 
     // Solid methods
 
-    EInside  Inside(const G4ThreeVector &p) const;
+    EInside  Inside(const G4ThreeVector& p) const;
     G4ThreeVector SurfaceNormal(const G4ThreeVector& p) const;
     G4double DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const;
     G4double DistanceToIn(const G4ThreeVector& p ) const;
-    G4double DistanceToOut(const G4ThreeVector &p,
-                           const G4ThreeVector &v,
-                           const G4bool calcNorm=false,
-                                 G4bool *validNorm=0, G4ThreeVector *n=0) const;
-    G4double DistanceToOut(const G4ThreeVector &p) const;
+    G4double DistanceToOut(const G4ThreeVector& p,
+                           const G4ThreeVector& v,
+                           const G4bool calcNorm = false,
+                                 G4bool* validNorm = nullptr,
+                                 G4ThreeVector* n = nullptr) const;
+    G4double DistanceToOut(const G4ThreeVector& p) const;
 
     void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const;
     G4bool CalculateExtent(const EAxis pAxis,
@@ -141,7 +131,7 @@ class G4ExtrudedSolid : public G4TessellatedSolid
     G4GeometryType GetEntityType () const;
     G4VSolid* Clone() const;
 
-    std::ostream& StreamInfo(std::ostream &os) const;
+    std::ostream& StreamInfo(std::ostream& os) const;
 
   public:  // without description
 
@@ -196,10 +186,10 @@ class G4ExtrudedSolid : public G4TessellatedSolid
     std::vector<G4TwoVector> fPolygon;
     std::vector<ZSection>    fZSections;
     std::vector< std::vector<G4int> > fTriangles;
-    G4bool          fIsConvex;
-    G4GeometryType  fGeometryType;
+    G4bool         fIsConvex = false;
+    G4GeometryType fGeometryType;
 
-    G4int fSolidType;
+    G4int fSolidType = 0;
     struct plane { G4double a,b,c,d; }; // a*x + b*y + c*z + d = 0
     std::vector<plane> fPlanes;
     struct line { G4double k,m; };      // x = k*y + m;

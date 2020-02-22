@@ -37,9 +37,14 @@
 //
 // Modifications:
 // 27-10-17 New class (IgS)
-// 19-01-18 version that calculates the pdf in the same way as in the fortran 
+// 19-01-18 version that calculates the pdf in the same way as in the fortran
 //          version (Denis Bernard)
-// 04-06-18 Performance optimization of the final state sampling (M. Novak) 
+// 04-06-18 Performance optimization of the final state sampling (M. Novak)
+// 10-04-19 CLHEP for boost and rotation, remove local functions (IgS)
+// 02-09-19 Set base class to be G4PairProductionRelModel that can provide 
+//          accurate sections now from threshold to very high energies
+//          including the LPM effect. (M. Novak)
+// 14-10-19 Muon's pair genaration in SampleSecondaries
 //
 // Class Description:
 //
@@ -52,11 +57,11 @@
 #ifndef G4BetheHeitler5DModel_h
 #define G4BetheHeitler5DModel_h 1
 
-#include "G4BetheHeitlerModel.hh"
+#include "G4PairProductionRelModel.hh"
 
 class G4IonTable;
 
-class G4BetheHeitler5DModel : public G4BetheHeitlerModel
+class G4BetheHeitler5DModel : public G4PairProductionRelModel
 {
 
 public:
@@ -76,26 +81,33 @@ public:
 
   inline void SetVerbose(G4int val) { fVerbose = val; }
 
+  // Only e+, e+ or mu+, mu- pairs supported
+  void SetLeptonPair(const G4ParticleDefinition* p1,
+		     const G4ParticleDefinition* p2);
+
 private:
 
   // hide assignment operator
   G4BetheHeitler5DModel& operator=(const G4BetheHeitler5DModel& right) = delete;
   G4BetheHeitler5DModel(const  G4BetheHeitler5DModel&) = delete;
 
-  void BoostG4LorentzVector(const G4LorentzVector& p, const G4LorentzVector& q, 
-                            G4LorentzVector& res) const;
-
-  void BoostG4LorentzVector(const G4LorentzVector& p, const G4double qz,
-                            const G4double qt, const G4double lffac,
-                            const G4double imass, G4LorentzVector& res) const;
-
   G4double MaxDiffCrossSection(const G4double* par, G4double eZ,
                                G4double e, G4double loge) const;
+
+  inline void SetConversionMode(G4int to) { fConvMode = to; }
 
   G4IonTable* theIonTable;
 
   G4int  fVerbose;
   G4int  fConversionType;
   G4bool iraw;
+
+  const G4ParticleDefinition*  fLepton1;
+  const G4ParticleDefinition*  fLepton2;
+
+  G4int     fConvMode;
+  const G4ParticleDefinition*  fTheMuPlus;
+  const G4ParticleDefinition*  fTheMuMinus;
+
 };
 #endif

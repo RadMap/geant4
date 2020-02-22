@@ -16,6 +16,107 @@ committal in the source repository !
      * Reverse chronological order (last date on top), please *
      ----------------------------------------------------------
 
+17-January-2020 E.Tcherniaev       (geom-specific-V10-05-22)
+- Implemented G4Tet::SetVertices(), it addresses request made
+  at Geant4 Technical Forum.
+
+14-January-2020 Gabriele Cosmo
+- Added protection in G4VFacet header for double definition of global
+  symbols from Windows Kits code.
+
+08-January-2020 E.Tcherniaev
+- Complete revision of G4Tet, speed up, new testG4Tet.cc.
+  It also fixes issues spotted by new unit test.
+
+16-December-2019 E.Tcherniaev
+- Complete revision of G4Ellipsoid, it fixes issues with former
+  implementation, in particular it addresses problem report #2206.
+  30%-70% speed-up in all main methods 
+
+10-December-2019 G.Cosmo
+- Re-established parameterisation mechanism for G4Tet and G4UTet which was
+  removed by mistake. Addressing problem report #2209.
+
+26-November-2019 G.Cosmo           (geom-specific-V10-05-21)
+- Fixed cases of implicit type conversions from size_t to G4int.
+
+05-November-2019 E.Tcherniaev      (geom-specific-V10-05-20)
+- G4TesselatedSolid.cc: fixed minor Coverity defect (uninitialized array)
+
+07-October-2019 E.Tcherniaev       (geom-specific-V10-05-19)
+- G4TesselatedSolid.cc: fixed minor Coverity defect
+
+16-September-2019 G.Cosmo          (geom-specific-V10-05-18)
+- Rationalise header inclusions for faceted solids.
+
+06-September-2019 G.Cosmo          (geom-specific-V10-05-17)
+- Removed unnecessary forward declaration in G4VFacet header.
+
+29-August-2019 G.Cosmo             (geom-specific-V10-05-16)
+- Minor c++11 revision and headers cleanup. Code formatting.
+- Use pre-increment wherever possible.
+
+19-August-2019 G.Lima              (geom-specific-V10-05-15)
+- G4ExtrudedSolid: fixed a bug in DistanceToOut(), affecting extruded solids
+  defined off-center along the z-axis.
+
+19-August-2019 G.Cosmo             (geom-specific-V10-05-14)
+- G4GenericTrap: fixed compilation warnings for variable shadowing on clang-8.
+
+13-August-2019 G.Cosmo             (geom-specific-V10-05-13)
+- Enabled wrappers for VecGeom implementation of G4EllipticalTube,
+  G4EllipticalCone and G4Ellipsoid.
+
+10-July-2019 E.Tcherniaev          (geom-specific-V10-05-12)
+- Fixed G4UExtrudedSolid::CreatePolyhedron().
+  Addressing visualization part of the problem report #2171.
+
+04-July-2019 G.Cosmo               (geom-specific-V10-05-11)
+- Avoid defining kCarTolerance as 'static const' in G4VFacet.
+  Addressing problem report #2172.
+
+11-June-2019 E.Tcherniaev          (geom-specific-V10-05-10)
+- Use GetVertices() instead of GetParametersList() in the wrapper G4UTet.
+
+29-May-2019 G.Cosmo                (geom-specific-V10-05-09)
+- Fixed minor Coverity defects.
+
+20-May-2019 G.Cosmo                (geom-specific-V10-05-08)
+- Defined move constructor and move assignment operator for G4TriangularFacet.
+
+14-May-2019 B.Morgan               (geom-specific-V10-05-07)
+- Add inclusion of new G4GeomTypes.hh header to those headers allowing
+  VecGeom replacement.
+- See also geommng-10-05-05
+
+23-April-2019  G.Cosmo             (geom-specific-V10-05-06)
+- Modified G4PolyconeSide and G4PolyhedraSide to use only trivial types for
+  MT splitted data in G4PlSideData and G4PhSideData respectively.
+
+16-April-2019  G.Cosmo             (geom-specific-V10-05-05)
+- Protected check in G4TwistTubsSide::DistanceToPlane() withing debug flag.
+
+4-April-2019  G.Cosmo              (geom-specific-V10-05-04)
+- Enabled wrapper for VecGeom implementation of G4GenericPolycone.
+
+15-February-2019  E.Tcherniaev     (geom-specific-V10-05-03)
+- Accurate calculation of radical in G4IntersectingCone.
+  It addresses the problem report #2111.
+
+4-February-2019  G.Cosmo           (geom-specific-V10-05-02)
+- Fix in G4EllipticalTube::CheckParameters() for typo in condition.
+
+30-January-2019  G.Cosmo           (geom-specific-V10-05-01)
+- Disabled precise computation of extent and use simple bounding-box
+  in CalculateExtent() for G4Tet and G4TessellatedSolid, to speed up
+  intialisation in setups with relatively complex meshes.
+- Apply bounding-box calculation for extent also for corresponding
+  VecGeom wrappers.
+
+24-January-2019  E.Tcherniaev      (geom-specific-V10-05-00)
+- Completely revised, more robust and performant G4EllipticalTube;
+  new exhaustive test/testEllipticalTube.cc based on Shape Conventions.
+
 20-September-2018  G.Cosmo         (geom-specific-V10-04-15)
 - Make G4UPolycone wrapper inheriting from vecgeom::GenericUnplacedPolycone,
   following the latest changes in VecGeom.

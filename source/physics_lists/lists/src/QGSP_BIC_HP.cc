@@ -40,7 +40,6 @@
 //
 //----------------------------------------------------------------------------
 //
-#include "QGSP_BIC_HP.hh"
 
 #include "G4DecayPhysics.hh"
 #include "G4RadioactiveDecayPhysics.hh"
@@ -51,43 +50,39 @@
 #include "G4StoppingPhysics.hh"
 #include "G4HadronElasticPhysicsHP.hh"
 
-#include "G4DataQuestionaire.hh"
+#include "QGSP_BIC_HP.hh"
 #include "G4HadronPhysicsQGSP_BIC_HP.hh"
 
 QGSP_BIC_HP::QGSP_BIC_HP(G4int ver)
 {
-  G4DataQuestionaire it(photon, neutron);
   G4cout << "<<< Geant4 Physics List simulation engine: QGSP_BIC_HP"<<G4endl;
   G4cout <<G4endl;
 
-  this->defaultCutValue = 0.7*CLHEP::mm;  
-  this->SetVerboseLevel(ver);
+  defaultCutValue = 0.7*CLHEP::mm;  
+  SetCutValue(0, "proton");  
+  SetVerboseLevel(ver);
 
   // EM Physics
-  this->RegisterPhysics( new G4EmStandardPhysics_option4(ver) );
+  RegisterPhysics( new G4EmStandardPhysics_option4(ver) );
 
   // Synchroton Radiation & GN Physics
-  this->RegisterPhysics( new G4EmExtraPhysics(ver) );
+  RegisterPhysics( new G4EmExtraPhysics(ver) );
 
   // Decays
-  this->RegisterPhysics( new G4DecayPhysics(ver) );
-  this->RegisterPhysics( new G4RadioactiveDecayPhysics(ver) );
+  RegisterPhysics( new G4DecayPhysics(ver) );
+  RegisterPhysics( new G4RadioactiveDecayPhysics(ver) );
 
   // Hadron Elastic scattering
-  this->RegisterPhysics( new G4HadronElasticPhysicsHP(ver) );
+  RegisterPhysics( new G4HadronElasticPhysicsHP(ver) );
 
   // Hadron Physics
-  this->RegisterPhysics(  new G4HadronPhysicsQGSP_BIC_HP(ver));
+  RegisterPhysics(  new G4HadronPhysicsQGSP_BIC_HP(ver));
 
   // Stopping Physics
-  this->RegisterPhysics( new G4StoppingPhysics(ver) );
+  RegisterPhysics( new G4StoppingPhysics(ver) );
 
   // Ion Physics
-  this->RegisterPhysics( new G4IonElasticPhysics(ver) );
-  this->RegisterPhysics( new G4IonPhysics(ver));
+  RegisterPhysics( new G4IonElasticPhysics(ver) );
+  RegisterPhysics( new G4IonPhysics(ver));
   
 }
-
-QGSP_BIC_HP::~QGSP_BIC_HP()
-{}
-

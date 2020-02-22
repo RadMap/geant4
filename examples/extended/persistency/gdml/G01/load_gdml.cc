@@ -36,7 +36,14 @@
 
 #include <vector>
 
+#include "G4Types.hh"
+
+#ifdef G4MULTITHREADED
+#include "G4MTRunManager.hh"
+#else
 #include "G4RunManager.hh"
+#endif
+
 #include "G4UImanager.hh"
 
 #include "G4LogicalVolumeStore.hh"
@@ -44,6 +51,8 @@
 
 #include "G01PrimaryGeneratorAction.hh"
 #include "G01DetectorConstruction.hh"
+#include "G01ActionInitialization.hh"
+
 #include "FTFP_BERT.hh"
 
 #include "G4VisExecutive.hh"
@@ -52,14 +61,14 @@
 #include "G4GDMLParser.hh"
 
 void print_aux(const G4GDMLAuxListType* auxInfoList, G4String prepend="|")
-{  
+{
   for(std::vector<G4GDMLAuxStructType>::const_iterator
       iaux = auxInfoList->begin(); iaux != auxInfoList->end(); iaux++ )
     {
       G4String str=iaux->type;
       G4String val=iaux->value;
       G4String unit=iaux->unit;
-      
+
       G4cout << prepend << str << " : " << val  << " " << unit << G4endl;
 
       if (iaux->auxList) print_aux(iaux->auxList, prepend + "|");
@@ -88,8 +97,9 @@ int main(int argc,char **argv)
 // Uncomment the following if wish to avoid names stripping
 // parser.SetStripFlag(false);
 
+   parser.SetOverlapCheck(true);
    parser.Read(argv[1]);
-   
+
    if (argc>4)
    {
       G4cout << "Error! Too many arguments!" << G4endl;
@@ -97,12 +107,16 @@ int main(int argc,char **argv)
       return -1;
    }
 
+#ifdef G4MULTITHREADED
+   G4MTRunManager* runManager = new G4MTRunManager;
+#else
    G4RunManager* runManager = new G4RunManager;
+#endif
 
    runManager->SetUserInitialization(new G01DetectorConstruction(
                                      parser.GetWorldVolume()));
    runManager->SetUserInitialization(new FTFP_BERT);
-   runManager->SetUserAction(new G01PrimaryGeneratorAction);
+   runManager->SetUserInitialization(new G01ActionInitialization());
 
    runManager->Initialize();
 
@@ -112,14 +126,14 @@ int main(int argc,char **argv)
 
    // Get the pointer to the User Interface manager
    G4UImanager* UImanager = G4UImanager::GetUIpointer();
- 
+
    ///////////////////////////////////////////////////////////////////////
    //
    // Example how to retrieve Auxiliary Information
    //
 
    G4cout << std::endl;
-   
+
    const G4LogicalVolumeStore* lvs = G4LogicalVolumeStore::GetInstance();
    std::vector<G4LogicalVolume*>::const_iterator lvciter;
    for( lvciter = lvs->begin(); lvciter != lvs->end(); lvciter++ )
@@ -129,7 +143,7 @@ int main(int argc,char **argv)
      if (auxInfo.size()>0)
        G4cout << "Auxiliary Information is found for Logical Volume :  "
               << (*lvciter)->GetName() << G4endl;
-     
+
      print_aux(&auxInfo);
    }
 
@@ -138,44 +152,49 @@ int main(int argc,char **argv)
    G4cout << "Global auxiliary info:" << std::endl;
    G4cout << std::endl;
 
-   print_aux(parser.GetAuxList());   
+   print_aux(parser.GetAuxList());
 
    G4cout << std::endl;
-   
+
    //
    // End of Auxiliary Information block
    //
    ////////////////////////////////////////////////////////////////////////
 
-   // example of writing out
+
+   runManager->BeamOn(0);
    
+   // example of writing out
+
    if (argc>=3)
    {
 /*
      G4GDMLAuxStructType mysubaux = {"mysubtype", "mysubvalue", "mysubunit", 0};
      G4GDMLAuxListType* myauxlist = new G4GDMLAuxListType();
      myauxlist->push_back(mysubaux);
-     
+
      G4GDMLAuxStructType myaux = {"mytype", "myvalue", "myunit", myauxlist};
      parser.AddAuxiliary(myaux);
 
 
      // example of setting auxiliary info for world volume
      // (can be set for any volume)
-     
+
      G4GDMLAuxStructType mylocalaux = {"sometype", "somevalue", "someunit", 0};
 
      parser.AddVolumeAuxiliary(mylocalaux,
        G4TransportationManager::GetTransportationManager()
        ->GetNavigatorForTracking()->GetWorldVolume()->GetLogicalVolume());
 */
+
      parser.SetRegionExport(true);
+     //     parser.SetEnergyCutsExport(true);
      parser.Write(argv[2], G4TransportationManager::GetTransportationManager()
       ->GetNavigatorForTracking()->GetWorldVolume()->GetLogicalVolume());
    }
-   
 
-   if (argc==4)   // batch mode  
+
+   if (argc==4)   // batch mode
    {
      G4String command = "/control/execute ";
      G4String fileName = argv[3];

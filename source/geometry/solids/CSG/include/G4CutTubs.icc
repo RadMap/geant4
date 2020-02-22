@@ -23,13 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// --------------------------------------------------------------------
-// GEANT 4 inline definitions file
-//
-// G4CutTubs.icc
-//
 // Implementation of inline methods of G4CutTubs
 // --------------------------------------------------------------------
 
@@ -116,6 +109,7 @@ void G4CutTubs::InitializeTrigonometry()
 
   sinCPhi    = std::sin(cPhi);
   cosCPhi    = std::cos(cPhi);
+  cosHDPhi   = std::cos(hDPhi);
   cosHDPhiIT = std::cos(hDPhi - 0.5*kAngTolerance); // inner/outer tol half dphi
   cosHDPhiOT = std::cos(hDPhi + 0.5*kAngTolerance);
   sinSPhi = std::sin(fSPhi);

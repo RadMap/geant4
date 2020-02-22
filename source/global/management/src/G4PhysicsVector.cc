@@ -61,7 +61,7 @@ G4PhysicsVector::G4PhysicsVector(G4bool val)
  : type(T_G4PhysicsVector),
    edgeMin(0.), edgeMax(0.), numberOfNodes(0),
    useSpline(val), 
-   dBin(0.), baseBin(0.),
+   invdBin(0.), baseBin(0.),
    verboseLevel(0)
 {}
 
@@ -74,7 +74,7 @@ G4PhysicsVector::~G4PhysicsVector()
 
 G4PhysicsVector::G4PhysicsVector(const G4PhysicsVector& right)
 {
-  dBin         = right.dBin;
+  invdBin      = right.invdBin;
   baseBin      = right.baseBin;
   verboseLevel = right.verboseLevel;
 
@@ -87,7 +87,7 @@ G4PhysicsVector::G4PhysicsVector(const G4PhysicsVector& right)
 G4PhysicsVector& G4PhysicsVector::operator=(const G4PhysicsVector& right)
 {
   if (&right==this)  { return *this; }
-  dBin         = right.dBin;
+  invdBin      = right.invdBin;
   baseBin      = right.baseBin;
   verboseLevel = right.verboseLevel;
 
@@ -98,14 +98,14 @@ G4PhysicsVector& G4PhysicsVector::operator=(const G4PhysicsVector& right)
 
 // --------------------------------------------------------------
 
-G4int G4PhysicsVector::operator==(const G4PhysicsVector &right) const
+G4bool G4PhysicsVector::operator==(const G4PhysicsVector &right) const
 {
   return (this == &right);
 }
 
 // --------------------------------------------------------------
 
-G4int G4PhysicsVector::operator!=(const G4PhysicsVector &right) const
+G4bool G4PhysicsVector::operator!=(const G4PhysicsVector &right) const
 {
   return (this != &right);
 }

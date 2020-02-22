@@ -24,7 +24,7 @@
 // ********************************************************************
 //
 //
-/// \file parallel/ParN04/include/ExN04CalorimeterHit.hh
+/// \file ExN04CalorimeterHit.hh
 /// \brief Definition of the ExN04CalorimeterHit class
 //
 
@@ -56,7 +56,7 @@ class ExN04CalorimeterHit : public G4VHit
       ~ExN04CalorimeterHit();
       ExN04CalorimeterHit(const ExN04CalorimeterHit &right);
       const ExN04CalorimeterHit& operator=(const ExN04CalorimeterHit &right);
-      G4int operator==(const ExN04CalorimeterHit &right) const;
+      G4bool operator==(const ExN04CalorimeterHit &right) const;
 
       inline void *operator new(size_t);
       inline void operator delete(void *aHit);

@@ -46,8 +46,8 @@ class G4UIcommandTree
       G4UIcommandTree();
       G4UIcommandTree(const char * thePathName);
       ~G4UIcommandTree();
-      G4int operator==(const G4UIcommandTree &right) const;
-      G4int operator!=(const G4UIcommandTree &right) const;
+      G4bool operator==(const G4UIcommandTree &right) const;
+      G4bool operator!=(const G4UIcommandTree &right) const;
 
   public:
       void AddNewCommand(G4UIcommand * newCommand, G4bool workerThreadOnly=false);
@@ -80,9 +80,9 @@ class G4UIcommandTree
       inline const G4String GetPathName() const
       { return pathName; };
       inline G4int GetTreeEntry() const
-      { return tree.size(); };
+      { return G4int(tree.size()); };
       inline G4int GetCommandEntry() const
-      { return command.size(); };
+      { return G4int(command.size()); };
       inline G4UIcommandTree * GetTree(G4int i)
       { return tree[i-1]; };
       inline G4UIcommandTree * GetTree(const char* comNameC)

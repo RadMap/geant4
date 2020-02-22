@@ -122,13 +122,11 @@ public:
                               const G4String& directory,
                               G4bool ascii) final;
 
-  // It returns the cross section per volume for energy/ material
-  G4double TotalCrossSectionPerVolume(G4double energy,
-				      const G4MaterialCutsCouple* couple);
-
   const G4String& GetProcessName() const;
 
   G4int GetProcessSubType() const;
+
+  G4VEmProcess* GetEmProcess(const G4String& name) final;
 
 protected:
 
@@ -137,10 +135,12 @@ protected:
 
 private:
 
-  inline G4double ComputeGeneralLambda(size_t idxe, size_t idxt, 
-                                     size_t& idx, G4double e);
+  // It returns the cross section per volume for energy/ material
+  G4double TotalCrossSectionPerVolume();
 
-  inline G4double GetProbability(size_t idxt, size_t& idx);
+  inline G4double ComputeGeneralLambda(size_t idxe, size_t idxt);
+
+  inline G4double GetProbability(size_t idxt);
 
   inline void SelectedProcess(const G4Track& track, G4VProcess* ptr);
 
@@ -151,8 +151,8 @@ private:
 				       G4HadronicProcess*);
 
   // hide copy constructor and assignment operator
-  G4GammaGeneralProcess(G4GammaGeneralProcess &) = delete;
-  G4GammaGeneralProcess & operator=(const G4GammaGeneralProcess &right) = delete;
+  G4GammaGeneralProcess(G4GammaGeneralProcess &);
+  G4GammaGeneralProcess & operator=(const G4GammaGeneralProcess &right);
 
   static G4EmDataHandler*      theHandler;
   static const size_t          nTables = 15;
@@ -171,33 +171,31 @@ private:
   G4double                     minEEEnergy;
   G4double                     minMMEnergy;
   G4double                     peLambda;
+  G4double                     preStepLogE;
+  G4double                     factor;
 
   size_t                       nLowE;
   size_t                       nHighE;
   size_t                       idxEnergy;
-  size_t                       idx0;
-  size_t                       idx1;
-  size_t                       idx2;
-  size_t                       idx3;
   G4bool                       splineFlag;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
  
 inline G4double
-G4GammaGeneralProcess::ComputeGeneralLambda(size_t idxe, size_t idxt, 
-				            size_t& idx, G4double e)
+G4GammaGeneralProcess::ComputeGeneralLambda(size_t idxe, size_t idxt)
 {
   idxEnergy = idxe;
-  return theHandler->GetVector(idxt, currentCoupleIndex)->Value(e, idx);
+  return factor*theHandler->GetVector(idxt, basedCoupleIndex)
+    ->LogVectorValue(preStepKinEnergy, preStepLogE);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-inline G4double G4GammaGeneralProcess::GetProbability(size_t idxt, size_t& idx)
+inline G4double G4GammaGeneralProcess::GetProbability(size_t idxt)
 {
-  return (theT[idxt]) ? theHandler->GetVector(idxt, 
-          currentCoupleIndex)->Value(preStepKinEnergy, idx) : 1.0;
+  return (theT[idxt]) ? theHandler->GetVector(idxt, basedCoupleIndex)
+    ->LogVectorValue(preStepKinEnergy, preStepLogE) : 1.0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

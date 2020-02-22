@@ -124,6 +124,7 @@ void G4WentzelVIModel::Initialise(const G4ParticleDefinition* p,
 {
   // reset parameters
   SetupParticle(p);
+  InitialiseParameters(p);
   currentRange = 0.0;
 
   if(isCombined) {
@@ -278,11 +279,12 @@ G4double G4WentzelVIModel::ComputeTruePathLengthLimit(
   //         << G4endl;
 
   // initialisation for each step, lambda may be computed from scratch
-  preKinEnergy = dp->GetKineticEnergy();
-  effKinEnergy = preKinEnergy;
+  preKinEnergy    = dp->GetKineticEnergy();
+  effKinEnergy    = preKinEnergy;
   DefineMaterial(track.GetMaterialCutsCouple());
-  lambdaeff = GetTransportMeanFreePath(particle,preKinEnergy);
-  currentRange = GetRange(particle,preKinEnergy,currentCouple);
+  const G4double logPreKinEnergy = dp->GetLogKineticEnergy();
+  lambdaeff = GetTransportMeanFreePath(particle,preKinEnergy,logPreKinEnergy);
+  currentRange = GetRange(particle,preKinEnergy,currentCouple,logPreKinEnergy);
   cosTetMaxNuc = wokvi->SetupKinematic(preKinEnergy, currentMaterial);
   
   //G4cout << "lambdaeff= " << lambdaeff << " Range= " << currentRange

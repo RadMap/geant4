@@ -120,28 +120,31 @@ void G4OpenGLSceneHandler::ScaledFlush()
     // Drawing transients, e.g., trajectories.
 
     if (!fpScene) {
-      // No scene, so probably not in event loop.
+      // No scene - shouldn't happen
       glFlush();
       return;
     }
     // Get event from modeling parameters
     if (!fpModel) {
-      // No model, so probably not in event loop
+      // No model - shouldn't happen
       glFlush();
       return;
     }
     const G4ModelingParameters* modelingParameters =
     fpModel->GetModelingParameters();
     if (!modelingParameters) {
-      // No modeling parameters, so probably not in event loop.
+      // No modeling parameters - shouldn't happen
       glFlush();
       return;
     }
     const G4Event* thisEvent = modelingParameters->GetEvent();
     if (!thisEvent) {
-      // No event, so probably not in event loop.
-      glFlush();
-      return;
+      // No event, so not in event loop.
+      if (fFlushAction == endOfEvent) {
+        fFlushAction = endOfRun;
+      } else if (fFlushAction == NthEvent) {
+        fFlushAction = NthPrimitive;
+      }
     }
     G4RunManager* runMan = G4RunManager::GetRunManager();
 #ifdef G4MULTITHREADED
@@ -150,13 +153,18 @@ void G4OpenGLSceneHandler::ScaledFlush()
     }
 #endif
     if (!runMan) {
+      // No run manager - shouldn't happen
       glFlush();
       return;
     }
     const G4Run* thisRun = runMan->GetCurrentRun();
     if (!thisRun) {
-      glFlush();
-      return;
+      // No run, so not in event loop.
+      if (fFlushAction == endOfRun) {
+        fFlushAction = NthPrimitive;
+      } else if (fFlushAction == NthEvent) {
+        fFlushAction = NthPrimitive;
+      }
     }
 
     switch (fFlushAction) {
@@ -321,19 +329,22 @@ void G4OpenGLSceneHandler::EndPrimitives2D ()
   G4VSceneHandler::EndPrimitives2D ();
 }
 
-G4VSolid* G4OpenGLSceneHandler::CreateSectionSolid ()
+G4DisplacedSolid* G4OpenGLSceneHandler::CreateSectionSolid ()
 {
   return G4VSceneHandler::CreateSectionSolid();
   // If clipping done in G4OpenGLViewer::SetView
   // return 0;
+  // Note: if you change this, you must also change
+  // G4OpenGLStoredViewer::CompareForKernelVisit
 }
 
-G4VSolid* G4OpenGLSceneHandler::CreateCutawaySolid ()
+G4DisplacedSolid* G4OpenGLSceneHandler::CreateCutawaySolid ()
 {
-  // Cutaway done in G4OpenGLViewer::SetView.
-  return 0;
-  // Else
   // return G4VSceneHandler::CreateCutawaySolid();
+  // If cutaway done in G4OpenGLViewer::SetView.
+  return 0;
+  // Note: if you change this, you must also change
+  // G4OpenGLStoredViewer::CompareForKernelVisit
 }
 
 void G4OpenGLSceneHandler::AddPrimitive (const G4Polyline& line)
@@ -588,7 +599,8 @@ void G4OpenGLSceneHandler::AddPrimitive (const G4Polyhedron& polyhedron) {
   //  even if the colour is changed, for example, by interaction with a Qt
   //  window, current_colour does not change.
   GLfloat* painting_colour;
-  GLfloat current_colour [4];
+  GLfloat clear_colour[4];
+  GLfloat current_colour[4];
   glGetFloatv (GL_CURRENT_COLOR, current_colour);
   
   G4bool isTransparent = false;
@@ -596,10 +608,8 @@ void G4OpenGLSceneHandler::AddPrimitive (const G4Polyhedron& polyhedron) {
     isTransparent = true;
   }
 
-  
   if  (drawing_style == G4ViewParameters::hlr) {
     // This is the colour used to paint surfaces in hlr mode.
-    GLfloat clear_colour[4];
     glGetFloatv (GL_COLOR_CLEAR_VALUE, clear_colour);
     painting_colour = clear_colour;
   } else {  // drawing_style == G4ViewParameters::hlhsr
@@ -676,7 +686,7 @@ void G4OpenGLSceneHandler::AddPrimitive (const G4Polyhedron& polyhedron) {
 #ifndef G4OPENGL_VERSION_2
         glEnable(GL_COLOR_MATERIAL);
 #endif
-  glEnable (GL_CULL_FACE);
+        glEnable (GL_CULL_FACE);
 	glCullFace (GL_BACK);
 	glPolygonMode (GL_FRONT, GL_FILL);
       }
@@ -870,14 +880,14 @@ void G4OpenGLSceneHandler::AddPrimitive (const G4Polyhedron& polyhedron) {
             fEdgeFlag = false;
           }
         }
-				glNormal3d (normals[edgeCount].x(),
-							normals[edgeCount].y(),
-							normals[edgeCount].z());
+        glNormal3d (normals[edgeCount].x(),
+                    normals[edgeCount].y(),
+                    normals[edgeCount].z());
         glVertex3d (vertex[edgeCount].x(),
                     vertex[edgeCount].y(),
                     vertex[edgeCount].z());
 #else
-				fOglVertex.push_back(vertex[edgeCount].x());
+        fOglVertex.push_back(vertex[edgeCount].x());
         fOglVertex.push_back(vertex[edgeCount].y());
         fOglVertex.push_back(vertex[edgeCount].z());
         

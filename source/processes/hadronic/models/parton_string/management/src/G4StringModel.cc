@@ -29,7 +29,7 @@
 #include "G4StringModel.hh"
 
 G4StringModel::G4StringModel() :  G4VHighEnergyGenerator(),
-the3DNucleus(0), theStringFragmentationModel(0),theGenerator(0)
+the3DNucleus(0), theStringFragmentationModel(0)
 {
 }
 
@@ -39,7 +39,7 @@ G4StringModel::~G4StringModel()
 
   // private:
 G4StringModel::G4StringModel(const G4StringModel &) : G4VHighEnergyGenerator(),
-the3DNucleus(0), theStringFragmentationModel(0),theGenerator(0)
+the3DNucleus(0), theStringFragmentationModel(0)
 {
 }
 
@@ -51,13 +51,13 @@ const G4StringModel & G4StringModel::operator=(const G4StringModel &)
 }
 
 
-int G4StringModel::operator==(const G4StringModel &) const
+G4bool G4StringModel::operator==(const G4StringModel &) const
 {
-  return 0;
+  return false;
 }
 
-int G4StringModel::operator!=(const G4StringModel &) const
+G4bool G4StringModel::operator!=(const G4StringModel &) const
 {
-  return 1;
+  return true;
 }
 

@@ -44,19 +44,16 @@ class G4ExcitedStringDecay: public G4VStringFragmentation
   private:
       G4ExcitedStringDecay(const G4ExcitedStringDecay &right);
       const G4ExcitedStringDecay & operator=(const G4ExcitedStringDecay &right);
-      int operator==(const G4ExcitedStringDecay &right) const;
-      int operator!=(const G4ExcitedStringDecay &right) const;
+      G4bool operator==(const G4ExcitedStringDecay &right) const;
+      G4bool operator!=(const G4ExcitedStringDecay &right) const;
 
   public:
-
       virtual G4KineticTrackVector * FragmentStrings(const G4ExcitedStringVector * theStrings);
 
   private:
       G4KineticTrackVector * FragmentString(const G4ExcitedString &theString);
       G4bool EnergyAndMomentumCorrector(G4KineticTrackVector* Output, G4LorentzVector& TotalCollisionMom);   
-  
       G4VLongitudinalStringDecay * theStringDecay;
-
 };
 
 #endif

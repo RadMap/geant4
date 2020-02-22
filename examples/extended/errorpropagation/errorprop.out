@@ -4,7 +4,7 @@
         ############################################
 
 **************************************************************
- Geant4 version Name: geant4-10-05-ref-00    (7-December-2018)
+ Geant4 version Name: geant4-10-06-patch-01    (14-February-2020)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -12,7 +12,7 @@
                              WWW : http://geant4.org/
 **************************************************************
 
- creating G4RunManagerKernel 0x24c7010
+ creating G4RunManagerKernel 0x129e650
 
 The materials defined are : 
 
@@ -87,34 +87,33 @@ G4Transportation:  Current values for thresholds related to  the killing of loop
     Important Energy = 250  ( above this tracks are given multiple chances ) 
     Extra Trials     = 10 'important' tracks, i.e. those above 'important' energy 
  G4Transportation constructor> set fShortStepOptimisation to false
-0x26d5f90G4ErrorPhysicsList:: particle process manager e+ = 0x26d86b0
-0x26d5e40G4ErrorPhysicsList:: particle process manager e- = 0x26da140
-0x26d5cf0G4ErrorPhysicsList:: particle process manager gamma = 0x26da370
-0x26d73e0G4ErrorPhysicsList:: particle process manager geantino = 0x26da5c0
-0x26d6170G4ErrorPhysicsList:: particle process manager mu+ = 0x26da810
-0x26d6520G4ErrorPhysicsList:: particle process manager mu- = 0x26daa60
-0x26d6940G4ErrorPhysicsList:: particle process manager pi+ = 0x26dacb0
-0x26d6d90G4ErrorPhysicsList:: particle process manager pi- = 0x26daf00
-0x26d71b0G4ErrorPhysicsList:: particle process manager proton = 0x26db150
+0x14bb1f0G4ErrorPhysicsList:: particle process manager e+ = 0x14bd870
+0x14bb010G4ErrorPhysicsList:: particle process manager e- = 0x14bf300
+0x14bae30G4ErrorPhysicsList:: particle process manager gamma = 0x14bf530
+0x14bc5a0G4ErrorPhysicsList:: particle process manager geantino = 0x14bf780
+0x14bb3d0G4ErrorPhysicsList:: particle process manager mu+ = 0x14bf9d0
+0x14bb6e0G4ErrorPhysicsList:: particle process manager mu- = 0x14bfc20
+0x14bbb00G4ErrorPhysicsList:: particle process manager pi+ = 0x14bfe70
+0x14bbf50G4ErrorPhysicsList:: particle process manager pi- = 0x14c00c0
+0x14bc370G4ErrorPhysicsList:: particle process manager proton = 0x14c0310
 physicsList->CheckParticleList() start.
 physicsList->setCut() start.
 
-conv:   for  gamma    SubType= 14  BuildTable= 1
-      Lambda table from 1.022 MeV to 100 TeV, 18 bins per decade, spline: 1
+conv:  for gamma SubType=14 BuildTable=1
+      Lambda table from 1.022 MeV to 100 TeV, 18 bins/decade, spline: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-        BetheHeitler :  Emin=        0 eV    Emax=       80 GeV   AngularGenUrban
-     BetheHeitlerLPM :  Emin=       80 GeV   Emax=      100 TeV   AngularGenUrban
+     BetheHeitlerLPM : Emin=    0 eV  Emax=  100 TeV  ModifiedTsai
 
-compt:   for  gamma    SubType= 13  BuildTable= 1
-      Lambda table from 100 eV  to 1 MeV, 7 bins per decade, spline: 1
+compt:  for gamma SubType=13 BuildTable=1
+      Lambda table from 100 eV  to 1 MeV, 7 bins/decade, spline: 1
       LambdaPrime table from 1 MeV to 100 TeV in 56 bins 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-       Klein-Nishina :  Emin=        0 eV    Emax=      100 TeV
+       Klein-Nishina : Emin=    0 eV  Emax=  100 TeV
 
-phot:   for  gamma    SubType= 12  BuildTable= 0
+phot:  for gamma SubType=12 BuildTable=0
       LambdaPrime table from 200 keV to 100 TeV in 61 bins 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-       PhotoElectric :  Emin=        0 eV    Emax=      100 TeV   AngularGenSauterGavrila
+       PhotoElectric : Emin=    0 eV  Emax=  100 TeV  SauterGavrila
 
 Region <DefaultRegionForTheWorld> --  -- appears in <World> world volume
  This region is in the mass world.
@@ -230,14 +229,14 @@ G4TablesForExtrapolator::ComputeProtonDEDX for e-
    38 2.15e+03     33.3        0  2.23e+04   0.0336      100  2.15e+03        MUON G4ErrorStepLengthLimit
    39 2.21e+03     35.1        0  2.23e+04   0.0202     60.2  2.21e+03        MUON Transportation
  $$$ PROPAGATION ENDED 
- Position: (2210,35.10111723970089,0)
- Momentum: (22434.27690919889,696.1984263233888,0)
+ Position: (2210,35.10111723911078,0)
+ Momentum: (22434.27691061237,696.1984263459537,0)
  Error: 
-   9.87238023132452e-08                       0   3.726670392130902e-08    2.66749057394133e-06                       0 
-                      0     3.5186862657043e-05                       0                       0    0.004070045170477413 
-  3.726670392130902e-08                       0   3.519153658580218e-05    0.004421941182274977                       0 
-   2.66749057394133e-06                       0    0.004421941182274977      0.6258683710985535                       0 
-                      0    0.004070045170477413                       0                       0       0.540952402733872 
+  9.872380229068542e-08                       0   3.726670391445281e-08   2.667490573551994e-06                       0 
+                      0   3.518686265525499e-05                       0                       0    0.004070045170333897 
+  3.726670391445281e-08                       0   3.519153658401343e-05    0.004421941182113587                       0 
+  2.667490573551994e-06                       0    0.004421941182113587      0.6258683710821009                       0 
+                      0    0.004070045170333897                       0                       0      0.5409524027204671 
 
 Step#    X(mm)    Y(mm)    Z(mm) KinE(MeV)  dE(MeV) StepLeng TrackLeng  NextVolume ProcName
     0        0        0        0  1.99e+04        0        0         0        BEAM initStep
@@ -281,14 +280,14 @@ Step#    X(mm)    Y(mm)    Z(mm) KinE(MeV)  dE(MeV) StepLeng TrackLeng  NextVolu
    38 2.15e+03     33.3        0  2.23e+04   0.0336      100  2.15e+03        MUON G4ErrorStepLengthLimit
    39 2.21e+03     35.1        0  2.23e+04   0.0202     60.2  2.21e+03        MUON Transportation
  $$$ PROPAGATION ENDED 
- Position: (2210,35.10111723970089,0)
- Momentum: (22434.27690919889,696.1984263233888,0)
+ Position: (2210,35.10111723911078,0)
+ Momentum: (22434.27691061237,696.1984263459537,0)
  Error: 
-   9.87238023132452e-08                       0   3.726670392130902e-08    2.66749057394133e-06                       0 
-                      0     3.5186862657043e-05                       0                       0    0.004070045170477413 
-  3.726670392130902e-08                       0   3.519153658580218e-05    0.004421941182274977                       0 
-   2.66749057394133e-06                       0    0.004421941182274977      0.6258683710985535                       0 
-                      0    0.004070045170477413                       0                       0       0.540952402733872 
+  9.872380229068542e-08                       0   3.726670391445281e-08   2.667490573551994e-06                       0 
+                      0   3.518686265525499e-05                       0                       0    0.004070045170333897 
+  3.726670391445281e-08                       0   3.519153658401343e-05    0.004421941182113587                       0 
+  2.667490573551994e-06                       0    0.004421941182113587      0.6258683710821009                       0 
+                      0    0.004070045170333897                       0                       0      0.5409524027204671 
 
 Step#    X(mm)    Y(mm)    Z(mm) KinE(MeV)  dE(MeV) StepLeng TrackLeng  NextVolume ProcName
     0        0        0        0  1.99e+04        0        0         0        BEAM initStep
@@ -332,12 +331,12 @@ Step#    X(mm)    Y(mm)    Z(mm) KinE(MeV)  dE(MeV) StepLeng TrackLeng  NextVolu
    38 2.15e+03     33.3        0  2.23e+04   0.0336      100  2.15e+03        MUON G4ErrorStepLengthLimit
    39 2.21e+03     35.1        0  2.23e+04   0.0202     60.2  2.21e+03        MUON Transportation
  $$$ PROPAGATION ENDED 
- Position: (2210,35.10111723970089,0)
- Momentum: (22434.27690919889,696.1984263233888,0)
+ Position: (2210,35.10111723911078,0)
+ Momentum: (22434.27691061237,696.1984263459537,0)
  Error: 
-   9.87238023132452e-08                       0   3.726670392130902e-08    2.66749057394133e-06                       0 
-                      0     3.5186862657043e-05                       0                       0    0.004070045170477413 
-  3.726670392130902e-08                       0   3.519153658580218e-05    0.004421941182274977                       0 
-   2.66749057394133e-06                       0    0.004421941182274977      0.6258683710985535                       0 
-                      0    0.004070045170477413                       0                       0       0.540952402733872 
+  9.872380229068542e-08                       0   3.726670391445281e-08   2.667490573551994e-06                       0 
+                      0   3.518686265525499e-05                       0                       0    0.004070045170333897 
+  3.726670391445281e-08                       0   3.519153658401343e-05    0.004421941182113587                       0 
+  2.667490573551994e-06                       0    0.004421941182113587      0.6258683710821009                       0 
+                      0    0.004070045170333897                       0                       0      0.5409524027204671 
 

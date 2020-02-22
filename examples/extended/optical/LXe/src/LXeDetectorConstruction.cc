@@ -242,8 +242,6 @@ void LXeDetectorConstruction::DefineMaterials(){
 
 G4VPhysicalVolume* LXeDetectorConstruction::Construct(){
 
-  if (fExperimentalHall_phys) { return fExperimentalHall_phys; }
-
   //The experimental hall walls are all 1m away from housing walls
   G4double expHall_x = fScint_x+fD_mtl+1.*m;
   G4double expHall_y = fScint_y+fD_mtl+1.*m;
@@ -309,14 +307,19 @@ void LXeDetectorConstruction::ConstructSDandField() {
 
   // PMT SD
 
-  if (!fPmt_SD.Get()) {
+  LXePMTSD* pmt = fPmt_SD.Get();
+  if (!pmt) {
     //Created here so it exists as pmts are being placed
     G4cout << "Construction /LXeDet/pmtSD" << G4endl;
     LXePMTSD* pmt_SD = new LXePMTSD("/LXeDet/pmtSD");
     fPmt_SD.Put(pmt_SD);
 
-    pmt_SD->InitPMTs((fNx*fNy+fNx*fNz+fNy*fNz)*2); //let pmtSD know # of pmts
+    pmt_SD->InitPMTs();
     pmt_SD->SetPmtPositions(fMainVolume->GetPmtPositions());
+  }
+  else {
+    pmt->InitPMTs();
+    pmt->SetPmtPositions(fMainVolume->GetPmtPositions());
   }
   G4SDManager::GetSDMpointer()->AddNewDetector(fPmt_SD.Get());
   //sensitive detector is not actually on the photocathode.

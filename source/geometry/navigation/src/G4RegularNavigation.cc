@@ -23,9 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-// GEANT4 tag $ Name:$
-//
 // class G4RegularNavigation implementation
 //
 // Author: Pedro Arce, May 2007
@@ -43,9 +40,14 @@
 
 //------------------------------------------------------------------
 G4RegularNavigation::G4RegularNavigation()
-  : fverbose(false), fcheck(false), fnormalNav(0)
 {
   kCarTolerance = G4GeometryTolerance::GetInstance()->GetSurfaceTolerance();
+  fMinStep = 101*kCarTolerance;
+
+  fActionThreshold_NoZeroSteps  = 2;
+  fAbandonThreshold_NoZeroSteps = 25;
+  fNoStepsAllowed = 10000;
+  fWarnPush = true;
 }
 
 
@@ -76,7 +78,7 @@ G4double G4RegularNavigation::
   // problems would make this method to be called
 
   G4ThreeVector globalPoint =
-         history.GetTopTransform().InverseTransformPoint(localPoint);
+    history.GetTopTransform().InverseTransformPoint(localPoint);
   G4ThreeVector globalDirection =
          history.GetTopTransform().InverseTransformAxis(localDirection);
 
@@ -160,7 +162,8 @@ G4double G4RegularNavigation::ComputeStepSkippingEqualMaterials(
   // param container volume
   //
   G4int ide = history.GetDepth();
-  G4ThreeVector containerPoint = history.GetTransform(ide).InverseTransformPoint(localPoint);
+  G4ThreeVector containerPoint = history.GetTransform(ide)
+                                 .InverseTransformPoint(localPoint);
 
   // Point in global frame
   //
@@ -185,7 +188,7 @@ G4double G4RegularNavigation::ComputeStepSkippingEqualMaterials(
 
   G4int copyNo = param->GetReplicaNo(containerPoint,localDirection);
 
-  G4Material* currentMate = param->ComputeMaterial( copyNo, 0, 0 );
+  G4Material* currentMate = param->ComputeMaterial( copyNo, nullptr, nullptr );
   G4VSolid* voxelBox = pCurrentPhysical->GetLogicalVolume()->GetSolid();
 
   G4VSolid* containerSolid = param->GetContainerSolid();
@@ -196,9 +199,96 @@ G4double G4RegularNavigation::ComputeStepSkippingEqualMaterials(
 
   // Loop while same material is found 
   //
-  for( ;; )
+  //
+  fNumberZeroSteps = 0;
+  for( G4int ii = 0; ii < fNoStepsAllowed+1; ++ii )
   {
+    if( ii == fNoStepsAllowed ) {
+      // Must kill this stuck track
+      //
+      G4ThreeVector pGlobalpoint = history.GetTransform(ide)
+                                   .InverseTransformPoint(localPoint);
+      std::ostringstream message;
+      message << "G4RegularNavigation::ComputeStepSkippingEqualMaterials()"
+              << "Stuck Track: potential geometry or navigation problem."
+              << G4endl
+              << "        Track stuck, moving for more than "
+              << ii << " steps" << G4endl
+              << "- at point " << pGlobalpoint << G4endl
+              << "        local direction: " << localDirection << G4endl;
+      G4Exception("G4RegularNavigation::ComputeStepSkippingEqualMaterials()",
+                  "GeomRegNav1001",
+                  EventMustBeAborted,
+                  message);
+    }
     newStep = voxelBox->DistanceToOut( localPoint, localDirection );
+    fLastStepWasZero = (newStep<fMinStep);
+    if( fLastStepWasZero )
+    {
+      ++fNumberZeroSteps;
+      //#ifdef G4DEBUG_NAVIGATION
+      if( fNumberZeroSteps > 1 )
+      {
+        G4ThreeVector pGlobalpoint = history.GetTransform(ide)
+                                     .InverseTransformPoint(localPoint);
+        G4cout << "G4RegularNavigation::ComputeStepSkippingEqualMaterials():"
+               << " another 'zero' step, # "
+               << fNumberZeroSteps
+               << ", at " << pGlobalpoint
+               << ", nav-comp-step calls # " << ii
+               << ", Step= " << newStep
+               << G4endl;
+      }
+      //#endif
+      if( fNumberZeroSteps > fActionThreshold_NoZeroSteps-1 )
+      {
+        // Act to recover this stuck track. Pushing it along direction
+        //
+        newStep = std::min(101*kCarTolerance*pow(10,fNumberZeroSteps-2),0.1);
+#ifdef G4VERBOSE
+        if (fWarnPush)
+        {
+          G4ThreeVector pGlobalpoint = history.GetTransform(ide)
+                                       .InverseTransformPoint(localPoint);
+          std::ostringstream message;
+          message.precision(16);
+          message << "Track stuck or not moving." << G4endl
+                  << "          Track stuck, not moving for "
+                  << fNumberZeroSteps << " steps" << G4endl
+                  << "- at point " << pGlobalpoint
+                  << " (local point " << localPoint << ")" << G4endl
+                  << "        local direction: " << localDirection
+                  << "          Potential geometry or navigation problem !"
+                  << G4endl
+                  << "          Trying pushing it of " << newStep << " mm ...";
+          G4Exception("G4RegularNavigation::ComputeStepSkippingEqualMaterials()",
+                      "GeomRegNav1002",
+                      JustWarning,
+                      message,
+                      "Potential overlap in geometry!");
+        }
+#endif
+      }
+      if( fNumberZeroSteps > fAbandonThreshold_NoZeroSteps-1 )
+      {
+        // Must kill this stuck track
+        //
+        G4ThreeVector pGlobalpoint = history.GetTransform(ide)
+                                     .InverseTransformPoint(localPoint);
+        std::ostringstream message;
+        message << "G4RegularNavigation::ComputeStepSkippingEqualMaterials()"
+                << "Stuck Track: potential geometry or navigation problem."
+                << G4endl
+                << "        Track stuck, not moving for "
+                << fNumberZeroSteps << " steps" << G4endl
+                << "- at point " << pGlobalpoint << G4endl
+                << "        local direction: " << localDirection << G4endl;
+        G4Exception("G4RegularNavigation::ComputeStepSkippingEqualMaterials()",
+                    "GeomRegNav1003",
+                    EventMustBeAborted,
+                    message);
+      }
+    }
 
     if( (bFirstStep) && (newStep < currentProposedStepLength) )
     {
@@ -238,10 +328,9 @@ G4double G4RegularNavigation::ComputeStepSkippingEqualMaterials(
 
     // Get copyNo and translation of new voxel
     //
-    copyNo = param->GetReplicaNo(containerPoint,localDirection);
+    copyNo = param->GetReplicaNo(containerPoint, localDirection);
     G4ThreeVector voxelTranslation = param->GetTranslation( copyNo );
 
-    //    G4cout << " copyNo " << copyNo << " = " << pCurrentPhysical->GetCopyNo() << G4endl;
     // Move local point until wall of voxel and then put it in the new voxel
     // local coordinates
     //
@@ -251,7 +340,7 @@ G4double G4RegularNavigation::ComputeStepSkippingEqualMaterials(
     prevVoxelTranslation = voxelTranslation;
 
     // Check if material of next voxel is the same as that of the current voxel
-    nextMate = param->ComputeMaterial( copyNo, 0, 0 );
+    nextMate = param->ComputeMaterial( copyNo, nullptr, nullptr );
 
     if( currentMate != nextMate ) { break; }
   }

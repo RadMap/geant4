@@ -47,6 +47,7 @@
 #include "G4EmProcessSubType.hh"
 #include "G4DipBustGenerator.hh"
 #include "G4Log.hh"
+#include "G4LossTableManager.hh"
 
 ///////////////////////////////////////////////////////////////////////
 //
@@ -68,6 +69,8 @@ G4SynchrotronRadiation::G4SynchrotronRadiation(const G4String& processName,
   FirstTime1   = true;
   genAngle     = nullptr;
   SetAngularGenerator(new G4DipBustGenerator());
+  theManager = G4LossTableManager::Instance();
+  theManager->Register(this);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -77,7 +80,8 @@ G4SynchrotronRadiation::G4SynchrotronRadiation(const G4String& processName,
 
 G4SynchrotronRadiation::~G4SynchrotronRadiation()
 {
-    delete genAngle;
+  delete genAngle;
+  theManager->DeRegister(this);
 }
 
 /////////////////////////////// METHODS /////////////////////////////////

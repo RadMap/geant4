@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 // -------------------------------------------------------------------
 //
 // GEANT4 Class header file
@@ -64,56 +63,60 @@ public:
 
   explicit G4NeutronCaptureXS();
 
-  virtual ~G4NeutronCaptureXS();
+  ~G4NeutronCaptureXS() final;
     
   static const char* Default_Name() {return "G4NeutronCaptureXS";}
 
-  virtual
   G4bool IsElementApplicable(const G4DynamicParticle*, G4int Z,
-			     const G4Material*);
+			     const G4Material*) final;
 
-  virtual
   G4bool IsIsoApplicable(const G4DynamicParticle*, G4int Z, G4int A,
-			 const G4Element*, const G4Material*);
+			 const G4Element*, const G4Material*) final;
 
-  virtual
   G4double GetElementCrossSection(const G4DynamicParticle*, 
-				  G4int Z, const G4Material* mat=nullptr);
+				  G4int Z, const G4Material*) final;
   
-  virtual
   G4double GetIsoCrossSection(const G4DynamicParticle*, G4int Z, G4int A,
                               const G4Isotope* iso,
                               const G4Element* elm,
-                              const G4Material* mat);
+                              const G4Material* mat) final;
 
-  virtual const G4Isotope* SelectIsotope(const G4Element*, G4double kinEnergy);
+  const G4Isotope* SelectIsotope(const G4Element*, G4double kinEnergy,
+                                 G4double logE) final;
 
-  virtual
-  void BuildPhysicsTable(const G4ParticleDefinition&);
+  void BuildPhysicsTable(const G4ParticleDefinition&) final;
 
-  virtual void CrossSectionDescription(std::ostream&) const;
+  void CrossSectionDescription(std::ostream&) const final;
 
 private: 
 
-  void Initialise(G4int Z, const char*);
+  void Initialise(G4int Z);
+
+  void InitialiseOnFly(G4int Z);
+
+  const G4String& FindDirectoryPath();
+
+  const G4PhysicsVector* GetPhysicsVector(G4int Z);
 
   G4PhysicsVector* RetrieveVector(std::ostringstream& in, G4bool warn);
 
-  G4double IsoCrossSection(G4double ekin, G4int Z, G4int A);
+  G4double IsoCrossSection(G4double ekin, G4double logekin, G4int Z, G4int A);
 
   G4NeutronCaptureXS & operator=(const G4NeutronCaptureXS &right);
   G4NeutronCaptureXS(const G4NeutronCaptureXS&);
 
   G4double emax;
   G4double elimit;
+  G4double logElimit;
+
+  std::vector<G4double> temp;
 
   G4bool   isMaster;
 
   static G4ElementData* data;
-  std::vector<G4double> temp;
-
   static const G4int amin[MAXZCAPTURE];
   static const G4int amax[MAXZCAPTURE];
+  static G4String gDataDirectory;
 
 #ifdef G4MULTITHREADED
   static G4Mutex neutronCaptureXSMutex;

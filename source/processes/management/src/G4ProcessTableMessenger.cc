@@ -79,7 +79,7 @@ G4ProcessTableMessenger::G4ProcessTableMessenger(G4ProcessTable* pTable)
   listCmd = new G4UIcmdWithAString("/process/list",this);
   listCmd->SetGuidance("List up process names");
   listCmd->SetGuidance("  list [type] ");
-  listCmd->SetGuidance("    type: process type [all:for all proceeses]");
+  listCmd->SetGuidance("    type: process type [all:for all processes]");
   listCmd->SetParameterName("type", true);
   listCmd->SetDefaultValue("all");
   SetNumberOfProcessType();
@@ -108,7 +108,7 @@ G4ProcessTableMessenger::G4ProcessTableMessenger(G4ProcessTable* pTable)
   procVerboseCmd->SetGuidance("    level: verbose level ");
   procVerboseCmd->SetGuidance("    name : process name ");
   procVerboseCmd->SetGuidance("    type : process type ");
-  procVerboseCmd->SetGuidance("       [all] for all proceeses ");
+  procVerboseCmd->SetGuidance("       [all] for all processes ");
   G4UIparameter* param = new G4UIparameter("verbose",'i',false);
   procVerboseCmd->SetParameter(param);
   param = new G4UIparameter("type",'s',true);
@@ -239,8 +239,8 @@ void G4ProcessTableMessenger::SetNewValue(G4UIcommand * command,G4String newValu
       }
     }  
     idx =0;
-    G4ProcessTable::G4ProcNameVector::iterator itr; 
-    for (itr=procNameVector->begin(); itr!=procNameVector->end(); ++itr) {
+    for (auto itr=procNameVector->cbegin(); itr!=procNameVector->cend(); ++itr)
+    {
       idx +=1;
       G4ProcessVector* tmpVector = theProcessTable->FindProcesses(*itr);
       G4VProcess* p = (*tmpVector)(0);
@@ -314,7 +314,7 @@ void G4ProcessTableMessenger::SetNewValue(G4UIcommand * command,G4String newValu
       } else {
 	tmpVector = theProcessTable->FindProcesses(G4ProcessType(type));
       }
-      for (G4int i=0; i<tmpVector->length(); i++) {
+      for (std::size_t i=0; i<tmpVector->length(); ++i) {
 	theProcessTable->DumpInfo( (*tmpVector)(i), currentParticle );
       }
       delete tmpVector;
@@ -379,7 +379,7 @@ G4String G4ProcessTableMessenger::GetProcessTypeName(G4ProcessType aType) const
 G4int G4ProcessTableMessenger::GetProcessType(const G4String& aTypeName) const
 {
   G4int type = -1;
-  for (G4int idx = 0; idx < NumberOfProcessType ; idx ++ ) {
+  for (G4int idx = 0; idx < NumberOfProcessType ; ++idx ) {
     if (aTypeName == G4VProcess::GetProcessTypeName(G4ProcessType(idx)) ) {
       type = idx;
       break;
@@ -394,7 +394,7 @@ void G4ProcessTableMessenger::SetNumberOfProcessType()
 {
   G4bool isFoundEndMark = false;
   G4int idx;
-  for (idx = 0; idx < 1000 ; idx ++ ) {
+  for (idx = 0; idx < 1000 ; ++idx ) {
     G4String typeName = G4VProcess::GetProcessTypeName(G4ProcessType(idx));
     isFoundEndMark = typeName.contains("---");
     if ( isFoundEndMark ) break;

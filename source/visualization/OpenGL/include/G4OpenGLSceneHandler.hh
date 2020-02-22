@@ -78,6 +78,7 @@ public:
   void AddSolid (const G4Polyhedra&);
   void AddSolid (const G4Orb&);
   void AddSolid (const G4Ellipsoid&);
+  void AddSolid (const G4TessellatedSolid&);
   void AddSolid (const G4VSolid&);
   void AddCompound (const G4VTrajectory&);
   void AddCompound (const G4VHit&);
@@ -141,8 +142,8 @@ protected:
   virtual ~G4OpenGLSceneHandler ();
   
   void ProcessScene();
-  G4VSolid* CreateSectionSolid ();
-  G4VSolid* CreateCutawaySolid ();
+  G4DisplacedSolid* CreateSectionSolid ();
+  G4DisplacedSolid* CreateCutawaySolid ();
   
   void ClearAndDestroyAtts();  // Destroys att holders and clears pick map.
   

@@ -23,12 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-//
-// --------------------------------------------------------------------
-// GEANT 4 class header file
-//
 // G4Orb
 //
 // Class description:
@@ -36,13 +30,13 @@
 //   A G4Orb is a simple case of G4Sphere. It has only:
 //   fRmax  outer radius
 
-//  History:
-// 08.08.17 E.Tcherniaev - revised 
 // 20.08.03 V.Grichine - created
+// 08.08.17 E.Tcherniaev - revised
 // --------------------------------------------------------------------
+#ifndef G4ORB_HH
+#define G4ORB_HH
 
-#ifndef G4Orb_HH
-#define G4Orb_HH
+#include "G4GeomTypes.hh"
 
 #if defined(G4GEOM_USE_USOLIDS)
 #define G4GEOM_USE_UORB 1
@@ -97,12 +91,12 @@ class G4Orb : public G4CSGSolid
                           const G4ThreeVector& v) const;
 
     G4double DistanceToIn(const G4ThreeVector& p) const;
-    
+
     G4double DistanceToOut(const G4ThreeVector& p,
                            const G4ThreeVector& v,
-                           const G4bool calcNorm=G4bool(false),
-                                 G4bool *validNorm=0,
-                                 G4ThreeVector *n=0) const;
+                           const G4bool calcNorm = false,
+                                 G4bool* validNorm = nullptr,
+                                 G4ThreeVector* n = nullptr) const;
 
     G4double DistanceToOut(const G4ThreeVector& p) const;
 
@@ -128,7 +122,7 @@ class G4Orb : public G4CSGSolid
       // persistifiable objects
 
     G4Orb(const G4Orb& rhs);
-    G4Orb& operator=(const G4Orb& rhs); 
+    G4Orb& operator=(const G4Orb& rhs);
       // Copy constructor and assignment operator
 
   protected:
@@ -137,9 +131,9 @@ class G4Orb : public G4CSGSolid
 
   private:
 
-    G4double fRmax;
-    G4double halfRmaxTol;
-    G4double sqrRmaxPlusTol, sqrRmaxMinusTol;
+    G4double fRmax = 0.0;
+    G4double halfRmaxTol = 0.0;
+    G4double sqrRmaxPlusTol = 0.0, sqrRmaxMinusTol = 0.0;
 };
 
 #include "G4Orb.icc"

@@ -16,9 +16,20 @@ committal in the CVS repository !
      * Reverse chronological order (last date on top), please *
      ----------------------------------------------------------
 
+13 January 20:  V.Ivanchenko (emmuons-V10-05-02)
+- G4MuPairProductionModel - added Store/Retrieve data methods
+    by request of CMS 
+
+14 August 19:  V.Ivanchenko (emmuons-V10-05-01)
+- G4TablesForExtrapolator - created G4LossTableBuilder and 
+    destruct end of run 
+
+07 February 19:  V.Ivanchenko (emmuons-V10-05-00)
+- G4MuMultipleScattering - reduced length of printout (fix problem #2105)
+
 17 September 18: D.Sawkey (emmuons-V10-04-05)
-- G4MuMultipleScattering, G4MuPairProduction, G4eePairProduction, G4MuBremsstrahlung,
-  G4MuIonisation: automatic documenation format now rST
+- G4MuMultipleScattering, G4MuPairProduction, G4eePairProduction, 
+  G4MuBremsstrahlung, G4MuIonisation: automatic documenation format now rST
 
 22 August 18: V.Ivant (emmuons-V10-04-04)
 - G4EnergyLossForExtrapolator - fixed MT initialisation and destruction

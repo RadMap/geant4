@@ -56,6 +56,9 @@
 //    16 Aug. 2011  H.Kurashige  : Add dBin, baseBin and verboseLevel
 //    02 Oct. 2013  V.Ivanchenko : FindBinLocation method become inlined;
 //                                 instead of G4Pow G4Log is used
+//    15 Mar. 2019  M.Novak : added Value method with the known log-energy value
+//                            that can avoid the log call in case of log-vectors
+//    16 July 2019  M.Novak : special LogVectorValue method for log-vectors
 //---------------------------------------------------------------
 
 #ifndef G4PhysicsVector_h
@@ -91,6 +94,12 @@ class G4PhysicsVector
          // the value. Consumer code got changed index and may reuse it
          // for the next call to save CPU for bin location. 
 
+    inline G4double LogVectorValue(const G4double theEnergy,
+                                   const G4double theLogEnergy) const;
+         // Same as the Value method above but specialised for log-vector type.
+         // Note, unlike the general Value method above, this method will work
+         // properly only in case of G4PhysicsLogVector-s.
+
     inline G4double Value(G4double theEnergy) const; 
          // Get the cross-section/energy-loss value corresponding to the
          // given energy. An appropriate interpolation is used to calculate
@@ -102,8 +111,8 @@ class G4PhysicsVector
          // Obsolete method to get value, isOutRange is not used anymore. 
          // This method is kept for the compatibility reason.
 
-    G4int operator==(const G4PhysicsVector &right) const ;
-    G4int operator!=(const G4PhysicsVector &right) const ;
+    G4bool operator==(const G4PhysicsVector &right) const ;
+    G4bool operator!=(const G4PhysicsVector &right) const ;
 
     inline G4double operator[](const size_t index) const ;
          // Returns the value for the specified index of the dataVector
@@ -150,6 +159,10 @@ class G4PhysicsVector
          // min value 0, max value VectorLength-1
          // idx is suggested bin number from user code
 
+    inline size_t ComputeLogVectorBin(const G4double logenergy) const;
+         // Computes the lower index the energy bin in case of log-vector i.e.
+         // in case of vectors with equal bin widths on log-scale.
+
     void FillSecondDerivatives();
          // Initialise second derivatives for spline keeping 
          // 3d derivative continues - default algorithm
@@ -193,6 +206,8 @@ class G4PhysicsVector
 
     inline void SetVerboseLevel(G4int value);
 
+    inline G4double Interpolation(size_t idx, G4double energy) const;
+
   protected:
 
     void DeleteData();
@@ -223,8 +238,6 @@ class G4PhysicsVector
     inline G4double SplineInterpolation(size_t idx, G4double energy) const;
          // Spline interpolation function
 
-    inline G4double Interpolation(size_t idx, G4double energy) const;
-
     inline size_t FindBinLocation(G4double theEnergy) const;
          // find low edge index of a bin for given energy
          // min value 0, max value VectorLength-1
@@ -233,7 +246,7 @@ class G4PhysicsVector
 
   protected:
 
-    G4double dBin;          // Bin width - useful only for fixed binning
+    G4double invdBin;       // 1/Bin width - useful only for fixed binning
     G4double baseBin;       // Set this in constructor for performance
 
     G4int verboseLevel;

@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 // -------------------------------------------------------------------
 //
 // GEANT4 Class file
@@ -79,8 +78,6 @@ G4VEmProcess::G4VEmProcess(const G4String& name, G4ProcessType type):
   numberOfModels(0),
   theLambdaTable(nullptr),
   theLambdaTablePrim(nullptr),
-  theDensityFactor(nullptr),
-  theDensityIdx(nullptr),
   integral(false),
   applyCuts(false),
   startFromNull(false),
@@ -105,7 +102,8 @@ G4VEmProcess::G4VEmProcess(const G4String& name, G4ProcessType type):
   actBinning = actSpline = actMinKinEnergy = actMaxKinEnergy = false;
 
   // default lambda factor
-  lambdaFactor  = 0.8;
+  lambdaFactor    = 0.8;
+  logLambdaFactor = G4Log(lambdaFactor);
 
   // default limit on polar angle
   biasFactor = fFactor = 1.0;
@@ -124,11 +122,11 @@ G4VEmProcess::G4VEmProcess(const G4String& name, G4ProcessType type):
   baseMaterial = currentMaterial = nullptr;
 
   preStepLambda = preStepKinEnergy = 0.0;
+  preStepLogKinEnergy = LOG_EKIN_MIN;
   mfpKinEnergy  = DBL_MAX;
   massRatio     = 1.0;
 
-  idxLambda = idxLambdaPrim = currentCoupleIndex 
-    = basedCoupleIndex = 0;
+  idxLambda = idxLambdaPrim = currentCoupleIndex = basedCoupleIndex = 0;
 
   modelManager = new G4EmModelManager();
   biasManager  = nullptr;
@@ -136,6 +134,10 @@ G4VEmProcess::G4VEmProcess(const G4String& name, G4ProcessType type):
   weightFlag   = false;
   lManager = G4LossTableManager::Instance();
   lManager->Register(this);
+  G4LossTableBuilder* bld = lManager->GetTableBuilder();
+  theDensityFactor = bld->GetDensityFactors();
+  theDensityIdx = bld->GetCoupleIndexes();
+
   secID = fluoID = augerID = biasID = -1;
   mainSecondaries = 100;
   if("phot" == GetProcessName() || "compt" == GetProcessName()
@@ -306,8 +308,9 @@ void G4VEmProcess::PreparePhysicsTable(const G4ParticleDefinition& part)
   } else {  
     SetVerboseLevel(theParameters->WorkerVerbose()); 
   }
-  applyCuts = theParameters->ApplyCuts();
-  lambdaFactor = theParameters->LambdaFactor();
+  applyCuts       = theParameters->ApplyCuts();
+  lambdaFactor    = theParameters->LambdaFactor();
+  logLambdaFactor = G4Log(lambdaFactor);
   theParameters->DefineRegParamForEM(this);
 
   // initialisation of models
@@ -339,6 +342,7 @@ void G4VEmProcess::PreparePhysicsTable(const G4ParticleDefinition& part)
     theLambdaTablePrim = theData->MakeTable(1);
     bld->InitialiseBaseMaterials(theLambdaTablePrim);
   }
+  bld->InitialiseBaseMaterials();
   // forced biasing
   if(biasManager) { 
     biasManager->Initialise(part,GetProcessName(),verboseLevel); 
@@ -379,20 +383,11 @@ void G4VEmProcess::BuildPhysicsTable(const G4ParticleDefinition& part)
 
   if(particle == &part) { 
 
-    G4LossTableBuilder* bld = lManager->GetTableBuilder();
-
     // worker initialisation
     if(!isTheMaster) {
       theLambdaTable = masterProc->LambdaTable();
       theLambdaTablePrim = masterProc->LambdaTablePrim();
 
-      if(theLambdaTable) {
-        bld->InitialiseBaseMaterials(theLambdaTable);
-      } else if(theLambdaTablePrim) {
-        bld->InitialiseBaseMaterials(theLambdaTablePrim);
-      }
-      theDensityFactor = bld->GetDensityFactors();
-      theDensityIdx = bld->GetCoupleIndexes();
       if(theLambdaTable) { FindLambdaMax(); }
 
       // local initialisation of models
@@ -401,14 +396,12 @@ void G4VEmProcess::BuildPhysicsTable(const G4ParticleDefinition& part)
       for(G4int i=0; i<numberOfModels; ++i) {
         G4VEmModel* mod = GetModelByIndex(i, printing);
         G4VEmModel* mod0= masterProc->GetModelByIndex(i, printing);
-	//G4cout << i << ".  " << mod << "   " << mod0 << "  " 
-	//     << particle->GetParticleName() << G4endl;
+        //G4cout << i << ".  " << mod << "   " << mod0 << "  " 
+        //     << particle->GetParticleName() << G4endl;
         mod->InitialiseLocal(particle, mod0);
       }
     // master thread
     } else {
-      theDensityFactor = bld->GetDensityFactors();
-      theDensityIdx = bld->GetCoupleIndexes();
       if(buildLambdaTable || minKinEnergyPrim < maxKinEnergy) {
         BuildLambdaTable();
       }
@@ -424,8 +417,8 @@ void G4VEmProcess::BuildPhysicsTable(const G4ParticleDefinition& part)
                            num == "kaon+" || num == "kaon-" || 
                            num == "alpha" || num == "anti_proton" || 
                            num == "GenericIon"|| num == "alpha++" ||
-			   num == "alpha+" || num == "helium" ||
-			   num == "hydrogen")))
+                           num == "alpha+" || num == "helium" ||
+                           num == "hydrogen")))
     { 
       StreamInfo(G4cout, part);
     }
@@ -542,33 +535,33 @@ void G4VEmProcess::StreamInfo(std::ostream& out,
   out << std::setprecision(6);
   out << G4endl << indent << GetProcessName() << ": ";
   if (!rst) {
-    out << "  for  " << part.GetParticleName();
+    out << " for " << part.GetParticleName();
     if (integral) { out << ","; }
   }
-  if(integral)  { out << " integral: 1 "; }
-  if(applyCuts) { out << ", applyCuts: 1 "; }
-  out << "    SubType= " << GetProcessSubType();;
-  if(biasFactor != 1.0) { out << "   BiasingFactor= " << biasFactor; }
-  out << "  BuildTable= " << buildLambdaTable << G4endl;
+  if(integral)  { out << " integral:1 "; }
+  if(applyCuts) { out << " applyCuts:1 "; }
+  out << " SubType=" << GetProcessSubType();
+  if(biasFactor != 1.0) { out << "  BiasingFactor= " << biasFactor; }
+  out << " BuildTable=" << buildLambdaTable << G4endl;
   if(buildLambdaTable) {
     if(particle == &part) { 
       size_t length = theLambdaTable->length();
       for(size_t i=0; i<length; ++i) {
-    G4PhysicsVector* v = (*theLambdaTable)[i];
-    if(v) {
-      out << "      Lambda table from ";
-      G4double emin = v->Energy(0);
-      G4double emax = v->GetMaxEnergy();
-      G4int nbin = v->GetVectorLength() - 1;
-      if(emin > minKinEnergy) { out << "threshold "; }
-      else { out << G4BestUnit(emin,"Energy"); } 
-      out << " to "
-          << G4BestUnit(emax,"Energy")
-          << ", " << G4lrint(nbin/std::log10(emax/emin))
-          << " bins per decade, spline: " 
-          << splineFlag << G4endl;
-      break;
-    }
+        G4PhysicsVector* v = (*theLambdaTable)[i];
+        if(v) {
+          out << "      Lambda table from ";
+          G4double emin = v->Energy(0);
+          G4double emax = v->GetMaxEnergy();
+          G4int nbin = v->GetVectorLength() - 1;
+          if(emin > minKinEnergy) { out << "threshold "; }
+          else { out << G4BestUnit(emin,"Energy"); } 
+          out << " to "
+              << G4BestUnit(emax,"Energy")
+              << ", " << G4lrint(nbin/std::log10(emax/emin))
+              << " bins/decade, spline: " 
+              << splineFlag << G4endl;
+          break;
+        }
       }
     } else {
       out << "      Used Lambda table of " 
@@ -579,16 +572,16 @@ void G4VEmProcess::StreamInfo(std::ostream& out,
     if(particle == &part) { 
       size_t length = theLambdaTablePrim->length();
       for(size_t i=0; i<length; ++i) {
-    G4PhysicsVector* v = (*theLambdaTablePrim)[i];
-    if(v) { 
-      out << "      LambdaPrime table from "
-          << G4BestUnit(v->Energy(0),"Energy") 
-          << " to "
-          << G4BestUnit(v->GetMaxEnergy(),"Energy")
-          << " in " << v->GetVectorLength()-1
-          << " bins " << G4endl;
-      break;
-    }
+        G4PhysicsVector* v = (*theLambdaTablePrim)[i];
+        if(v) { 
+          out << "      LambdaPrime table from "
+              << G4BestUnit(v->Energy(0),"Energy") 
+              << " to "
+              << G4BestUnit(v->GetMaxEnergy(),"Energy")
+              << " in " << v->GetVectorLength()-1
+              << " bins " << G4endl;
+          break;
+        }
       }
     } else {
       out << "      Used LambdaPrime table of " 
@@ -637,7 +630,8 @@ G4double G4VEmProcess::PostStepGetPhysicalInteractionLength(
   G4double x = DBL_MAX;
 
   DefineMaterial(track.GetMaterialCutsCouple());
-  preStepKinEnergy = track.GetKineticEnergy();
+  preStepKinEnergy      = track.GetKineticEnergy();
+  preStepLogKinEnergy   = track.GetDynamicParticle()->GetLogKineticEnergy();
   G4double scaledEnergy = preStepKinEnergy*massRatio;
   SelectModel(scaledEnergy, currentCoupleIndex);
 
@@ -659,8 +653,11 @@ G4double G4VEmProcess::PostStepGetPhysicalInteractionLength(
 
   // compute mean free path
   if(preStepKinEnergy < mfpKinEnergy) {
-    if (integral) { ComputeIntegralLambda(preStepKinEnergy); }
-    else { preStepLambda = GetCurrentLambda(preStepKinEnergy); }
+    if (integral) {
+      ComputeIntegralLambda(preStepKinEnergy, preStepLogKinEnergy);
+    } else {
+      preStepLambda = GetCurrentLambda(preStepKinEnergy, preStepLogKinEnergy);
+    }
 
     // zero cross section
     if(preStepLambda <= 0.0) { 
@@ -695,30 +692,29 @@ G4double G4VEmProcess::PostStepGetPhysicalInteractionLength(
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void G4VEmProcess::ComputeIntegralLambda(G4double e)
+void G4VEmProcess::ComputeIntegralLambda(G4double e, G4double loge)
 {
   // condition to skip recomputation of cross section
-  G4double epeak = theEnergyOfCrossSectionMax[currentCoupleIndex];
+  const G4double epeak = theEnergyOfCrossSectionMax[currentCoupleIndex];
   if(e <= epeak && e/lambdaFactor >= mfpKinEnergy) { return; }
 
   // recomputation is needed 
   if (e <= epeak) {
-    preStepLambda = GetCurrentLambda(e);
-    mfpKinEnergy = e;
-
+    preStepLambda = GetCurrentLambda(e, loge);
+    mfpKinEnergy  = e;
   } else {
-    G4double e1 = e*lambdaFactor;
-    if(e1 > epeak) {
-      preStepLambda = GetCurrentLambda(e);
-      mfpKinEnergy = e;
-      G4double preStepLambda1 = GetCurrentLambda(e1);
-      if(preStepLambda1 > preStepLambda) {
-        mfpKinEnergy = e1;
+    const G4double e1 = e*lambdaFactor;
+    if (e1 > epeak) {
+      preStepLambda = GetCurrentLambda(e, loge);
+      mfpKinEnergy  = e;
+      const G4double preStepLambda1 = GetCurrentLambda(e1,loge+logLambdaFactor);
+      if (preStepLambda1 > preStepLambda) {
+        mfpKinEnergy  = e1;
         preStepLambda = preStepLambda1;
       }
     } else {
       preStepLambda = fFactor*theCrossSectionMax[currentCoupleIndex];
-      mfpKinEnergy = epeak;
+      mfpKinEnergy  = epeak;
     }
   }
 }
@@ -738,7 +734,8 @@ G4VParticleChange* G4VEmProcess::PostStepDoIt(const G4Track& track,
   // should be performed by the AtRestDoIt!
   if (track.GetTrackStatus() == fStopButAlive) { return &fParticleChange; }
 
-  G4double finalT = track.GetKineticEnergy();
+  const G4double finalT    = track.GetKineticEnergy();
+  const G4double logFinalT = track.GetDynamicParticle()->GetLogKineticEnergy();
 
   // forced process - should happen only once per track
   if(biasFlag) {
@@ -749,7 +746,7 @@ G4VParticleChange* G4VEmProcess::PostStepDoIt(const G4Track& track,
 
   // Integral approach
   if (integral) {
-    G4double lx = GetLambda(finalT, currentCouple);
+    G4double lx = GetLambda(finalT, currentCouple, logFinalT);
     if(preStepLambda<lx && 1 < verboseLevel) {
       G4cout << "WARNING: for " << currentParticle->GetParticleName() 
              << " and " << GetProcessName()
@@ -844,7 +841,7 @@ G4VParticleChange* G4VEmProcess::PostStepDoIt(const G4Track& track,
           G4Track* t = new G4Track(dp, time, track.GetPosition());
           t->SetTouchableHandle(track.GetTouchableHandle());
           if (biasManager) {
-            t->SetWeight(biasManager->GetWeight(i));
+            t->SetWeight(weight * biasManager->GetWeight(i));
           } else {
             t->SetWeight(weight);
           }
@@ -861,12 +858,12 @@ G4VParticleChange* G4VEmProcess::PostStepDoIt(const G4Track& track,
           } else {
             t->SetCreatorModelIndex(biasID);
           }
-	  /* 
+          /* 
           G4cout << "Secondary(post step) has weight " << t->GetWeight() 
-		 << ", Ekin= " << t->GetKineticEnergy()/MeV << " MeV "
-		 << GetProcessName() << " fluoID= " << fluoID
-		 << " augerID= " << augerID <<G4endl;
-	  */
+                 << ", Ekin= " << t->GetKineticEnergy()/MeV << " MeV "
+                 << GetProcessName() << " fluoID= " << fluoID
+                 << " augerID= " << augerID <<G4endl;
+          */
         } else {
           delete dp;
           edep += e;
@@ -889,8 +886,8 @@ G4VParticleChange* G4VEmProcess::PostStepDoIt(const G4Track& track,
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 G4bool G4VEmProcess::StorePhysicsTable(const G4ParticleDefinition* part,
-				       const G4String& directory,
-				       G4bool ascii)
+                                       const G4String& directory,
+                                       G4bool ascii)
 {
   G4bool yes = true;
   if(!isTheMaster) { return yes; }
@@ -938,7 +935,7 @@ G4bool G4VEmProcess::StorePhysicsTable(const G4ParticleDefinition* part,
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
 G4bool G4VEmProcess::RetrievePhysicsTable(const G4ParticleDefinition* part,
-					  const G4String& directory,
+                                          const G4String& directory,
                                           G4bool ascii)
 {
   if(1 < verboseLevel) {
@@ -1027,8 +1024,8 @@ G4VEmProcess::CrossSectionPerVolume(G4double kineticEnergy,
     SelectModel(kineticEnergy, currentCoupleIndex);
     if(currentModel) {
       cross = fFactor*currentModel->CrossSectionPerVolume(currentMaterial,
-							  currentParticle,
-							  kineticEnergy);
+                                                          currentParticle,
+                                                          kineticEnergy);
     }
   }
   return std::max(cross, 0.0);
@@ -1048,9 +1045,10 @@ G4double G4VEmProcess::GetMeanFreePath(const G4Track& track,
 
 G4double G4VEmProcess::MeanFreePath(const G4Track& track)
 {
-  G4double kinEnergy = track.GetKineticEnergy();
+  const G4double kinEnergy = track.GetKineticEnergy();
   CurrentSetup(track.GetMaterialCutsCouple(), kinEnergy);
-  G4double xs = GetCurrentLambda(kinEnergy);
+  const G4double xs = GetCurrentLambda(kinEnergy,
+                             track.GetDynamicParticle()->GetLogKineticEnergy());
   return (0.0 < xs) ? 1.0/xs : DBL_MAX; 
 }
 
@@ -1245,6 +1243,13 @@ void G4VEmProcess::SetMinKinEnergyPrim(G4double e)
   if(theParameters->MinKinEnergy() <= e && 
      e <= theParameters->MaxKinEnergy()) { minKinEnergyPrim = e; } 
   else { PrintWarning("SetMinKinEnergyPrim", e); } 
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+G4VEmProcess* G4VEmProcess::GetEmProcess(const G4String& nam)
+{
+  return (nam == GetProcessName()) ? this : nullptr;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

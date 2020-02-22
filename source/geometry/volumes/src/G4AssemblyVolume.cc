@@ -22,9 +22,6 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-//
-//
 // 
 // Class G4AssemblyVolume - implementation
 //
@@ -46,7 +43,6 @@ G4ThreadLocal unsigned int G4AssemblyVolume::fsInstanceCounter = 0;
 // Default constructor
 //
 G4AssemblyVolume::G4AssemblyVolume()
-  : fAssemblyID( 0 )
 {
   InstanceCountPlus();
   SetAssemblyID( GetInstanceCount() );
@@ -72,7 +68,6 @@ G4AssemblyVolume::G4AssemblyVolume()
 G4AssemblyVolume::G4AssemblyVolume( G4LogicalVolume* volume,
                                     G4ThreeVector& translation,
                                     G4RotationMatrix* rotation )
-  : fAssemblyID( 0 )
 {
   InstanceCountPlus();
   SetAssemblyID( GetInstanceCount() );
@@ -101,7 +96,7 @@ G4AssemblyVolume::~G4AssemblyVolume()
   unsigned int howmany = fTriplets.size();
   if( howmany != 0 )
   {
-    for( unsigned int i = 0; i < howmany; i++ )
+    for( unsigned int i = 0; i < howmany; ++i )
     {
       G4RotationMatrix* pRotToClean = fTriplets[i].GetRotation();
       if( pRotToClean != 0 )
@@ -112,14 +107,9 @@ G4AssemblyVolume::~G4AssemblyVolume()
   }
   fTriplets.clear();
   
-  howmany = fPVStore.size();
-  if( howmany != 0 )
-  {
-    for( unsigned int j = 0; j < howmany; j++ )
-    {
-      delete fPVStore[j];
-    }
-  }
+  // No need to delete physical volumes, as these are deleted
+  // by physical-volumes store.
+  //
   fPVStore.clear();
   InstanceCountMinus();
   G4AssemblyStore::GetInstance()->DeRegister(this);
@@ -141,7 +131,7 @@ void G4AssemblyVolume::AddPlacedVolume( G4LogicalVolume*  pVolume,
 {
   G4RotationMatrix*  toStore  = new G4RotationMatrix;
   
-  if( pRotation != 0 )  { *toStore = *pRotation; }
+  if( pRotation != nullptr )  { *toStore = *pRotation; }
   
   G4AssemblyTriplet toAdd( pVolume, translation, toStore );
   fTriplets.push_back( toAdd );
@@ -178,7 +168,7 @@ void G4AssemblyVolume::AddPlacedAssembly( G4AssemblyVolume* pAssembly,
 {
   G4RotationMatrix*  toStore  = new G4RotationMatrix;
   
-  if( pRotation != 0 )  { *toStore = *pRotation; }
+  if( pRotation != nullptr )  { *toStore = *pRotation; }
   
   G4AssemblyTriplet toAdd( pAssembly, translation, toStore );
   fTriplets.push_back( toAdd );
@@ -253,7 +243,7 @@ void G4AssemblyVolume::MakeImprint( G4AssemblyVolume* pAssembly,
                                     G4bool surfCheck )
 {
   unsigned int  numberOfDaughters;
-  
+    
   if( copyNumBase == 0 )
   {
     numberOfDaughters = pMotherLV->GetNoDaughters();
@@ -269,9 +259,12 @@ void G4AssemblyVolume::MakeImprint( G4AssemblyVolume* pAssembly,
 
   ImprintsCountPlus();
   
-  std::vector<G4AssemblyTriplet> triplets = pAssembly->fTriplets;
+  auto triplets = pAssembly->fTriplets;
 
-  for( unsigned int   i = 0; i < triplets.size(); i++ )
+  // store the transformation in a container (for GDML persistency)
+  fImprintsTransf[GetImprintsCount()] = transformation;
+
+  for( unsigned int i = 0; i < triplets.size(); ++i )
   {
     G4Transform3D Ta( *(triplets[i].GetRotation()),
                       triplets[i].GetTranslation() );
@@ -319,6 +312,10 @@ void G4AssemblyVolume::MakeImprint( G4AssemblyVolume* pAssembly,
       //
       fPVStore.push_back( pvPlaced.first );
       if ( pvPlaced.second )  { fPVStore.push_back( pvPlaced.second ); }
+
+      // Here I want to save the imprint transformation to some container, so I can retrieve the original values later
+      // imprintTrans[GetImprintsCount()] = transformation;
+      
     }
     else if ( triplets[i].GetAssembly() )
     {
@@ -350,7 +347,7 @@ void G4AssemblyVolume::MakeImprint( G4LogicalVolume*  pMotherLV,
 
   // Compose transformation
   //
-  if( pRotationInMother == 0 )
+  if( pRotationInMother == nullptr )
   {
     // Make it by default an indentity matrix
     //

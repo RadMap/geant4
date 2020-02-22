@@ -26,6 +26,7 @@
 //
 // 
 // GEANT4 Visualization Manager - John Allison 02/Jan/1996.
+// Michael Kelsey  31 Jan 2019 -- Add new command for electric field
 
 #include "G4VisManager.hh"
 
@@ -112,6 +113,7 @@ G4VisManager::G4VisManager (const G4String& verbosityString):
   fKeptLastEvent            (false),
   fDrawEventOnlyIfToBeKept  (false),
   fpRequestedEvent          (0),
+  fReviewingKeptEvents      (false),
   fAbortReviewKeptEvents    (false),
   fIsDrawGroup              (false),
   fDrawGroupNestingDepth    (0),
@@ -496,12 +498,14 @@ void G4VisManager::RegisterMessengers () {
   fDirectoryList.push_back (directory);
   RegisterMessenger(new G4VisCommandSetArrow3DLineSegmentsPerCircle);
   RegisterMessenger(new G4VisCommandSetColour);
+  RegisterMessenger(new G4VisCommandSetExtentForField);
   RegisterMessenger(new G4VisCommandSetLineWidth);
   RegisterMessenger(new G4VisCommandSetTextColour);
   RegisterMessenger(new G4VisCommandSetTextLayout);
   RegisterMessenger(new G4VisCommandSetTextSize);
   RegisterMessenger(new G4VisCommandSetTouchable);
-  
+  RegisterMessenger(new G4VisCommandSetVolumeForField);
+
   directory = new G4UIdirectory ("/vis/scene/");
   directory -> SetGuidance ("Operations on Geant4 scenes.");
   fDirectoryList.push_back (directory);
@@ -512,7 +516,8 @@ void G4VisManager::RegisterMessengers () {
   RegisterMessenger(new G4VisCommandSceneList);
   RegisterMessenger(new G4VisCommandSceneNotifyHandlers);
   RegisterMessenger(new G4VisCommandSceneSelect);
-  
+  RegisterMessenger(new G4VisCommandSceneShowExtents);
+
   directory = new G4UIdirectory ("/vis/scene/add/");
   directory -> SetGuidance ("Add model to current scene.");
   fDirectoryList.push_back (directory);
@@ -523,6 +528,7 @@ void G4VisManager::RegisterMessengers () {
   RegisterMessenger(new G4VisCommandSceneAddDigis);
   RegisterMessenger(new G4VisCommandSceneAddEventID);
   RegisterMessenger(new G4VisCommandSceneAddExtent);
+  RegisterMessenger(new G4VisCommandSceneAddElectricField);
   RegisterMessenger(new G4VisCommandSceneAddFrame);
   RegisterMessenger(new G4VisCommandSceneAddGPS);
   RegisterMessenger(new G4VisCommandSceneAddHits);
@@ -562,6 +568,7 @@ void G4VisManager::RegisterMessengers () {
   directory -> SetGuidance ("Operations on Geant4 viewers.");
   fDirectoryList.push_back (directory);
   RegisterMessenger(new G4VisCommandViewerAddCutawayPlane);
+  RegisterMessenger(new G4VisCommandViewerCentreOn);
   RegisterMessenger(new G4VisCommandViewerChangeCutawayPlane);
   RegisterMessenger(new G4VisCommandViewerClear);
   RegisterMessenger(new G4VisCommandViewerClearCutawayPlanes);
@@ -684,7 +691,7 @@ void G4VisManager::Disable() {
       "\n  \"/tracking/storeTrajectory 0\""
       "\nbut don't forget to re-enable with"
       "\n  \"/vis/enable\""
-      "\n  \"/tracking/storeTrajectory " << currentTrajectoryType << "\" (for your case)."
+      "\n  \"/tracking/storeTrajectory " << currentTrajectoryType << '\"'
       << G4endl;
     }
   }
@@ -1301,9 +1308,16 @@ void G4VisManager::GeometryHasChanged () {
     if (fVerbosity >= warnings) {
       G4cout << "WARNING: The current scene \""
 	     << fpScene -> GetName ()
-	     << "\" has no models."
+	     << "\" has no run duration models."
+             << "\n  Use \"/vis/scene/add/volume\" or create a new scene."
 	     << G4endl;
     }
+    fpSceneHandler->ClearTransientStore();
+    fpSceneHandler->ClearStore();
+    fpViewer->NeedKernelVisit();
+    fpViewer->SetView();
+    fpViewer->ClearView();
+    fpViewer->FinishView();
   }
 }
 
@@ -1332,9 +1346,16 @@ void G4VisManager::NotifyHandlers () {
     if (fVerbosity >= warnings) {
       G4cout << "WARNING: The current scene \""
 	     << fpScene -> GetName ()
-	     << "\" has no models."
+	     << "\" has no run duration models."
+             << "\n  Use \"/vis/scene/add/volume\" or create a new scene."
 	     << G4endl;
     }
+    fpSceneHandler->ClearTransientStore();
+    fpSceneHandler->ClearStore();
+    fpViewer->NeedKernelVisit();
+    fpViewer->SetView();
+    fpViewer->ClearView();
+    fpViewer->FinishView();
   }
 }
 
@@ -1404,6 +1425,11 @@ void G4VisManager::RegisterRunDurationUserVisAction
 	     << G4endl;
     }
   }
+  if (fVerbosity >= confirmations) {
+    G4cout
+    << "Run duration user vis action \"" << name << "\" registered"
+    << G4endl;
+  }
 }
 
 void G4VisManager::RegisterEndOfEventUserVisAction
@@ -1420,6 +1446,11 @@ void G4VisManager::RegisterEndOfEventUserVisAction
 	     << G4endl;
     }
   }
+  if (fVerbosity >= confirmations) {
+    G4cout
+    << "End of event user vis action \"" << name << "\" registered"
+    << G4endl;
+  }
 }
 
 void G4VisManager::RegisterEndOfRunUserVisAction
@@ -1435,6 +1466,11 @@ void G4VisManager::RegisterEndOfRunUserVisAction
 	"WARNING: No extent set for user vis action \"" << name << "\"."
 	     << G4endl;
     }
+  }
+  if (fVerbosity >= confirmations) {
+    G4cout
+    << "End of run user vis action \"" << name << "\" registered"
+    << G4endl;
   }
 }
 
@@ -1884,6 +1920,12 @@ void G4VisManager::BeginOfRun ()
   if (fpSceneHandler) fpSceneHandler->SetTransientsDrawnThisRun(false);
   fNoOfEventsDrawnThisRun = 0;
 
+  // Check to see if the user has created a trajectory model. If not, create
+  // a default one. To avoid code duplication the following function is used
+  // and its result (a const G4VTrajectoryModel*) is thrown away at this point.
+  // The function is called again later when needed.
+  CurrentTrajDrawModel();
+
 #ifdef G4MULTITHREADED
 //   There is a static method G4Threading::IsMultithreadedApplication()
 //   that returns true only if G4MTRunManager is instantiated with MT
@@ -2206,7 +2248,7 @@ void G4VisManager::EndOfRun ()
   if (events) nKeptEvents = events->size();
   if (nKeptEvents && !fKeptLastEvent) {
     if (fVerbosity >= warnings) {
-      G4cout << "WARNING: " << nKeptEvents;
+      G4cout << nKeptEvents;
       if (nKeptEvents == 1) G4cout << " event has";
       else G4cout << " events have";
       G4cout << " been kept for refreshing and/or reviewing." << G4endl;

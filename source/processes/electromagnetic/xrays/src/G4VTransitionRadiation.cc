@@ -41,6 +41,7 @@
 #include "G4Region.hh"
 #include "G4TransportationManager.hh"
 #include "G4EmProcessSubType.hh"
+#include "G4LossTableManager.hh"
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -55,6 +56,8 @@ G4VTransitionRadiation::G4VTransitionRadiation( const G4String& processName,
 {
   SetProcessSubType(fTransitionRadiation);
   Clear();
+  theManager = G4LossTableManager::Instance();
+  theManager->Register(this);
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -62,6 +65,7 @@ G4VTransitionRadiation::G4VTransitionRadiation( const G4String& processName,
 G4VTransitionRadiation::~G4VTransitionRadiation()
 {
   Clear();
+  theManager->DeRegister(this);
 }
 
 ///////////////////////////////////////////////////////////////////////

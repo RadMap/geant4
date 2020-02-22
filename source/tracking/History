@@ -16,6 +16,15 @@ committal in the CVS repository !
      * Reverse chronological order (last date on top), please *
      ----------------------------------------------------------
 
+Nov 26, 2019, G.Cosmo (tracking-V10-05-02)
+- Fixed cases of implicit type conversions from size_t to G4int.
+
+Mar 11, 2019, G.Cosmo (tracking-V10-05-01)
+- Fixed typos in printouts and comments.
+
+Jan 31, 2019, I.Hrivnacova (tracking-V10-05-00)
+- Merged GitHub PR #4: all Boolean operators now return G4bool.
+
 Oct 12, 2018, G.Cosmo (tracking-V10-04-02)
 - G4VSteppingVerbose: reset singleton pointer in destructor.
   Addressing problem report #2095.

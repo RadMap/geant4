@@ -23,9 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-//
 // class G4RegularNavigation
 //
 // Class description:
@@ -35,7 +32,7 @@
 // navigation does not stop at the surface
 
 // History:
-// - Created.   P. Arce, May 2007
+// - Created. P.Arce, May 2007
 // --------------------------------------------------------------------
 #ifndef G4RegularNavigation_HH
 #define G4RegularNavigation_HH
@@ -103,7 +100,7 @@ class G4RegularNavigation
 
     G4double ComputeSafety( const G4ThreeVector& localPoint,
                             const G4NavigationHistory& history,
-                            const G4double pProposedMaxLength=DBL_MAX );
+                            const G4double pProposedMaxLength = DBL_MAX );
       // Method never called because to be called the daughter has to be a
       // 'regular' volume. This would only happen if the track is in the
       // mother of voxels volume. But the voxels fill completely their mother,
@@ -120,11 +117,26 @@ class G4RegularNavigation
 
   private:
 
-    G4int fverbose;
-    G4bool fcheck;
+    G4int fverbose = false;
+    G4bool fcheck = false;
 
-    G4NormalNavigation* fnormalNav;
+    G4NormalNavigation* fnormalNav = nullptr;
     G4double kCarTolerance;  
+    G4double fMinStep;
+
+    G4bool fLastStepWasZero;
+      // Whether the last ComputeStep moved Zero. Used to check for edges.
+    G4int fNumberZeroSteps;
+      // Number of preceding moves that were Zero. Reset to 0 after finite step
+    G4int fActionThreshold_NoZeroSteps;
+      // After this many failed/zero steps, act (push etc)
+    G4int fAbandonThreshold_NoZeroSteps;
+      // After this many failed/zero steps, abandon track
+    G4int fNoStepsAllowed;
+      // Maximum number of steps a track can travel skipping voxels
+      // (if there are more, track is assumed to be stuck and it is killed)
+    G4bool fWarnPush;
+      // Send warning message that a stuck particle has been pushed
 };
 
 #endif

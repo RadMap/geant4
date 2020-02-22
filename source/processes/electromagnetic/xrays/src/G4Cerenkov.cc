@@ -72,26 +72,6 @@
 
 #include "G4Cerenkov.hh"
 
-/////////////////////////
-// Class Implementation  
-/////////////////////////
-
-//G4bool G4Cerenkov::fTrackSecondariesFirst = false;
-//G4double G4Cerenkov::fMaxBetaChange = 0.;
-//G4int G4Cerenkov::fMaxPhotons = 0;
-
-  //////////////
-  // Operators
-  //////////////
-
-// G4Cerenkov::operator=(const G4Cerenkov &right)
-// {
-// }
-
-  /////////////////
-  // Constructors
-  /////////////////
-
 G4Cerenkov::G4Cerenkov(const G4String& processName, G4ProcessType type)
            : G4VProcess(processName, type),
              fTrackSecondariesFirst(false),
@@ -109,14 +89,6 @@ G4Cerenkov::G4Cerenkov(const G4String& processName, G4ProcessType type)
   }
 }
 
-// G4Cerenkov::G4Cerenkov(const G4Cerenkov &right)
-// {
-// }
-
-  ////////////////
-  // Destructors
-  ////////////////
-
 G4Cerenkov::~G4Cerenkov()
 {
   if (thePhysicsTable != nullptr) {
@@ -125,20 +97,12 @@ G4Cerenkov::~G4Cerenkov()
   }
 }
 
-  ////////////
-  // Methods
-  ////////////
-
 G4bool G4Cerenkov::IsApplicable(const G4ParticleDefinition& aParticleType)
 {
-  G4bool result = false;
-
-  if (aParticleType.GetPDGCharge() != 0.0 &&
-      aParticleType.GetPDGMass() != 0.0 &&
-      aParticleType.GetParticleName() != "chargedgeantino" &&
-      !aParticleType.IsShortLived() ) { result = true; }
-
-  return result;
+  return (aParticleType.GetPDGCharge() != 0.0 &&
+	  aParticleType.GetPDGMass() != 0.0 &&
+	  aParticleType.GetParticleName() != "chargedgeantino" &&
+	  !aParticleType.IsShortLived() ) ? true : false;
 }
 
 void G4Cerenkov::SetTrackSecondariesFirst(const G4bool state)
@@ -552,8 +516,9 @@ G4double G4Cerenkov::PostStepGetPhysicalInteractionLength(
   G4double Step = Range - RangeMin;
 
   // If the step is smaller than 1e-16 mm, it may happen that the particle
-  // does not move. See bug 1992. 
-  if (Step < 1.e-16*mm) return StepLimit;
+  // does not move. See bug 1992.
+  //  2019-03-11: change to 1e-15
+  if (Step < 1.e-15*mm) return StepLimit;
 
   if (Step < StepLimit) StepLimit = Step; 
   // If user has defined an average maximum number of photons to

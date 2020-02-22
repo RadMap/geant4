@@ -146,11 +146,10 @@ G4EmLivermorePhysics::G4EmLivermorePhysics(G4int ver, const G4String&)
   param->SetUseMottCorrection(true);  
   param->SetMscStepLimitType(fUseSafetyPlus);
   param->SetMscSkin(3);            
-  param->SetMscRangeFactor(0.2);   
+  param->SetMscRangeFactor(0.08);
   param->SetMuHadLateralDisplacement(true);
-  //param->SetUseICRU90Data(true);
   param->SetFluo(true);
-  //  param->SetAugerCascade(true);
+  param->SetMaxNIELEnergy(1*MeV);
   SetPhysicsType(bElectromagnetic);
 }
 
@@ -231,8 +230,9 @@ void G4EmLivermorePhysics::ConstructProcess()
   G4double livEnergyLimit = 1*GeV;
 
   // nuclear stopping
+  G4double nielEnergyLimit = G4EmParameters::Instance()->MaxNIELEnergy();
   G4NuclearStopping* pnuc = new G4NuclearStopping();
-  G4NuclearStopping* inuc = new G4NuclearStopping();
+  pnuc->SetMaxKinEnergy(nielEnergyLimit);
 
   // Add Livermore EM Processes
   G4ParticleTable* table = G4ParticleTable::GetParticleTable();
@@ -255,8 +255,6 @@ void G4EmLivermorePhysics::ConstructProcess()
       // gamma conversion 
       G4GammaConversion* theGammaConversion = new G4GammaConversion();
       G4VEmModel* convLiv = new G4BetheHeitler5DModel();
-      //G4VEmModel* convLiv = new G4LivermoreGammaConversionModel();
-      convLiv->SetHighEnergyLimit(livEnergyLimit);
       theGammaConversion->SetEmModel(convLiv);
 
       // default Rayleigh scattering is Livermore
@@ -376,7 +374,7 @@ void G4EmLivermorePhysics::ConstructProcess()
 
       ph->RegisterProcess(hmsc, particle);
       ph->RegisterProcess(ionIoni, particle);
-      ph->RegisterProcess(inuc, particle);
+      ph->RegisterProcess(pnuc, particle);
 
     } else if (particleName == "pi+" ||
                particleName == "pi-" ) {
@@ -412,7 +410,6 @@ void G4EmLivermorePhysics::ConstructProcess()
       ph->RegisterProcess(pb, particle);
       ph->RegisterProcess(pp, particle);
       ph->RegisterProcess(new G4CoulombScattering(), particle);
-      ph->RegisterProcess(pnuc, particle);
 
     } else if (particleName == "B+" ||
 	       particleName == "B-" ||
@@ -453,7 +450,6 @@ void G4EmLivermorePhysics::ConstructProcess()
     
   // Nuclear stopping
   pnuc->SetMaxKinEnergy(MeV);
-  inuc->SetMaxKinEnergy(MeV);
 
   // Deexcitation
   //

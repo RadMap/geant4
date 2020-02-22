@@ -4,7 +4,7 @@
         ############################################
 
 **************************************************************
- Geant4 version Name: geant4-10-05-ref-00    (7-December-2018)
+ Geant4 version Name: geant4-10-06-patch-01    (14-February-2020)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -49,10 +49,10 @@
           ElmMassFraction:  85.60 %  ElmAbundance  33.33 % 
 
 
- Material:       Kr    density:  3.700 mg/cm3  RadL:  30.736 m    Nucl.Int.Length: 413.950 m  
+ Material:       Kr    density:  3.700 mg/cm3  RadL:  30.736 m    Nucl.Int.Length: 413.949 m  
                        Imean: 352.000 eV   temperature: 293.15 K  pressure:   1.00 atm
 
-   --->  Element: Kr (Kr)   Z = 36.0   N =    84   A = 83.800 g/mole
+   --->  Element: Kr (Kr)   Z = 36.0   N =    84   A = 83.799 g/mole
          --->  Isotope:  Kr78   Z = 36   N =  78   A =  77.92 g/mole   abundance:  0.350 %
          --->  Isotope:  Kr80   Z = 36   N =  80   A =  79.92 g/mole   abundance:  2.280 %
          --->  Isotope:  Kr82   Z = 36   N =  82   A =  81.91 g/mole   abundance: 11.580 %
@@ -112,10 +112,10 @@
           ElmMassFraction:   1.28 %  ElmAbundance   0.47 % 
 
 
- Material:    Xenon    density:  5.858 mg/cm3  RadL:  14.478 m    Nucl.Int.Length: 303.666 m  
+ Material:    Xenon    density:  5.858 mg/cm3  RadL:  14.478 m    Nucl.Int.Length: 303.668 m  
                        Imean: 482.000 eV   temperature: 293.15 K  pressure:   1.00 atm
 
-   --->  Element: Xe (Xe)   Z = 54.0   N =   131   A = 131.290 g/mole
+   --->  Element: Xe (Xe)   Z = 54.0   N =   131   A = 131.292 g/mole
          --->  Isotope: Xe124   Z = 54   N = 124   A = 123.91 g/mole   abundance:  0.090 %
          --->  Isotope: Xe126   Z = 54   N = 126   A = 125.90 g/mole   abundance:  0.090 %
          --->  Isotope: Xe128   Z = 54   N = 128   A = 127.90 g/mole   abundance:  1.920 %
@@ -143,10 +143,10 @@
           ElmMassFraction:  72.71 %  ElmAbundance  66.67 % 
 
 
- Material:  Xe20CO2    density:  5.082 mg/cm3  RadL:  17.750 m    Nucl.Int.Length: 323.032 m  
-                       Imean: 412.598 eV   temperature: 293.15 K  pressure:   1.00 atm
+ Material:  Xe20CO2    density:  5.082 mg/cm3  RadL:  17.750 m    Nucl.Int.Length: 323.034 m  
+                       Imean: 412.597 eV   temperature: 293.15 K  pressure:   1.00 atm
 
-   --->  Element: Xe (Xe)   Z = 54.0   N =   131   A = 131.290 g/mole
+   --->  Element: Xe (Xe)   Z = 54.0   N =   131   A = 131.292 g/mole
          --->  Isotope: Xe124   Z = 54   N = 124   A = 123.91 g/mole   abundance:  0.090 %
          --->  Isotope: Xe126   Z = 54   N = 126   A = 125.90 g/mole   abundance:  0.090 %
          --->  Isotope: Xe128   Z = 54   N = 128   A = 127.90 g/mole   abundance:  1.920 %
@@ -170,10 +170,10 @@
           ElmMassFraction:   5.67 %  ElmAbundance  28.73 % 
 
 
- Material:  Kr20CO2    density:  3.601 mg/cm3  RadL:  34.158 m    Nucl.Int.Length: 391.555 m  
+ Material:  Kr20CO2    density:  3.601 mg/cm3  RadL:  34.157 m    Nucl.Int.Length: 391.554 m  
                        Imean: 296.926 eV   temperature: 293.15 K  pressure:   1.00 atm
 
-   --->  Element: Kr (Kr)   Z = 36.0   N =    84   A = 83.800 g/mole
+   --->  Element: Kr (Kr)   Z = 36.0   N =    84   A = 83.799 g/mole
          --->  Isotope:  Kr78   Z = 36   N =  78   A =  77.92 g/mole   abundance:  0.350 %
          --->  Isotope:  Kr80   Z = 36   N =  80   A =  79.92 g/mole   abundance:  2.280 %
          --->  Isotope:  Kr82   Z = 36   N =  82   A =  81.91 g/mole   abundance: 11.580 %
@@ -195,7 +195,7 @@
 
 
 
-<<< Geant4 Physics List simulation engine: FTFP_BERT 2.0
+<<< Geant4 Physics List simulation engine: FTFP_BERT
 
 
  The  WORLD   is made of 44000mm of Air, the transverse size (R) of the world is 22000 mm. 
@@ -212,10 +212,10 @@ The minimal step is equal to 1 mm
                  4. Updating Field Manager.
 
  FTFP_BERT : new threshold between BERT and FTFP is over the interval 
- for pions :   3 to 12 GeV
- for kaons :   3 to 12 GeV
- for proton :  3 to 12 GeV
- for neutron : 3 to 12 GeV
+ for pions :   3 to 6 GeV
+ for kaons :   3 to 6 GeV
+ for proton :  3 to 6 GeV
+ for neutron : 3 to 6 GeV
 
 ### Adding tracking cuts for neutron  TimeCut(ns)= 10000  KinEnergyCut(MeV)= 0
 Visualization Manager instantiating with verbosity "warnings (3)"...
@@ -232,12 +232,10 @@ RayTracer (RayTracer)
 VRML1FILE (VRML1FILE)
 VRML2FILE (VRML2FILE)
 gMocrenFile (gMocrenFile)
-OpenGLImmediateQt (OGLIQt, OGLI)
-OpenGLStoredQt (OGLSQt, OGL, OGLS)
-OpenGLImmediateXm (OGLIXm, OGLIQt_FALLBACK)
-OpenGLStoredXm (OGLSXm, OGLSQt_FALLBACK)
-OpenGLImmediateX (OGLIX, OGLIQt_FALLBACK, OGLIXm_FALLBACK)
-OpenGLStoredX (OGLSX, OGLSQt_FALLBACK, OGLSXm_FALLBACK)
+OpenGLImmediateXm (OGLIXm, OGLI)
+OpenGLStoredXm (OGLSXm, OGL, OGLS)
+OpenGLImmediateX (OGLIX, OGLIXm_FALLBACK)
+OpenGLStoredX (OGLSX, OGLSXm_FALLBACK)
 RayTracerX (RayTracerX)
 
 Registering model factories...
@@ -265,26 +263,42 @@ End of Run User Vis Actions: none
 
 Some /vis commands (optionally) take a string to specify colour.
 "/vis/list" to see available colours.
-G4Integration Driver Stats: #QuickAdvance 0 - #AccurateAdvance 0 #good steps 0 #bad steps 0
-G4ChordFinder statistics report: 
-  No trials: 0  No Calls: 0  Max-trial: 0
-  Parameters:   fFirstFraction 0.999  fFractionLast 1  fFractionNextEstimate 0.98
  F01FieldSetup::CreateStepperAndChordFinder() called. 
                  1. Creating Stepper.
 G4DormandPrince745 Stepper is chosen
 The minimal step is equal to 1 mm
                  2. Creating ChordFinder.
                  3. Updating Field Manager.
-G4Integration Driver Stats: #QuickAdvance 0 - #AccurateAdvance 0 #good steps 0 #bad steps 0
-G4ChordFinder statistics report: 
-  No trials: 0  No Calls: 0  Max-trial: 0
-  Parameters:   fFirstFraction 0.999  fFractionLast 1  fFractionNextEstimate 0.98
  F01FieldSetup::CreateStepperAndChordFinder() called. 
                  1. Creating Stepper.
 G4DormandPrince745 Stepper is chosen
 The minimal step is equal to 0.1 mm
                  2. Creating ChordFinder.
                  3. Updating Field Manager.
+=======================================================================
+======       Pre-compound/De-excitation Physics Parameters     ========
+=======================================================================
+Type of pre-compound inverse x-section              3
+Pre-compound model active                           1
+Pre-compound excitation low energy (MeV)            0.1
+Pre-compound excitation high energy (MeV)           30
+Type of de-excitation inverse x-section             3
+Type of de-excitation factory                       Evaporation+GEM
+Number of de-excitation channels                    68
+Min excitation energy (keV)                         0.01
+Min energy per nucleon for multifragmentation (MeV) 2e+05
+Limit excitation energy for Fermi BreakUp (MeV)     20
+Level density (1/MeV)                               0.075
+Use simple level density model                      1
+Use discrete excitation energy of the residual      0
+Time limit for long lived isomeres (ns)             1e+12
+Internal e- conversion flag                         1
+Store e- internal conversion data                   0
+Electron internal conversion ID                     2
+Correlated gamma emission flag                      0
+Max 2J for sampling of angular correlations         10
+Upload data before 1st event for                Z < 9
+=======================================================================
 
 ========= Table of registered couples ==============================
 
@@ -297,6 +311,8 @@ Index : 0     used in the geometry : Yes
 
 ====================================================================
 
+G4VisManager: Using G4TrajectoryDrawByCharge as fallback trajectory model.
+See commands in /vis/modeling/trajectories/ for other options.
 ### Run 0 starts.
 ### Run 0 start.
  Calling F01RunAction::ChangeLooperParameters() 
@@ -313,7 +329,7 @@ Step#          X             Y             Z    Direction x      dir y      dir 
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.001923s Sys=0.000000s
+  User=0.000000s Real=0.001044s Sys=0.000000s
  G4Transportation: Statistics for looping particles 
  No looping tracks found or killed. 
 
@@ -344,7 +360,7 @@ Step#          X             Y             Z    Direction x      dir y      dir 
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.000205s Sys=0.000000s
+  User=0.000000s Real=0.000179s Sys=0.000000s
  G4Transportation: Statistics for looping particles 
  No looping tracks found or killed. 
 
@@ -375,7 +391,7 @@ Step#          X             Y             Z    Direction x      dir y      dir 
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.000185s Sys=0.000000s
+  User=0.000000s Real=0.000173s Sys=0.000000s
  G4Transportation: Statistics for looping particles 
  No looping tracks found or killed. 
 
@@ -402,11 +418,11 @@ Step#          X             Y             Z    Direction x      dir y      dir 
     0          0 fm          0 fm    21.9895 m           0          0         -1      100 MeV     0 eV          0 fm          0 fm      World    initStep
     1          0 fm     20.319 cm    21.9895 m  5.03276e-08 3.37364e-08          1      100 MeV0.000676633 eV    31.9182 cm    31.9182 cm      World  Transportation
     2    50328.4 fm    20.3185 cm    21.9905 m  5.03276e-08 -0.00984295   0.999952      100 MeV2.21968e-06 eV    1.04707 mm    32.0229 cm   Absorber  Transportation
-    3    5.29388 Ang   20.2645 cm         22 m  6.5133e-08  -0.103352   0.994645      100 MeV2.03471e-05 eV    9.59813 mm    32.9827 cm OutOfWorld  Transportation
+    3    5.29388 Ang   20.2645 cm         22 m  1.48908e-07  -0.103352   0.994645      100 MeV2.03471e-05 eV    9.59813 mm    32.9827 cm OutOfWorld  Transportation
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.000239s Sys=0.000000s
+  User=0.000000s Real=0.000231s Sys=0.000000s
  G4Transportation: Statistics for looping particles 
  No looping tracks found or killed. 
 
@@ -431,19 +447,15 @@ Index : 0     used in the geometry : Yes
 
 Step#          X             Y             Z    Direction x      dir y      dir z      KineE     dEStep   StepLeng  TrakLeng    Volume     Process
     0          0 fm          0 fm    21.9895 m           0          0         -1       50 MeV     0 eV          0 fm          0 fm      World    initStep
-    1          0 fm    10.2108 cm    21.9895 m  3.95796e-08 -2.87631e-08          1       50 MeV0.000318195 eV    16.0403 cm    16.0403 cm      World  Transportation
-    2    39582.2 fm    10.2098 cm    21.9905 m  3.95796e-08 -0.0195872   0.999808       50 MeV2.02392e-06 eV    1.02026 mm    16.1423 cm   Absorber  Transportation
-    3    4.18577 Ang   10.1016 cm         22 m  3.95796e-08  -0.205667   0.978622       50 MeV1.90072e-05 eV    9.58159 mm    17.1005 cm OutOfWorld  Transportation
+    1          0 fm    10.2108 cm    21.9895 m  -8.42505e-09 -9.58672e-08          1       50 MeV0.000318195 eV    16.0403 cm    16.0403 cm      World  Transportation
+    2   -8425.59 fm    10.2098 cm    21.9905 m  -2.94296e-08 -0.0195872   0.999808       50 MeV2.02392e-06 eV    1.02026 mm    16.1423 cm   Absorber  Transportation
+    3   -2.90229 Ang   10.1016 cm         22 m  -2.94296e-08  -0.205667   0.978622       50 MeV1.90072e-05 eV    9.58159 mm    17.1005 cm OutOfWorld  Transportation
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.000159s Sys=0.000000s
+  User=0.000000s Real=0.000150s Sys=0.000000s
  G4Transportation: Statistics for looping particles 
  No looping tracks found or killed. 
-G4Integration Driver Stats: #QuickAdvance 186 - #AccurateAdvance 30 #good steps 30 #bad steps 0
-G4ChordFinder statistics report: 
-  No trials: 184  No Calls: 168  Max-trial: 5
-  Parameters:   fFirstFraction 0.999  fFractionLast 1  fFractionNextEstimate 0.98
  F01FieldSetup::CreateStepperAndChordFinder() called. 
                  1. Creating Stepper.
 G4DormandPrince745 Stepper is chosen
@@ -473,13 +485,13 @@ Index : 0     used in the geometry : Yes
 
 Step#          X             Y             Z    Direction x      dir y      dir z      KineE     dEStep   StepLeng  TrakLeng    Volume     Process
     0          0 fm          0 fm    21.9895 m           0          0         -1       50 MeV     0 eV          0 fm          0 fm      World    initStep
-    1          0 fm    3.36956 m     21.9895 m  8.19633e-08 3.87095e-08          1       50 MeV0.0104996 eV     5.2929 m      5.2929 m       World  Transportation
-    2    81963.3 fm    3.36956 m     21.9905 m  8.19633e-08 -0.000593511          1       50 MeV2.02392e-06 eV    1.02026 mm    5.29392 m    Absorber  Transportation
-    3     8.6062 Ang   3.36953 m          22 m  1.16073e-07 -0.00623228   0.999981       50 MeV1.88455e-05 eV    9.50007 mm    5.30342 m  OutOfWorld  Transportation
+    1          0 fm    3.36956 m     21.9895 m  5.03344e-08 4.10621e-08          1       50 MeV0.0104996 eV     5.2929 m      5.2929 m       World  Transportation
+    2    50334.4 fm    3.36956 m     21.9905 m  2.97687e-07 -0.000593498          1       50 MeV2.02392e-06 eV    1.02026 mm    5.29392 m    Absorber  Transportation
+    3    2.87839 nm    3.36953 m          22 m  5.20032e-07 -0.00623232   0.999981       50 MeV1.88455e-05 eV    9.50007 mm    5.30342 m  OutOfWorld  Transportation
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.000188s Sys=0.000000s
+  User=0.000000s Real=0.000164s Sys=0.000000s
  G4Transportation: Statistics for looping particles 
  No looping tracks found or killed. 
 
@@ -510,7 +522,7 @@ Index : 0     used in the geometry : Yes
  Run terminated.
 Run Summary
   Number of events processed : 100
-  User=0.010000s Real=0.010011s Sys=0.000000s
+  User=0.000000s Real=0.010809s Sys=0.000000s
  G4Transportation: Statistics for looping particles 
  No looping tracks found or killed. 
 #
@@ -577,7 +589,7 @@ Index : 2     used in the geometry : Yes
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.020000s Real=0.033845s Sys=0.000000s
+  User=0.000000s Real=0.008222s Sys=0.000000s
  G4Transportation: Statistics for looping particles 
  No looping tracks found or killed. 
 Graphics systems deleted.
@@ -585,10 +597,6 @@ Visualization Manager deleting...
 G4 kernel has come to Quit state.
 ================== Deleting memory pools ===================
 Number of memory pools allocated: 12 of which, static: 0
-Dynamic pools deleted: 12 / Total memory freed: 0.3 MB
+Dynamic pools deleted: 12 / Total memory freed: 0.29 MB
 ============================================================
 RunManagerKernel is deleted. Good bye :)
-G4Integration Driver Stats: #QuickAdvance 24546 - #AccurateAdvance 214 #good steps 214 #bad steps 0
-G4ChordFinder statistics report: 
-  No trials: 24546  No Calls: 24017  Max-trial: 4
-  Parameters:   fFirstFraction 0.999  fFractionLast 1  fFractionNextEstimate 0.98

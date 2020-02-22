@@ -326,7 +326,7 @@ void G4ITStepProcessor::ActiveOnlyITProcess(G4ProcessManager* processManager)
   G4ProcessVector* processVector = processManager->GetProcessList();
 
   G4VITProcess* itProcess = 0;
-  for(int i = 0; i < processVector->size(); i++)
+  for(std::size_t i = 0; i < processVector->size(); ++i)
   {
     G4VProcess* base_process = (*processVector)[i];
     itProcess = dynamic_cast<G4VITProcess*>(base_process);
@@ -800,6 +800,9 @@ void G4ITStepProcessor::SetInitialStep()
     fpTrack->SetTrackStatus(fAlive);
   }
 
+  //HoangTRAN: it's better to check the status here
+  if(fpTrack->GetTrackStatus() == fStopAndKill) return;
+
   // If the primary track has 'zero' kinetic energy, set the track
   // state to 'StopButAlive'.
   if(fpTrack->GetKineticEnergy() <= 0.0)
@@ -839,8 +842,6 @@ void G4ITStepProcessor::SetInitialStep()
     // Initial set up for attribues of 'Step'
     fpStep->InitializeStep( fpTrack );
   }
-
-  if(fpTrack->GetTrackStatus() == fStopAndKill) return;
 
   fpState->fStepStatus = fUndefined;
 }

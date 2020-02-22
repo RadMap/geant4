@@ -9,12 +9,136 @@
 This file should be used by G4 developers and category coordinators
 to briefly summarize all major modifications introduced in the code
 and keep track of all category-tags.
-It DOES NOT substitute the SVN log-message one should put at every
-committal in the SVN repository !
+It DOES NOT substitute the log-message one should put at every
+commit in the repository !
 
      ----------------------------------------------------------
      * Reverse chronological order (last date on top), please *
      ----------------------------------------------------------
+
+December 03, 2019 Gabriele Cosmo (global-V10-05-27)
+- Updated tag IDs for release 10.6.p01.
+
+January 30, 2020 Gabriele Cosmo
+- Fixed symbol exporting problem in G4coutDestination on Windows; define
+  'masterG4coutDestination' static pointer as a normal pointer.
+  Addressing problem report #2217.
+
+January 14, 2020 Gabriele Cosmo
+- Added windefs.hh header, including protections for double definition
+  of global symbols from Windows Kits code.
+
+December 03, 2019 Gabriele Cosmo (global-V10-05-26)
+- Updated tag IDs for release 10.6.
+
+November 22, 2019 Jonathan Madsen (global-V10-05-25)
+- Updated G4TiMemory.hh to support new macros
+- Updated templates.hh to use move semantics in consume_parameters
+  - Eliminates warning about unnecessary copy for some compilers
+- Updated sources.cmake to use ${timemory_LIBRARIES} instead of
+  difficult to type ${TiMemory_LIBRARIES}
+
+November 19, 2019 Gabriele Cosmo (global-V10-05-24)
+- Updated tag IDs for geant4-10-06-cand-01.
+
+November 15, 2019 Gabriele Cosmo (global-V10-05-23)
+- Fixed implicit type conversions in G4String internal methods.
+
+November 12, 2019 Gabriele Cosmo (global-V10-05-22)
+- Updated tag IDs for geant4-10-06-cand-00.
+
+November 08, 2019 Evgueni Tcherniaev (global-V10-05-21)
+- G4SimplexDownhill: fixed minor Coverity defect
+
+October 30, 2019 Gabriele Cosmo (global-V10-05-20)
+- Updated date and tag-ID for geant4-10-05-ref-10.
+
+October 25, 2019 Gabriele Cosmo (global-V10-05-19)
+- Added 'External' (physical) volume type to geomdefs.hh.
+
+September 30, 2019 Gabriele Cosmo (global-V10-05-18)
+- Updated date and tag-ID for geant4-10-05-ref-09.
+
+September 12, 2019 Evgueni Tcherniaev (global-V10-05-17)
+- Added HEPRandom/include/G4QuickRand.hh
+
+August 31, 2019 Gabriele Cosmo (global-V10-05-16)
+- Updated date and tag-ID for geant4-10-05-ref-08.
+
+August 2, 2019 Makoto Asain (global-V10-05-15)
+- G4PhysicsVector::insertAt() : add protection against idx > entries().
+  Addressing to Bug report #2182.
+
+July 21, 2019 Mihaly Novak (global-V10-05-14)
+- G4PhysicsVector: remove temporary codes used during the optimisation of the
+  physics log-vector data access
+
+July 18, 2019 Mihaly Novak (global-V10-05-13)
+- G4PhysicsVector: further optimisation of the LogVectorValue data access method
+  (all conditional branchings are eliminated by increased robustness of the alg.)
+
+July 17, 2019 Mihaly Novak (global-V10-05-12)
+- G4PhysicsVector: add optimised LogVectorValue method(special Value method only
+  for log-vectors) to G4PhysicsVector
+- G4PhysicsVector, G4PhysicsLogVector, G4PhysicsLinearVector, G4PhysicsVector:
+  change dBin member to invdBin(=1/dBin) to get rid of run-time divisions
+
+July 15, 2019 Gabriele Cosmo (global-V10-05-11)
+- Updated date and tag-ID for geant4-10-05-ref-07.
+
+June 17, 2019 Gabriele Cosmo (global-V10-05-10)
+- Updated date and tag-ID for geant4-10-05-ref-06.
+
+May 28, 2019 Gabriele Cosmo (global-V10-05-09)
+- Updated date and tag-ID for geant4-10-05-ref-05.
+
+May 20, 2019 Gabriele Cosmo (global-V10-05-08)
+- Defined default move constructor and move assignment operator for G4String
+  and G4DataVector.
+
+May 16, 2019 Gabriele Cosmo (global-V10-05-07)
+- Defaulted copy constructor for G4StatDouble, to fix compilation warnings
+  on gcc-9.1.
+
+April 27, 2019 Gabriele Cosmo (global-V10-05-06)
+- Updated date and tag-ID for geant4-10-05-ref-04.
+
+April 25, 2019 Ben Morgan (global-V10-05-05)
+- DEV-250: Add G4GlobalConfig.hh generated header to hold global, always
+  required, preprocessor symbols instead of relying on -D flags.
+  - G4USE_STD11
+  - G4MULTITHREADED
+  - G4_STORE_TRAJECTORY
+  - G4VERBOSE
+  - GEANT4_USE_TIMEMORY
+- Add inclusion of G4GlobalConfig.hh in G4Types.hh, tls.hh and
+  G4TiMemory.hh so that global and other categories pick up
+  the definitions transparently. Protect inclusion so that
+  only CMake builds use this header
+- Update other headers/srcs to include G4Types/G4Threading if
+  they use G4MULTITHREADED
+- Uses cmake-V10-05-02
+
+March 29, 2019 Gabriele Cosmo (global-V10-05-04)
+- Updated date and tag-ID for geant4-10-05-ref-03.
+
+March 17, 2019 Mihaly Novak (global-V10-05-03)
+- G4PhysicsVector: adding additional public Value() method option to propagate
+  down the known log-energy value (can avoid the log call in case of log-vector)
+- templates: new LOG_EKIN_MIN constant as value taken incase of zero kin-energy.
+
+March 13, 2019 Gabriele Cosmo (global-V10-05-02)
+- Enable FPE detection on MacOS with clang.
+  Addressing problem report #2147.
+
+February 28, 2019 Gabriele Cosmo
+- Updated date and tag-ID for geant4-10-05-ref-02.
+
+January 31, 2019 Ivana Hrivnacova (global-V10-05-01)
+- Merged GitHub PR #4: all Boolean operators now return G4bool.
+
+January 30, 2019 Gabriele Cosmo (global-V10-05-00)
+- Updated date and tag-ID for geant4-10-05-ref-01.
 
 November 26, 2018 Gabriele Cosmo (global-V10-04-31)
 - G4Cache, G4CacheDetails: minor code cleanup and formatting.
@@ -1721,8 +1845,8 @@ June 17, 2003  G.Cosmo (global-V05-02-00)
 June 6, 2003  G.Cosmo (global-V05-01-01)
 - Made g4std wrappers obsolete:
   o modified wrappers to include standard std headers
-  o replaced all occurences of G4std:: with std::
-  o replaced all occurences of
+  o replaced all occurrences of G4std:: with std::
+  o replaced all occurrences of
       #include "g4std/XXX"
     with
       #include <XXX>

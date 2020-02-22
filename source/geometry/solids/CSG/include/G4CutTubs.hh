@@ -23,27 +23,26 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4CutTubs
 //
+// Class description:
 //
-// 
-// --------------------------------------------------------------------
-// GEANT 4 class header file
-//
-// 
 // G4CutTubs is a tube with possible cuts in +-Z.
-//           Implementation adapted from G4Tubs (subclass of G4Tubs) and 
-//           from TGEo Ctube implementation (by A.Gheata, CERN)
+// Implementation adapted from G4Tubs (subclass of G4Tubs) and
+// from TGEo Ctube implementation (by A.Gheata, CERN)
 //
 // G4CutTubs(pName,pRMin,pRMax,pDZ,pSPhi,pEPhi,pLowNorm,pHighNorm)
 //           pName,pRMin,pRMax,pDZ,pSPhi,pEPhi are the same as for G4Tubs,
 //           pLowNorm=Outside Normal at -Z
 //           pHighNorm=Outsie Normal at +Z.
 
-// Author:   Tatiana Nikitina, CERN
+// Author: Tatiana Nikitina, CERN
 // --------------------------------------------------------------------
 
 #ifndef G4CUTTUBS_HH
 #define G4CUTTUBS_HH
+
+#include "G4GeomTypes.hh"
 
 #if defined(G4GEOM_USE_USOLIDS)
 #define G4GEOM_USE_UCTUBS 1
@@ -77,7 +76,7 @@ class G4CutTubs : public G4CSGSolid
       // Destructor
 
     // Accessors
-    
+
     inline G4double GetInnerRadius   () const;
     inline G4double GetOuterRadius   () const;
     inline G4double GetZHalfLength   () const;
@@ -117,8 +116,9 @@ class G4CutTubs : public G4CSGSolid
     G4double DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const;
     G4double DistanceToIn(const G4ThreeVector& p) const;
     G4double DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v,
-                           const G4bool calcNorm=G4bool(false),
-                                 G4bool *validNorm=0, G4ThreeVector *n=0) const;
+                           const G4bool calcNorm = false,
+                                 G4bool* validNorm = nullptr,
+                                 G4ThreeVector* n = nullptr) const;
     G4double DistanceToOut(const G4ThreeVector& p) const;
 
     G4GeometryType GetEntityType() const;
@@ -143,7 +143,7 @@ class G4CutTubs : public G4CSGSolid
       // persistifiable objects.
 
     G4CutTubs(const G4CutTubs& rhs);
-    G4CutTubs& operator=(const G4CutTubs& rhs); 
+    G4CutTubs& operator=(const G4CutTubs& rhs);
       // Copy constructor and assignment operator.
 
     //  Older names for access functions
@@ -178,7 +178,7 @@ class G4CutTubs : public G4CSGSolid
     G4bool IsCrossingCutPlanes() const;
       // Check if the cutted planes are crossing.
       // If 'true' , solid is ill defined
-   
+
     G4double GetCutZ(const G4ThreeVector& p) const;
       // Get Z value of the point on Cutted Plane
 
@@ -189,19 +189,19 @@ class G4CutTubs : public G4CSGSolid
   private:
 
     G4double kRadTolerance, kAngTolerance;
-      //                                                                                   
-      // Radial and angular tolerances                                                     
+      //
+      // Radial and angular tolerances
 
     G4double fRMin, fRMax, fDz, fSPhi, fDPhi;
-      //                                                                                   
-      // Radial and angular dimensions                                                     
+      //
+      // Radial and angular dimensions
 
-    G4double sinCPhi, cosCPhi, cosHDPhiOT, cosHDPhiIT,
+    G4double sinCPhi, cosCPhi, cosHDPhi, cosHDPhiOT, cosHDPhiIT,
              sinSPhi, cosSPhi, sinEPhi, cosEPhi;
-      //                                                                                   
+      //
       // Cached trigonometric values
 
-    G4bool fPhiFullCutTube;
+    G4bool fPhiFullCutTube = false;
       //
       // Flag for identification of section or full tube
 

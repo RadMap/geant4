@@ -36,6 +36,7 @@
 #include "G4HitsModel.hh"
 #include "G4DigiModel.hh"
 #include "G4GPSModel.hh"
+#include "G4ElectricFieldModel.hh"
 #include "G4MagneticFieldModel.hh"
 #include "G4PSHitsModel.hh"
 #include "G4TrajectoriesModel.hh"
@@ -53,6 +54,7 @@
 #include "G4SubtractionSolid.hh"
 #include "G4Polyhedron.hh"
 #include "G4UImanager.hh"
+#include "G4UIcommandTree.hh"
 #include "G4UIcommand.hh"
 #include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWithoutParameter.hh"
@@ -80,17 +82,6 @@
 #include "G4GeneralParticleSourceData.hh"
 
 #include <sstream>
-
-// Local function with some frequently used error printing...
-static void G4VisCommandsSceneAddUnsuccessful
-(G4VisManager::Verbosity verbosity) {
-  if (verbosity >= G4VisManager::warnings) {
-    G4cout <<
-      "WARNING: For some reason, possibly mentioned above, it has not been"
-      "\n  possible to add to the scene."
-	   << G4endl;
-  }
-}
 
 ////////////// /vis/scene/add/arrow ///////////////////////////////////////
 
@@ -256,7 +247,7 @@ G4VisCommandSceneAddArrow2D::Arrow2D::Arrow2D
 }
 
 void G4VisCommandSceneAddArrow2D::Arrow2D::operator()
-  (G4VGraphicsScene& sceneHandler, const G4Transform3D&)
+  (G4VGraphicsScene& sceneHandler, const G4Transform3D&, const G4ModelingParameters*)
 {
   sceneHandler.BeginPrimitives2D();
   sceneHandler.AddPrimitive(fShaftPolyline);
@@ -453,7 +444,7 @@ void G4VisCommandSceneAddDate::SetNewValue (G4UIcommand*, G4String newValue)
     new G4CallbackModel<G4VisCommandSceneAddDate::Date>(date);
   model->SetType("Date");
   model->SetGlobalTag("Date");
-  model->SetGlobalDescription("Date");
+  model->SetGlobalDescription("Date: " + newValue);
   const G4String& currentSceneName = pScene -> GetName ();
   G4bool successful = pScene -> AddRunDurationModel (model, warn);
   if (successful) {
@@ -469,7 +460,7 @@ void G4VisCommandSceneAddDate::SetNewValue (G4UIcommand*, G4String newValue)
 }
 
 void G4VisCommandSceneAddDate::Date::operator()
-  (G4VGraphicsScene& sceneHandler, const G4Transform3D&)
+  (G4VGraphicsScene& sceneHandler, const G4Transform3D&, const G4ModelingParameters*)
 {
   G4String time;
   if (fDate == "-") {
@@ -529,6 +520,100 @@ void G4VisCommandSceneAddDigis::SetNewValue (G4UIcommand*, G4String) {
       G4cout << "Digis, if any, will be drawn at end of run in scene \""
 	     << currentSceneName << "\"."
 	     << G4endl;
+    }
+  }
+  else G4VisCommandsSceneAddUnsuccessful(verbosity);
+
+  CheckSceneAndNotifyHandlers (pScene);
+}
+
+////////////// /vis/scene/add/electricField ///////////////////////////////////////
+
+G4VisCommandSceneAddElectricField::G4VisCommandSceneAddElectricField () {
+  G4bool omitable;
+  fpCommand = new G4UIcommand ("/vis/scene/add/electricField", this);
+  fpCommand -> SetGuidance
+  ("Adds electric field representation to current scene.");
+  fpCommand -> SetGuidance
+  ("The first parameter is no. of data points per half scene.  So, possibly, at"
+   "\nmaximum, the number of data points sampled is (2*n+1)^3, which can grow"
+   "\nlarge--be warned!"
+   "\nThe default value is 10, i.e., a 21x21x21 array, i.e., 9,261 sampling points."
+   "\nThat may swamp you scene, but usually, a field is limited to a small part of"
+   "\nthe scene, so it's not a problem. But if it is, here are some of the things"
+   "\nyou can do:"
+   "\n- reduce the number of data points per half scene (first parameter);"
+   "\n- specify \"lightArrow\" (second parameter);"
+   "\n- restrict the region sampled with \"/vis/set/extentForField\";"
+   "\n- restrict the drawing to a specific volume with"
+   "\n    \"/vis/set/volumeForField\" or \"/vis/touchable/volumeForField\"."
+   "\nNote: you may have to deactivate existing field models with"
+   "\n  \"/vis/scene/activateModel Field false\" and re-issue"
+   "\n  \"/vis/scene/add/...Field\" command again.");
+  fpCommand -> SetGuidance
+  ("In the arrow representation, the length of the arrow is proportional"
+   "\nto the magnitude of the field and the colour is mapped onto the range"
+   "\nas a fraction of the maximum magnitude: 0->0.5->1 is blue->green->red.");
+  G4UIparameter* parameter;
+  parameter = new G4UIparameter ("nDataPointsPerHalfScene", 'i', omitable = true);
+  parameter -> SetDefaultValue (10);
+  fpCommand -> SetParameter (parameter);
+  parameter = new G4UIparameter ("representation", 's', omitable = true);
+  parameter -> SetParameterCandidates("fullArrow lightArrow");
+  parameter -> SetDefaultValue ("fullArrow");
+  fpCommand -> SetParameter (parameter);
+}
+
+G4VisCommandSceneAddElectricField::~G4VisCommandSceneAddElectricField () {
+  delete fpCommand;
+}
+
+G4String G4VisCommandSceneAddElectricField::GetCurrentValue (G4UIcommand*) {
+  return "";
+}
+
+void G4VisCommandSceneAddElectricField::SetNewValue
+(G4UIcommand*, G4String newValue) {
+
+  G4VisManager::Verbosity verbosity = fpVisManager->GetVerbosity();
+  G4bool warn(verbosity >= G4VisManager::warnings);
+
+  G4Scene* pScene = fpVisManager->GetCurrentScene();
+  if (!pScene) {
+    if (verbosity >= G4VisManager::errors) {
+      G4cerr <<  "ERROR: No current scene.  Please create one." << G4endl;
+    }
+    return;
+  }
+
+  G4int nDataPointsPerHalfScene;
+  G4String representation;
+  std::istringstream iss(newValue);
+  iss >> nDataPointsPerHalfScene >> representation;
+  G4ElectricFieldModel::Representation
+  modelRepresentation = G4ElectricFieldModel::fullArrow;
+  if (representation == "lightArrow") {
+    modelRepresentation = G4ElectricFieldModel::lightArrow;
+  }
+  G4VModel* model;
+  model = new G4ElectricFieldModel
+  (nDataPointsPerHalfScene,modelRepresentation,
+   fCurrentArrow3DLineSegmentsPerCircle,
+   fCurrentExtentForField,
+   fCurrrentPVFindingsForField);
+  const G4String& currentSceneName = pScene -> GetName ();
+  G4bool successful = pScene -> AddRunDurationModel (model, warn);
+  if (successful) {
+    if (verbosity >= G4VisManager::confirmations) {
+      G4cout
+      << "Electric field, if any, will be drawn in scene \""
+      << currentSceneName
+      << "\"\n  with "
+      << nDataPointsPerHalfScene
+      << " data points per half scene and with representation \""
+      << representation
+      << '\"'
+      << G4endl;
     }
   }
   else G4VisCommandsSceneAddUnsuccessful(verbosity);
@@ -596,19 +681,32 @@ void G4VisCommandSceneAddEventID::SetNewValue (G4UIcommand*, G4String newValue)
   else if (layoutString(0) == 'c') layout = G4Text::centre;
   else if (layoutString(0) == 'r') layout = G4Text::right;
 
-  EventID* eventID = new EventID(fpVisManager, size, x, y, layout);
-  G4VModel* model =
-    new G4CallbackModel<G4VisCommandSceneAddEventID::EventID>(eventID);
-  model->SetType("EventID");
-  model->SetGlobalTag("EventID");
-  model->SetGlobalDescription("EventID");
-  const G4String& currentSceneName = pScene -> GetName ();
-  G4bool successful = pScene -> AddEndOfEventModel (model, warn);
-  if (successful) {
+  // For End of Event (only for reviewing kept events one by one)
+  EventID* eoeEventID
+  = new EventID(forEndOfEvent, fpVisManager, size, x, y, layout);
+  G4VModel* eoeModel =
+    new G4CallbackModel<G4VisCommandSceneAddEventID::EventID>(eoeEventID);
+  eoeModel->SetType("EoEEventID");
+  eoeModel->SetGlobalTag("EoEEventID");
+  eoeModel->SetGlobalDescription("EoEEventID: " + newValue);
+  G4bool successfulEoE = pScene -> AddEndOfEventModel (eoeModel, warn);
+
+  // For End of Run
+  EventID* eorEventID
+  = new EventID(forEndOfRun, fpVisManager, size, x, y, layout);
+  G4VModel* eorModel =
+  new G4CallbackModel<G4VisCommandSceneAddEventID::EventID>(eorEventID);
+  eorModel->SetType("EoREventID");
+  eorModel->SetGlobalTag("EoREventID");
+  eorModel->SetGlobalDescription("EoREventID: " + newValue);
+  G4bool successfulEoR = pScene -> AddEndOfRunModel (eorModel, warn);
+
+  if (successfulEoE && successfulEoR) {
     if (verbosity >= G4VisManager::confirmations) {
+      const G4String& currentSceneName = pScene -> GetName ();
       G4cout << "EventID has been added to scene \""
-	     << currentSceneName << "\"."
-	     << G4endl;
+      << currentSceneName << "\"."
+      << G4endl;
     }
   }
   else G4VisCommandsSceneAddUnsuccessful(verbosity);
@@ -617,75 +715,57 @@ void G4VisCommandSceneAddEventID::SetNewValue (G4UIcommand*, G4String newValue)
 }
 
 void G4VisCommandSceneAddEventID::EventID::operator()
-  (G4VGraphicsScene& sceneHandler, const G4Transform3D&)
+(G4VGraphicsScene& sceneHandler, const G4Transform3D&, const G4ModelingParameters* mp)
 {
-  const G4Run* currentRun = 0;
   G4RunManager* runManager = G4RunManager::GetRunManager();
 #ifdef G4MULTITHREADED
   if (G4Threading::IsMultithreadedApplication()) {
     runManager = G4MTRunManager::GetMasterRunManager();
   }
 #endif
-  if (runManager) currentRun = runManager->GetCurrentRun();
+  if (!runManager) return;
 
-  G4VModel* model = fpVisManager->GetCurrentSceneHandler()->GetModel();
-  const G4ModelingParameters* mp = 0;
-  const G4Event* currentEvent = 0;
-  if (model) {
-   mp = model->GetModelingParameters();
-   currentEvent = mp->GetEvent();
-  } else {
-    G4VisManager::Verbosity verbosity = fpVisManager->GetVerbosity();
-    if (verbosity >= G4VisManager::errors) {
-      G4cerr <<	"ERROR: No model defined for this SceneHandler : "
-	     << fpVisManager->GetCurrentSceneHandler()->GetName()
-	     << G4endl;
+  const G4Run* currentRun = runManager->GetCurrentRun();
+  if (!currentRun) return;
+
+  const G4int currentRunID = currentRun->GetRunID();
+
+  std::ostringstream oss;
+  switch (fForWhat) {
+    case forEndOfEvent:
+    {
+      // Only use if reviewing kept events
+      if (!fpVisManager->GetReviewingKeptEvents()) return;
+      const G4Event* currentEvent = mp->GetEvent();
+      if (!currentEvent) return;
+      G4int eventID = currentEvent->GetEventID();
+      oss << "Run " << currentRunID << " Event " << eventID;
+      break;
     }
-  }
-  if (currentRun && currentEvent) {
-    G4int runID = currentRun->GetRunID();
-    G4int eventID = currentEvent->GetEventID();
-    std::ostringstream oss;
-    if (fpVisManager->GetCurrentScene()->GetRefreshAtEndOfEvent()) {
-      oss << "Run " << runID << " Event " << eventID;
-    } else {
-      G4int nEvents = 0;
-#ifdef G4MULTITHREADED
-      if (G4Threading::G4GetThreadId() != G4Threading::MASTER_ID) {
-        // Vis sub-thread - run in progress
-#else
-      G4StateManager* stateManager = G4StateManager::GetStateManager();
-      G4ApplicationState state = stateManager->GetCurrentState();
-      if (state == G4State_EventProc) {
-        // Run in progress
-#endif
-        nEvents = currentRun->GetNumberOfEventToBeProcessed();
-      } else {
-        // Rebuilding from kept events
-        const std::vector<const G4Event*>* events =
-        currentRun->GetEventVector();
-        if (events) nEvents = events->size();
-      }
-#ifndef G4MULTITHREADED
-      // In sequential mode we can recognise the last event and avoid
-      // drawing the event ID.  But for MT mode there is no way of
-      // knowing so we have to accept that the event ID will be drawn
-      // at each event, the same characters over and over - but hey!
-      if (eventID < nEvents - 1) return;  // Not last event.
-#endif
-      oss << "Run " << runID << " (" << nEvents << " event";
+    case forEndOfRun:
+    {
+      // Only use if NOT reviewing kept events
+      if (fpVisManager->GetReviewingKeptEvents()) return;
+      const G4int nEvents = currentRun->GetNumberOfEventToBeProcessed();
+      const auto* events = currentRun->GetEventVector();
+      size_t nKeptEvents = events? events->size(): 0;
+      oss << "Run " << currentRunID << " (" << nEvents << " event";
       if (nEvents != 1) oss << 's';
-      oss << ')';
+      oss << ", " << nKeptEvents << " kept)";
+      break;
     }
-    G4Text text(oss.str(), G4Point3D(fX, fY, 0.));
-    text.SetScreenSize(fSize);
-    text.SetLayout(fLayout);
-    G4VisAttributes textAtts(G4Colour(0.,1.,1));
-    text.SetVisAttributes(textAtts);
-    sceneHandler.BeginPrimitives2D();
-    sceneHandler.AddPrimitive(text);
-    sceneHandler.EndPrimitives2D();
+    default:
+      return;
   }
+
+  G4Text text(oss.str(), G4Point3D(fX, fY, 0.));
+  text.SetScreenSize(fSize);
+  text.SetLayout(fLayout);
+  G4VisAttributes textAtts(G4Colour(0.,1.,1));
+  text.SetVisAttributes(textAtts);
+  sceneHandler.BeginPrimitives2D();
+  sceneHandler.AddPrimitive(text);
+  sceneHandler.EndPrimitives2D();
 }
 
 ////////////// /vis/scene/add/extent ///////////////////////////////////////
@@ -789,7 +869,7 @@ fExtent(xmin,xmax,ymin,ymax,zmin,zmax)
 {}
 
 void G4VisCommandSceneAddExtent::Extent::operator()
-(G4VGraphicsScene&, const G4Transform3D&)
+(G4VGraphicsScene&, const G4Transform3D&, const G4ModelingParameters*)
 {}
 
 ////////////// /vis/scene/add/frame ///////////////////////////////////////
@@ -852,7 +932,7 @@ void G4VisCommandSceneAddFrame::SetNewValue (G4UIcommand*, G4String newValue)
 }
 
 void G4VisCommandSceneAddFrame::Frame::operator()
-  (G4VGraphicsScene& sceneHandler, const G4Transform3D&)
+  (G4VGraphicsScene& sceneHandler, const G4Transform3D&, const G4ModelingParameters*)
 {
   G4Polyline frame;
   frame.push_back(G4Point3D( fSize,  fSize, 0.));
@@ -869,75 +949,75 @@ void G4VisCommandSceneAddFrame::Frame::operator()
   sceneHandler.EndPrimitives2D();
 }
 
-  ////////////// /vis/scene/add/gps ///////////////////////////////////////
+////////////// /vis/scene/add/gps ///////////////////////////////////////
 
-  G4VisCommandSceneAddGPS::G4VisCommandSceneAddGPS () {
-    G4bool omitable;
-    G4UIparameter* parameter;
-    fpCommand = new G4UIcommand ("/vis/scene/add/gps", this);
-    fpCommand -> SetGuidance
-    ("A representation of the source(s) of the General Particle Source"
-     "\nwill be added to current scene and drawn, if applicable.");
-    fpCommand->SetGuidance(ConvertToColourGuidance());
-    fpCommand->SetGuidance("Default: red and transparent.");
-    parameter = new G4UIparameter("red_or_string", 's', omitable = true);
-    parameter -> SetDefaultValue ("1.");
-    fpCommand -> SetParameter (parameter);
-    parameter = new G4UIparameter("green", 'd', omitable = true);
-    parameter -> SetDefaultValue (0.);
-    fpCommand -> SetParameter (parameter);
-    parameter = new G4UIparameter ("blue", 'd', omitable = true);
-    parameter -> SetDefaultValue (0.);
-    fpCommand -> SetParameter (parameter);
-    parameter = new G4UIparameter ("opacity", 'd', omitable = true);
-    parameter -> SetDefaultValue (0.3);
-    fpCommand -> SetParameter (parameter);
-  }
+G4VisCommandSceneAddGPS::G4VisCommandSceneAddGPS () {
+  G4bool omitable;
+  G4UIparameter* parameter;
+  fpCommand = new G4UIcommand ("/vis/scene/add/gps", this);
+  fpCommand -> SetGuidance
+  ("A representation of the source(s) of the General Particle Source"
+   "\nwill be added to current scene and drawn, if applicable.");
+  fpCommand->SetGuidance(ConvertToColourGuidance());
+  fpCommand->SetGuidance("Default: red and transparent.");
+  parameter = new G4UIparameter("red_or_string", 's', omitable = true);
+  parameter -> SetDefaultValue ("1.");
+  fpCommand -> SetParameter (parameter);
+  parameter = new G4UIparameter("green", 'd', omitable = true);
+  parameter -> SetDefaultValue (0.);
+  fpCommand -> SetParameter (parameter);
+  parameter = new G4UIparameter ("blue", 'd', omitable = true);
+  parameter -> SetDefaultValue (0.);
+  fpCommand -> SetParameter (parameter);
+  parameter = new G4UIparameter ("opacity", 'd', omitable = true);
+  parameter -> SetDefaultValue (0.3);
+  fpCommand -> SetParameter (parameter);
+}
 
-  G4VisCommandSceneAddGPS::~G4VisCommandSceneAddGPS () {
-    delete fpCommand;
-  }
+G4VisCommandSceneAddGPS::~G4VisCommandSceneAddGPS () {
+  delete fpCommand;
+}
 
-  G4String G4VisCommandSceneAddGPS::GetCurrentValue (G4UIcommand*) {
-    return "";
-  }
+G4String G4VisCommandSceneAddGPS::GetCurrentValue (G4UIcommand*) {
+  return "";
+}
 
-  void G4VisCommandSceneAddGPS::SetNewValue (G4UIcommand*, G4String newValue) {
+void G4VisCommandSceneAddGPS::SetNewValue (G4UIcommand*, G4String newValue) {
 
-    G4VisManager::Verbosity verbosity = fpVisManager->GetVerbosity();
-    G4bool warn(verbosity >= G4VisManager::warnings);
+  G4VisManager::Verbosity verbosity = fpVisManager->GetVerbosity();
+  G4bool warn(verbosity >= G4VisManager::warnings);
 
-    G4Scene* pScene = fpVisManager->GetCurrentScene();
-    if (!pScene) {
-      if (verbosity >= G4VisManager::errors) {
-        G4cerr << "ERROR: No current scene.  Please create one." << G4endl;
-      }
-      return;
+  G4Scene* pScene = fpVisManager->GetCurrentScene();
+  if (!pScene) {
+    if (verbosity >= G4VisManager::errors) {
+      G4cerr << "ERROR: No current scene.  Please create one." << G4endl;
     }
-
-    G4String redOrString;
-    G4double green, blue, opacity;
-    std::istringstream iss(newValue);
-    iss >> redOrString >> green >> blue >> opacity;
-    G4Colour colour(1.,0.,0.,0.3);  // Default red and transparent.
-    ConvertToColour(colour, redOrString, green, blue, opacity);
-
-    G4VModel* model = new G4GPSModel(colour);
-    const G4String& currentSceneName = pScene -> GetName ();
-    G4bool successful = pScene -> AddRunDurationModel (model, warn);
-    if (successful) {
-      if (verbosity >= G4VisManager::confirmations) {
-        G4cout <<
-"A representation of the source(s) of the General Particle Source will be drawn"
-"\n  in colour " << colour << " for scene \""
-        << currentSceneName << "\" if applicable."
-        << G4endl;
-      }
-    }
-    else G4VisCommandsSceneAddUnsuccessful(verbosity);
-
-    CheckSceneAndNotifyHandlers (pScene);
+    return;
   }
+
+  G4String redOrString;
+  G4double green, blue, opacity;
+  std::istringstream iss(newValue);
+  iss >> redOrString >> green >> blue >> opacity;
+  G4Colour colour(1.,0.,0.,0.3);  // Default red and transparent.
+  ConvertToColour(colour, redOrString, green, blue, opacity);
+
+  G4VModel* model = new G4GPSModel(colour);
+  const G4String& currentSceneName = pScene -> GetName ();
+  G4bool successful = pScene -> AddRunDurationModel (model, warn);
+  if (successful) {
+    if (verbosity >= G4VisManager::confirmations) {
+      G4cout <<
+      "A representation of the source(s) of the General Particle Source will be drawn"
+      "\n  in colour " << colour << " for scene \""
+      << currentSceneName << "\" if applicable."
+      << G4endl;
+    }
+  }
+  else G4VisCommandsSceneAddUnsuccessful(verbosity);
+
+  CheckSceneAndNotifyHandlers (pScene);
+}
   
 ////////////// /vis/scene/add/hits ///////////////////////////////////////
 
@@ -1074,7 +1154,7 @@ G4VisCommandSceneAddLine::Line::Line
 }
 
 void G4VisCommandSceneAddLine::Line::operator()
-  (G4VGraphicsScene& sceneHandler, const G4Transform3D&)
+  (G4VGraphicsScene& sceneHandler, const G4Transform3D&, const G4ModelingParameters*)
 {
   sceneHandler.BeginPrimitives();
   sceneHandler.AddPrimitive(fPolyline);
@@ -1159,7 +1239,7 @@ G4VisCommandSceneAddLine2D::Line2D::Line2D
 }
 
 void G4VisCommandSceneAddLine2D::Line2D::operator()
-  (G4VGraphicsScene& sceneHandler, const G4Transform3D&)
+  (G4VGraphicsScene& sceneHandler, const G4Transform3D&, const G4ModelingParameters*)
 {
   sceneHandler.BeginPrimitives2D();
   sceneHandler.AddPrimitive(fPolyline);
@@ -1729,7 +1809,7 @@ G4VisCommandSceneAddLogo::G4Logo::~G4Logo() {
 }
 
 void G4VisCommandSceneAddLogo::G4Logo::operator()
-  (G4VGraphicsScene& sceneHandler, const G4Transform3D& transform) {
+  (G4VGraphicsScene& sceneHandler, const G4Transform3D& transform, const G4ModelingParameters*) {
   sceneHandler.BeginPrimitives(transform);
   sceneHandler.AddPrimitive(*fpG);
   sceneHandler.AddPrimitive(*fp4);
@@ -1813,7 +1893,7 @@ void G4VisCommandSceneAddLogo2D::SetNewValue (G4UIcommand*, G4String newValue)
 }
 
 void G4VisCommandSceneAddLogo2D::Logo2D::operator()
-  (G4VGraphicsScene& sceneHandler, const G4Transform3D&)
+  (G4VGraphicsScene& sceneHandler, const G4Transform3D&, const G4ModelingParameters*)
 {
   G4Text text("Geant4", G4Point3D(fX, fY, 0.));
   text.SetScreenSize(fSize);
@@ -1828,31 +1908,15 @@ void G4VisCommandSceneAddLogo2D::Logo2D::operator()
 ////////////// /vis/scene/add/magneticField ///////////////////////////////////////
 
 G4VisCommandSceneAddMagneticField::G4VisCommandSceneAddMagneticField () {
-  G4bool omitable;
   fpCommand = new G4UIcommand ("/vis/scene/add/magneticField", this);
   fpCommand -> SetGuidance
   ("Adds magnetic field representation to current scene.");
-  fpCommand -> SetGuidance
-  ("The first parameter is no. of data points per half scene.  So, possibly, at"
-   "\nmaximum, the number of data points sampled is (2*n+1)^3, which can grow"
-   "\nlarge--be warned!"
-   "\nYou might find that your scene is cluttered by thousands of arrows for"
-   "\nthe default number of data points, so try reducing to 2 or 3, e.g:"
-   "\n  /vis/scene/add/magneticField 3"
-   "\nor, if only a small part of the scene has a field:"
-   "\n  /vis/scene/add/magneticField 50 or more");
-  fpCommand -> SetGuidance
-  ("In the arrow representation, the length of the arrow is proportional"
-   "\nto the magnitude of the field and the colour is mapped onto the range"
-   "\nas a fraction of the maximum magnitude: 0->0.5->1 is blue->green->red.");
-  G4UIparameter* parameter;
-  parameter = new G4UIparameter ("nDataPointsPerHalfScene", 'i', omitable = true);
-  parameter -> SetDefaultValue (10);
-  fpCommand -> SetParameter (parameter);
-  parameter = new G4UIparameter ("representation", 's', omitable = true);
-  parameter -> SetParameterCandidates("fullArrow lightArrow");
-  parameter -> SetDefaultValue ("fullArrow");
-  fpCommand -> SetParameter (parameter);
+  const G4UIcommandTree* tree = G4UImanager::GetUIpointer()->GetTree();
+  const G4UIcommand* addElecFieldCmd = tree->FindPath("/vis/scene/add/electricField");
+  // Pick up additional guidance from /vis/scene/add/electricField
+  CopyGuidanceFrom(addElecFieldCmd,fpCommand,1);
+  // Pick up parameters from /vis/scene/add/electricField
+  CopyParametersFrom(addElecFieldCmd,fpCommand);
 }
 
 G4VisCommandSceneAddMagneticField::~G4VisCommandSceneAddMagneticField () {
@@ -1872,7 +1936,7 @@ void G4VisCommandSceneAddMagneticField::SetNewValue
   G4Scene* pScene = fpVisManager->GetCurrentScene();
   if (!pScene) {
     if (verbosity >= G4VisManager::errors) {
-      G4cerr <<	"ERROR: No current scene.  Please create one." << G4endl;
+      G4cerr <<  "ERROR: No current scene.  Please create one." << G4endl;
     }
     return;
   }
@@ -1881,23 +1945,27 @@ void G4VisCommandSceneAddMagneticField::SetNewValue
   G4String representation;
   std::istringstream iss(newValue);
   iss >> nDataPointsPerHalfScene >> representation;
-  G4MagneticFieldModel::Representation
-  modelRepresentation = G4MagneticFieldModel::fullArrow;
+  G4ElectricFieldModel::Representation
+  modelRepresentation = G4ElectricFieldModel::fullArrow;
   if (representation == "lightArrow") {
-    modelRepresentation = G4MagneticFieldModel::lightArrow;
+    modelRepresentation = G4ElectricFieldModel::lightArrow;
   }
-  G4VModel* model =
-  new G4MagneticFieldModel(nDataPointsPerHalfScene,modelRepresentation,
-                           fCurrentArrow3DLineSegmentsPerCircle);
+  G4VModel* model;
+  model = new G4MagneticFieldModel
+  (nDataPointsPerHalfScene,modelRepresentation,
+   fCurrentArrow3DLineSegmentsPerCircle,
+   fCurrentExtentForField,
+   fCurrrentPVFindingsForField);
   const G4String& currentSceneName = pScene -> GetName ();
   G4bool successful = pScene -> AddRunDurationModel (model, warn);
   if (successful) {
     if (verbosity >= G4VisManager::confirmations) {
-      G4cout << "Magnetic field, if any, will be drawn in scene \""
+      G4cout
+      << "Magnetic field, if any, will be drawn in scene \""
       << currentSceneName
       << "\"\n  with "
       << nDataPointsPerHalfScene
-      << " data points per half scene and with representation \""
+      << " data points per half extent and with representation \""
       << representation
       << '\"'
       << G4endl;
@@ -2320,7 +2388,6 @@ void G4VisCommandSceneAddScale::SetNewValue (G4UIcommand*, G4String newValue) {
   transform = G4Translate3D(sxmid,symid,szmid) * transform;
   /////////  G4VisExtent scaleExtent(sxmin, sxmax, symin, symax, szmin, szmax);
 
-
   model->SetTransformation(transform);
   // Note: it is the responsibility of the model to act upon this, but
   // the extent is in local coordinates...
@@ -2540,7 +2607,7 @@ G4VisCommandSceneAddText2D::G4Text2D::G4Text2D(const G4Text& text):
 {}
 
 void G4VisCommandSceneAddText2D::G4Text2D::operator()
-  (G4VGraphicsScene& sceneHandler, const G4Transform3D& transform) {
+  (G4VGraphicsScene& sceneHandler, const G4Transform3D& transform, const G4ModelingParameters*) {
   sceneHandler.BeginPrimitives2D(transform);
   sceneHandler.AddPrimitive(fText);
   sceneHandler.EndPrimitives2D();
@@ -2786,7 +2853,9 @@ void G4VisCommandSceneAddUserAction::AddVisAction
   if (i != visExtentMap.end()) extent = i->second;
   if (warn) {
     if (extent.GetExtentRadius() <= 0.) {
-      G4cout <<	"WARNING: User Vis Action extent is null." << G4endl;
+      G4cout
+      << "WARNING: User Vis Action \"" << name << "\" extent is null."
+      << G4endl;
     }
   }
 
@@ -2830,32 +2899,32 @@ G4VisCommandSceneAddVolume::G4VisCommandSceneAddVolume () {
    ("Adds a physical volume to current scene, with optional clipping volume.");
   fpCommand -> SetGuidance 
     ("If physical-volume-name is \"world\" (the default), the top of the"
-     "\nmain geometry tree (material world) is added.  If \"worlds\", the"
-     "\ntop of all worlds - material world and parallel worlds, if any - are"
-     "\nadded.  Otherwise a search of all worlds is made.");
+     "\nmain geometry tree (material world) is added. If \"worlds\", the"
+     "\ntops of all worlds - material world and parallel worlds, if any - are"
+     "\nadded. Otherwise a search of all worlds is made.");
   fpCommand -> SetGuidance
-    ("In the last case (a search of all worlds) all physical volume names are"
-     "\nmatched against the first argument of this command.  If this is of the"
-     "\nform \"/regexp/\", where regexp is a regular expression (see C++ regex),"
-     "\nthe physical volume name is matched against regexp by the usual rules"
-     "\nof regular expression matching. Otherwise an exact match is required."
-     "\nFor example, \"/Shap/\" matches \"Shape1\" and \"Shape2\".");
+    ("In the last case the names of all volumes in all worlds are matched"
+     "\nagainst physical-volume-name. If this is of the form \"/regexp/\","
+     "\nwhere regexp is a regular expression (see C++ regex), the match uses"
+     "\nthe usual rules of regular expression matching. Otherwise an exact"
+     "\nmatch is required."
+     "\nFor example, \"/Shap/\" adds \"Shape1\" and \"Shape2\".");
   fpCommand -> SetGuidance
     ("It may help to see a textual representation of the geometry hierarchy of"
      "\nthe worlds. Try \"/vis/drawTree [worlds]\" or one of the driver/browser"
-     "\ncombinations that have the required functionality, e.g., HepRep.");
+     "\ncombinations that have the required functionality, e.g., HepRepFile.");
   fpCommand -> SetGuidance
     ("If clip-volume-type is specified, the subsequent parameters are used to"
-     "\nto define a clipping volume.  For example,"
+     "\nto define a clipping volume. For example,"
      "\n\"/vis/scene/add/volume ! ! ! -box km 0 1 0 1 0 1\" will draw the world"
-     "\nwith the positive octant cut away.  (If the Boolean Processor issues"
+     "\nwith the positive octant cut away. (If the Boolean Processor issues"
      "\nwarnings try replacing 0 by 0.000000001 or something.)");
   fpCommand -> SetGuidance
     ("If clip-volume-type is prepended with '-', the clip-volume is subtracted"
      "\n(cutaway). (This is the default if there is no prepended character.)"
      "\nIf '*' is prepended, the intersection of the physical-volume and the"
-     "\nclip-volume is made. (You can make a section/DCUT with a thin box, for"
-     "\nexample).");
+     "\nclip-volume is made. (You can make a section through the detector with"
+     "\na thin box, for example).");
   fpCommand -> SetGuidance
     ("For \"box\", the parameters are xmin,xmax,ymin,ymax,zmin,zmax."
      "\nOnly \"box\" is programmed at present.");
@@ -2864,8 +2933,7 @@ G4VisCommandSceneAddVolume::G4VisCommandSceneAddVolume () {
   parameter -> SetDefaultValue ("world");
   fpCommand -> SetParameter (parameter);
   parameter = new G4UIparameter ("copy-no", 'i', omitable = true);
-  parameter -> SetGuidance
-    ("If negative, matches any copy no.  First name match is taken.");
+  parameter -> SetGuidance ("If negative, matches any copy no.");
   parameter -> SetDefaultValue (-1);
   fpCommand -> SetParameter (parameter);
   parameter = new G4UIparameter ("depth-of-descent", 'i', omitable = true);
@@ -3037,7 +3105,7 @@ void G4VisCommandSceneAddVolume::SetNewValue (G4UIcommand*,
   }
 
   for (const auto& findings: findingsVector) {
-    // Set copy number from search findings to cope with replicas.
+    // Set copy number from search findings for replicas and parameterisations.
     findings.fpFoundPV->SetCopyNo(findings.fFoundPVCopyNo);
     // Create a physical volume model...
     G4PhysicalVolumeModel* foundPVModel = new G4PhysicalVolumeModel
@@ -3051,7 +3119,8 @@ void G4VisCommandSceneAddVolume::SetNewValue (G4UIcommand*,
       foundPVModel->SetClippingSolid(clippingSolid);
       foundPVModel->SetClippingMode(clippingMode);
     }
-    // ...and add it to the scene.
+    if (!foundPVModel->Validate(warn)) return;  // Calculates extent
+    // ...so add it to the scene.
     G4bool successful = pScene->AddRunDurationModel(foundPVModel,warn);
     if (successful) {
       if (verbosity >= G4VisManager::confirmations) {

@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 // -------------------------------------------------------------------
 //
 // GEANT4 Class header file
@@ -76,8 +75,7 @@ class G4VEmProcess : public G4VDiscreteProcess
 {
 public:
 
-  G4VEmProcess(const G4String& name,
-               G4ProcessType type = fElectromagnetic);
+  G4VEmProcess(const G4String& name, G4ProcessType type = fElectromagnetic);
 
   virtual ~G4VEmProcess();
 
@@ -145,13 +143,16 @@ public:
                                       const G4String& directory,
                                       G4bool ascii) override;
 
+  // allowing check process name
+  virtual G4VEmProcess* GetEmProcess(const G4String& name);
+
   //------------------------------------------------------------------------
   // Specific methods for Discrete EM post step simulation 
   //------------------------------------------------------------------------
 
   // It returns the cross section per volume for energy/ material
-  G4double CrossSectionPerVolume(G4double kineticEnergy,
-				 const G4MaterialCutsCouple* couple);
+  G4double CrossSectionPerVolume(G4double kineticEnergy, 
+                                 const G4MaterialCutsCouple* couple);
 
   // It returns the cross section of the process per atom
   G4double ComputeCrossSectionPerAtom(G4double kineticEnergy, 
@@ -163,6 +164,9 @@ public:
   // It returns cross section per volume
   inline G4double GetLambda(G4double kinEnergy, 
                             const G4MaterialCutsCouple* couple);
+  inline G4double GetLambda(G4double kinEnergy,
+                            const G4MaterialCutsCouple* couple,
+                            G4double logKinEnergy);
 
   //------------------------------------------------------------------------
   // Specific methods to build and access Physics Tables
@@ -313,15 +317,19 @@ private:
 
   void PrintWarning(G4String tit, G4double val);
 
-  void ComputeIntegralLambda(G4double kinEnergy);
+  void ComputeIntegralLambda(G4double kinEnergy, G4double logKinEnergy);
 
   inline void DefineMaterial(const G4MaterialCutsCouple* couple);
 
   inline G4double GetLambdaFromTable(G4double kinEnergy);
+  inline G4double GetLambdaFromTable(G4double kinEnergy, G4double logKinEnergy);
 
   inline G4double GetLambdaFromTablePrim(G4double kinEnergy);
+  inline G4double GetLambdaFromTablePrim(G4double kinEnergy,
+                                         G4double logKinEnergy);
 
   inline G4double GetCurrentLambda(G4double kinEnergy);
+  inline G4double GetCurrentLambda(G4double kinEnergy, G4double logKinEnergy);
 
   inline G4double ComputeCurrentLambda(G4double kinEnergy);
 
@@ -355,8 +363,6 @@ private:
   const std::vector<G4double>* theCutsGamma;
   const std::vector<G4double>* theCutsElectron;
   const std::vector<G4double>* theCutsPositron;
-  const std::vector<G4double>* theDensityFactor;
-  const std::vector<G4int>*    theDensityIdx;
 
   G4int                        nLambdaBins;
 
@@ -364,6 +370,7 @@ private:
   G4double                     minKinEnergyPrim;
   G4double                     maxKinEnergy;
   G4double                     lambdaFactor;
+  G4double                     logLambdaFactor;
   G4double                     biasFactor;
   G4double                     massRatio;
 
@@ -391,7 +398,11 @@ protected:
   std::vector<G4DynamicParticle*> secParticles;
   const G4MaterialCutsCouple*  currentCouple;
   const G4Material*            currentMaterial;
+  const std::vector<G4double>* theDensityFactor;
+  const std::vector<G4int>*    theDensityIdx;
+
   size_t                       currentCoupleIndex;
+  size_t                       basedCoupleIndex;
 
   G4int                        mainSecondaries;
   G4int                        secID;  
@@ -403,6 +414,7 @@ protected:
 
   G4double                     mfpKinEnergy;
   G4double                     preStepKinEnergy;
+  G4double                     preStepLogKinEnergy;
   G4double                     preStepLambda;
 
 private:
@@ -416,7 +428,6 @@ private:
 
   // cache
   const G4Material*            baseMaterial;
-  size_t                       basedCoupleIndex;
 
   G4double                     fFactor;
   G4bool                       biasFlag;
@@ -504,11 +515,21 @@ inline G4double G4VEmProcess::GetLambdaFromTable(G4double e)
   return ((*theLambdaTable)[basedCoupleIndex])->Value(e, idxLambda);
 }
 
+inline G4double G4VEmProcess::GetLambdaFromTable(G4double e, G4double loge)
+{
+  return ((*theLambdaTable)[basedCoupleIndex])->LogVectorValue(e, loge);
+}
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 inline G4double G4VEmProcess::GetLambdaFromTablePrim(G4double e)
 {
   return ((*theLambdaTablePrim)[basedCoupleIndex])->Value(e, idxLambdaPrim)/e;
+}
+
+inline G4double G4VEmProcess::GetLambdaFromTablePrim(G4double e, G4double loge)
+{
+  return ((*theLambdaTablePrim)[basedCoupleIndex])->LogVectorValue(e, loge)/e;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -530,6 +551,15 @@ inline G4double G4VEmProcess::GetCurrentLambda(G4double e)
   return fFactor*x;
 }
 
+inline G4double G4VEmProcess::GetCurrentLambda(G4double e, G4double loge)
+{
+  G4double x(0.0);
+  if(e >= minKinEnergyPrim) { x = GetLambdaFromTablePrim(e, loge); }
+  else if(theLambdaTable)   { x = GetLambdaFromTable(e, loge); }
+  else if(currentModel)     { x = ComputeCurrentLambda(e); }
+  return fFactor*x;
+}
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 inline void 
@@ -542,11 +572,18 @@ G4VEmProcess::CurrentSetup(const G4MaterialCutsCouple* couple, G4double energy)
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 inline G4double 
-G4VEmProcess::GetLambda(G4double kinEnergy, 
-                        const G4MaterialCutsCouple* couple)
+G4VEmProcess::GetLambda(G4double kinEnergy, const G4MaterialCutsCouple* couple)
 {
   CurrentSetup(couple, kinEnergy);
   return GetCurrentLambda(kinEnergy);
+}
+
+inline G4double 
+G4VEmProcess::GetLambda(G4double kinEnergy, const G4MaterialCutsCouple* couple,
+                        G4double logKinEnergy)
+{
+  CurrentSetup(couple, kinEnergy);
+  return GetCurrentLambda(kinEnergy, logKinEnergy);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

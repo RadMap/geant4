@@ -116,7 +116,7 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
       phiCorrel = (yend*ydir + zend*zdir)/lateralDisplacement;
     fRunAction->SumPhiCorrel(phiCorrel);
     analysisManager->FillH1(9,phiCorrel);
-  } else if (procName == "conv" ) {
+  } else if (procName == "conv" || procName == "GammaToMuPair" ) {
 
     // gamma conversion
     
@@ -130,23 +130,27 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
 
     const G4TrackVector* secondary = fpSteppingManager->GetSecondary();
 
+    const size_t Nsecondaries = (*secondary).size();
+
     //No conversion , E < threshold
-    if ((*secondary).size() == 0) return;
+    if (Nsecondaries == 0) return;
   
-    for (size_t lp=0; lp< std::min((*secondary).size(),size_t(2) ); lp++) {
-      if ((*secondary)[lp]->GetDefinition()==G4Electron::ElectronDefinition()) {
-        Pminus = (*secondary)[lp]->GetMomentum();
-      }
-      if ((*secondary)[lp]->GetDefinition()==G4Positron::PositronDefinition()) {
-        Eplus  = (*secondary)[lp]->GetTotalEnergy();
-        Pplus  = (*secondary)[lp]->GetMomentum();
-      }
+    for (size_t lp=0; lp< std::min(Nsecondaries,size_t(2) ); lp++) {
+      if  (((*secondary)[lp]->GetDefinition()==G4Electron::Definition())
+           || ((*secondary)[lp]->GetDefinition()==G4MuonMinus::Definition()) )
+	{
+	  Pminus = (*secondary)[lp]->GetMomentum();
+	}
+      if (((*secondary)[lp]->GetDefinition()==G4Positron::Definition())
+          || ((*secondary)[lp]->GetDefinition()==G4MuonPlus::Definition()) )
+	{
+	  Eplus  = (*secondary)[lp]->GetTotalEnergy();
+	  Pplus  = (*secondary)[lp]->GetMomentum();
+	}
     }
 
-    if ( (*secondary).size() >= 3 ) {
+    if ( Nsecondaries >= 3 ) {
       Precoil  = (*secondary)[2]->GetMomentum();
-    } else {
-      Precoil  = G4ThreeVector();
     }
 
     G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
@@ -174,9 +178,11 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
     G4double angleE = Pplus.angle(Pminus) * EGamma;
     analysisManager->FillH1(10,angleE);
  
-    analysisManager->FillH1(11,std::log10(Precoil.mag()));
-    analysisManager->FillH1(12,Precoil.transform(WtoG).phi());
-    
+    if ( Nsecondaries >= 3 ) {
+      // recoil returned
+      analysisManager->FillH1(11,std::log10(Precoil.mag()));
+      analysisManager->FillH1(12,Precoil.transform(WtoG).phi());
+    }
     G4double phiPlus =  Pplus.transform(WtoG).phi();
     G4double phiMinus =  Pminus.transform(WtoG).phi();
     analysisManager->FillH1(13,phiPlus);

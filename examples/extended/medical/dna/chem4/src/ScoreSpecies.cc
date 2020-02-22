@@ -36,16 +36,12 @@
 
 #include "G4UnitsTable.hh"
 #include <G4MolecularConfiguration.hh>
-#include <G4Molecule.hh>
 #include <G4MoleculeCounter.hh>
 #include "G4Event.hh"
 #include <G4SystemOfUnits.hh>
 #include <globals.hh>
-#include <G4VAnalysisManager.hh>
-#include <G4RootAnalysisManager.hh>
-#include <G4XmlAnalysisManager.hh>
 #include <G4EventManager.hh>
-#include "g4analysis_defs.hh"
+#include "g4analysis.hh"
 
 /**
  \file ScoreSpecies.cc
@@ -160,8 +156,7 @@ void ScoreSpecies::EndOfEvent(G4HCofThisEvent*)
         G4Exception("","N<0",FatalException,"");
       }
 
-      SpeciesInfo& molInfo =
-        fSpeciesInfoPerTime[time_mol][molecule];
+      SpeciesInfo& molInfo = fSpeciesInfoPerTime[time_mol][molecule];
       molInfo.fNumber += n_mol;
       double gValue = (n_mol/(fEdep/eV)) * 100.;
       molInfo.fG += gValue;
@@ -351,16 +346,16 @@ void ScoreSpecies::OutputAndClear()
 
   if(fOutputToCsv)
   {
-    analysisManager = G4CsvAnalysisManager::Instance(); // TODO?
+    analysisManager = G4Analysis::ManagerInstance("csv");
     // this->ASCII(); // useful ?
   }
   else  if (fOutputToRoot)
   {
-    analysisManager = G4Root::G4AnalysisManager::Instance();
+    analysisManager = G4Analysis::ManagerInstance("root");
   }
   else if(fOutputToXml)
   {
-    analysisManager = G4Xml::G4AnalysisManager::Instance();
+    analysisManager = G4Analysis::ManagerInstance("xml");
 
   }
   if(analysisManager)
@@ -396,7 +391,7 @@ ScoreSpecies::WriteWithAnalysisManager(G4VAnalysisManager* analysisManager)
     for(auto it_map2 : map2)
     {
       double time = it_map1.first;
-      const Species& species = it_map2.first;
+      auto species = it_map2.first;
       const G4String& name = species->GetName();
       int molID = it_map2.first->GetMoleculeID();
       int number = it_map2.second.fNumber;

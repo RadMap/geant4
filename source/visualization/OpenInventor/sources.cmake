@@ -40,9 +40,11 @@ include_directories(${CMAKE_SOURCE_DIR}/source/visualization/modeling/include)
 # Generic Inventor Headers, base library, OpenGL and Geant4 defines
 #
 include_directories(${INVENTOR_INCLUDE_DIR})
+set(G4VIS_MODULE_OPENINVENTOR_INCLUDE_DIRS ${INVENTOR_INCLUDE_DIR})
 set(G4VIS_MODULE_OPENINVENTOR_LINK_LIBRARIES ${INVENTOR_LIBRARY})
 
 include_directories(${OPENGL_INCLUDE_DIR})
+list(APPEND G4VIS_MODULE_OPENINVENTOR_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
 list(APPEND G4VIS_MODULE_OPENINVENTOR_LINK_LIBRARIES ${OPENGL_LIBRARIES})
 
 add_definitions(-DG4VIS_BUILD_OI_DRIVER)
@@ -133,6 +135,10 @@ if(UNIX)
   # We also need Xm and X11
   include_directories(${X11_INCLUDE_DIR})
   include_directories(${MOTIF_INCLUDE_DIR})
+  list(APPEND G4VIS_MODULE_OPENINVENTOR_INCLUDE_DIRS 
+    ${OPENGL_INCLUDE_DIR}
+    ${MOTIF_INCLUDE_DIR}
+    )
   list(APPEND G4VIS_MODULE_OPENINVENTOR_LINK_LIBRARIES
    ${MOTIF_LIBRARIES}
    ${X11_LIBRARIES}
@@ -158,9 +164,6 @@ if(GEANT4_USE_QT AND GEANT4_USE_INVENTOR_QT)
     G4OpenInventorQtViewer.cc
     G4SoQt.cc
     )
-
-    # Include the UseQt file to build the moc wrappers
-    include(${QT_USE_FILE})
 
     # Add the moc sources - must use absolute path to the files
     QT4_WRAP_CPP(G4OI_MOC_SOURCES

@@ -38,6 +38,7 @@
 #include "G4DNAElastic.hh"
 #include "G4DNAChampionElasticModel.hh"
 #include "G4DNAScreenedRutherfordElasticModel.hh"
+#include "G4DNAELSEPAElasticModel.hh"
 
 #include "G4DNAExcitation.hh"
 #include "G4DNAAttachment.hh"
@@ -95,6 +96,7 @@ G4EmDNAPhysics_option2::G4EmDNAPhysics_option2(G4int ver, const G4String&)
   param->SetAuger(true);  
   param->SetAugerCascade(true);  
   param->SetDeexcitationIgnoreCut(true);
+  param->ActivateDNA();
 
   SetPhysicsType(bElectromagnetic);
 }
@@ -149,9 +151,10 @@ void G4EmDNAPhysics_option2::ConstructProcess()
 
       G4DNAElectronSolvation* solvation =
       new G4DNAElectronSolvation("e-_G4DNAElectronSolvation");
-      G4DNAOneStepThermalizationModel* therm =
-      new G4DNAOneStepThermalizationModel();
+
+      auto therm = G4DNASolvationModelFactory::GetMacroDefinedModel();
       therm->SetHighEnergyLimit(7.4*eV); // limit of the Champion's model
+      //therm->SetHighEnergyLimit(10*eV); // limit of the ELSEPA model
       solvation->SetEmModel(therm);
       ph->RegisterProcess(solvation, particle);
       
@@ -161,6 +164,7 @@ void G4EmDNAPhysics_option2::ConstructProcess()
       theDNAElasticProcess->SetEmModel(new G4DNAChampionElasticModel());
       
       // or alternative model
+      //theDNAElasticProcess->SetEmModel(new G4DNAELSEPAElasticModel());
       //theDNAElasticProcess->SetEmModel(new G4DNAScreenedRutherfordElasticModel());
       
       ph->RegisterProcess(theDNAElasticProcess, particle);

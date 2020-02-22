@@ -55,9 +55,9 @@ public:
   // set a socring mesh to retrieve its quantities
   void SetScoringMesh(G4VScoringMesh * sm); 
   // set a verbose level
-  inline void SetVerboseLevel(G4int vl) {
-    verboseLevel = vl;
-  }
+  inline void SetVerboseLevel(G4int vl) { verboseLevel = vl; }
+  inline void SetFactor(G4double val=1.0) { fact = val; }
+  inline G4double GetFactor() const { return fact; }
 
 protected:
   // get an index from (x,y,z) 
@@ -67,6 +67,7 @@ protected:
   G4int fNMeshSegments[3]; // number of segments of the mesh
   G4VScoringMesh * fScoringMesh;
   G4int verboseLevel;
+  G4double fact;
 
 };
 

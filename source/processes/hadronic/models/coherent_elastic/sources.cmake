@@ -31,6 +31,7 @@ include_directories(${CMAKE_SOURCE_DIR}/source/particles/hadrons/ions/include)
 include_directories(${CMAKE_SOURCE_DIR}/source/particles/hadrons/mesons/include)
 include_directories(${CMAKE_SOURCE_DIR}/source/particles/leptons/include)
 include_directories(${CMAKE_SOURCE_DIR}/source/particles/management/include)
+include_directories(${CMAKE_SOURCE_DIR}/source/processes/cuts/include)
 include_directories(${CMAKE_SOURCE_DIR}/source/processes/hadronic/cross_sections/include)
 include_directories(${CMAKE_SOURCE_DIR}/source/processes/hadronic/management/include)
 include_directories(${CMAKE_SOURCE_DIR}/source/processes/hadronic/models/management/include)
@@ -53,6 +54,7 @@ GEANT4_DEFINE_MODULE(NAME G4hadronic_coherent_elastic
         G4ElasticHadrNucleusHE.hh
         G4HadronElastic.hh
         G4LEHadronProtonElastic.hh
+        G4LowEHadronElastic.hh
         G4hhElastic.hh
         G4LEnp.hh
         G4LEnpData.hh
@@ -72,6 +74,7 @@ GEANT4_DEFINE_MODULE(NAME G4hadronic_coherent_elastic
         G4ElasticHadrNucleusHE.cc
         G4HadronElastic.cc
         G4LEHadronProtonElastic.cc
+        G4LowEHadronElastic.cc
         G4hhElastic.cc
         G4LEnp.cc
         G4LEpp.cc
@@ -82,6 +85,7 @@ GEANT4_DEFINE_MODULE(NAME G4hadronic_coherent_elastic
     GRANULAR_DEPENDENCIES
         G4baryons
         G4bosons
+        G4cuts
         G4geometrymng
         G4globman
         G4had_mod_man

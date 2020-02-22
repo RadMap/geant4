@@ -49,11 +49,12 @@
 
 #include "G4VMolecularDissociationDisplacer.hh"
 #include "G4DNARevertProbability.hh"
+#include "G4DNAModelSubType.hh"
 
 #define _WATER_DISPLACER_USE_TERRISOL_
 //#define _WATER_DISPLACER_USE_KREIPL_
 
-class G4DNAWaterDissociationDisplacer: public G4VMolecularDecayDisplacer
+class G4DNAWaterDissociationDisplacer: public G4VMolecularDissociationDisplacer
 {
 public:
   G4DNAWaterDissociationDisplacer();
@@ -78,9 +79,11 @@ public:
   G4CT_COUNT_DEF(DissociativeAttachment)
   
 private:
-  std::function<G4double(G4double)> fProba1DFunction;
-  std::vector<G4double> fElectronThermalization;
-  G4DNARevertProbability fFastElectronDistrib;
+  G4double ke;
+  G4DNAModelSubType dnaSubType;
+//  std::function<G4double(G4double)> fProba1DFunction;
+//  std::vector<G4double> fElectronThermalization;
+//  G4DNARevertProbability fFastElectronDistrib;
 };
 #endif
 

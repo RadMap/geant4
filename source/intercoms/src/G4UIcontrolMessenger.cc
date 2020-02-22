@@ -50,7 +50,7 @@ G4UIcontrolMessenger::G4UIcontrolMessenger()
 
   macroPathCommand = new G4UIcmdWithAString("/control/macroPath",this);
   macroPathCommand->SetGuidance("Set macro search path" 
-                                "with colon-separated list.");
+                                " with colon-separated list.");
   macroPathCommand->SetParameterName("path",false);
 
   ExecuteCommand = new G4UIcmdWithAString("/control/execute",this);
@@ -128,7 +128,7 @@ G4UIcontrolMessenger::G4UIcontrolMessenger()
   aliasCommand->SetGuidance("The string may contain one or more spaces,");
   aliasCommand->SetGuidance("the string must be enclosed by double quotes (\").");
   aliasCommand->SetGuidance("To use an alias, enclose the alias name with");
-  aliasCommand->SetGuidance("parenthis \"{\" and \"}\".");
+  aliasCommand->SetGuidance("parenthesis \"{\" and \"}\".");
   G4UIparameter* aliasNameParam = new G4UIparameter("aliasName",'s',false);
   aliasCommand->SetParameter(aliasNameParam);
   G4UIparameter* aliasValueParam = new G4UIparameter("aliasValue",'s',false);
@@ -236,7 +236,7 @@ G4UIcontrolMessenger::G4UIcontrolMessenger()
   subtractCommand->SetToBeBroadcasted(false);
 
   multiplyCommand = new G4UIcommand("/control/multiply",this);
-  multiplyCommand->SetGuidance("Define a new alias as the multiplification of two values.");
+  multiplyCommand->SetGuidance("Define a new alias as the multiplication of two values.");
   multiplyCommand->SetGuidance(" Syntax : <new_alias> <value1> <value2>");
   multiplyCommand->SetGuidance(" <new_alias> may be an already existing alias. If it is the case,");
   multiplyCommand->SetGuidance(" aliased value is alternated.");
@@ -374,7 +374,14 @@ void G4UIcontrolMessenger::SetNewValue(G4UIcommand * command,G4String newValue)
   }  
   if(command==ExecuteCommand)
   {
+    command->ResetFailure();
     UI-> ExecuteMacroFile(UI-> FindMacroPath(newValue));
+    if(UI->GetLastReturnCode() != 0)
+    {
+      G4ExceptionDescription ed;
+      ed << "Command aborted (" << UI->GetLastReturnCode() << ")";
+      command->CommandFailed(UI->GetLastReturnCode(),ed);
+    }
   }
   if(command==suppressAbortionCommand)
   {
@@ -414,16 +421,21 @@ void G4UIcontrolMessenger::SetNewValue(G4UIcommand * command,G4String newValue)
   }
   if(command==getEnvCmd)
   {
-    if(getenv(newValue))
+    command->ResetFailure();
+    if(std::getenv(newValue))
     { 
       G4String st = "/control/alias ";
       st += newValue;
       st += " ";
-      st += getenv(newValue);
+      st += std::getenv(newValue);
       UI->ApplyCommand(st);
     }
     else
-    { G4cerr << "<" << newValue << "> is not defined as a shell variable. Command ignored." << G4endl; }
+    { 
+      G4ExceptionDescription ed;
+      ed << "<" << newValue << "> is not defined as a shell variable. Command ignored.";
+      command->CommandFailed(ed);
+    }
   }
   if(command==getValCmd)
   {
@@ -451,16 +463,36 @@ void G4UIcontrolMessenger::SetNewValue(G4UIcommand * command,G4String newValue)
   { G4cout << UI->SolveAlias(newValue) << G4endl; }
   if(command==shellCommand)
   {
+    command->ResetFailure();
     int rc = system(newValue);
-    if ( rc < 0 ) {}
+    if ( rc < 0 )
+    { 
+      G4ExceptionDescription ed;
+      ed << "<" << newValue << "> is not a valid shell command. Command ignored.";
+      command->CommandFailed(ed);
+    }
   }
   if(command==loopCommand)
   {
+    command->ResetFailure();
     UI->LoopS(newValue);
+    if(UI->GetLastReturnCode() != 0)
+    {
+      G4ExceptionDescription ed;
+      ed << "Command aborted (" << UI->GetLastReturnCode() << ")";
+      command->CommandFailed(UI->GetLastReturnCode(),ed);
+    }
   }
   if(command==foreachCommand)
   {
+    command->ResetFailure();
     UI->ForeachS(newValue);
+    if(UI->GetLastReturnCode() != 0)
+    {
+      G4ExceptionDescription ed;
+      ed << "Command aborted (" << UI->GetLastReturnCode() << ")";
+      command->CommandFailed(UI->GetLastReturnCode(),ed);
+    }
   }
   if(command==HTMLCommand)
   {

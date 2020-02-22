@@ -24,7 +24,7 @@
 // ********************************************************************
 //
 //
-/// \file parallel/ParN04/src/ExN04CalorimeterHit.cc
+/// \file ExN04CalorimeterHit.cc
 /// \brief Implementation of the ExN04CalorimeterHit class
 //
 
@@ -69,7 +69,7 @@ const ExN04CalorimeterHit& ExN04CalorimeterHit::operator=(const ExN04Calorimeter
   return *this;
 }
 
-G4int ExN04CalorimeterHit::operator==(const ExN04CalorimeterHit &right) const
+G4bool ExN04CalorimeterHit::operator==(const ExN04CalorimeterHit &right) const
 {
   return ((ZCellID==right.ZCellID)&&(PhiCellID==right.PhiCellID));
 }
