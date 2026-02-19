@@ -23,11 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE02/include/RE02PSFlatSurfaceFlux.hh
+/// \file RE02PSFlatSurfaceFlux.hh
 /// \brief Definition of the RE02PSFlatSurfaceFlux class
-//
-//
-//
 
 #ifndef RE02PSFlatSurfaceFlux_h
 #define RE02PSFlatSurfaceFlux_h 1
@@ -57,16 +54,14 @@
 
 class RE02PSFlatSurfaceFlux : public G4PSFlatSurfaceFlux
 {
-   public: // with description
-      RE02PSFlatSurfaceFlux(G4String name, G4int direction,
-                            G4int nx,G4int ny, G4int nz);
-      virtual ~RE02PSFlatSurfaceFlux();
+  public:  // with description
+    RE02PSFlatSurfaceFlux(G4String name, G4int direction, G4int nx, G4int ny, G4int nz);
+    virtual ~RE02PSFlatSurfaceFlux();
 
-  protected: // with description
-      virtual G4int GetIndex(G4Step*);
+  protected:  // with description
+    virtual G4int GetIndex(G4Step*);
 
   private:
-      G4int fNx, fNy, fNz;
+    G4int fNx, fNy, fNz;
 };
 #endif
-

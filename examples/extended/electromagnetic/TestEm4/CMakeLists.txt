@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------------
 # Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.27)
 project(TestEm4)
 
 #----------------------------------------------------------------------------
@@ -40,7 +40,7 @@ target_link_libraries(TestEm4 ${Geant4_LIBRARIES} ${HBOOK_LIBRARIES})
 # relies on these scripts being in the current working directory.
 #
 set(TestEm4_SCRIPTS
-    rndmSeed.mac TestEm4.in TestEm4.out vis.mac
+    rndmSeed.mac TestEm4.in TestEm4.out verbose.mac vis.mac
   )
   
 foreach(_script ${TestEm4_SCRIPTS})

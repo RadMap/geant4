@@ -38,25 +38,26 @@
 #include "G4LinInterpolation.hh"
 
 // Constructor
-
+// -------------------------------------------------------------------
 G4LinInterpolation::G4LinInterpolation()
 { }
 
+// -------------------------------------------------------------------
 // Destructor
-
 G4LinInterpolation::~G4LinInterpolation()
 { }
 
-
+// -------------------------------------------------------------------
 G4VDataSetAlgorithm* G4LinInterpolation::Clone() const 
 { return new G4LinInterpolation; }
 
+// -------------------------------------------------------------------
 G4double G4LinInterpolation::Calculate(G4double x, G4int bin, 
 				       const G4DataVector& points, 
 				       const G4DataVector& data) const
 {
   //G4cout << "G4LinInterpolation is performed (2 arguments)" << G4endl;
-  G4int nBins = data.size() - 1;
+  G4int nBins = G4int(data.size() - 1);
   G4double value = 0.;
   if (x < points[0])
     {
@@ -77,7 +78,7 @@ G4double G4LinInterpolation::Calculate(G4double x, G4int bin,
   return value;
 }
 
-
+// -------------------------------------------------------------------
 //Nicolas A. Karakatsanis: New Calculation method implemented to which logarithmic values
 //                         from the G4EMLOW dataset are loaded directly to enhance performance
 
@@ -90,7 +91,7 @@ G4double G4LinInterpolation::Calculate(G4double x, G4int bin,
 //Linear Interpolation is performed on loagarithmic data set
 //Equivalent to log-log interpolation on non-loagarithmic data set
   //G4cout << "G4LinInterpolation is performed - (4 arguments)" << G4endl;
-  G4int nBins = data.size() - 1;
+  G4int nBins = G4int(data.size() - 1);
   G4double value = 0.;
   G4double log_x = std::log10(x);
   if (x < points[0])

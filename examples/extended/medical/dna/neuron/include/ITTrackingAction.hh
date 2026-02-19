@@ -23,36 +23,36 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file ITTrackingAction.hh
+/// \brief Definition of the ITTrackingAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
 // Med. Phys. 37 (2010) 4692-4708
 // and papers
 // M. Batmunkh et al. J Radiat Res Appl Sci 8 (2015) 498-507
-// O. Belov et al. Physica Medica 32 (2016) 1510-1520 
+// O. Belov et al. Physica Medica 32 (2016) 1510-1520
 // The Geant4-DNA web site is available at http://geant4-dna.org
-// 
+//
 // -------------------------------------------------------------------
 // November 2016
 // -------------------------------------------------------------------
 //
 //
-/// \file ITTrackingAction.hh
-/// \brief Definition of the ITTrackingAction class
 
 #ifndef ITTRACKINGACTION_HH
 #define ITTRACKINGACTION_HH
 
 #include "G4UserTrackingAction.hh"
-//class NeuronHitCompartments;
-class ITTrackingAction: public G4UserTrackingAction
+// class NeuronHitCompartments;
+class ITTrackingAction : public G4UserTrackingAction
 {
-public:
+  public:
     ITTrackingAction();
     virtual ~ITTrackingAction();
     virtual void PreUserTrackingAction(const G4Track*);
     virtual void PostUserTrackingAction(const G4Track*);
-
 };
 
-#endif // ITTRACKINGACTION_HH
+#endif  // ITTRACKINGACTION_HH

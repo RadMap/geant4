@@ -28,13 +28,19 @@
 #include "CLHEP/Units/SystemOfUnits.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-G4VLEPTSModel::G4VLEPTSModel(const G4String& modelName) : G4VEmModel(modelName),isInitialised(false) 
+G4VLEPTSModel::G4VLEPTSModel(const G4String& modelName) : G4VEmModel(modelName)
 {
-  theMeanFreePathTable=NULL;
+  theMeanFreePathTable=nullptr;
 
   theNumbBinTable=100;
 
   verboseLevel = 0;
+
+  theLowestEnergyLimit = 0.5*CLHEP::eV;
+  
+  theHighestEnergyLimit = 1.0*CLHEP::MeV;
+
+  theXSType = XSEnergy;
 }
 
 
@@ -42,7 +48,7 @@ G4VLEPTSModel::G4VLEPTSModel(const G4String& modelName) : G4VEmModel(modelName),
 G4VLEPTSModel::~G4VLEPTSModel() 
 {
 
-  if(theMeanFreePathTable) {
+  if(theMeanFreePathTable != nullptr) {
     theMeanFreePathTable->clearAndDestroy();
     delete theMeanFreePathTable;
   }
@@ -68,16 +74,13 @@ G4double G4VLEPTSModel::GetMeanFreePath(const G4Material* aMaterial,
 			       const G4ParticleDefinition* ,
 			       G4double kineticEnergy )
 {
-
   G4double MeanFreePath;
-  G4bool isOutRange ;
 
   if( verboseLevel >= 3 ) G4cout << aMaterial->GetIndex() << " G4VLEPTSModel::GetMeanFreePath " << kineticEnergy << " > " << theHighestEnergyLimit << " < " << theLowestEnergyLimit << G4endl;
   if (kineticEnergy > theHighestEnergyLimit || kineticEnergy < theLowestEnergyLimit)
     MeanFreePath = DBL_MAX;
   else
-    MeanFreePath = (*theMeanFreePathTable)(aMaterial->GetIndex())->
-                                       GetValue(kineticEnergy, isOutRange);
+    MeanFreePath = (*theMeanFreePathTable)(aMaterial->GetIndex())->Value(kineticEnergy);
 
   return MeanFreePath;
 }
@@ -87,8 +90,8 @@ G4double G4VLEPTSModel::GetMeanFreePath(const G4Material* aMaterial,
 void G4VLEPTSModel::BuildPhysicsTable(const G4ParticleDefinition& aParticleType) 
 {
   //CHECK IF PATH VARIABLE IS DEFINED
-  char* path = std::getenv("G4LEDATA");
-  if( !path ) {
+  const char* path = G4FindDataDir("G4LEDATA");
+  if( path == nullptr ) {
     G4Exception("G4VLEPTSModel",
 		"",
 		FatalException,
@@ -99,7 +102,7 @@ void G4VLEPTSModel::BuildPhysicsTable(const G4ParticleDefinition& aParticleType)
    
   G4String aParticleName = aParticleType.GetParticleName();
 
-  if (theMeanFreePathTable) {
+  if (theMeanFreePathTable != nullptr) {
     theMeanFreePathTable->clearAndDestroy();
     delete theMeanFreePathTable;
   }
@@ -109,7 +112,7 @@ void G4VLEPTSModel::BuildPhysicsTable(const G4ParticleDefinition& aParticleType)
   //LOOP TO MATERIALS IN GEOMETRY 
   const G4MaterialTable * materialTable = G4Material::GetMaterialTable() ;
   std::vector<G4Material*>::const_iterator matite;
-  for( matite = materialTable->begin(); matite != materialTable->end(); matite++ ) {
+  for( matite = materialTable->cbegin(); matite != materialTable->cend(); ++matite ) {
     const G4Material * aMaterial = (*matite);
     G4String mateName = aMaterial->GetName();
 
@@ -126,13 +129,13 @@ void G4VLEPTSModel::BuildPhysicsTable(const G4ParticleDefinition& aParticleType)
     std::map< G4int, std::vector<G4double> > integralXS = ReadIXS(fnIXS, aMaterial);
     if( verboseLevel >= 2 ) G4cout << GetName() << " : " << theXSType << " " << mateName << " INTEGRALXS " << integralXS.size() << G4endl;
 
-    if( integralXS.size() == 0 ) {
+    if( integralXS.empty() ) {
       G4cerr << " Integral cross sections will be set to 0. for material " << mateName << G4endl;
-      G4PhysicsLogVector* ptrVector = new G4PhysicsLogVector(theLowestEnergyLimit, theHighestEnergyLimit, 2);
+      auto  ptrVector = new G4PhysicsLogVector(theLowestEnergyLimit, theHighestEnergyLimit, 2);
       ptrVector->PutValue(0, DBL_MAX);
       ptrVector->PutValue(1, DBL_MAX);
 
-      unsigned int matIdx = aMaterial->GetIndex();
+      std::size_t matIdx = aMaterial->GetIndex();
       theMeanFreePathTable->insertAt( matIdx , ptrVector ) ;
 
     } else {
@@ -180,12 +183,12 @@ void G4VLEPTSModel::BuildMeanFreePathTable( const G4Material* aMaterial, std::ma
   G4double LowEdgeEnergy, fValue;
 
   //BUILD MEAN FREE PATH TABLE FROM INTEGRAL CROSS SECTION
-  unsigned int matIdx = aMaterial->GetIndex();
-  G4PhysicsLogVector* ptrVector = new G4PhysicsLogVector(theLowestEnergyLimit, theHighestEnergyLimit, theNumbBinTable);
+  std::size_t matIdx = aMaterial->GetIndex();
+  auto  ptrVector = new G4PhysicsLogVector(theLowestEnergyLimit, theHighestEnergyLimit, theNumbBinTable);
   
-  for (G4int ii=0; ii < theNumbBinTable; ii++) {
-    LowEdgeEnergy = ptrVector->GetLowEdgeEnergy(ii);
-    if( verboseLevel >= 2 ) G4cout << GetName() << " " << ii << " LowEdgeEnergy " << LowEdgeEnergy << " > " << theLowestEnergyLimit << " < " << theHighestEnergyLimit << G4endl;
+  for (G4int ii=0; ii < theNumbBinTable; ++ii) {
+    LowEdgeEnergy = ptrVector->Energy(ii);
+    if( verboseLevel >= 2 ) G4cout << GetName() << " " << ii << " Energy " << LowEdgeEnergy << " > " << theLowestEnergyLimit << " < " << theHighestEnergyLimit << G4endl;
     //-      fValue = ComputeMFP(LowEdgeEnergy, material, aParticleName);
     fValue = 0.;
     if( LowEdgeEnergy >= theLowestEnergyLimit && 
@@ -193,7 +196,7 @@ void G4VLEPTSModel::BuildMeanFreePathTable( const G4Material* aMaterial, std::ma
       G4double NbOfMoleculesPerVolume = aMaterial->GetDensity()/theMolecularMass[aMaterial]*CLHEP::Avogadro; 
       
       G4double SIGMA = 0. ;
-      //-      for ( size_t elm=0 ; elm < aMaterial->GetNumberOfElements() ; elm++ ) {
+      //-      for ( std::size_t elm=0 ; elm < aMaterial->GetNumberOfElements() ; elm++ ) {
 	G4double crossSection = 0.;
 	
 	G4double eVEnergy = LowEdgeEnergy/CLHEP::eV;
@@ -319,7 +322,7 @@ G4double G4VLEPTSModel::SampleEnergyLoss(const G4Material* aMaterial, G4double e
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-G4bool G4VLEPTSModel::ReadParam(G4String fnParam, const G4Material* aMaterial ) 
+G4bool G4VLEPTSModel::ReadParam(const G4String& fnParam, const G4Material* aMaterial ) 
 {
   std::ifstream fin(fnParam);
   if (!fin.is_open()) {
@@ -340,9 +343,9 @@ G4bool G4VLEPTSModel::ReadParam(G4String fnParam, const G4Material* aMaterial )
   theIonisPotInt[aMaterial] = IonisPotInt * CLHEP::eV;
 
   G4double MolecularMass = 0;
-  size_t nelem = aMaterial->GetNumberOfElements();
+  auto  nelem = (G4int)aMaterial->GetNumberOfElements();
   const G4int*  atomsV = aMaterial->GetAtomsVector();
-  for( size_t ii = 0; ii < nelem; ii++ ) {
+  for( G4int ii = 0; ii < nelem; ++ii ) {
     MolecularMass += aMaterial->GetElement(ii)->GetA()*atomsV[ii]/CLHEP::g;
     //    G4cout << " MMASS1 " << mmass/CLHEP::g << " " << aMaterial->GetElement(ii)->GetName() << " " << aMaterial->GetElement(ii)->GetA()/CLHEP::g << G4endl;
   }
@@ -358,7 +361,7 @@ G4bool G4VLEPTSModel::ReadParam(G4String fnParam, const G4Material* aMaterial )
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-std::map< G4int, std::vector<G4double> > G4VLEPTSModel::ReadIXS(G4String fnIXS, const G4Material* aMaterial ) 
+std::map< G4int, std::vector<G4double> > G4VLEPTSModel::ReadIXS(const G4String& fnIXS, const G4Material* aMaterial ) 
 {
   std::map< G4int, std::vector<G4double> > integralXS; // process type - energy
   //G4cout << "fnIXS (" << fnIXS << ")" << G4endl;

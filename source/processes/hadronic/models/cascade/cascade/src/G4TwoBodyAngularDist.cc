@@ -27,7 +27,7 @@
 // Date:    21 February 2013
 //
 // Description: Singleton class to evaluate two-body angular distribution
-//		functions based on intial/final state codes.
+//		functions based on initial/final state codes.
 //
 // 20130307  M. Kelsey -- Add verbosity interface
 // 20130422  M. Kelsey -- Add three-body distributions, for temporary use
@@ -163,7 +163,7 @@ G4TwoBodyAngularDist::ChooseDist(G4int is, G4int fs, G4int kw) const {
   if ((fs == is) && (is == pi0*pro || is == pi0*neu) ) return pi0pAngDst;
 
   // pi- p -> pi0 n, pi+ n -> pi0 p, pi0 p -> pi+ n, pi0 n -> pi- p
-  if ((is == pim*pro && fs == pi0*neu) || (is == pip*neu && fs == pi0*pip) ||
+  if ((is == pim*pro && fs == pi0*neu) || (is == pip*neu && fs == pi0*pro) ||
       (is == pi0*pro && fs == pip*neu) || (is == pi0*neu && fs == pim*pro) )
     return pipCXAngDst;
 

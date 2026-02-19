@@ -38,33 +38,15 @@
 #ifndef G4AntiBarionBuilder_h
 #define G4AntiBarionBuilder_h 1
 
-#include "G4PhysicsBuilderInterface.hh"
 #include "globals.hh"
 
-#include "G4ProtonInelasticProcess.hh"
-#include "G4VAntiBarionBuilder.hh"
-#include <vector>
-
-class G4AntiBarionBuilder : public G4PhysicsBuilderInterface
+class G4AntiBarionBuilder
 {
   public: 
-    G4AntiBarionBuilder();
-    virtual ~G4AntiBarionBuilder() {}
+    G4AntiBarionBuilder() = default;
+    ~G4AntiBarionBuilder() = default;
 
-    virtual void Build() final override;
-    virtual void RegisterMe(G4PhysicsBuilderInterface * aB) final override;
-
-  private:
-    G4AntiProtonInelasticProcess*   theAntiProtonInelastic;
-    G4AntiNeutronInelasticProcess*  theAntiNeutronInelastic;
-    G4AntiDeuteronInelasticProcess* theAntiDeuteronInelastic;
-    G4AntiTritonInelasticProcess*   theAntiTritonInelastic;
-    G4AntiHe3InelasticProcess*      theAntiHe3Inelastic;
-    G4AntiAlphaInelasticProcess*    theAntiAlphaInelastic;
-     
-    std::vector<G4VAntiBarionBuilder *> theModelCollections;
-
-    G4bool wasActivated;
+    void Build();
 };
 
 #endif

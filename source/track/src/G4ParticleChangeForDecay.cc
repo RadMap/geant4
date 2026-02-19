@@ -23,229 +23,136 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4ParticleChangeForDecay class implementation
 //
-//
-// 
-// --------------------------------------------------------------
-//	GEANT 4 class implementation file 
-//
-//	
-//	
-// ------------------------------------------------------------
-//   Implemented for the new scheme                 23 Mar. 1998  H.Kurahige
-//   Remove modification of energy/momentum         20 Jul, 1998  H.Kurashige
-// --------------------------------------------------------------
+// Author: Hisaya Kurashige, 23 March 1998  
+// --------------------------------------------------------------------
 
 #include "G4ParticleChangeForDecay.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4Track.hh"
 #include "G4Step.hh"
-#include "G4TrackFastVector.hh"
 #include "G4DynamicParticle.hh"
 #include "G4ExceptionSeverity.hh"
 
+// --------------------------------------------------------------------
 G4ParticleChangeForDecay::G4ParticleChangeForDecay()
-  : G4VParticleChange(), 
-    theGlobalTime0(0.),theLocalTime0(0.),theTimeChange(0.)
-{
-#ifdef G4VERBOSE
-  if (verboseLevel>2) {
-    G4cout << "G4ParticleChangeForDecay::G4ParticleChangeForDecay() " << G4endl;
-  }
-#endif
-}
+{}
 
-G4ParticleChangeForDecay::~G4ParticleChangeForDecay() 
-{
-#ifdef G4VERBOSE
-  if (verboseLevel>2) {
-    G4cout << "G4ParticleChangeForDecay::~G4ParticleChangeForDecay() " << G4endl;
-  }
-#endif
-}
-
-G4ParticleChangeForDecay::G4ParticleChangeForDecay(const G4ParticleChangeForDecay &right): G4VParticleChange(right)
-{
-  theGlobalTime0 = right.theGlobalTime0;
-  theLocalTime0 = right.theLocalTime0;
-  theTimeChange = right.theTimeChange;
-  thePolarizationChange = right.thePolarizationChange;
-}
-
-
-G4ParticleChangeForDecay & G4ParticleChangeForDecay::operator=(const G4ParticleChangeForDecay &right)
-{
-  if (this != &right){
-    if (theNumberOfSecondaries>0) {
-#ifdef G4VERBOSE
-      if (verboseLevel>0) {
-	G4cout << "G4ParticleChangeForDecay: assignment operator Warning  ";
-	G4cout << "theListOfSecondaries is not empty ";
-       }
-#endif
-      for (G4int index= 0; index<theNumberOfSecondaries; index++){
-	if ( (*theListOfSecondaries)[index] ) delete (*theListOfSecondaries)[index] ;
-      }
-    }
-    delete theListOfSecondaries; 
-    theListOfSecondaries =  new G4TrackFastVector();
-    theNumberOfSecondaries = right.theNumberOfSecondaries;
-    for (G4int index = 0; index<theNumberOfSecondaries; index++){
-      G4Track* newTrack =  new G4Track(*((*right.theListOfSecondaries)[index] ));
-      theListOfSecondaries->SetElement(index, newTrack);			    }
-
-    theStatusChange = right.theStatusChange;
-    theTrueStepLength = right.theTrueStepLength;
-    theLocalEnergyDeposit = right.theLocalEnergyDeposit;
-    theSteppingControlFlag = right.theSteppingControlFlag;
-    
-    theGlobalTime0 = right.theGlobalTime0;
-    theLocalTime0 = right.theLocalTime0;
-    theTimeChange = right.theTimeChange;
-    thePolarizationChange = right.thePolarizationChange;
-  }
-  return *this;
-}
-
-G4bool G4ParticleChangeForDecay::operator==(const G4ParticleChangeForDecay &right) const
-{
-   return ((G4VParticleChange *)this == (G4VParticleChange *) &right);
-}
-
-G4bool G4ParticleChangeForDecay::operator!=(const G4ParticleChangeForDecay &right) const
-{
-   return ((G4VParticleChange *)this != (G4VParticleChange *) &right);
-}
-
-//----------------------------------------------------------------
-// methods for Initialization
-//
+// --------------------------------------------------------------------
 void G4ParticleChangeForDecay::Initialize(const G4Track& track)
 {
   // use base class's method at first
   G4VParticleChange::Initialize(track);
 
-  const G4DynamicParticle*  pParticle = track.GetDynamicParticle();
-
   // set TimeChange equal to local time of the parent track
-  theTimeChange                = track.GetLocalTime();
+  theLocalTime0 = theTimeChange = track.GetLocalTime();
 
   // set initial Local/Global time of the parent track
-  theLocalTime0           = track.GetLocalTime();
-  theGlobalTime0          = track.GetGlobalTime();
+  theGlobalTime0 = track.GetGlobalTime();
 
   // set the Polarization equal to those of the parent track
-  thePolarizationChange  = pParticle->GetPolarization();
+  thePolarizationChange = track.GetDynamicParticle()->GetPolarization();
 }
 
-//----------------------------------------------------------------
-// methods for updating G4Step 
-//
-
+// --------------------------------------------------------------------
 G4Step* G4ParticleChangeForDecay::UpdateStepForPostStep(G4Step* pStep)
-{ 
-  G4StepPoint* pPostStepPoint = pStep->GetPostStepPoint(); 
+{
+  G4StepPoint* pPostStepPoint = pStep->GetPostStepPoint();
 
-  if (isParentWeightProposed ){
-    pPostStepPoint->SetWeight( theParentWeight );
+  if(isParentWeightProposed)
+  {
+    pPostStepPoint->SetWeight(theParentWeight);
   }
   // update polarization
-  pPostStepPoint->SetPolarization( thePolarizationChange );
+  pPostStepPoint->SetPolarization(thePolarizationChange);
 
-  //  Update the G4Step specific attributes 
+  // update the G4Step specific attributes
   return UpdateStepInfo(pStep);
 }
 
-
+// --------------------------------------------------------------------
 G4Step* G4ParticleChangeForDecay::UpdateStepForAtRest(G4Step* pStep)
-{ 
+{
   // A physics process always calculates the final state of the particle
 
-  G4StepPoint* pPostStepPoint = pStep->GetPostStepPoint(); 
+  G4StepPoint* pPostStepPoint = pStep->GetPostStepPoint();
 
   // update polarization
-  pPostStepPoint->SetPolarization( thePolarizationChange );
- 
+  pPostStepPoint->SetPolarization(thePolarizationChange);
+
   // update time
-  pPostStepPoint->SetGlobalTime( GetGlobalTime() );
-  pPostStepPoint->SetLocalTime(  theTimeChange ); 
-  pPostStepPoint->AddProperTime (theTimeChange-theLocalTime0);
+  pPostStepPoint->SetGlobalTime(GetGlobalTime());
+  pPostStepPoint->SetLocalTime(theTimeChange);
+  pPostStepPoint->AddProperTime(theTimeChange - theLocalTime0);
 
 #ifdef G4VERBOSE
-  G4Track*     aTrack  = pStep->GetTrack();
-  if (debugFlag) CheckIt(*aTrack);
+  if(debugFlag) { CheckIt(*theCurrentTrack); }
 #endif
 
-  if (isParentWeightProposed )pPostStepPoint->SetWeight( theParentWeight );
+  if(isParentWeightProposed)
+    pPostStepPoint->SetWeight(theParentWeight);
 
-  //  Update the G4Step specific attributes 
+  //  Update the G4Step specific attributes
   return UpdateStepInfo(pStep);
 }
 
+// --------------------------------------------------------------------
 void G4ParticleChangeForDecay::DumpInfo() const
 {
-// Show header
+  // Show header
   G4VParticleChange::DumpInfo();
 
-  G4int oldprc = G4cout.precision(3);
-  G4cout << " proposed local Time (ns)     : " 
-         << std::setw(20) << theTimeChange/ns << G4endl;
-  G4cout << " initial local Time (ns)      : "
-	 << std::setw(20) << theLocalTime0/ns << G4endl;
-  G4cout << " initial global Time (ns)      : "
-	 << std::setw(20) << theGlobalTime0/ns << G4endl;
+  G4long oldprc = G4cout.precision(8);
+  G4cout << "      -----------------------------------------------" << G4endl;
+  G4cout << "    G4ParticleChangeForDecay proposes: " << G4endl;
+  G4cout << "    Proposed local Time (ns): " << std::setw(20)
+         << theTimeChange / ns << G4endl;
+  G4cout << "    Initial local Time (ns) : " << std::setw(20)
+         << theLocalTime0 / ns << G4endl;
+  G4cout << "    Initial global Time (ns): " << std::setw(20)
+         << theGlobalTime0 / ns << G4endl;
+  G4cout << "    Current global Time (ns): " << std::setw(20)
+         << theCurrentTrack->GetGlobalTime() / ns << G4endl;
   G4cout.precision(oldprc);
 }
 
+// --------------------------------------------------------------------
 G4bool G4ParticleChangeForDecay::CheckIt(const G4Track& aTrack)
 {
-  G4bool    exitWithError = false;
-
-  G4double  accuracy;
-
   // local time should not go back
-  G4bool itsOK =true;
-  accuracy = -1.0*(theTimeChange - theLocalTime0)/ns;
-  if (accuracy > accuracyForWarning) {
-    itsOK = false;
-    exitWithError = (accuracy > accuracyForException);
+  G4bool itsOK = true;
+  if(theTimeChange < theLocalTime0)
+  {
+    itsOK         = false;
+    ++nError;
 #ifdef G4VERBOSE
-    G4cout << "  G4ParticleChangeForDecay::CheckIt    : ";
-    G4cout << "the local time goes back  !!" 
-	   << "  Difference:  " << accuracy  << "[ns] " <<G4endl;
-    G4cout << "initial local time "<< theLocalTime0/ns <<   "[ns] " 
-	   << "initial global time "<< theGlobalTime0/ns  << "[ns] " <<G4endl;
-    G4cout << aTrack.GetDefinition()->GetParticleName()
-	   << " E=" << aTrack.GetKineticEnergy()/MeV
-	   << " pos=" << aTrack.GetPosition().x()/m
-	   << ", " << aTrack.GetPosition().y()/m
-	   << ", " << aTrack.GetPosition().z()/m
-	   <<G4endl;
+    if(nError < maxError)
+    {
+      G4cout << "  G4ParticleChangeForDecay::CheckIt    : ";
+      G4cout << "the local time goes back  !!"
+	     << "  Difference:  " << (theTimeChange - theLocalTime0) / ns 
+             << "[ns] " << G4endl;
+      G4cout << "initial local time " << theLocalTime0 / ns << "[ns] "
+	     << "initial global time " << theGlobalTime0 / ns << "[ns] "
+	     << G4endl;
+    }
 #endif
+    theTimeChange = theLocalTime0;
   }
 
-  // dump out information of this particle change
+  if(!itsOK)
+  {
+    if(nError < maxError)
+    {
 #ifdef G4VERBOSE
-  if (!itsOK) DumpInfo();
+      // dump out information of this particle change
+      DumpInfo();
 #endif
-
-  // Exit with error
-  if (exitWithError) {
-    G4Exception("G4ParticleChangeForDecay::CheckIt",
-		"TRACK005",EventMustBeAborted,
-		"time was  illegal");
-  } 
-
-  // correction
-  if (!itsOK) {
-    theTimeChange = aTrack.GetLocalTime();
+      G4Exception("G4ParticleChangeForDecay::CheckIt()", "TRACK005",
+                  JustWarning, "time is illegal");
+    }
   }
 
-  itsOK = (itsOK) && G4VParticleChange::CheckIt(aTrack);
-  return itsOK;
+  return (itsOK) && G4VParticleChange::CheckIt(aTrack);
 }
-
-
-
-
-

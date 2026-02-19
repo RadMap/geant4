@@ -1,18 +1,32 @@
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+# Example chem1 History
 
-                       chem1 History file
-                       ------------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all category-tags.
-It DOES NOT substitute the  CVS log-message one should put at every
-committal in the CVS repository !
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top). It must **not**
+be used as a substitute for writing good git commit messages!
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2024-09-19 Ivana Hrivnacova (chem1-V11-02-00)
+- Added HOW TO START section in README with
+  the beam.in, gui.mac macros usage
+- Changed the world volume colour to make it different from the
+  white background
+
+## 2023-10-20 John Allison (chem1-V11-01-00)
+- vis.mac: Remove defunct command /vis/ogl/set/displayListLimit.
+  - This command no longer operates. There is now no display list limit.
+    (The only limit is available memory.)
+  - The command is deprecated and, anyway, causes a crash if the app is built
+    without an OpenGL driver.
+
+## 2021-12-10 Ben Morgan (chem1-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+10.11.2020 Ben Morgan           tag chem1-V10-06-00
+-----------------------------------------------------
+- Migration to G4RunManagerFactory.
 
 08.02.2019 VI, WGS, SI          tag chem1-V10-05-00
 -----------------------------------------------------

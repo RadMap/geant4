@@ -37,8 +37,11 @@
 #include "CLHEP/Random/engineIDulong.h"
 #include "CLHEP/Utility/atomic_int.h"
 
+#include <atomic>
 #include <string.h>	// for strcmp
 #include <iostream>
+#include <string>
+#include <vector>
 
 // don't generate warnings about agressive loop optimization
 #if defined __GNUC__ 
@@ -341,11 +344,11 @@ bool RanshiEngine::getState (const std::vector<unsigned long> & v) {
     return false;
   }
   for (int i = 0; i < numBuff; ++i) {
-    buffer[i] = v[i+1];
+    buffer[i] = (unsigned int)v[i+1];
   }
-  redSpin  = v[numBuff+1];
-  numFlats = v[numBuff+2]; 
-  halfBuff = v[numBuff+3];
+  redSpin  = (unsigned int)v[numBuff+1];
+  numFlats = (unsigned int)v[numBuff+2]; 
+  halfBuff = (unsigned int)v[numBuff+3];
   return true;
 }
 

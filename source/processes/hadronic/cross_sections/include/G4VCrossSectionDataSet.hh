@@ -96,32 +96,43 @@ public: //with description
   // This is a generic method to access cross section per element
   // This method should not be overwritten in a derived class
   inline G4double GetCrossSection(const G4DynamicParticle*, const G4Element*,
-				  const G4Material* mat = nullptr);
+                                  const G4Material* mat = nullptr);
 
   // This is a generic method to compute cross section per element
   // If the DataSet is not applicable the method returns zero
   // This method should not be overwritten in a derived class
   G4double ComputeCrossSection(const G4DynamicParticle*, 
-			       const G4Element*,
-			       const G4Material* mat = nullptr);
+                               const G4Element*,
+                               const G4Material* mat = nullptr);
 
-  // The following two methods have default implementations which throw
-  // G4Exception.  Derived classes should implement only needed
-  // methods, which are assumed to be called at run time.
+  // Implement element cross section, IsApplicable does not checked.
+  // In the default implementation a sum of isotope cross sections is computed
+  virtual
+  G4double ComputeCrossSectionPerElement(G4double kinEnergy, G4double loge,
+                                         const G4ParticleDefinition*, 
+                                         const G4Element*,
+                                         const G4Material* mat = nullptr);
 
-  // Implement this method for element-wise cross section 
+  // Implement these methods for element-wise cross section 
   virtual
   G4double GetElementCrossSection(const G4DynamicParticle*, G4int Z,
 				  const G4Material* mat = nullptr);
 
-  // Derived classes should implement this method if they provide isotope-wise
-  // cross sections.  Default arguments G4Element and G4Material are needed to
-  // access low-energy neutron cross sections, but are not required for others. 
+  // Derived classes should implement these methods if they provide isotope-wise
+  // cross sections. Extra arguments G4Isotope, G4Element, and G4Material are 
+  // needed to access low-energy neutron cross sections, but not in other cases. 
   virtual
   G4double GetIsoCrossSection(const G4DynamicParticle*, G4int Z, G4int A,  
 			      const G4Isotope* iso = nullptr,
 			      const G4Element* elm = nullptr,
 			      const G4Material* mat = nullptr);
+
+  virtual
+  G4double ComputeIsoCrossSection(G4double kinEnergy, G4double loge,
+                                  const G4ParticleDefinition*, G4int Z, G4int A,  
+			          const G4Isotope* iso = nullptr,
+			          const G4Element* elm = nullptr,
+			          const G4Material* mat = nullptr);
 
   //=====================================================================
 
@@ -143,10 +154,6 @@ public: //with description
 
   virtual void CrossSectionDescription(std::ostream&) const;
 
-public: // Without Description
-
-  virtual G4int GetVerboseLevel() const;
-
   virtual void SetVerboseLevel(G4int value);
 
   inline G4double GetMinKinEnergy() const;
@@ -163,39 +170,35 @@ public: // Without Description
 
   inline const G4String& GetName() const;
 
+  inline void SetName(const G4String& nam);
+
+  G4VCrossSectionDataSet & operator=
+  (const G4VCrossSectionDataSet &right) = delete;
+  G4VCrossSectionDataSet(const G4VCrossSectionDataSet&) = delete;
+
 protected:
 
-  inline void SetName(const G4String&);
+  G4int verboseLevel{0};
 
-  G4int verboseLevel;
+  G4String name;
 
 private:
 
-  G4VCrossSectionDataSet & operator=(const G4VCrossSectionDataSet &right);
-  G4VCrossSectionDataSet(const G4VCrossSectionDataSet&);
-
   G4CrossSectionDataSetRegistry* registry;
 
-  G4double minKinEnergy;
+  G4double minKinEnergy{0.0};
   G4double maxKinEnergy;
 
-  G4bool isForAllAtomsAndEnergies;
+  G4bool isForAllAtomsAndEnergies{false};
 
-  G4String name;
 };
 
 inline G4double 
 G4VCrossSectionDataSet::GetCrossSection(const G4DynamicParticle* dp, 
-					const G4Element* elm,
-					const G4Material* mat)
+                                        const G4Element* elm,
+                                        const G4Material* mat)
 {
   return ComputeCrossSection(dp, elm, mat);
-}
-
-
-inline G4int G4VCrossSectionDataSet::GetVerboseLevel() const
-{
-  return verboseLevel;
 }
 
 inline void G4VCrossSectionDataSet::SetVerboseLevel(G4int value)

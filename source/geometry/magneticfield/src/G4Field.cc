@@ -25,7 +25,7 @@
 //
 // G4Field implementation
 //
-// Created: John Apostolakis, 10.03.1997
+// Author: John Apostolakis, 10.03.1997
 // -------------------------------------------------------------------
 
 #include "G4Field.hh"
@@ -35,20 +35,11 @@ G4Field::G4Field( G4bool gravityOn )
 {
 }
  
-G4Field::~G4Field()
-{
-}
-
 G4Field& G4Field::operator = (const G4Field& p)
 {
-   if (&p == this) return *this;
+   if (&p == this) { return *this; }
    fGravityActive= p.fGravityActive;
    return *this;
-}
-
-G4Field::G4Field (const G4Field &p)
-  : fGravityActive(p.fGravityActive)
-{
 }
 
 G4Field* G4Field::Clone() const
@@ -57,7 +48,7 @@ G4Field* G4Field::Clone() const
     msg << "Derived class does not implement cloning,\n"
         << "but Clone method called.\n"
         << "Cannot continue;";
-    G4Exception("G4Field::Clone", "GeomField004", FatalException,msg );
+    G4Exception("G4Field::Clone", "GeomField004", FatalException, msg );
     return nullptr;
 }
 

@@ -29,57 +29,41 @@
 #ifndef G4PSNofStep_h
 #define G4PSNofStep_h 1
 
-#include "G4VPrimitiveScorer.hh"
+#include "G4VPrimitivePlotter.hh"
 #include "G4THitsMap.hh"
 
 ////////////////////////////////////////////////////////////////////////////////
 // (Description)
 //   This is a primitive scorer class for scoring Number of Steps in the cell.
-// 
+//
 // Created: 2005-11-14  Tsukasa ASO, Akinori Kimura.
 // 2010-07-22   Introduce Unit specification.
-// 
+// 2020-10-06   Use G4VPrimitivePlotter and fill 1-D histo of step length
+//              in mm vs. number of steps (not weighted)        (Makoto Asai)
+//
 ///////////////////////////////////////////////////////////////////////////////
 
-
-class G4PSNofStep : public G4VPrimitiveScorer
+class G4PSNofStep : public G4VPrimitivePlotter
 {
- 
- public: // with description
-      G4PSNofStep(G4String name, G4int depth=0);
+ public:
+  G4PSNofStep(const G4String& name, G4int depth = 0);
+  ~G4PSNofStep() override = default;
 
-  protected: // with description
-      virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
+  void Initialize(G4HCofThisEvent*) override;
+  void clear() override;
+  void PrintAll() override;
 
-  public:
-      virtual ~G4PSNofStep();
+  virtual void SetUnit(const G4String& unit);
+  void SetBoundaryFlag(G4bool flg = true) { boundaryFlag = flg; }
 
-  public: 
-      virtual void Initialize(G4HCofThisEvent*);
-      virtual void EndOfEvent(G4HCofThisEvent*);
-      virtual void clear();
+ protected:
+  G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
 
-  public:
-      virtual void DrawAll();
-      virtual void PrintAll();
+ private:
+  G4int HCID{-1};
+  G4THitsMap<G4double>* EvtMap{nullptr};
 
-      virtual void SetUnit(const G4String& unit);
-
-  public: 
-      void  SetBoundaryFlag(G4bool flg=true)
-	{boundaryFlag = flg;}
-
-  private:
-      G4int HCID;
-      G4THitsMap<G4double>* EvtMap;
-
-      G4bool boundaryFlag;
-
-  public:
-
-
+  G4bool boundaryFlag{false};
 };
-
-
 
 #endif

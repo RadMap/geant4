@@ -23,20 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file Par01/src/Par01PrimaryGeneratorAction.cc
+/// \file Par01PrimaryGeneratorAction.cc
 /// \brief Implementation of the Par01PrimaryGeneratorAction class
-//
-//
-//
 
 #include "Par01PrimaryGeneratorAction.hh"
 
 #include "G4Event.hh"
+#include "G4ParticleDefinition.hh"
 #include "G4ParticleGun.hh"
 #include "G4ParticleTable.hh"
-#include "G4ParticleDefinition.hh"
-#include "globals.hh"
 #include "G4SystemOfUnits.hh"
+#include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -47,13 +44,12 @@ Par01PrimaryGeneratorAction::Par01PrimaryGeneratorAction()
 
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4String particleName;
-  G4ParticleDefinition* particle 
-    = particleTable->FindParticle(particleName="geantino");
+  G4ParticleDefinition* particle = particleTable->FindParticle(particleName = "geantino");
   fParticleGun->SetParticleDefinition(particle);
 
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,1.,0.));
-  fParticleGun->SetParticleEnergy(100.*GeV);
-  fParticleGun->SetParticlePosition(G4ThreeVector(0.*cm,-300.*cm,0.*cm));
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 1., 0.));
+  fParticleGun->SetParticleEnergy(100. * GeV);
+  fParticleGun->SetParticlePosition(G4ThreeVector(0. * cm, -300. * cm, 0. * cm));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -75,5 +71,4 @@ void Par01PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 G4ParticleGun* Par01PrimaryGeneratorAction::GetParticleGun()
 {
   return fParticleGun;
-} 
-
+}

@@ -38,23 +38,19 @@ class G4ChargedDefinition;
 // class description:
 //
 //  This is the class of a filter to be associated with a
-// sensitive detector. 
+// sensitive detector.
 //  This fileter accepts charged particles.
 //
 // Created: 2005-11-14  Tsukasa ASO.
-// 
+//
 ///////////////////////////////////////////////////////////////////////////////
 
-class G4SDChargedFilter : public G4VSDFilter 
+class G4SDChargedFilter : public G4VSDFilter
 {
+ public:
+  G4SDChargedFilter(const G4String& name);
+  ~G4SDChargedFilter() override = default;
 
-  public: // with description
-      G4SDChargedFilter(G4String name);
-      virtual ~G4SDChargedFilter();
-
-  public: // with description
-      virtual G4bool Accept(const G4Step*) const;
-
+  G4bool Accept(const G4Step*) const override;
 };
 #endif
-

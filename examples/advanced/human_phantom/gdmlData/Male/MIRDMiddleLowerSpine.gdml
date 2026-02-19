@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
  <define> 
   <constant name="PI" value="1.*pi" />
   <constant name="TWOPI" value="2.*pi"/>
@@ -55,8 +55,8 @@
  </materials>
 
  <solids>
-  <eltube aunit="cm" lunit="cm" name="SpineMid" dx="1.73" dy="2.45" dz="15.645" />
-  <eltube aunit="cm" lunit="cm" name="SpineLow" dx="1.73" dy="2.45" dz="5.905" />
+  <eltube lunit="cm" name="SpineMid" dx="1.73" dy="2.45" dz="15.645" />
+  <eltube lunit="cm" name="SpineLow" dx="1.73" dy="2.45" dz="5.905" />
   <union name="MiddleLowerSpine">
    <first ref="SpineMid" />
    <second ref="SpineLow" />

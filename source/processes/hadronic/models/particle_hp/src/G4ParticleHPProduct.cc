@@ -27,8 +27,8 @@
 // J.P. Wellisch, Nov-1996
 // A prototype of the low energy neutron transport model.
 //
-// 080718 As for secondary photons, if its mean value has a value of integer, 
-//        then a sampling of multiplicity that based on Poisson Distribution 
+// 080718 As for secondary photons, if its mean value has a value of integer,
+//        then a sampling of multiplicity that based on Poisson Distribution
 //        is not carried out and the mean is used as a multiplicity.
 //        modified by T. Koi.
 // 080721 Using ClearHistories() methodl for limiting the sum of secondary energies
@@ -36,111 +36,143 @@
 // 080901 bug fix of too many secnodaries production in nd reactinos by T. Koi
 //
 // P. Arce, June-2014 Conversion neutron_hp to particle_hp
+// V. Ivanchenko, May-2023 Basic revision of particle HP classes
 //
-#include "G4ParticleHPProduct.hh" 
+#include "G4ParticleHPProduct.hh"
+#include "G4ParticleHPManager.hh"
+#include "G4HadronicParameters.hh"
+#include "G4HadronicException.hh"
+#include "G4ParticleHPContEnergyAngular.hh"
+#include "G4ParticleHPDiscreteTwoBody.hh"
+#include "G4ParticleHPIsotropic.hh"
+#include "G4ParticleHPLabAngularEnergy.hh"
+#include "G4ParticleHPNBodyPhaseSpace.hh"
+#include "Randomize.hh"
 #include "G4Poisson.hh"
 #include "G4Proton.hh"
 
-G4int G4ParticleHPProduct::GetMultiplicity(G4double anEnergy )
+G4ParticleHPProduct::G4ParticleHPProduct()
 {
-  //if(theDist == 0) { return 0; }
-  //151120 TK Modified for solving reproducibility problem 
-  if ( theDist == 0 ) { 
-     fCache.Get().theCurrentMultiplicity = 0;
-     return 0; 
+  toBeCached val;
+  fCache.Put(val);
+
+  if (G4ParticleHPManager::GetInstance()->GetPHCUsePoisson()) {
+    theMultiplicityMethod = G4HPMultiPoisson;
+  } else {
+    theMultiplicityMethod = G4HPMultiBetweenInts;
+  }
+}
+
+G4ParticleHPProduct::~G4ParticleHPProduct()
+{
+  delete theDist;
+}
+
+void G4ParticleHPProduct::Init(std::istream& aDataFile, const G4ParticleDefinition* projectile)
+{
+  aDataFile >> theMassCode >> theMass >> theIsomerFlag >> theDistLaw >> theGroundStateQValue
+	    >> theActualStateQValue;
+  theGroundStateQValue *= CLHEP::eV;
+  theActualStateQValue *= CLHEP::eV;
+  theYield.Init(aDataFile, CLHEP::eV);
+  theYield.Hash();
+  if (theDistLaw == 0) {
+    // distribution not known, use E-independent, isotropic
+    // angular distribution
+    theDist = new G4ParticleHPIsotropic;
+  }
+  else if (theDistLaw == 1) {
+    // Continuum energy-angular distribution
+    theDist = new G4ParticleHPContEnergyAngular(projectile);
+  }
+  else if (theDistLaw == 2) {
+    // Discrete 2-body scattering
+    theDist = new G4ParticleHPDiscreteTwoBody;
+  }
+  else if (theDistLaw == 3) {
+    // Isotropic emission
+    theDist = new G4ParticleHPIsotropic;
+  }
+  else if (theDistLaw == 4) {
+    // Discrete 2-body recoil modification not used for now.
+    // theDist = new G4ParticleHPDiscreteTwoBody;
+    // the above is only temporary;
+    // recoils need to be addressed properly
+  }
+  //    else if(theDistLaw == 5)
+  //    {
+  // charged particles only, to be used in a later stage. @@@@
+  //    }
+  else if (theDistLaw == 6) {
+    // N-Body phase space
+    theDist = new G4ParticleHPNBodyPhaseSpace;
+  }
+  else if (theDistLaw == 7) {
+    // Laboratory angular energy paraetrisation
+    theDist = new G4ParticleHPLabAngularEnergy;
+  }
+  else {
+        throw G4HadronicException(__FILE__, __LINE__,
+                                  "distribution law unknown to G4ParticleHPProduct");
+  }
+  if (theDist != nullptr) {
+    theDist->SetQValue(theActualStateQValue);
+    theDist->Init(aDataFile);
+  }
+}
+
+G4int G4ParticleHPProduct::GetMultiplicity(G4double anEnergy)
+{
+  if (theDist == nullptr) {
+    fCache.Get().theCurrentMultiplicity = 0;
+    return 0;
   }
 
   G4double mean = theYield.GetY(anEnergy);
-  //g  G4cout << "G4ParticleHPProduct MEAN NUMBER OF PARTICLES " << mean << " for " << theMass << G4endl;
-  //if( mean <= 0. ) return 0;
-  //151120 TK Modified for solving reproducibility problem 
-  //This is also a real fix
-  if ( mean <= 0. )  {
-     fCache.Get().theCurrentMultiplicity = 0;
-     return 0; 
+  if (mean <= 0.) {
+    fCache.Get().theCurrentMultiplicity = 0;
+    return 0;
   }
+  G4int multi = (theMultiplicityMethod == G4HPMultiPoisson) ?
+    (G4int)G4Poisson(mean) : G4lrint(mean);
 
-  G4int multi;
-  multi = G4int(mean+0.0001);
-  //if(theMassCode==0) multi = G4Poisson(mean); // @@@@gammas. please X-check this
-  //080718
-#ifdef PHP_AS_HP
-  if ( theMassCode == 0 ) // DELETE THIS: IT MUST BE DONE FOR ALL PARTICLES
+#ifdef G4VERBOSE
+  if (G4ParticleHPManager::GetInstance()->GetDEBUG())
+    G4cout << "G4ParticleHPProduct::GetMultiplicity code=" << theMassCode << " M=" << theMass
+	   << " multi=" << multi << " mean=" << mean << G4endl;
 #endif
-  { 
-     if ( G4int ( mean ) == mean )
-     {
-        multi = (G4int) mean;
-     }
-     else
-     {
-#ifdef PHP_AS_HP
-	 multi = G4Poisson ( mean ); 
-#else 
-       if( theMultiplicityMethod == G4HPMultiPoisson ) {
-	 multi = G4Poisson ( mean ); 	 
-	 if( std::getenv("G4PHPTEST") )  G4cout << " MULTIPLICITY MULTIPLIED " << multi << " " << theMassCode << G4endl;
-       } else { // if( theMultiplicityMethod == G4HPMultiBetweenInts ) {
-	 G4double radnf = CLHEP::RandFlat::shoot();
-	 G4int imulti = G4int(mean);
-	 multi = imulti + G4int(radnf < mean-imulti);
-	 //	 G4cout << theMass << " multi " << multi << " mean " << mean 
-	 //		<< " radnf " << radnf << " mean-imulti " << mean-imulti << G4endl;
-       }
-#endif
-	//       multi = int(mean);
-	//       if( CLHEP::RandFlat::shoot() > mean-multi ) multi++;
-     }
-#ifdef G4PHPDEBUG
-     if( std::getenv("G4ParticleHPDebug") ) G4cout << "G4ParticleHPProduct::GetMultiplicity " << theMassCode << " " << theMass << " multi " << multi << " mean " << mean << G4endl;
-#endif
-  }
-
-  fCache.Get().theCurrentMultiplicity = static_cast<G4int>(mean);
+  fCache.Get().theCurrentMultiplicity = multi;
 
   return multi;
 }
 
-
-G4ReactionProductVector * G4ParticleHPProduct::Sample(G4double anEnergy, G4int multi)
+G4ReactionProductVector* G4ParticleHPProduct::Sample(G4double anEnergy, G4int multi)
 {
-  if(theDist == 0) { return 0; }
-  G4ReactionProductVector * result = new G4ReactionProductVector;
+  if (theDist == nullptr) {
+    return nullptr;
+  }
+  auto result = new G4ReactionProductVector;
 
   theDist->SetTarget(fCache.Get().theTarget);
   theDist->SetProjectileRP(fCache.Get().theProjectileRP);
-  G4int i;
-//  G4double eMax = GetTarget()->GetMass()+GetNeutron()->GetMass()
-//                  - theActualStateQValue;
-  G4ReactionProduct * tmp;
+  G4ReactionProduct* tmp;
   theDist->ClearHistories();
 
-  for(i=0;i<multi;i++)
-  {
-#ifdef G4PHPDEBUG
- if( std::getenv("G4PHPTEST") )
-    if( std::getenv("G4ParticleHPDebug") && tmp != 0 )    G4cout << multi << " " << i << " @@@ G4ParticleHPProduct::Sample " << anEnergy << " Mass " << theMassCode << " " << theMass << G4endl;
-#endif
+  for (G4int i = 0; i < multi; ++i) {
     tmp = theDist->Sample(anEnergy, theMassCode, theMass);
-    if(tmp != 0) { result->push_back(tmp); }
-#ifndef G4PHPDEBUG //GDEB
-    if( std::getenv("G4ParticleHPDebug") && tmp != 0 )   G4cout << multi << " " << i << " @@@ G4ParticleHPProduct::Sample " << tmp->GetDefinition()->GetParticleName() << " E= " << tmp->GetKineticEnergy() << G4endl; 
+    if (tmp != nullptr) {
+      result->push_back(tmp);
+#ifdef G4VERBOSE
+      if (G4ParticleHPManager::GetInstance()->GetDEBUG())
+	G4cout << "multi=" << multi << " i=" << i << " G4ParticleHPProduct::Sample "
+	       << tmp->GetDefinition()->GetParticleName() << " E=" << tmp->GetKineticEnergy()
+	       << G4endl;
 #endif
-  }
-  if(multi == 0) 
-    {
-      tmp = theDist->Sample(anEnergy, theMassCode, theMass);
-      delete  tmp;
     }
-  /*
-  //080901 TK Comment out, too many secondaries are produced in deuteron reactions
-  if(theTarget->GetMass()<2*GeV) // @@@ take care of residuals in all cases
-  {
-  tmp = theDist->Sample(anEnergy, theMassCode, theMass);
-  tmp->SetDefinition(G4Proton::Proton());
-  if(tmp != 0) { result->push_back(tmp); }
   }
-  */
-
+  if (multi == 0) {
+    tmp = theDist->Sample(anEnergy, theMassCode, theMass);
+    delete tmp;
+  }
   return result;
 }

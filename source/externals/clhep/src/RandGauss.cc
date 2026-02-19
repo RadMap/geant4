@@ -33,8 +33,11 @@
 
 #include "CLHEP/Random/RandGauss.h"
 #include "CLHEP/Random/DoubConv.h"
-#include <string.h>	// for strcmp
 #include <cmath>	// for std::log()
+#include <iostream>
+#include <string.h>	// for strcmp
+#include <string>
+#include <vector>
 
 namespace CLHEP {
 
@@ -254,7 +257,7 @@ void RandGauss::restoreEngineStatus( const char filename[] ) {
   
 std::ostream & RandGauss::put ( std::ostream & os ) const {
   os << name() << "\n";
-  int prec = os.precision(20);
+  long prec = os.precision(20);
   std::vector<unsigned long> t(2);
   os << "Uvec\n";
   t = DoubConv::dto2longs(defaultMean);
@@ -326,7 +329,7 @@ std::istream & RandGauss::get ( std::istream & is ) {
   // Static save and restore to/from streams
   
 std::ostream & RandGauss::saveDistState ( std::ostream & os ) {
-  int prec = os.precision(20);
+  long prec = os.precision(20);
   std::vector<unsigned long> t(2);
   os << distributionName() << "\n";
   os << "Uvec\n";

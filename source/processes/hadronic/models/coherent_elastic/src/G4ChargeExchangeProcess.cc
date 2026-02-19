@@ -43,7 +43,8 @@
 #include "globals.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4CrossSectionDataStore.hh"
-#include "G4HadronElasticDataSet.hh"
+#include "G4CrossSectionElastic.hh"
+#include "G4ComponentGGHadronNucleusXsc.hh"
 #include "G4Element.hh"
 #include "G4ElementVector.hh"
 #include "G4IsotopeVector.hh"
@@ -57,10 +58,12 @@
 G4ChargeExchangeProcess::G4ChargeExchangeProcess(const G4String& procName)
   : G4HadronicProcess(procName,fChargeExchange), first(true)
 {
+  G4cout << "###=== The class G4ChargeExchangeProcess is obsolete!!!" << G4endl;
+  G4cout << "###=== It will be removed at the next public release" << G4endl;
   thEnergy = 20.*MeV;
   pPDG = 0;
   verboseLevel= 1;
-  AddDataSet(new G4HadronElasticDataSet);
+  AddDataSet( new G4CrossSectionElastic( new G4ComponentGGHadronNucleusXsc ) );
   theProton   = G4Proton::Proton();
   theNeutron  = G4Neutron::Neutron();
   theAProton  = G4AntiProton::AntiProton();
@@ -122,7 +125,6 @@ BuildPhysicsTable(const G4ParticleDefinition& aParticleType)
       factors = new G4PhysicsLinearVector(0.0,4.0*GeV,n);
       for(size_t i=0; i<n; i++) {factors->PutValue(i,F[i]);}
     }
-    //factors->SetSpline(true);
 
     if(verboseLevel>1)
       G4cout << "G4ChargeExchangeProcess for "

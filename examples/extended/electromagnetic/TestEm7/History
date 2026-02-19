@@ -1,18 +1,69 @@
--------------------------------------------------------------------
+# Example TestEm7 History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                    TestEm7 History file
-                    --------------------
-This file should be used by the G4 example coordinator to briefly
-summarize all major modifications introduced in the code and keep
-track of all tags.
+-------------------------------------------------------------------------------
+## 2025-08-21 Dmitri Konstantinov (testem7-V11-03-00)
+- DetectorConstruction: fix SetWorldMaterial() to set World LV 
+  to fWorldMaterial (not absorber).
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2024-04-06 Vladimir Ivanchenko (testem7-V11-02-01)
+- RunAction - added protection to histogram binning for very low step limit
+
+## 2023-12-18 Gabriele Cosmo (testem7-V11-02-00)
+- Fixed compilation error on latest Windows VC++ compiler 17.8.3 for use of
+  std::isfinite() and std::isnan() in c2_function.hh.
+  Addressing problem report #2582.
+
+## 2023-04-17 Vladimir Ivanchenko (testem7-V11-01-00)
+- added extra macro for test muon dEdx and Range
+
+## 2022-10-18 Vladimir Ivanchenko (testem7-V11-00-01)
+- Make local EM physics the same as EM physics option3
+  with G4IonParameterizedModel
+
+## 2021-12-10 Ben Morgan (testem7-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+12-11-21 V.Ivanchenko (testem7-V10-07-08)
+- Improved macro files for ion ionisation
+
+06-10-21 I. Hrivnacova (testem7-V10-07-07)
+- Migration to new G4AnalysisManager.hh header;
+  define the default output file type (root).
+
+22-09-21 G. Amadio (testem7-V10-07-06)
+- Fix TestEm7 to build with C++20 standard.
+
+24-07-21 V.Ivanchenko (testem7-V10-07-05)
+- TestEm7.cc - use G4RunManagerFactory
+- c2_function.hh - fixed compilation warning
+
+19-07-21 I. Hrivnacova (testem7-V10-07-04)
+- Updated for changes in the analysis category:
+  removed deleting of the analysis manager,
+  as this is now done by the Geant4 kernel.
+
+09-07-21 V.Ivanchenko (testem7-V10-07-03)
+- use const pointer to G4Element
+     
+06-05-21 mma (testem7-V10-07-02)
+- Migration to G4SteppingVerboseWithUnits.
+
+19-03-21 V.Ivanchenko (testem7-V10-07-01)
+- updated PhysListEmPhysicsNR for 11.0, removed RanecuEngine
+
+10-02-21 V.Ivanchenko (testem7-V10-07-00)
+- fixed README
+
+07-04-20 V.Ivantchenko (testem7-V10-06-00)
+- do not call vis.mac automatically in interactive mode
 
 28-11-19 I. Hrivnacova (testem7-V10-05-01)
 - Fixed comments, causing doxygen warnings, in c2_function.hh

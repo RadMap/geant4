@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm18/include/StackingAction.hh
+/// \file StackingAction.hh
 /// \brief Definition of the StackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef StackingAction_h
 #define StackingAction_h 1
@@ -44,18 +40,17 @@ class StackingAction : public G4UserStackingAction
 {
   public:
     StackingAction();
-   ~StackingAction();
+    ~StackingAction() override;
 
-    void SetTrackSecondaries(G4bool value) { fTrackSecondaries = value;};
+    void SetTrackSecondaries(G4bool value) { fTrackSecondaries = value; };
 
-    virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*);
+    G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*) override;
 
   private:
-    G4bool              fTrackSecondaries;
-    StackingMessenger*  fStackMessenger;
+    G4bool fTrackSecondaries = false;
+    StackingMessenger* fStackMessenger = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

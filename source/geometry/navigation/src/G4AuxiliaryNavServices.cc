@@ -23,8 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// class G4AuxiliaryNavServices implementation
+// Class G4AuxiliaryNavServices implementation
 //
+// Author: Paul Kent (CERN), August 1996
 // --------------------------------------------------------------------
 
 #include "G4AuxiliaryNavServices.hh"
@@ -38,7 +39,7 @@
 
 void G4AuxiliaryNavServices::ReportTolerances()
 {
-   G4int oldPrec = G4cout.precision(16);
+   G4long oldPrec = G4cout.precision(16);
    
    G4cout << " Cartesian Tolerance (kCarTolerance): "
           << G4GeometryTolerance::GetInstance()->GetSurfaceTolerance()

@@ -23,31 +23,18 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file F05ActionInitialization.cc
-/// \brief Implementation of the F04ActionInitialization class
+/// \brief Implementation of the F05ActionInitialization class
 
 #include "F05ActionInitialization.hh"
+
 #include "F05PrimaryGeneratorAction.hh"
 #include "F05SteppingAction.hh"
 #include "F05SteppingVerbose.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-F05ActionInitialization::F05ActionInitialization()
- : G4VUserActionInitialization()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-F05ActionInitialization::~F05ActionInitialization()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void F05ActionInitialization::BuildForMaster() const
-{
-}
+void F05ActionInitialization::BuildForMaster() const {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

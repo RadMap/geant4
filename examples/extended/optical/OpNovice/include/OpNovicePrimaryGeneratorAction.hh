@@ -23,21 +23,16 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file OpNovice/include/OpNovicePrimaryGeneratorAction.hh
+/// \file OpNovicePrimaryGeneratorAction.hh
 /// \brief Definition of the OpNovicePrimaryGeneratorAction class
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef OpNovicePrimaryGeneratorAction_h
 #define OpNovicePrimaryGeneratorAction_h 1
 
+#include "G4ParticleGun.hh"
 #include "G4VUserPrimaryGeneratorAction.hh"
 #include "globals.hh"
 
-class G4ParticleGun;
 class G4Event;
 class OpNovicePrimaryGeneratorMessenger;
 
@@ -47,17 +42,18 @@ class OpNovicePrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
     OpNovicePrimaryGeneratorAction();
-    virtual ~OpNovicePrimaryGeneratorAction();
+    ~OpNovicePrimaryGeneratorAction() override;
 
-  public:
-    virtual void GeneratePrimaries(G4Event*);
+    void GeneratePrimaries(G4Event*) override;
 
     void SetOptPhotonPolar();
     void SetOptPhotonPolar(G4double);
 
+    G4ParticleGun* GetParticleGun() { return fParticleGun; }
+
   private:
-    G4ParticleGun* fParticleGun;
-    OpNovicePrimaryGeneratorMessenger* fGunMessenger;
+    G4ParticleGun* fParticleGun = nullptr;
+    OpNovicePrimaryGeneratorMessenger* fGunMessenger = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

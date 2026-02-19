@@ -38,7 +38,7 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4DNAEmfietzoglouWaterExcitationStructure::G4DNAEmfietzoglouWaterExcitationStructure(): nLevels(5)
+G4DNAEmfietzoglouWaterExcitationStructure::G4DNAEmfietzoglouWaterExcitationStructure() 
 {
   energyConstant.push_back(8.22*eV);
   energyConstant.push_back(10.00*eV);
@@ -46,13 +46,13 @@ G4DNAEmfietzoglouWaterExcitationStructure::G4DNAEmfietzoglouWaterExcitationStruc
   energyConstant.push_back(12.61*eV);
   energyConstant.push_back(13.77*eV);
 
-  nLevels = energyConstant.size();
+  nLevels = (G4int)energyConstant.size();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4DNAEmfietzoglouWaterExcitationStructure::~G4DNAEmfietzoglouWaterExcitationStructure()
-{ }
+= default;
  
 G4double G4DNAEmfietzoglouWaterExcitationStructure::ExcitationEnergy(G4int level)
 {

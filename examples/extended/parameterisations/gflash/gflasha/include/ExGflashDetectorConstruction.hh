@@ -22,17 +22,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflashDetectorConstruction.hh
 /// \brief Definition of the ExGflashDetectorConstruction class
-//
+
 #ifndef ExGflashDetectorConstruction_h
 #define ExGflashDetectorConstruction_h 1
 
-#include "G4VUserDetectorConstruction.hh"
 #include "ExGflashSensitiveDetector.hh"
-#include "G4ThreeVector.hh"
+
 #include "G4Cache.hh"
+#include "G4ThreeVector.hh"
+#include "G4VUserDetectorConstruction.hh"
 #include "globals.hh"
 
 class G4LogicalVolume;
@@ -48,50 +48,68 @@ class ExGflashMessenger;
 
 class ExGflashDetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
-  ExGflashDetectorConstruction();
-  ~ExGflashDetectorConstruction();
-  
-  virtual G4VPhysicalVolume* Construct();
-  virtual void ConstructSDandField();
-  
-  void SetLBining (G4ThreeVector);
-  void SetRBining (G4ThreeVector);
-  void SetVerbose(G4int val)  {fVerbose = val;}
+  public:
+    ExGflashDetectorConstruction();
+    ~ExGflashDetectorConstruction() override;
 
-  void SetMaterial(G4String mat);
+    G4VPhysicalVolume* Construct() override;
+    void ConstructSDandField() override;
 
-  G4int    GetVerbose() const    {return fVerbose;}
+    void SetLBining(G4ThreeVector);
+    void SetRBining(G4ThreeVector);
 
-  G4int    GetnLtot() const      {return fNLtot;}
-  G4int    GetnRtot() const      {return fNRtot;}
-  G4double GetdLradl() const     {return fDLradl;}
-  G4double GetdRradl() const     {return fDRradl;}
+    void SetVerbose(G4int val) { fVerbose = val; }
 
-  G4double GetSDRadLen() const   {return fSDRadLen;}
-  
-private:
-  G4int fNbOfCrystals; // cube of nb x nb crystals
+    void SetMaterial(G4String mat);
 
-  G4double fCrystalWidth; // x,y size
-  G4double fCrystalLength;// z size
+    G4int GetVerbose() const { return fVerbose; }
 
-  G4LogicalVolume*    fCrystal_log;
-  G4Material* fDetMat;
-  G4Region*           fRegion;
+    G4int GetnLtot() const { return fNLtot; }
+    G4int GetnRtot() const { return fNRtot; }
+    G4double GetdLradl() const { return fDLradl; }
+    G4double GetdRradl() const { return fDRradl; }
 
-  G4double fSDRadLen;  // SD material Rad Lenght
+    G4double GetSDRadLen() const { return fSDRadLen; }
+    G4double GetSDRm() const { return fSDRm; }
 
-  G4int fVerbose;
-  G4int    fNLtot,    fNRtot;       // nb of bins: longitudinal and radial
-  G4double fDLradl,   fDRradl;      // bin thickness (in radl unit)
+    G4int GetNbOfCrystals() const { return fNbOfCrystals; }
 
-  ExGflashMessenger*  fGflashMessenger;
+    G4double GetCrystalWidth() const { return fCrystalWidth; }
+    G4double GetCrystalLength() const { return fCrystalLength; }
 
-  static G4ThreadLocal GFlashShowerModel* fFastShowerModel; 
-  static G4ThreadLocal GFlashHomoShowerParameterisation* fParameterisation;
-  static G4ThreadLocal GFlashParticleBounds* fParticleBounds;
-  static G4ThreadLocal GFlashHitMaker* fHitMaker;
+    void SetNbOfCrystals(G4int n) { fNbOfCrystals = n; }
+
+    void SetCrystalWidth(G4double cw) { fCrystalWidth = cw; }
+    void SetCrystalLength(G4double cl) { fCrystalLength = cl; }
+
+  private:
+    void DefineMaterials();
+
+    G4int fNbOfCrystals{10};  // cube of nb x nb crystals
+
+    G4double fCrystalWidth;  // x,y size
+    G4double fCrystalLength;  // z size
+
+    G4LogicalVolume* fCrystal_log{nullptr};
+    G4Material* fDetMat{nullptr};
+    G4Material* fHallMat{nullptr};
+
+    G4Region* fRegion{nullptr};
+
+    G4double fSDRadLen{1.0};  // SD material Rad Length
+    G4double fSDRm{1.0};  // SD material Moliere Radius
+
+    G4int fVerbose{1};
+
+    G4int fNLtot{112}, fNRtot{80};  // nb of bins: longitudinal and radial
+    G4double fDLradl{0.25}, fDRradl{0.05};  // bin thickness (in fraction of radl)
+
+    ExGflashMessenger* fGflashMessenger{nullptr};
+
+    inline static G4ThreadLocal GFlashShowerModel* fFastShowerModel = nullptr;
+    inline static G4ThreadLocal GFlashHomoShowerParameterisation* fParameterisation = nullptr;
+    inline static G4ThreadLocal GFlashParticleBounds* fParticleBounds = nullptr;
+    inline static G4ThreadLocal GFlashHitMaker* fHitMaker = nullptr;
 };
 
 #endif

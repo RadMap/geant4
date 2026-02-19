@@ -23,19 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field05/include/F05PrimaryGeneratorAction.hh
+/// \file F05PrimaryGeneratorAction.hh
 /// \brief Definition of the F05PrimaryGeneratorAction class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef F05PrimaryGeneratorAction_h
 #define F05PrimaryGeneratorAction_h 1
 
-#include "globals.hh"
 #include "G4VUserPrimaryGeneratorAction.hh"
+#include "globals.hh"
 
 class G4Event;
 class G4ParticleGun;
@@ -44,16 +39,14 @@ class G4ParticleGun;
 
 class F05PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
+  public:
+    F05PrimaryGeneratorAction();
+    ~F05PrimaryGeneratorAction() override;
 
-  F05PrimaryGeneratorAction(void);    
-  virtual ~F05PrimaryGeneratorAction();
+    void GeneratePrimaries(G4Event*) override;
 
-  virtual void GeneratePrimaries(G4Event*);
-
-private:
-
-  G4ParticleGun* fParticleGun;
+  private:
+    G4ParticleGun* fParticleGun = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

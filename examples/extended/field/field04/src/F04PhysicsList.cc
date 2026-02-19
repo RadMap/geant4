@@ -23,200 +23,180 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field04/src/F04PhysicsList.cc
+/// \file F04PhysicsList.cc
 /// \brief Implementation of the F04PhysicsList class
-//
 
 #include "F04PhysicsList.hh"
+
 #include "F04PhysicsListMessenger.hh"
 
-#include "G4StepLimiterPhysics.hh"
-#include "G4OpticalPhysics.hh"
-
 #include "G4LossTableManager.hh"
-
-#include "G4ProcessManager.hh"
-#include "G4ParticleTypes.hh"
+#include "G4OpticalPhysics.hh"
 #include "G4ParticleTable.hh"
+#include "G4ParticleTypes.hh"
+#include "G4ProcessManager.hh"
+#include "G4StepLimiterPhysics.hh"
 
-//#include "G4PhysListFactory.hh"
+#include "F04StepMax.hh"
 #include "FTFP_BERT.hh"
 #include "QGSP_BERT.hh"
 
-#include "G4Gamma.hh"
-#include "G4Electron.hh"
-#include "G4Positron.hh"
-
-#include "F04StepMax.hh"
-
-#include "G4ProcessTable.hh"
-
-#include "G4PionDecayMakeSpin.hh"
-#include "G4DecayWithSpin.hh"
-
 #include "G4DecayTable.hh"
-#include "G4MuonDecayChannelWithSpin.hh"
-#include "G4MuonRadiativeDecayChannelWithSpin.hh"
-
-#include "G4MuonMinusCapture.hh"
+#include "G4DecayWithSpin.hh"
+#include "G4Electron.hh"
+#include "G4Gamma.hh"
 #include "G4MuMinusCapturePrecompound.hh"
-
+#include "G4MuonDecayChannelWithSpin.hh"
+#include "G4MuonMinusCapture.hh"
+#include "G4MuonRadiativeDecayChannelWithSpin.hh"
+#include "G4PionDecayMakeSpin.hh"
+#include "G4Positron.hh"
+#include "G4ProcessTable.hh"
 #include "G4SystemOfUnits.hh"
-#include "G4AutoDelete.hh"
 
-G4ThreadLocal F04StepMax* F04PhysicsList::fStepMaxProcess = 0;
+G4ThreadLocal F04StepMax* F04PhysicsList::fStepMaxProcess = nullptr;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-F04PhysicsList::F04PhysicsList(G4String physName) : G4VModularPhysicsList()
+F04PhysicsList::F04PhysicsList(const G4String& physName) : G4VModularPhysicsList()
 {
-    G4LossTableManager::Instance();
+  G4LossTableManager::Instance();
 
-    defaultCutValue  = 1.*mm;
+  defaultCutValue = 1. * mm;
 
-    fMessenger = new F04PhysicsListMessenger(this);
+  fMessenger = new F04PhysicsListMessenger(this);
 
-    SetVerboseLevel(1);
+  SetVerboseLevel(1);
 
-//    G4PhysListFactory factory;
-    G4VModularPhysicsList* phys = NULL;
-    if (physName == "QGSP_BERT") {
-       phys = new QGSP_BERT;
-    } else {
-       phys = new FTFP_BERT;
-    }
+  //    G4PhysListFactory factory;
+  G4VModularPhysicsList* phys = nullptr;
+  if (physName == "QGSP_BERT") {
+    phys = new QGSP_BERT;
+  }
+  else {
+    phys = new FTFP_BERT;
+  }
 
-//    if (factory.IsReferencePhysList(physName))
-//       phys =factory.GetReferencePhysList(physName);
+  //    if (factory.IsReferencePhysList(physName))
+  //       phys =factory.GetReferencePhysList(physName);
 
-    // Physics List is defined via environment variable PHYSLIST
-//    if (!phys) phys = factory.ReferencePhysList();
+  // Physics List is defined via environment variable PHYSLIST
+  //    if (!phys) phys = factory.ReferencePhysList();
 
-    if (!phys) G4Exception("F04PhysicsList::F04PhysicsList","InvalidSetup",
-                              FatalException,"PhysicsList does not exist");
+  if (!phys)
+    G4Exception("F04PhysicsList::F04PhysicsList", "InvalidSetup", FatalException,
+                "PhysicsList does not exist");
 
-    for (G4int i = 0; ; ++i) {
-       G4VPhysicsConstructor* elem =
-                  const_cast<G4VPhysicsConstructor*> (phys->GetPhysics(i));
-       if (elem == NULL) break;
-       G4cout << "RegisterPhysics: " << elem->GetPhysicsName() << G4endl;
-       RegisterPhysics(elem);
-    }
+  for (G4int i = 0;; ++i) {
+    auto elem = const_cast<G4VPhysicsConstructor*>(phys->GetPhysics(i));
+    if (elem == nullptr) break;
+    G4cout << "RegisterPhysics: " << elem->GetPhysicsName() << G4endl;
+    RegisterPhysics(elem);
+  }
 
-    RegisterPhysics(new G4StepLimiterPhysics());
-    RegisterPhysics(new G4OpticalPhysics());
-
-    fMaxChargedStep = DBL_MAX;
+  RegisterPhysics(new G4StepLimiterPhysics());
+  RegisterPhysics(new G4OpticalPhysics());
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 F04PhysicsList::~F04PhysicsList()
 {
-    delete fMessenger;
-
-    //delete fStepMaxProcess;
+  delete fMessenger;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void F04PhysicsList::ConstructParticle()
 {
-    G4VModularPhysicsList::ConstructParticle();
+  G4VModularPhysicsList::ConstructParticle();
 
-    G4GenericIon::GenericIonDefinition();
+  G4GenericIon::GenericIonDefinition();
 
-    G4DecayTable* muonPlusDecayTable = new G4DecayTable();
-    muonPlusDecayTable -> Insert(new
-                           G4MuonDecayChannelWithSpin("mu+",0.986));
-    muonPlusDecayTable -> Insert(new
-                           G4MuonRadiativeDecayChannelWithSpin("mu+",0.014));
-    G4MuonPlus::MuonPlusDefinition() -> SetDecayTable(muonPlusDecayTable);
+  auto muonPlusDecayTable = new G4DecayTable();
+  muonPlusDecayTable->Insert(new G4MuonDecayChannelWithSpin("mu+", 0.986));
+  muonPlusDecayTable->Insert(new G4MuonRadiativeDecayChannelWithSpin("mu+", 0.014));
+  G4MuonPlus::MuonPlusDefinition()->SetDecayTable(muonPlusDecayTable);
 
-    G4DecayTable* muonMinusDecayTable = new G4DecayTable();
-    muonMinusDecayTable -> Insert(new
-                            G4MuonDecayChannelWithSpin("mu-",0.986));
-    muonMinusDecayTable -> Insert(new
-                            G4MuonRadiativeDecayChannelWithSpin("mu-",0.014));
-    G4MuonMinus::MuonMinusDefinition() -> SetDecayTable(muonMinusDecayTable);
+  auto muonMinusDecayTable = new G4DecayTable();
+  muonMinusDecayTable->Insert(new G4MuonDecayChannelWithSpin("mu-", 0.986));
+  muonMinusDecayTable->Insert(new G4MuonRadiativeDecayChannelWithSpin("mu-", 0.014));
+  G4MuonMinus::MuonMinusDefinition()->SetDecayTable(muonMinusDecayTable);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void F04PhysicsList::ConstructProcess()
 {
-    G4VModularPhysicsList::ConstructProcess();
+  G4VModularPhysicsList::ConstructProcess();
 
-    fStepMaxProcess = new F04StepMax();
-    G4AutoDelete::Register(fStepMaxProcess);
-    
-    G4DecayWithSpin* decayWithSpin = new G4DecayWithSpin();
+  fStepMaxProcess = new F04StepMax();
 
-    G4ProcessTable* processTable = G4ProcessTable::GetProcessTable();
+  auto decayWithSpin = new G4DecayWithSpin();
 
-    G4VProcess* decay;
-    decay = processTable->FindProcess("Decay",G4MuonPlus::MuonPlus());
+  G4ProcessTable* processTable = G4ProcessTable::GetProcessTable();
 
-    G4ProcessManager* pmanager;
-    pmanager = G4MuonPlus::MuonPlus()->GetProcessManager();
+  G4VProcess* decay;
+  decay = processTable->FindProcess("Decay", G4MuonPlus::MuonPlus());
 
-    if (pmanager) {
-      if (decay) pmanager->RemoveProcess(decay);
-      pmanager->AddProcess(decayWithSpin);
-      // set ordering for PostStepDoIt and AtRestDoIt
-      pmanager ->SetProcessOrdering(decayWithSpin, idxPostStep);
-      pmanager ->SetProcessOrdering(decayWithSpin, idxAtRest);
-    }
+  G4ProcessManager* pmanager;
+  pmanager = G4MuonPlus::MuonPlus()->GetProcessManager();
 
-    decay = processTable->FindProcess("Decay",G4MuonMinus::MuonMinus());
+  if (pmanager) {
+    if (decay) pmanager->RemoveProcess(decay);
+    pmanager->AddProcess(decayWithSpin);
+    // set ordering for PostStepDoIt and AtRestDoIt
+    pmanager->SetProcessOrdering(decayWithSpin, idxPostStep);
+    pmanager->SetProcessOrdering(decayWithSpin, idxAtRest);
+  }
 
-    pmanager = G4MuonMinus::MuonMinus()->GetProcessManager();
+  decay = processTable->FindProcess("Decay", G4MuonMinus::MuonMinus());
 
-    if (pmanager) {
-      if (decay) pmanager->RemoveProcess(decay);
-      pmanager->AddProcess(decayWithSpin);
-      // set ordering for PostStepDoIt and AtRestDoIt
-      pmanager ->SetProcessOrdering(decayWithSpin, idxPostStep);
-      pmanager ->SetProcessOrdering(decayWithSpin, idxAtRest);
-    }
+  pmanager = G4MuonMinus::MuonMinus()->GetProcessManager();
 
-    G4VProcess* process = processTable->
-         FindProcess("muMinusCaptureAtRest",G4MuonMinus::MuonMinus());
+  if (pmanager) {
+    if (decay) pmanager->RemoveProcess(decay);
+    pmanager->AddProcess(decayWithSpin);
+    // set ordering for PostStepDoIt and AtRestDoIt
+    pmanager->SetProcessOrdering(decayWithSpin, idxPostStep);
+    pmanager->SetProcessOrdering(decayWithSpin, idxAtRest);
+  }
 
-    if (pmanager) {
-       if (process) pmanager->RemoveProcess(process);
-       process = new G4MuonMinusCapture(new G4MuMinusCapturePrecompound());
-       pmanager->AddRestProcess(process);
-    }
+  G4VProcess* process = processTable->FindProcess("muMinusCaptureAtRest", G4MuonMinus::MuonMinus());
 
-    G4PionDecayMakeSpin* poldecay = new G4PionDecayMakeSpin();
+  if (pmanager) {
+    if (process) pmanager->RemoveProcess(process);
+    process = new G4MuonMinusCapture(new G4MuMinusCapturePrecompound());
+    pmanager->AddRestProcess(process);
+  }
 
-    decay = processTable->FindProcess("Decay",G4PionPlus::PionPlus());
+  auto poldecay = new G4PionDecayMakeSpin();
 
-    pmanager = G4PionPlus::PionPlus()->GetProcessManager();
+  decay = processTable->FindProcess("Decay", G4PionPlus::PionPlus());
 
-    if (pmanager) {
-      if (decay) pmanager->RemoveProcess(decay);
-      pmanager->AddProcess(poldecay);
-      // set ordering for PostStepDoIt and AtRestDoIt
-      pmanager ->SetProcessOrdering(poldecay, idxPostStep);
-      pmanager ->SetProcessOrdering(poldecay, idxAtRest);
-    }
+  pmanager = G4PionPlus::PionPlus()->GetProcessManager();
 
-    decay = processTable->FindProcess("Decay",G4PionMinus::PionMinus());
+  if (pmanager) {
+    if (decay) pmanager->RemoveProcess(decay);
+    pmanager->AddProcess(poldecay);
+    // set ordering for PostStepDoIt and AtRestDoIt
+    pmanager->SetProcessOrdering(poldecay, idxPostStep);
+    pmanager->SetProcessOrdering(poldecay, idxAtRest);
+  }
 
-    pmanager = G4PionMinus::PionMinus()->GetProcessManager();
+  decay = processTable->FindProcess("Decay", G4PionMinus::PionMinus());
 
-    if (pmanager) {
-      if (decay) pmanager->RemoveProcess(decay);
-      pmanager->AddProcess(poldecay);
-      // set ordering for PostStepDoIt and AtRestDoIt
-      pmanager ->SetProcessOrdering(poldecay, idxPostStep);
-      pmanager ->SetProcessOrdering(poldecay, idxAtRest);
-    }
+  pmanager = G4PionMinus::PionMinus()->GetProcessManager();
 
-    AddStepMax();
+  if (pmanager) {
+    if (decay) pmanager->RemoveProcess(decay);
+    pmanager->AddProcess(poldecay);
+    // set ordering for PostStepDoIt and AtRestDoIt
+    pmanager->SetProcessOrdering(poldecay, idxPostStep);
+    pmanager->SetProcessOrdering(poldecay, idxAtRest);
+  }
+
+  AddStepMax();
 }
 
 /*
@@ -257,13 +237,13 @@ void F04PhysicsList::ClearPhysics()
 
 void F04PhysicsList::SetStepMax(G4double step)
 {
-  fMaxChargedStep = step ;
+  fMaxChargedStep = step;
   fStepMaxProcess->SetStepMax(fMaxChargedStep);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-F04StepMax* F04PhysicsList::GetStepMaxProcess()
+F04StepMax* F04PhysicsList::GetStepMaxProcess() const
 {
   return fStepMaxProcess;
 }
@@ -274,15 +254,14 @@ void F04PhysicsList::AddStepMax()
 {
   // Step limitation seen as a process
 
-  auto particleIterator=GetParticleIterator();
+  auto particleIterator = GetParticleIterator();
   particleIterator->reset();
-  while ((*particleIterator)()){
-      G4ParticleDefinition* particle = particleIterator->value();
-      G4ProcessManager* pmanager = particle->GetProcessManager();
+  while ((*particleIterator)()) {
+    G4ParticleDefinition* particle = particleIterator->value();
+    G4ProcessManager* pmanager = particle->GetProcessManager();
 
-      if (fStepMaxProcess->IsApplicable(*particle) && !particle->IsShortLived())
-      {
-         if (pmanager) pmanager ->AddDiscreteProcess(fStepMaxProcess);
-      }
+    if (fStepMaxProcess->IsApplicable(*particle) && !particle->IsShortLived()) {
+      if (pmanager) pmanager->AddDiscreteProcess(fStepMaxProcess);
+    }
   }
 }

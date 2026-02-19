@@ -25,7 +25,7 @@
 //
 // G4UniformMagField implementation
 //
-// Created: V.Grichine, 30.01.1997
+// Author: Vladimir Grichine (CERN), 30.01.1997
 // -------------------------------------------------------------------
 
 #include "G4UniformMagField.hh"
@@ -36,10 +36,6 @@ G4UniformMagField::G4UniformMagField(const G4ThreeVector& FieldVector )
    fFieldComponents[0] = FieldVector.x();
    fFieldComponents[1] = FieldVector.y();
    fFieldComponents[2] = FieldVector.z();
-}
-
-G4UniformMagField::~G4UniformMagField()
-{
 }
 
 G4UniformMagField::G4UniformMagField (const G4UniformMagField& p)
@@ -53,7 +49,7 @@ G4UniformMagField::G4UniformMagField (const G4UniformMagField& p)
 
 G4UniformMagField& G4UniformMagField::operator = (const G4UniformMagField& p)
 {
-   if (&p == this) return *this;
+   if (&p == this) { return *this;}
    G4MagneticField::operator=(p); 
    for (auto i=0; i<3; ++i)
    {

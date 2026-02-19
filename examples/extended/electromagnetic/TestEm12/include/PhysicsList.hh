@@ -23,13 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm12/include/PhysicsList.hh
+/// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//
+
 // 14.10.02 (V.Ivanchenko) provide modular list on base of old PhysicsList
 //
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -46,30 +42,29 @@ class PhysicsListMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
   public:
     PhysicsList();
-   ~PhysicsList();
+    ~PhysicsList() override;
 
-    virtual void ConstructParticle();
-        
+    void ConstructParticle() override;
+
     void AddPhysicsList(const G4String& name);
-    virtual void ConstructProcess();
+    void ConstructProcess() override;
+    void AddDecay();
+    void AddStepMax();
 
-    void AddDecay();    
-    void AddStepMax();       
-    StepMax* GetStepMaxProcess() {return fStepMaxProcess;};
+    StepMax* GetStepMaxProcess() { return fStepMaxProcess; };
 
-  private:       
-    G4String                      fEmName;
-    G4VPhysicsConstructor*        fEmPhysicsList;    
+  private:
+    G4String fEmName;
+    G4VPhysicsConstructor* fEmPhysicsList = nullptr;
     static G4ThreadLocal StepMax* fStepMaxProcess;
-    
-    PhysicsListMessenger*  fMessenger;
+
+    PhysicsListMessenger* fMessenger = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

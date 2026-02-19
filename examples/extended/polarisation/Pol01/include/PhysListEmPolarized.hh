@@ -23,13 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file polarisation/Pol01/include/PhysListEmPolarized.hh
+/// \file PhysListEmPolarized.hh
 /// \brief Definition of the PhysListEmPolarized class
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysListEmPolarized_h
 #define PhysListEmPolarized_h 1
@@ -41,17 +36,17 @@
 
 class PhysListEmPolarized : public G4VPhysicsConstructor
 {
-  public: 
+  public:
     PhysListEmPolarized(const G4String& name = "polarized");
-   ~PhysListEmPolarized();
+    ~PhysListEmPolarized();
 
-  public: 
+  public:
     // This method is dummy for physics
     virtual void ConstructParticle() {};
- 
+
     // This method will be invoked in the Construct() method.
     // each physics process will be instantiated and
-    // registered to the process manager of each particle type 
+    // registered to the process manager of each particle type
     virtual void ConstructProcess();
 };
 

@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/phonon/include/XPhysicsList.hh
+/// \file XPhysicsList.hh
 /// \brief Definition of the XPhysicsList class
-//
-//
+
 // 20131117  Add verbosity argument, to set verbosity from main program
 
 #ifndef XPhysicsList_h
@@ -35,18 +34,16 @@
 #include "G4VUserPhysicsList.hh"
 #include "globals.hh"
 
-class XPhysicsList : public G4VUserPhysicsList {
-public:
-  XPhysicsList(G4int verbose=0);
-  ~XPhysicsList();
-  
-  // Construct particle and physics
-  virtual void ConstructParticle();
-  virtual void ConstructProcess();
-  virtual void SetCuts();
+class XPhysicsList : public G4VUserPhysicsList
+{
+  public:
+    XPhysicsList(G4int verbose = 0);
+    ~XPhysicsList();
+
+    // Construct particle and physics
+    virtual void ConstructParticle();
+    virtual void ConstructProcess();
+    virtual void SetCuts();
 };
 
-#endif  /* XPhysicsList_h */
-
-
-
+#endif /* XPhysicsList_h */

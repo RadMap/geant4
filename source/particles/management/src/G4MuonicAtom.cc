@@ -23,18 +23,16 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4MuonicAtom class implementation
 //
-//
-// 
-// --------------------------------------------------------------
-//	GEANT 4 class implementation file 
-//
-//	History: 
-//      July 2016, K.Lynch - first implementation
-//      June 2017, K.L.Genser - added baseion, lifetimes and access functions
+// Author: K. Lynch, July 2016
+// Revision:
+// - June 2017, K.L. Genser - added baseion, lifetimes and access functions
+// --------------------------------------------------------------------
 
 #include "G4MuonicAtom.hh"
 
+// clang-format off
 G4MuonicAtom::G4MuonicAtom(
        const G4String&     aName,        G4double            mass,
        G4double            width,        G4double            charge,   
@@ -58,6 +56,7 @@ G4MuonicAtom::G4MuonicAtom(
        baseIon(baseion),
        fDIOLifeTime(DIOLifeTime),
        fNCLifeTime(NCLifeTime)
+// clang-format on
 {
   // member is private in base, so we need to go through the public
   // interface
@@ -66,5 +65,3 @@ G4MuonicAtom::G4MuonicAtom(
   isGeneralIon = false;
   isMuonicAtom = true;
 }
-
-G4MuonicAtom::~G4MuonicAtom(){}

@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/src/CRMCNeutronBuilder.cc
+/// \file CRMCNeutronBuilder.cc
 /// \brief Implementation of the CRMCNeutronBuilder class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName: CRMCNeutronBuilder
@@ -34,55 +33,70 @@
 // Author:    2018 Alberto Ribon
 //
 // Modified:
+// -  18-May-2021 Alberto Ribon : Used the latest Geant4-CRMC interface.
 //
 //----------------------------------------------------------------------------
 //
 #ifdef G4_USE_CRMC
 
-#include "CRMCNeutronBuilder.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4ParticleTable.hh"
-#include "G4ProcessManager.hh"
-#include "G4NeutronInelasticProcess.hh"
-#include "G4HadronFissionProcess.hh"
-#include "G4HadronCaptureProcess.hh"
-#include "G4HadronicParameters.hh"
-#include "G4SystemOfUnits.hh"
+#  include "CRMCNeutronBuilder.hh"
 
+#  include "HadronicInelasticModelCRMC.hh"
 
-CRMCNeutronBuilder::CRMCNeutronBuilder() {
-  fMin = 0.0*MeV;  // For CRMC, this value does not matter in practice because
-                   // we are going to use this model only at high energies.
+#  include "G4HadronInelasticProcess.hh"
+#  include "G4HadronicParameters.hh"
+#  include "G4LFission.hh"
+#  include "G4NeutronCaptureProcess.hh"
+#  include "G4NeutronFissionProcess.hh"
+#  include "G4NeutronRadCapture.hh"
+#  include "G4ParticleDefinition.hh"
+#  include "G4ParticleTable.hh"
+#  include "G4ProcessManager.hh"
+#  include "G4SystemOfUnits.hh"
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+CRMCNeutronBuilder::CRMCNeutronBuilder(const G4int crmcModelId, const std::string& crmcModelName)
+{
+  fMin = 0.0 * MeV;  // For CRMC, this value does not matter in practice because
+                     // we are going to use this model only at high energies.
   fMax = G4HadronicParameters::Instance()->GetMaxEnergy();
-  fModel = new G4CRMCModel;
-  captureModel = new G4NeutronRadCapture;
-  fissionModel = new G4LFission;
+  fModel = new HadronicInelasticModelCRMC(crmcModelId, crmcModelName);
+  fCaptureModel = new G4NeutronRadCapture;
+  fFissionModel = new G4LFission;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void CRMCNeutronBuilder::Build( G4NeutronInelasticProcess* aP ) {
-  fModel->SetMinEnergy( fMin );
-  fModel->SetMaxEnergy( fMax );
-  aP->RegisterMe( fModel );
+void CRMCNeutronBuilder::Build(G4HadronInelasticProcess* aP)
+{
+  fModel->SetMinEnergy(fMin);
+  fModel->SetMaxEnergy(fMax);
+  aP->RegisterMe(fModel);
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 CRMCNeutronBuilder::~CRMCNeutronBuilder() {}
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void CRMCNeutronBuilder::Build( G4HadronElasticProcess* ) {}
+void CRMCNeutronBuilder::Build(G4HadronElasticProcess*) {}
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void CRMCNeutronBuilder::Build( G4HadronFissionProcess* aP ) {
-  fissionModel->SetMinEnergy( 0.0 );
-  fissionModel->SetMaxEnergy( G4HadronicParameters::Instance()->GetMaxEnergy() );
-  aP->RegisterMe( fissionModel );
+void CRMCNeutronBuilder::Build(G4NeutronFissionProcess* aP)
+{
+  fFissionModel->SetMinEnergy(0.0);
+  fFissionModel->SetMaxEnergy(G4HadronicParameters::Instance()->GetMaxEnergy());
+  aP->RegisterMe(fFissionModel);
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void CRMCNeutronBuilder::Build( G4HadronCaptureProcess* aP ) {
-  aP->RegisterMe( captureModel );
+void CRMCNeutronBuilder::Build(G4NeutronCaptureProcess* aP)
+{
+  aP->RegisterMe(fCaptureModel);
 }
 
-#endif //G4_USE_CRMC
-
+#endif  // G4_USE_CRMC

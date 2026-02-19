@@ -32,20 +32,13 @@
 // This is a modified version of the FTFP_BERT physics list for ATLAS.
 // The physics list FTFP_BERT_ATL has the transition between Bertini (BERT)
 // intra-nuclear cascade model and Fritiof (FTF) string model in the
-// energy region [9, 12] GeV (instead of [4, 5] GeV as in FTFP_BERT).
+// energy region [9, 12] GeV (instead of [3, 6] GeV as in FTFP_BERT).
 //----------------------------------------------------------------------------
 //
 #include <iomanip>   
 
 #include "globals.hh"
 #include "G4ios.hh"
-#include "G4ProcessManager.hh"
-#include "G4ProcessVector.hh"
-#include "G4ParticleTypes.hh"
-#include "G4ParticleTable.hh"
-
-#include "G4Material.hh"
-#include "G4MaterialTable.hh"
 
 #include "G4DecayPhysics.hh"
 #include "G4EmStandardPhysics.hh"
@@ -59,19 +52,18 @@
 #include "G4HadronPhysicsFTFP_BERT_ATL.hh"
 
 #include "G4WarnPLStatus.hh"
-
+#include "G4FTFTunings.hh"
 
 FTFP_BERT_ATL::FTFP_BERT_ATL(G4int ver)
 {
-  // default cut value  (1.0mm) 
-  // defaultCutValue = 1.0*CLHEP::mm;
-  G4cout << "<<< Geant4 Physics List simulation engine: FTFP_BERT_ATL"<<G4endl;
-  G4cout <<G4endl;
+  if(ver > 0) {
+    G4cout << "<<< Geant4 Physics List simulation engine: FTFP_BERT_ATL"<<G4endl;
+    G4cout <<G4endl;
+    G4WarnPLStatus exp;
+    exp.Experimental("FTFP_BERT_ATL");
+  }
   defaultCutValue = 0.7*CLHEP::mm;  
   SetVerboseLevel(ver);
-
-  G4WarnPLStatus exp;
-  exp.Experimental("FTFP_BERT_ATL");
 
   // EM Physics
   RegisterPhysics( new G4EmStandardPhysics(ver));

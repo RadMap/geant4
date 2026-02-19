@@ -40,40 +40,37 @@
 // 04.06.2010 G.Folger: Use new ctor for builders
 // 16.08.2010 H.Kurashige: Remove inclusion of G4ParticleWithCuts 
 // 16.10.2012 A.Ribon: Use new default stopping
+// 12.10.2023 V.Ivanchenko added usage of alternative neutron HP models and
+//            processes
 //
 //----------------------------------------------------------------------------
 //
 
 #include <iomanip>   
 
-#include <CLHEP/Units/SystemOfUnits.h>
+#include "G4SystemOfUnits.hh"
 
 #include "globals.hh"
 #include "G4ios.hh"
-#include "G4ProcessManager.hh"
-#include "G4ProcessVector.hh"
-#include "G4ParticleTypes.hh"
-#include "G4ParticleTable.hh"
-
-#include "G4Material.hh"
-#include "G4MaterialTable.hh"
 
 #include "G4DecayPhysics.hh"
 #include "G4RadioactiveDecayPhysics.hh"
 #include "G4EmStandardPhysics.hh"
 #include "G4EmExtraPhysics.hh"
 #include "G4IonPhysics.hh"
+#include "G4IonElasticPhysics.hh"
 #include "G4StoppingPhysics.hh"
-#include "G4HadronElasticPhysicsHP.hh"
+#include "G4HadronElasticPhysicsVI.hh"
 
 #include "QGSP_BERT_HP.hh"
 #include "G4HadronPhysicsQGSP_BERT_HP.hh"
 
 QGSP_BERT_HP::QGSP_BERT_HP(G4int ver)
 {
-
-  G4cout << "<<< Geant4 Physics List simulation engine: QGSP_BERT_HP"<<G4endl;
-  G4cout <<G4endl<<G4endl;
+  if(ver > 0) {
+    G4cout << "<<< Geant4 Physics List simulation engine: QGSP_BERT_HP"<<G4endl;
+    G4cout <<G4endl;
+  }
 
   defaultCutValue = 0.7*CLHEP::mm;  
   SetVerboseLevel(ver);
@@ -89,7 +86,7 @@ QGSP_BERT_HP::QGSP_BERT_HP(G4int ver)
   RegisterPhysics( new G4RadioactiveDecayPhysics(ver) );
 
    // Hadron Elastic scattering
-   RegisterPhysics( new G4HadronElasticPhysicsHP(ver) );
+   RegisterPhysics( new G4HadronElasticPhysicsVI(ver) );
 
   // Hadron Physics
   RegisterPhysics( new G4HadronPhysicsQGSP_BERT_HP(ver));
@@ -99,6 +96,7 @@ QGSP_BERT_HP::QGSP_BERT_HP(G4int ver)
 
   // Ion Physics
   RegisterPhysics( new G4IonPhysics(ver));
+  RegisterPhysics( new G4IonElasticPhysics(ver) );
 
 }
 

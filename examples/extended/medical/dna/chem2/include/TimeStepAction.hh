@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file TimeStepAction.hh
+/// \brief Definition of the TimeStepAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,8 +34,6 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file TimeStepAction.hh
-/// \brief Definition of the TimeStepAction class
 
 #ifndef ITACTION_H
 #define ITACTION_H
@@ -41,22 +42,20 @@
 
 class TimeStepAction : public G4UserTimeStepAction
 {
-public:
-  TimeStepAction();
-  virtual ~TimeStepAction();
-  TimeStepAction(const TimeStepAction& other);
-  TimeStepAction& operator=(const TimeStepAction& other);
+  public:
+    TimeStepAction();
+    virtual ~TimeStepAction();
+    TimeStepAction(const TimeStepAction& other);
+    TimeStepAction& operator=(const TimeStepAction& other);
 
-  virtual void StartProcessing();
+    virtual void StartProcessing();
 
-  virtual void UserPreTimeStepAction();
-  virtual void UserPostTimeStepAction();
+    virtual void UserPreTimeStepAction();
+    virtual void UserPostTimeStepAction();
 
-  virtual void UserReactionAction(const G4Track&,
-                                  const G4Track&,
-                                  const std::vector<G4Track*>*);
+    virtual void UserReactionAction(const G4Track&, const G4Track&, const std::vector<G4Track*>*);
 
-  virtual void EndProcessing();
+    virtual void EndProcessing();
 };
 
-#endif // ITACTION_H
+#endif  // ITACTION_H

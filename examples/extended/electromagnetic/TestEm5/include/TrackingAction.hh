@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm5/include/TrackingAction.hh
+/// \file TrackingAction.hh
 /// \brief Definition of the TrackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef TrackingAction_h
 #define TrackingAction_h 1
@@ -41,22 +37,22 @@ class EventAction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class TrackingAction : public G4UserTrackingAction {
+class TrackingAction : public G4UserTrackingAction
+{
+  public:
+    TrackingAction(DetectorConstruction*, EventAction*);
+    ~TrackingAction() override = default;
 
-  public:  
-    TrackingAction(DetectorConstruction*,EventAction*);
-   ~TrackingAction() {};
-   
-    virtual void  PreUserTrackingAction(const G4Track*);   
-    virtual void PostUserTrackingAction(const G4Track*);
-    
+    void PreUserTrackingAction(const G4Track*) override;
+    void PostUserTrackingAction(const G4Track*) override;
+
   private:
-    DetectorConstruction* fDetector;
-    EventAction*          fEventAction;
-    
-    G4double fXstartAbs, fXendAbs;
-    G4double fPrimaryCharge;
-    G4double fDirX;
+    DetectorConstruction* fDetector = nullptr;
+    EventAction* fEventAction = nullptr;
+
+    G4double fXstartAbs = 0., fXendAbs = 0.;
+    G4double fPrimaryCharge = 0.;
+    G4double fDirX = 0.;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

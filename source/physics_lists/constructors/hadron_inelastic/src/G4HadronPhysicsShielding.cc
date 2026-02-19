@@ -33,14 +33,15 @@
 //
 // Modified:
 //
-// 2019.08.01 A.Ribon replaced explicit numbers for the energy transition
-//                    region with values taken from G4HadronicParameters
-// 2014.08.05 K.L.Genser added provisions for modifing the Bertini to
-//            FTF transition energy region
-//
+// 2020.05.07 A.Ribon: Used the newly introduced G4HyperonBuilder
+// 2019.08.01 A.Ribon: Replaced explicit numbers for the energy transition
+//                     region with values taken from G4HadronicParameters
+// 2014.08.05 K.L.Genser: Added provisions for modifing the Bertini to
+//                        FTF transition energy region
+// 2024.11.19 D.M.Wright: Removed LEND inelastic neutron model,
+//                        is now done in G4HadronPhysicsLEND
 //----------------------------------------------------------------------------
 //
-#include <iomanip>   
 
 #include "G4HadronPhysicsShielding.hh"
 
@@ -48,49 +49,22 @@
 #include "G4ios.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4ParticleDefinition.hh"
-#include "G4ParticleTable.hh"
-
-#include "G4MesonConstructor.hh"
-#include "G4BaryonConstructor.hh"
-#include "G4ShortLivedConstructor.hh"
-#include "G4IonConstructor.hh"
-
-#include "G4PionBuilder.hh"
-#include "G4BertiniPionBuilder.hh"
-#include "G4FTFPPionBuilder.hh"
-
-#include "G4KaonBuilder.hh"
-#include "G4BertiniKaonBuilder.hh"
-#include "G4FTFPKaonBuilder.hh"
-
-#include "G4ProtonBuilder.hh"
-#include "G4BertiniProtonBuilder.hh"
-#include "G4FTFPNeutronBuilder.hh"
-#include "G4FTFPProtonBuilder.hh"
 
 #include "G4NeutronBuilder.hh"
 #include "G4BertiniNeutronBuilder.hh"
 #include "G4FTFPNeutronBuilder.hh"
 #include "G4NeutronPHPBuilder.hh"
 
-#include "G4HyperonFTFPBuilder.hh"
-#include "G4AntiBarionBuilder.hh"
-#include "G4FTFPAntiBarionBuilder.hh"
-
-#include "G4ParticleHPBGGNucleonInelasticXS.hh"
 #include "G4ParticleHPJENDLHEInelasticData.hh"
 #include "G4ParticleHPInelasticData.hh"
-#include "G4NeutronLENDBuilder.hh"
+#include "G4HadronPhysicsLEND.hh"  // used to access const maxLEND_Energy
 
 #include "G4BGGNucleonInelasticXS.hh"
 #include "G4CrossSectionDataSetRegistry.hh"
 #include "G4PhysListUtil.hh"
 
-#include "G4ComponentGGHadronNucleusXsc.hh"
 #include "G4CrossSectionInelastic.hh"
-#include "G4HadronCaptureProcess.hh"
 #include "G4NeutronRadCapture.hh"
-#include "G4NeutronCaptureXS.hh"
 #include "G4ParticleHPCaptureData.hh"
 #include "G4LFission.hh"
 
@@ -104,205 +78,81 @@
 //
 G4_DECLARE_PHYSCONSTR_FACTORY(G4HadronPhysicsShielding);
 
-
-G4HadronPhysicsShielding::G4HadronPhysicsShielding( G4int )
-    :  G4VPhysicsConstructor("hInelastic Shielding")
-    , useLEND_(false)
-    , evaluation_()
-    , minFTFPEnergy_(G4HadronicParameters::Instance()->GetMinEnergyTransitionFTF_Cascade())
-    , maxBertiniEnergy_(G4HadronicParameters::Instance()->GetMaxEnergyTransitionFTF_Cascade())
-    , minNonHPNeutronEnergy_(19.9*MeV)
-{}
-
-G4HadronPhysicsShielding::G4HadronPhysicsShielding(const G4String& name, G4bool /* quasiElastic */)
-    :  G4VPhysicsConstructor(name) 
-    , useLEND_(false)
-    , evaluation_()
-    , minFTFPEnergy_(G4HadronicParameters::Instance()->GetMinEnergyTransitionFTF_Cascade())
-    , maxBertiniEnergy_(G4HadronicParameters::Instance()->GetMaxEnergyTransitionFTF_Cascade())
-    , minNonHPNeutronEnergy_(19.9*MeV)
-{}
-
-G4HadronPhysicsShielding::G4HadronPhysicsShielding(const G4String& name,
-                                G4int /*verbose*/, G4double minFTFPEnergy, G4double maxBertiniEnergy)
-    :  G4VPhysicsConstructor(name)
-    , useLEND_(false)
-    , evaluation_()
-    , minFTFPEnergy_(minFTFPEnergy)
-    , maxBertiniEnergy_(maxBertiniEnergy)
-    , minNonHPNeutronEnergy_(19.9*MeV)
-{}
-
-
-G4HadronPhysicsShielding::~G4HadronPhysicsShielding()
-{}
-
-
-void G4HadronPhysicsShielding::DumpBanner()
+G4HadronPhysicsShielding::G4HadronPhysicsShielding(G4int verb)
+  : G4HadronPhysicsShielding("hInelastic Shielding", false)
 {
-  G4cout << G4endl
-       << " Shielding : threshold between BERT and FTFP is over the interval : "
-       << minFTFPEnergy_/GeV << " to " << maxBertiniEnergy_/GeV  << " GeV" << G4endl
-       << G4endl;
+  G4HadronicParameters::Instance()->SetVerboseLevel(verb);
+} 
+
+G4HadronPhysicsShielding::G4HadronPhysicsShielding(const G4String& name)
+  : G4HadronPhysicsShielding(name, false)
+{} 
+
+G4HadronPhysicsShielding::G4HadronPhysicsShielding(const G4String& name, G4bool qe)
+  : G4HadronPhysicsFTFP_BERT(name, qe)
+{
+  minBERT_neutron = maxLEND_Energy - overlapLEND_Energy;
 }
 
-
-void G4HadronPhysicsShielding::ConstructParticle()
+G4HadronPhysicsShielding::G4HadronPhysicsShielding(const G4String& name, G4int verb)
+  : G4HadronPhysicsShielding(name, false)
 {
-  G4MesonConstructor pMesonConstructor;
-  pMesonConstructor.ConstructParticle();
+  G4HadronicParameters::Instance()->SetVerboseLevel(verb);
+} 
 
-  G4BaryonConstructor pBaryonConstructor;
-  pBaryonConstructor.ConstructParticle();
-
-  G4ShortLivedConstructor pShortLivedConstructor;
-  pShortLivedConstructor.ConstructParticle();  
-
-  G4IonConstructor pIonConstructor;
-  pIonConstructor.ConstructParticle();
-}
-
-
-void G4HadronPhysicsShielding::CreateModels()
+G4HadronPhysicsShielding::G4HadronPhysicsShielding(const G4String& name, G4int verb,
+                          G4double minFTFPEnergy, G4double maxBertiniEnergy)
+  : G4HadronPhysicsShielding(name, false)
 {
-  Neutron();
-  Proton();
-  Pion();
-  Kaon();
-  Others();
+  auto param = G4HadronicParameters::Instance();
+  param->SetVerboseLevel( verb );
+  param->SetMinEnergyTransitionFTF_Cascade( minFTFPEnergy );
+  param->SetMaxEnergyTransitionFTF_Cascade( maxBertiniEnergy );
 }
-
 
 void G4HadronPhysicsShielding::Neutron()
 {
-  auto neu = new G4NeutronBuilder( true );
-  AddBuilder( neu );
-  auto ftfpn = new G4FTFPNeutronBuilder( false );
-  AddBuilder( ftfpn );
-  neu->RegisterMe( ftfpn );
-  ftfpn->SetMinEnergy( minFTFPEnergy_ );
-  auto bertn = new G4BertiniNeutronBuilder;
-  AddBuilder( bertn );
-  neu->RegisterMe( bertn );
-  bertn->SetMinEnergy( minNonHPNeutronEnergy_ );
-  bertn->SetMaxEnergy( maxBertiniEnergy_ );
-  if ( useLEND_ ) {
-    auto lendn = new G4NeutronLENDBuilder( evaluation_ );
-    AddBuilder( lendn );
-    neu->RegisterMe( lendn );
-  } else {
-    auto hpn = new G4NeutronPHPBuilder;
-    AddBuilder( hpn );
-    neu->RegisterMe( hpn );
+  G4HadronicParameters* param = G4HadronicParameters::Instance();
+  G4bool useFactorXS = param->ApplyFactorXS();
+
+  G4NeutronBuilder neu( true ); // Fission on
+
+  G4FTFPNeutronBuilder ftfpneu( QuasiElastic );
+  ftfpneu.SetMinEnergy( minFTFP_neutron );
+  neu.RegisterMe( &ftfpneu );
+  
+  G4BertiniNeutronBuilder bertneu;
+  bertneu.SetMaxEnergy( maxBERT_neutron );
+  bertneu.SetMinEnergy( minBERT_neutron );
+  neu.RegisterMe( &bertneu );
+
+  if ( !useLEND_) {
+    G4NeutronPHPBuilder hpneu;
+    neu.RegisterMe( &hpneu );
   }
-  neu->Build();
-}
+  neu.Build();
 
-
-void G4HadronPhysicsShielding::Proton()
-{
-  auto pro = new G4ProtonBuilder;
-  AddBuilder( pro );
-  auto ftfpp = new G4FTFPProtonBuilder( false );
-  AddBuilder( ftfpp );
-  pro->RegisterMe( ftfpp );
-  ftfpp->SetMinEnergy( minFTFPEnergy_ );
-  auto bertp = new G4BertiniProtonBuilder;
-  AddBuilder( bertp );
-  pro->RegisterMe( bertp );
-  bertp->SetMaxEnergy( maxBertiniEnergy_ );
-  pro->Build();
-}
-
-
-void G4HadronPhysicsShielding::Pion()
-{
-  auto pi = new G4PionBuilder;
-  AddBuilder( pi );
-  auto ftfppi = new G4FTFPPionBuilder( false );
-  AddBuilder( ftfppi );
-  pi->RegisterMe( ftfppi );
-  ftfppi->SetMinEnergy( minFTFPEnergy_ );
-  auto bertpi = new G4BertiniPionBuilder;
-  AddBuilder( bertpi );
-  pi->RegisterMe( bertpi );
-  bertpi->SetMaxEnergy( maxBertiniEnergy_ );
-  pi->Build();
-}
-
-
-void G4HadronPhysicsShielding::Kaon()
-{
-  auto k = new G4KaonBuilder;
-  AddBuilder( k );
-  auto ftfpk = new G4FTFPKaonBuilder( false );
-  AddBuilder( ftfpk );
-  k->RegisterMe( ftfpk );
-  ftfpk->SetMinEnergy( minFTFPEnergy_ );
-  auto bertk  = new G4BertiniKaonBuilder;
-  AddBuilder( bertk );
-  k->RegisterMe( bertk );
-  bertk->SetMaxEnergy( maxBertiniEnergy_ );
-  k->Build();
-}
-
-
-void G4HadronPhysicsShielding::Others()
-{
-  // Hyperons
-  auto hyp = new G4HyperonFTFPBuilder;
-  AddBuilder( hyp );
-  hyp->Build();
-
-  // Antibaryons
-  auto abar = new G4AntiBarionBuilder;
-  AddBuilder( abar );
-  auto ftfpabar = new G4FTFPAntiBarionBuilder( false );
-  AddBuilder( ftfpabar );
-  abar->RegisterMe( ftfpabar );
-  abar->Build();
-}
-
-
-void G4HadronPhysicsShielding::ConstructProcess()
-{
-  if ( G4Threading::IsMasterThread() ) {
-    DumpBanner();
-  }
-  CreateModels();
-  ExtraConfiguration();
-}
-
-
-void G4HadronPhysicsShielding::ExtraConfiguration()
-{
-  // Modify cross sections for kaons
-  auto xsk = new G4ComponentGGHadronNucleusXsc();
-  G4VCrossSectionDataSet* kaonxs = new G4CrossSectionInelastic( xsk );
-  G4PhysListUtil::FindInelasticProcess( G4KaonMinus::KaonMinus() )->AddDataSet( kaonxs );
-  G4PhysListUtil::FindInelasticProcess( G4KaonPlus::KaonPlus() )->AddDataSet( kaonxs );
-  G4PhysListUtil::FindInelasticProcess( G4KaonZeroShort::KaonZeroShort() )->AddDataSet( kaonxs );
-  G4PhysListUtil::FindInelasticProcess( G4KaonZeroLong::KaonZeroLong() )->AddDataSet( kaonxs );
-
-  // Modify neutrons
   const G4ParticleDefinition* neutron = G4Neutron::Neutron();
-  G4HadronicProcess* inel = G4PhysListUtil::FindInelasticProcess( neutron );
-  if ( inel ) {
+  G4HadronicProcess* inel = G4PhysListUtil::FindInelasticProcess(neutron);
+  if ( nullptr != inel ) {
     // Register the G4ParticleHPJENDLHEInelasticData as the 2nd priority.
     inel->GetCrossSectionDataStore()->AddDataSet( new G4ParticleHPJENDLHEInelasticData, 1 );
+    if ( useFactorXS ) inel->MultiplyCrossSectionBy( param->XSFactorNucleonInelastic() );
   }
-  G4HadronicProcess* capture = G4PhysListUtil::FindCaptureProcess( neutron );
-  if ( capture ) {
-    G4NeutronRadCapture* theNeutronRadCapture = new G4NeutronRadCapture;
-    theNeutronRadCapture->SetMinEnergy( minNonHPNeutronEnergy_ ); 
+
+  G4HadronicProcess* capture = G4PhysListUtil::FindCaptureProcess(neutron);
+  if ( nullptr != capture ) {
+    G4NeutronRadCapture* theNeutronRadCapture = new G4NeutronRadCapture(); 
+    theNeutronRadCapture->SetMinEnergy( minBERT_neutron ); 
     capture->RegisterMe( theNeutronRadCapture );
   }
-  G4HadronicProcess* fission = G4PhysListUtil::FindFissionProcess( neutron );
-  if ( fission ) {
-    G4LFission* theNeutronLEPFission = new G4LFission;
-    theNeutronLEPFission->SetMinEnergy( minNonHPNeutronEnergy_ );
+  G4HadronicProcess* fission = G4PhysListUtil::FindFissionProcess(neutron);
+  if ( nullptr != fission ) {
+    G4LFission* theNeutronLEPFission = new G4LFission();
+    theNeutronLEPFission->SetMinEnergy( minBERT_neutron );
     theNeutronLEPFission->SetMaxEnergy( G4HadronicParameters::Instance()->GetMaxEnergy() );
     fission->RegisterMe( theNeutronLEPFission );
   }
 }
+
 

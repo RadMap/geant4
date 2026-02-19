@@ -41,24 +41,16 @@
 
 class G4PSPopulation3D : public G4PSPopulation
 {
- 
- public: // with description
-      G4PSPopulation3D(G4String name, 
-		     G4int ni=1,G4int nj=1, G4int nk=1,
-		     G4int depi=2, G4int depj=1, G4int depk=0);
+ public:
+  G4PSPopulation3D(const G4String& name, G4int ni = 1, G4int nj = 1, G4int nk = 1,
+                   G4int depi = 2, G4int depj = 1, G4int depk = 0);
+  ~G4PSPopulation3D() override = default;
 
-  public:
-      virtual ~G4PSPopulation3D();
+ protected:
+  G4int GetIndex(G4Step*) override;
 
-  protected: // with description
-      virtual G4int GetIndex(G4Step*);
-
-  private:
-      G4int fDepthi, fDepthj, fDepthk;
-
-
+ private:
+  G4int fDepthi, fDepthj, fDepthk;
 };
-
-
 
 #endif

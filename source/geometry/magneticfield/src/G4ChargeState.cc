@@ -25,7 +25,7 @@
 //
 // G4ChargeState implementation
 //
-// Authors: J.Apostolakis, P.Gumplinger - 10 April 2013  
+// Authors: J.Apostolakis (CERN), P.Gumplinger (TRIUMF), 10.04.2013  
 // -------------------------------------------------------------------
 
 #include "G4ChargeState.hh"
@@ -40,7 +40,10 @@ void G4ChargeState::SetChargeSpinMoments(G4double charge,
 {
    fCharge = charge;
    fSpin   = spin;
-   if( magnetic_dipole_moment < DBL_MAX) fMagn_dipole= magnetic_dipole_moment;
-   if( electric_dipole_moment < DBL_MAX) fElec_dipole= electric_dipole_moment;
-   if( magnetic_charge < DBL_MAX)        fMagneticCharge= magnetic_charge;
+   if( magnetic_dipole_moment < DBL_MAX)
+     { fMagn_dipole= magnetic_dipole_moment; }
+   if( electric_dipole_moment < DBL_MAX)
+     { fElec_dipole= electric_dipole_moment; }
+   if( magnetic_charge < DBL_MAX)
+     { fMagneticCharge= magnetic_charge; }
 }

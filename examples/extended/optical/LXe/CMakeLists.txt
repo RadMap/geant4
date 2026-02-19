@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------------
 # Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.27)
 project(LXe)
 
 #----------------------------------------------------------------------------
@@ -41,11 +41,10 @@ target_link_libraries(LXe ${Geant4_LIBRARIES} )
 #
 set(LXe_SCRIPTS
     LXe.out
-    LXe.in
+    LXe.mac
     cerenkov.mac
     wls.mac
     photon.mac
-    reviewEvent.mac
     gui.mac
     vis.mac
    )

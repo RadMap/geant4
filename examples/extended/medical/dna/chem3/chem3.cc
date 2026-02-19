@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file chem3.cc
+/// \brief Main program of the dna/chem3 example
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,25 +34,18 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file chem3.cc
-/// \brief Chem3 example
 
+#include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
-#include "ActionInitialization.hh"
-
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
 
 #include "G4DNAChemistryManager.hh"
-#include "G4UImanager.hh"
+#include "G4RunManagerFactory.hh"
 #include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
 #ifdef G4UI_USE_QT
-#include "G4UIQt.hh"
+#  include "G4UIQt.hh"
 #endif
 #include "CommandLineParser.hh"
 
@@ -81,39 +77,26 @@ int main(int argc, char** argv)
   //
   Command* commandLine(0);
 
-#ifdef G4MULTITHREADED
-  G4RunManager* runManager(0);
-  if ((commandLine = parser->GetCommandIfActive("-mt")))
-  {
-    runManager = new G4MTRunManager;
+  auto* runManager = G4RunManagerFactory::CreateRunManager();
+
+  if ((commandLine = parser->GetCommandIfActive("-mt"))) {
     int nThreads = 2;
     const G4String& option = commandLine->GetOption();
-    if(option == "")
-    {
+    if (option == "") {
       nThreads = G4UIcommand::ConvertToInt(commandLine->GetDefaultOption());
     }
-    else if(option == "NMAX")
-    {
-     nThreads = G4Threading::G4GetNumberOfCores();
+    else if (option == "NMAX") {
+      nThreads = G4Threading::G4GetNumberOfCores();
     }
-    else
-    {
+    else {
       nThreads = G4UIcommand::ConvertToInt(option);
     }
 
-    G4cout << "===== Chem3 is started with "
-       << ((G4MTRunManager*) runManager)->GetNumberOfThreads()
-       << " threads =====" << G4endl;
+    runManager->SetNumberOfThreads(nThreads);
 
-    ((G4MTRunManager*) runManager)->SetNumberOfThreads(nThreads);
+    G4cout << "===== Chem3 is started with " << runManager->GetNumberOfThreads()
+           << " threads =====" << G4endl;
   }
-  else
-  {
-    runManager = new G4RunManager();
-  }
-#else
-  G4RunManager* runManager = new G4RunManager();
-#endif
 
   //////////
   // Set mandatory user initialization classes
@@ -137,8 +120,7 @@ int main(int argc, char** argv)
   G4UIExecutive* ui(0);
 
   // interactive mode : define UI session
-  if ((commandLine = parser->GetCommandIfActive("-gui")))
-  {
+  if ((commandLine = parser->GetCommandIfActive("-gui"))) {
     ui = new G4UIExecutive(argc, argv, commandLine->GetOption());
 
     if (parser->GetCommandIfActive("-novis") == 0)
@@ -147,8 +129,7 @@ int main(int argc, char** argv)
       if ((commandLine = parser->GetCommandIfActive("-vis")))
       // select a visualization driver if needed (e.g. HepFile)
       {
-        UImanager->ApplyCommand(
-            G4String("/vis/open ") + commandLine->GetOption());
+        UImanager->ApplyCommand(G4String("/vis/open ") + commandLine->GetOption());
       }
       else
       // by default OGL is used
@@ -165,30 +146,25 @@ int main(int argc, char** argv)
   // an external file:
   // ASCIITree ;  DAWNFILE ; HepRepFile ; VRML(1,2)FILE ; gMocrenFile ...
   {
-    if ((commandLine = parser->GetCommandIfActive("-vis")))
-    {
-      UImanager->ApplyCommand(
-          G4String("/vis/open ") + commandLine->GetOption());
+    if ((commandLine = parser->GetCommandIfActive("-vis"))) {
+      UImanager->ApplyCommand(G4String("/vis/open ") + commandLine->GetOption());
       UImanager->ApplyCommand("/control/execute vis.mac");
     }
   }
 
-  if ((commandLine = parser->GetCommandIfActive("-mac")))
-  {
+  if ((commandLine = parser->GetCommandIfActive("-mac"))) {
     G4String command = "/control/execute ";
     UImanager->ApplyCommand(command + commandLine->GetOption());
   }
-  else
-  {
+  else {
     UImanager->ApplyCommand("/control/execute beam.in");
   }
 
-  if ((commandLine = parser->GetCommandIfActive("-gui")))
-  {
+  if ((commandLine = parser->GetCommandIfActive("-gui"))) {
 #ifdef G4UI_USE_QT
-    G4UIQt* UIQt = static_cast<G4UIQt*> (UImanager->GetG4UIWindow());
-    if ( UIQt) {
-      UIQt->AddViewerTabFromFile("README", "README from "+ G4String(argv[0]));
+    G4UIQt* UIQt = static_cast<G4UIQt*>(UImanager->GetG4UIWindow());
+    if (UIQt) {
+      UIQt->AddViewerTabFromFile("README", "README from " + G4String(argv[0]));
     }
 #endif
     ui->SessionStart();
@@ -215,39 +191,33 @@ void Parse(int& argc, char** argv)
   //
   parser = CommandLineParser::GetParser();
 
-  parser->AddCommand(
-      "-gui", Command::OptionNotCompulsory,
-      "Select geant4 UI or just launch a geant4 terminal session", "qt");
+  parser->AddCommand("-gui", Command::OptionNotCompulsory,
+                     "Select geant4 UI or just launch a geant4 terminal session", "qt");
 
-  parser->AddCommand("-mac", Command::WithOption, "Give a mac file to execute",
-                     "macFile.mac");
+  parser->AddCommand("-mac", Command::WithOption, "Give a mac file to execute", "macFile.mac");
 
-// You cann your own command, as for instance:
-//  parser->AddCommand("-seed", 
-//                     Command::WithOption,
-//                     "Give a seed value in argument to be tested", "seed");
-// it is then up to you to manage this option
+  // You cann your own command, as for instance:
+  //  parser->AddCommand("-seed",
+  //                     Command::WithOption,
+  //                     "Give a seed value in argument to be tested", "seed");
+  // it is then up to you to manage this option
 
-#ifdef G4MULTITHREADED
   parser->AddCommand("-mt", Command::OptionNotCompulsory,
-                     "Launch in MT mode (events computed in parallel,"
-                     " NOT RECOMMANDED WITH CHEMISTRY)",
+                     "Launch in MT mode if available (events computed in parallel,"
+                     " NOT RECOMMENDED WITH CHEMISTRY)",
                      "2");
-#endif
 
-  parser->AddCommand("-chemOFF", Command::WithoutOption,
-                     "Deactivate chemistry");
+  parser->AddCommand("-chemOFF", Command::WithoutOption, "Deactivate chemistry");
 
-  parser->AddCommand("-vis", Command::WithOption,
-                     "Select a visualization driver", "OGL 600x600-0+0");
+  parser->AddCommand("-vis", Command::WithOption, "Select a visualization driver",
+                     "OGL 600x600-0+0");
 
-  parser->AddCommand("-novis", Command::WithoutOption,
-                     "Deactivate visualization when using GUI");
+  parser->AddCommand("-novis", Command::WithoutOption, "Deactivate visualization when using GUI");
 
   //////////
   // If -h or --help is given in option : print help and exit
   //
-  if (parser->Parse(argc, argv) != 0) // help is being printed
+  if (parser->Parse(argc, argv) != 0)  // help is being printed
   {
     // if you are using ROOT, create a TApplication in this condition in order
     // to print the help from ROOT as well
@@ -258,8 +228,7 @@ void Parse(int& argc, char** argv)
   ///////////
   // Kill application if wrong argument in command line
   //
-  if (parser->CheckIfNotHandledOptionsExists(argc, argv))
-  {
+  if (parser->CheckIfNotHandledOptionsExists(argc, argv)) {
     // if you are using ROOT, you should initialise your TApplication
     // before this condition
     abort();

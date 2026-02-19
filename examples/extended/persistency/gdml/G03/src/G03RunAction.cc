@@ -23,49 +23,40 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G03/src/G03RunAction.cc
+/// \file G03RunAction.cc
 /// \brief Implementation of the G03RunAction class
-//
-//
-//
+
 // Class G03RunAction implementation
 //
 // ----------------------------------------------------------------------------
 
-#include "G4ios.hh"
-#include <iomanip>
-
-#include "globals.hh"
-#include "Randomize.hh"
 #include "G03RunAction.hh"
 
 #include "G4Run.hh"
 #include "G4UImanager.hh"
 #include "G4VVisManager.hh"
 #include "G4VisAttributes.hh"
+#include "G4ios.hh"
+#include "Randomize.hh"
+#include "globals.hh"
+
+#include <iomanip>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G03RunAction::G03RunAction()
- : G4UserRunAction()
-{ 
-}
+G03RunAction::G03RunAction() : G4UserRunAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G03RunAction::~G03RunAction()
-{
-}
+G03RunAction::~G03RunAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void G03RunAction::BeginOfRunAction(const G4Run* aRun)
-{  
+{
   G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void G03RunAction::EndOfRunAction(const G4Run*)
-{
-}
+void G03RunAction::EndOfRunAction(const G4Run*) {}

@@ -33,12 +33,11 @@
 #include "STCyclotronSensitiveTarget.hh"
 #include "STCyclotronRun.hh"
 #include "STCyclotronDetectorConstruction.hh"
-#include "STCyclotronAnalysis.hh"
+#include "G4AnalysisManager.hh"
 #include "G4GeneralParticleSource.hh"
 #include "G4UserRunAction.hh"
 #include "G4Run.hh"
 #include "G4RunManager.hh"
-#include "G4AccumulableManager.hh"
 #include "G4LogicalVolumeStore.hh"
 #include "G4LogicalVolume.hh"
 #include "G4UnitsTable.hh"
@@ -66,6 +65,7 @@ STCyclotronRunAction::STCyclotronRunAction(STCyclotronDetectorConstruction*)
   //----------------------------------------------
 
   auto analysisManager = G4AnalysisManager::Instance();
+  analysisManager->SetDefaultFileType("root");
   G4cout << "Using " << analysisManager->GetType() << G4endl;
   analysisManager->SetVerboseLevel(1);
   
@@ -100,7 +100,6 @@ STCyclotronRunAction::STCyclotronRunAction(STCyclotronDetectorConstruction*)
 STCyclotronRunAction::~STCyclotronRunAction()
 {
   delete fMessenger;
-  delete G4AnalysisManager::Instance();
 }
 
 G4Run* STCyclotronRunAction::GenerateRun()

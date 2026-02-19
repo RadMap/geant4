@@ -47,6 +47,7 @@
 #include "G4PairingCorrection.hh"
 #include "G4ShellCorrection.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4AutoLock.hh"
 #include "G4Pow.hh"
 #include <iomanip>
 
@@ -414,23 +415,20 @@ static const G4float LEVELMAX[3188] = {0.0f,
     0.0f,    0.0f,    0.0f,    0.0f,    0.0f,    0.0f,    0.0f,    0.0f,    0.0f,    0.0f, //3171-3180
     0.0f,    0.0f,    0.0f,    0.0f,    0.0f,    0.0f,    0.0f};
 
-#ifdef G4MULTITHREADED
-G4Mutex G4NuclearLevelData::nuclearLevelDataMutex = G4MUTEX_INITIALIZER;
-#endif
+namespace
+{
+  G4Mutex nuclearLevelDataMutex = G4MUTEX_INITIALIZER;
+}
 
 G4NuclearLevelData* G4NuclearLevelData::GetInstance()
 {
-  if (!theInstance)  { 
-#ifdef G4MULTITHREADED
-    G4MUTEXLOCK(&nuclearLevelDataMutex);
-    if (!theInstance)  { 
-#endif
+  if (nullptr == theInstance)  { 
+    G4AutoLock l(&nuclearLevelDataMutex);
+    if (nullptr == theInstance)  { 
       static G4NuclearLevelData theData;
       theInstance = &theData; 
-#ifdef G4MULTITHREADED
     }
-    G4MUTEXUNLOCK(&nuclearLevelDataMutex);
-#endif
+    l.unlock();
   }
   return theInstance;
 }   
@@ -446,7 +444,6 @@ G4NuclearLevelData::G4NuclearLevelData()
   fShellCorrection = new G4ShellCorrection();
   fPairingCorrection = new G4PairingCorrection();
   fG4calc = G4Pow::GetInstance();
-  fInitialized = false;
 }
 
 G4NuclearLevelData::~G4NuclearLevelData()
@@ -458,52 +455,48 @@ G4NuclearLevelData::~G4NuclearLevelData()
   for(G4int Z=1; Z<ZMAX; ++Z) {
     size_t nn = (fLevelManagers[Z]).size();
     for(size_t j=0; j<nn; ++j) { 
-      //G4cout << " G4NuclearLevelData delete Z= " << Z 
-      //       << " A= " << AMIN[Z]+j << G4endl;
       delete (fLevelManagers[Z])[j]; 
     }
   }
 }
 
 const G4LevelManager* 
-G4NuclearLevelData::GetLevelManager(G4int Z, G4int A, G4bool isLocked)
+G4NuclearLevelData::GetLevelManager(G4int Z, G4int A)
 {
-  const G4LevelManager* man = nullptr;
-  if(0 < Z && Z < ZMAX && A >= AMIN[Z] && A <= AMAX[Z]) {
-    const G4int idx = A - AMIN[Z];
-    if(!(fLevelManagerFlags[Z])[idx]) {
-      if(isLocked) {
-        (fLevelManagers[Z])[idx] = fLevelReader->CreateLevelManager(Z, A);
-        (fLevelManagerFlags[Z])[idx] = true;
-      } else {
-        InitialiseForIsotope(Z, A);
-      }
+  if(Z < 1 || Z >= ZMAX || A < AMIN[Z] || A > AMAX[Z]) { return nullptr; } 
+  const G4int idx = A - AMIN[Z];
+  if( !(fLevelManagerFlags[Z])[idx] ) {
+    G4AutoLock l(&nuclearLevelDataMutex);
+    if( !(fLevelManagerFlags[Z])[idx] ) {
+      (fLevelManagers[Z])[idx] = fLevelReader->CreateLevelManager(Z, A);
+      (fLevelManagerFlags[Z])[idx] = true;
     }
-    man = (fLevelManagers[Z])[idx];
+    l.unlock();
   }
-  return man;
+  return (fLevelManagers[Z])[idx];
 }
 
-G4bool 
-G4NuclearLevelData::AddPrivateData(G4int Z, G4int A, const G4String& filename)
+G4bool
+G4NuclearLevelData::AddPrivateData(G4int Z, G4int A, const G4String& fname)
 {
   G4bool res = false; 
-#ifdef G4MULTITHREADED
-  G4MUTEXLOCK(&nuclearLevelDataMutex);
-#endif
   if(Z > 0 && Z < ZMAX && A >= AMIN[Z] && A <= AMAX[Z]) { 
-    const G4LevelManager* newman = 
-      fLevelReader->MakeLevelManager(Z, A, filename);
-    if(newman) { 
+    G4AutoLock l(&nuclearLevelDataMutex);
+    const G4LevelManager* newman = fLevelReader->MakeLevelManager(Z, A, fname);
+    // if file is corrupted G4LevelReader should make the exception
+    if(newman != nullptr) {
       res = true;
-      G4cout << "G4NuclearLevelData::AddPrivateData for Z= " << Z
-             << " A= " << A << " from <" << filename 
-             << "> is done" << G4endl;
+      if(0 < fDeexPrecoParameters->GetVerbose()) {
+	G4cout << "G4NuclearLevelData::AddPrivateData for Z= " << Z
+	       << " A= " << A << " from <" << fname 
+	       << "> is done" << G4endl;
+      }
       const G4int idx = A - AMIN[Z];
       delete (fLevelManagers[Z])[idx]; 
       (fLevelManagers[Z])[idx] = newman;
       (fLevelManagerFlags[Z])[idx] = true;
     }
+    l.unlock();
   } else {
     G4ExceptionDescription ed;
     ed << "private nuclear level data for Z= " << Z << " A= " << A
@@ -511,9 +504,6 @@ G4NuclearLevelData::AddPrivateData(G4int Z, G4int A, const G4String& filename)
     G4Exception("G4NuclearLevelData::AddPrivateData","had0433",FatalException,
                 ed,"Stop execution");
   }
-#ifdef G4MULTITHREADED
-  G4MUTEXUNLOCK(&nuclearLevelDataMutex);
-#endif
   return res;
 }
 
@@ -527,55 +517,25 @@ G4int G4NuclearLevelData::GetMaxA(G4int Z) const
   return (Z >= 0 && Z < ZMAX) ? AMAX[Z] : 0; 
 }
 
-void G4NuclearLevelData::InitialiseForIsotope(G4int Z, G4int A)
+void G4NuclearLevelData::UploadNuclearLevelData(G4int Zlim)
 {
-  if(Z < 1 || Z >= ZMAX || A < AMIN[Z] || A > AMAX[Z]) { return; } 
-  const G4int idx = A - AMIN[Z];
-#ifdef G4MULTITHREADED
-  if(!(fLevelManagerFlags[Z])[idx]) {
-    G4MUTEXLOCK(&nuclearLevelDataMutex);
-#endif
-    // initialise only once
-    // before 1st event fragments Z < zmax are initialized
-    if(!fInitialized) {
-      fInitialized = true;
-      InitialiseUp(fDeexPrecoParameters->GetUploadZ());
-    }
-    if(!(fLevelManagerFlags[Z])[idx]) {
-      (fLevelManagers[Z])[idx] = fLevelReader->CreateLevelManager(Z, A);
-      (fLevelManagerFlags[Z])[idx] = true;
-    }
-#ifdef G4MULTITHREADED
-    G4MUTEXUNLOCK(&nuclearLevelDataMutex);
-  }
-#endif
-}
-
-void G4NuclearLevelData::UploadNuclearLevelData(G4int Z)
-{
-#ifdef G4MULTITHREADED
-  G4MUTEXLOCK(&nuclearLevelDataMutex);
-#endif
-  fDeexPrecoParameters->SetUploadZ(Z);
-  InitialiseUp(Z);
-#ifdef G4MULTITHREADED
-  G4MUTEXUNLOCK(&nuclearLevelDataMutex);
-#endif
-}
-
-void G4NuclearLevelData::InitialiseUp(G4int ZZ)
-{
-  G4int mZ = ZZ;
-  if(mZ >= ZMAX) { mZ = ZMAX; } 
-  for(G4int Z=1; Z<mZ; ++Z) {
-    for(G4int A=AMIN[Z]; A<=AMAX[Z]; ++A) {
-      G4int idx = A - AMIN[Z];
-      if(!(fLevelManagerFlags[Z])[idx]) {
-        (fLevelManagers[Z])[idx] = fLevelReader->CreateLevelManager(Z, A);
-        (fLevelManagerFlags[Z])[idx] = true;
+  if(fInitialized) return;
+  G4AutoLock l(&nuclearLevelDataMutex);
+  if(!fInitialized) {
+    fInitialized = true;
+    G4int mZ = Zlim + 1;
+    if(mZ > ZMAX) { mZ = ZMAX; }
+    for(G4int Z=1; Z<mZ; ++Z) {
+      for(G4int A=AMIN[Z]; A<=AMAX[Z]; ++A) {
+	G4int idx = A - AMIN[Z];
+	if( !(fLevelManagerFlags[Z])[idx] ) {
+	  (fLevelManagers[Z])[idx] = fLevelReader->CreateLevelManager(Z, A);
+	  (fLevelManagerFlags[Z])[idx] = true;
+	}
       }
     }
   }
+  l.unlock();
 }
 
 G4double G4NuclearLevelData::GetMaxLevelEnergy(G4int Z, G4int A) const
@@ -660,30 +620,24 @@ G4ShellCorrection* G4NuclearLevelData::GetShellCorrection()
 
 G4double G4NuclearLevelData::GetLevelDensity(G4int Z, G4int A, G4double U)
 {
-  if(fDeexPrecoParameters->GetLevelDensityFlag()) {
+  if (fDeexPrecoParameters->GetLevelDensityFlag()) {
     return A*fDeexPrecoParameters->GetLevelDensity();
   }
   const G4LevelManager* man = GetLevelManager(Z, A);
-  return (man) ? man->LevelDensity(U) 
+  return (nullptr != man) ? man->LevelDensity(U) 
     : 0.058025*A*(1.0 + 5.9059/fG4calc->Z13(A));
 }
 
 G4double G4NuclearLevelData::GetPairingCorrection(G4int Z, G4int A)
 {
-  if(fDeexPrecoParameters->GetLevelDensityFlag()) {
-    return fPairingCorrection->GetPairingCorrection(A, Z);
-  }
-  G4int N = A - Z;
-  const G4double par = 12.*CLHEP::MeV;
-  G4double x = (A <= 36) ? 6.0 : std::sqrt((G4double)A);
-  return (2 - Z + (Z/2)*2 - N + (N/2)*2)*par/x;
+  return fPairingCorrection->GetPairingCorrection(A, Z);
 }
 
 void G4NuclearLevelData::StreamLevels(std::ostream& os, 
                                       G4int Z, G4int A)
 {
   const G4LevelManager* man = GetLevelManager(Z, A);
-  if(man) { 
+  if (man) { 
     os << "Level data for Z= " << Z << " A= " << A << "  " 
        << man->NumberOfTransitions() + 1 << " levels \n";
     man->StreamInfo(os);

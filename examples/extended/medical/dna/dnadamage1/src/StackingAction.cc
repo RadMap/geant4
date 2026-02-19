@@ -23,33 +23,27 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file StackingAction.cc
 /// \brief Implementation of the StackingAction class
 
 #include "StackingAction.hh"
+
 #include "G4DNAChemistryManager.hh"
-#include "G4StackManager.hh"
 #include "G4ITTransportationManager.hh"
+#include "G4StackManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-StackingAction::StackingAction()
-    : G4UserStackingAction()
-{}
+StackingAction::StackingAction() : G4UserStackingAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void StackingAction::NewStage()
 {
-    if(stackManager->GetNTotalTrack() == 0)
-    {
-        G4cout << "Physics stage ends" << G4endl;
-        G4ITTransportationManager::GetTransportationManager()->
-        SetWorldForTracking(
-        G4ITTransportationManager::GetTransportationManager()->
-        GetParallelWorld("ChemistryWorld"));
-        G4DNAChemistryManager::Instance()->Run(); // starts chemistry
-    }
+  if (stackManager->GetNTotalTrack() == 0) {
+    G4cout << "Physics stage ends" << G4endl;
+    G4ITTransportationManager::GetTransportationManager()->SetWorldForTracking(
+      G4ITTransportationManager::GetTransportationManager()->GetParallelWorld("ChemistryWorld"));
+    G4DNAChemistryManager::Instance()->Run();  // starts chemistry
+  }
 }
-

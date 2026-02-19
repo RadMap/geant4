@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm9/include/SteppingAction.hh
+/// \file SteppingAction.hh
 /// \brief Definition of the SteppingAction class
-//
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // TestEm9: Crystal calorimetry
@@ -53,18 +51,17 @@ class HistoManager;
 
 class SteppingAction : public G4UserSteppingAction
 {
-public:
-  SteppingAction();
-  virtual ~SteppingAction();
+  public:
+    SteppingAction();
+    ~SteppingAction() override = default;
 
-  virtual void UserSteppingAction(const G4Step*);
+    void UserSteppingAction(const G4Step*) override;
 
-private:
+    SteppingAction& operator=(const SteppingAction& right) = delete;
+    SteppingAction(const SteppingAction&) = delete;
 
-  SteppingAction & operator=(const SteppingAction &right);
-  SteppingAction(const SteppingAction&);
-
-  HistoManager* fHisto;
+  private:
+    HistoManager* fHisto;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -25,17 +25,8 @@
 // 
 // G4NormalNavigation Inline Implementation
 //
+// Author: Paul Kent (CERN), August 1996
 // --------------------------------------------------------------------
-
-// ********************************************************************
-// CheckMode
-// ********************************************************************
-//
-inline
-void G4NormalNavigation::CheckMode(G4bool mode)
-{
-  fCheck = mode;
-}
 
 // ********************************************************************
 // LevelLocate
@@ -88,10 +79,7 @@ G4NormalNavigation::LevelLocate( G4NavigationHistory& history,
           found = true;
           break;
         }
-        else
-        {
-          history.BackLevel();
-        }
+        history.BackLevel();
       }
     }
   }

@@ -23,147 +23,136 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflashEventAction.cc
 /// \brief Implementation of the ExGflashEventAction class
-//
-// Created by Joanna Weng 26.11.2004
-
 
 #include "ExGflashEventAction.hh"
-#include "ExGflashHit.hh"
-#include "ExGflashHistoManager.hh"
+
 #include "ExGflashDetectorConstruction.hh"
+#include "ExGflashHistoManager.hh"
+#include "ExGflashHit.hh"
+
+#include "G4Event.hh"
 #include "G4EventManager.hh"
 #include "G4SDManager.hh"
-#include "G4UImanager.hh"
-#include "G4Event.hh"
 #include "G4SystemOfUnits.hh"
-//std
-#include <iostream>
+#include "G4UImanager.hh"
+// std
 #include <algorithm>
+#include <iostream>
 #include <vector>
-typedef std::vector<G4double> MyVector;
 
-//Gflash
+using MyVector = std::vector<G4double>;
+
+// Gflash
 using namespace std;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ExGflashEventAction::ExGflashEventAction(ExGflashDetectorConstruction* det)
- : G4UserEventAction(),fCalorimeterCollectionId(-1),fDet(det)
-{
-}
+ExGflashEventAction::ExGflashEventAction(ExGflashDetectorConstruction* det) : fDet(det) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ExGflashEventAction::~ExGflashEventAction()
-{
-}
+ExGflashEventAction::~ExGflashEventAction() = default;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void ExGflashEventAction::BeginOfEventAction(const G4Event * /* evt */)
-{
-}
+void ExGflashEventAction::BeginOfEventAction(const G4Event* /* evt */) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void ExGflashEventAction::EndOfEventAction(const G4Event *evt)
-{  
-
-  G4SDManager * SDman = G4SDManager::GetSDMpointer();
+void ExGflashEventAction::EndOfEventAction(const G4Event* evt)
+{
+  G4SDManager* SDman = G4SDManager::GetSDMpointer();
   G4String colNam;
-  fCalorimeterCollectionId=SDman->GetCollectionID(colNam="ExGflashCollection");
+  fCalorimeterCollectionId = SDman->GetCollectionID(colNam = "ExGflashCollection");
 
-  if (fCalorimeterCollectionId<0) return;
+  if (fCalorimeterCollectionId < 0) {
+    return;
+  }
 
-  G4HCofThisEvent * HCE = evt->GetHCofThisEvent();
-  ExGflashHitsCollection* THC = 0;
+  G4HCofThisEvent* HCE = evt->GetHCofThisEvent();
+  ExGflashHitsCollection* THC = nullptr;
   G4double totE = 0;
 
   // Read out of the crysta ECAL
-  THC=(ExGflashHitsCollection *)(HCE->GetHC(fCalorimeterCollectionId));
+  THC = (ExGflashHitsCollection*)(HCE->GetHC(fCalorimeterCollectionId));
 
-  if (THC)
-    {
-      /// Hits in sensitive Detector
-      int n_hit = THC->entries();
-      //      G4cout<<"  " << n_hit<< " hits are stored in ExGflashHitsCollection "<<G4endl;
-      G4PrimaryVertex* pvertex=evt->GetPrimaryVertex();   
-      //Computing (x,y,z) of vertex of initial particles  
-      G4ThreeVector vtx=pvertex->GetPosition();
-      G4PrimaryParticle* pparticle=pvertex->GetPrimary();
-      // direction of the Shower
-      G4ThreeVector mom=pparticle->GetMomentumDirection();
+  if (THC != nullptr) {
+    /// Hits in sensitive Detector
+    int n_hit = THC->entries();
 
-      G4double Ekin=pparticle->GetKineticEnergy();
-      G4double mass=pparticle->GetParticleDefinition()->GetPDGMass();
-      G4double Etot = Ekin/MeV + mass/MeV;
+    G4PrimaryVertex* pvertex = evt->GetPrimaryVertex();
+    // Computing (x,y,z) of vertex of initial particles
+    G4ThreeVector vtx = pvertex->GetPosition();
+    G4PrimaryParticle* pparticle = pvertex->GetPrimary();
+    // direction of the Shower
+    G4ThreeVector mom = pparticle->GetMomentumDirection();
 
-      G4int nLbin = fDet->GetnLtot();
-      G4int nRbin = fDet->GetnRtot();
-      G4double dLradl = fDet->GetdLradl();
-      G4double dRradl = fDet->GetdRradl();
+    G4double Ekin = pparticle->GetKineticEnergy();
+    G4double mass = pparticle->GetParticleDefinition()->GetPDGMass();
+    G4double Etot = Ekin / MeV + mass / MeV;
 
-      G4double SDRadl = fDet->GetSDRadLen(); // SD matrial
-      // init to to 0.0
-      MyVector dEdL(nLbin,0.0);
-      MyVector dEdR(nRbin,0.0);
+    G4int nLbin = fDet->GetnLtot();
+    G4int nRbin = fDet->GetnRtot();
+    G4double dLradl = fDet->GetdLradl();
+    G4double dRradl = fDet->GetdRradl();
 
-      G4AnalysisManager* fAnalysisManager = G4AnalysisManager::Instance();
+    G4double SDRadl = fDet->GetSDRadLen();  // SD matrial rad len
+    G4double SDRm = fDet->GetSDRm();  // SD Radius Moliere
 
-      fAnalysisManager->FillH1(1,n_hit + 0.5);
-      /// For all Hits in sensitive detector
-      for (int i=0;i<n_hit;i++)
-        {
-          G4double estep = (*THC)[i]->GetEdep();
-          fAnalysisManager->FillH1(2,estep/MeV);
-          estep /= MeV;
-        
-          if (estep >0.0)
-            {
-              totE += estep; 
-              
-              G4ThreeVector hitpos=(*THC)[i]->GetPos();
-              // in shower coordinate system
-              // from shower start
-              G4ThreeVector l = hitpos - vtx;
-              //longitudinal profile
-              G4ThreeVector longitudinal  =  l.dot(mom) * mom;
-              // shower profiles (Radial)
-              G4ThreeVector radial = l - longitudinal;
+    // init to to 0.0
+    MyVector dEdL(nLbin, 0.0);
+    MyVector dEdR(nRbin, 0.0);
 
-              G4int SlideNb = G4int((longitudinal.mag()/SDRadl) / dLradl);
-              G4int RingNb  = G4int((radial.mag()/SDRadl) / dRradl);
+    G4AnalysisManager* fAnalysisManager = G4AnalysisManager::Instance();
 
-              if ( SlideNb >=0 && SlideNb < nLbin) dEdL[SlideNb] += estep;
-              if ( RingNb >=0 && RingNb < nLbin)dEdR[RingNb] += estep;
-            }
+    fAnalysisManager->FillH1(1, n_hit + 0.5);
+    /// For all Hits in sensitive detector
+    for (int i = 0; i < n_hit; i++) {
+      G4double estep = (*THC)[i]->GetEdep();
+      fAnalysisManager->FillH1(2, estep / MeV);
+      estep /= MeV;
+
+      if (estep > 0.0) {
+        totE += estep;
+
+        G4ThreeVector hitpos = (*THC)[i]->GetPos();
+        // in shower coordinate system
+        // from shower start
+        G4ThreeVector l = hitpos - vtx;
+        // longitudinal profile
+        G4ThreeVector longitudinal = l.dot(mom) * mom;
+        // shower profiles (Radial)
+        G4ThreeVector radial = l - longitudinal;
+
+        auto SlideNb = G4int((longitudinal.mag() / SDRadl) / dLradl);
+        auto RingNb = G4int((radial.mag() / SDRm) / dRradl);
+
+        if ((SlideNb >= 0 && SlideNb < nLbin) && (RingNb >= 0 && RingNb < nRbin)) {
+          dEdL[SlideNb] += estep;
+          dEdR[RingNb] += estep;
         }
-
-      G4double Lnorm = 100. / dLradl / Etot;
-      G4double Lsum = 0.0;
-      for (int i=0;i<nLbin;i++)
-        { // Slide
-          //      fAnalysisManager->FillH1(3,(i +0.5) * dLradl,dEdL[i] * Lnorm);
-          fAnalysisManager->FillP1(0,(i +0.5) * dLradl,dEdL[i] * Lnorm);
-          Lsum += dEdL[i];
-          fAnalysisManager->FillP1(2,(i +0.5) * dLradl,Lsum * Lnorm);
-        }
-      G4double Rnorm = 100. / dRradl / Etot;
-      G4double Rsum = 0.0;
-      for (int i=0;i<nRbin;i++)
-        { // Ring
-          //      fAnalysisManager->FillH1(4,(i +0.5) * dRradl,dEdR[i] * Rnorm);
-          fAnalysisManager->FillP1(1,(i +0.5) * dRradl,dEdR[i] * Rnorm);
-          Rsum += dEdR[i];
-          fAnalysisManager->FillP1(3,(i +0.5) * dRradl,Rsum * Rnorm);
-        }
-
-      fAnalysisManager->FillH1(0,totE/Etot * 100.);
-
+      }
     }
+
+    G4double Lnorm = 100. / dLradl / Etot;
+    G4double Lsum = 0.0;
+    for (int i = 0; i < nLbin; i++) {  // Slide
+      fAnalysisManager->FillP1(0, (i + 0.5) * dLradl, dEdL[i] * Lnorm);
+      Lsum += dEdL[i];
+      fAnalysisManager->FillP1(2, (i + 0.5) * dLradl, Lsum * Lnorm);
+    }
+    G4double Rnorm = 100. / dRradl / Etot;
+    G4double Rsum = 0.0;
+    for (int i = 0; i < nRbin; i++) {  // Ring
+      fAnalysisManager->FillP1(1, (i + 0.5) * dRradl, dEdR[i] * Rnorm);
+      Rsum += dEdR[i];
+      fAnalysisManager->FillP1(3, (i + 0.5) * dRradl, Rsum * Rnorm);
+    }
+
+    fAnalysisManager->FillH1(0, totE / Etot * 100.);
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -37,7 +37,6 @@
 #include "G4ITSteppingVerbose.hh"
 #include "G4ITStepProcessor.hh"
 #include "G4SystemOfUnits.hh"
-//#include "G4VSensitiveDetector.hh"    // Include from 'hits/digi'
 #include "G4StepStatus.hh"    // Include from 'tracking'
 
 #include "G4IT.hh"
@@ -53,20 +52,11 @@
 
 using namespace std;
 
-//////////////////////////////////////////////////
 G4ITSteppingVerbose::G4ITSteppingVerbose()
-//////////////////////////////////////////////////
-{
-#ifdef G4_TRACKING_DEBUG
-  G4cout << "G4ITSteppingVerbose has instantiated" << G4endl;
-#endif
-}
+= default;
 
-//////////////////////////////////////////////////
 G4ITSteppingVerbose::~G4ITSteppingVerbose()
-//////////////////////////////////////////////////
-{
-}
+= default;
 
 //////////////////////////////////////////////////
 void G4ITSteppingVerbose::NewStep()
@@ -90,20 +80,20 @@ void G4ITSteppingVerbose::AtRestDoItInvoked()
   {
     G4int npt = 0;
     G4cout << " **List of AtRestDoIt invoked:" << G4endl;
-    for(size_t np = 0; np < MAXofAtRestLoops; np++)
+    for(std::size_t np = 0; np < MAXofAtRestLoops; ++np)
     {
-      size_t npGPIL = MAXofAtRestLoops - np - 1;
+      std::size_t npGPIL = MAXofAtRestLoops - np - 1;
       if((*fSelectedAtRestDoItVector)[npGPIL] == 2)
       {
-        npt++;
-        ptProcManager = (*fAtRestDoItVector)[np];
+        ++npt;
+        ptProcManager = (*fAtRestDoItVector)[(G4int)np];
         G4cout << "   # " << npt << " : " << ptProcManager->GetProcessName()
                << " (Forced)" << G4endl;
       }
       else if ( (*fSelectedAtRestDoItVector)[npGPIL] == 1 )
       {
-        npt++;
-        ptProcManager = (*fAtRestDoItVector)[np];
+        ++npt;
+        ptProcManager = (*fAtRestDoItVector)[(G4int)np];
         G4cout << "   # " << npt << " : " << ptProcManager->GetProcessName()
         << G4endl;
       }
@@ -115,8 +105,8 @@ void G4ITSteppingVerbose::AtRestDoItInvoked()
     {
       G4cout << "   -- List of secondaries generated : "
              << "(x,y,z,kE,t,PID) --" << G4endl;
-      for( size_t lp1=(*fSecondary).size()-fN2ndariesAtRestDoIt;
-          lp1<(*fSecondary).size(); lp1++)
+      for(std::size_t lp1=(*fSecondary).size()-fN2ndariesAtRestDoIt;
+          lp1<(*fSecondary).size(); ++lp1)
       {
         G4cout << "      "
         << std::setw( 9)
@@ -160,11 +150,11 @@ void G4ITSteppingVerbose::AlongStepDoItAllDone()
     G4cout << " >>AlongStepDoIt (after all invocations):" << G4endl;
     G4cout << "    ++List of invoked processes " << G4endl;
 
-    for(size_t ci=0; ci<MAXofAlongStepLoops; ci++)
+    for(std::size_t ci=0; ci<MAXofAlongStepLoops; ++ci)
     {
-      ptProcManager = (*fAlongStepDoItVector)(ci);
+      ptProcManager = (*fAlongStepDoItVector)((G4int)ci);
       G4cout << "      " << ci+1 << ") ";
-      if(ptProcManager != 0)
+      if(ptProcManager != nullptr)
       {
         G4cout << ptProcManager->GetProcessName() << G4endl;
       }
@@ -177,23 +167,23 @@ void G4ITSteppingVerbose::AlongStepDoItAllDone()
     << "  No. of secodaries = "
     << (*fSecondary).size() << G4endl;
 
-    if((*fSecondary).size()>0)
+    if(!(*fSecondary).empty())
     {
-      for(size_t lp1=0; lp1<(*fSecondary).size(); lp1++)
+      for(auto lp1 : *fSecondary)
       {
         G4cout << "      "
         << std::setw( 9)
-        << G4BestUnit((*fSecondary)[lp1]->GetPosition().x(),"Length") << " "
+        << G4BestUnit(lp1->GetPosition().x(),"Length") << " "
         << std::setw( 9)
-        << G4BestUnit((*fSecondary)[lp1]->GetPosition().y(),"Length") << " "
+        << G4BestUnit(lp1->GetPosition().y(),"Length") << " "
         << std::setw( 9)
-        << G4BestUnit((*fSecondary)[lp1]->GetPosition().z(),"Length") << " "
+        << G4BestUnit(lp1->GetPosition().z(),"Length") << " "
         << std::setw( 9)
-        << G4BestUnit((*fSecondary)[lp1]->GetKineticEnergy(),"Energy") << " "
+        << G4BestUnit(lp1->GetKineticEnergy(),"Energy") << " "
         << std::setw( 9)
-        << G4BestUnit((*fSecondary)[lp1]->GetGlobalTime(),"Time") << " "
+        << G4BestUnit(lp1->GetGlobalTime(),"Time") << " "
         << std::setw(18)
-        << (*fSecondary)[lp1]->GetDefinition()->GetParticleName() << G4endl;
+        << lp1->GetDefinition()->GetParticleName() << G4endl;
       }
     }
   }
@@ -214,9 +204,9 @@ void G4ITSteppingVerbose::PostStepDoItAllDone()
   if(fVerboseLevel >= 3)
   {
 
-    if((fStepStatus == fPostStepDoItProc) | (fCondition == Forced)
-       | (fCondition == Conditionally) | (fCondition == ExclusivelyForced)
-       | (fCondition == StronglyForced))
+    if((fStepStatus == fPostStepDoItProc) || (fCondition == Forced)
+       || (fCondition == Conditionally) || (fCondition == ExclusivelyForced)
+       || (fCondition == StronglyForced))
     {
 
       G4int npt = 0;
@@ -224,20 +214,20 @@ void G4ITSteppingVerbose::PostStepDoItAllDone()
       G4cout << " **PostStepDoIt (after all invocations):" << G4endl;
       G4cout << "    ++List of invoked processes " << G4endl;
 
-      for(size_t np = 0; np < MAXofPostStepLoops; np++)
+      for(std::size_t np = 0; np < MAXofPostStepLoops; ++np)
       {
-        size_t npGPIL = MAXofPostStepLoops - np - 1;
+        std::size_t npGPIL = MAXofPostStepLoops - np - 1;
         if((*fSelectedPostStepDoItVector)[npGPIL] == 2)
         {
           npt++;
-          ptProcManager = (*fPostStepDoItVector)[np];
+          ptProcManager = (*fPostStepDoItVector)[(G4int)np];
           G4cout << "      " << npt << ") " << ptProcManager->GetProcessName()
                  << " (Forced)" << G4endl;
         }
         else if ( (*fSelectedPostStepDoItVector)[npGPIL] == 1)
         {
           npt++;
-          ptProcManager = (*fPostStepDoItVector)[np];
+          ptProcManager = (*fPostStepDoItVector)[(G4int)np];
           G4cout << "      " << npt << ") "
           << ptProcManager->GetProcessName() << G4endl;
         }
@@ -249,22 +239,22 @@ void G4ITSteppingVerbose::PostStepDoItAllDone()
              << "  No. of secodaries = " << (*fSecondary).size() << G4endl;
       G4cout << "      [Note]Secondaries from AlongStepDoIt included." << G4endl;
 
-      if((*fSecondary).size() > 0)
+      if(!(*fSecondary).empty())
       {
-        for(size_t lp1 = 0; lp1 < (*fSecondary).size(); lp1++)
+        for(auto lp1 : *fSecondary)
         {
           G4cout << "      " << std::setw(9)
-                 << G4BestUnit((*fSecondary)[lp1]->GetPosition().x(), "Length")
+                 << G4BestUnit(lp1->GetPosition().x(), "Length")
                  << " " << std::setw(9)
-                 << G4BestUnit((*fSecondary)[lp1]->GetPosition().y(), "Length")
+                 << G4BestUnit(lp1->GetPosition().y(), "Length")
                  << " " << std::setw(9)
-                 << G4BestUnit((*fSecondary)[lp1]->GetPosition().z(), "Length")
+                 << G4BestUnit(lp1->GetPosition().z(), "Length")
                  << " " << std::setw(9)
-                 << G4BestUnit((*fSecondary)[lp1]->GetKineticEnergy(), "Energy")
+                 << G4BestUnit(lp1->GetKineticEnergy(), "Energy")
                  << " " << std::setw(9)
-                 << G4BestUnit((*fSecondary)[lp1]->GetGlobalTime(), "Time")
+                 << G4BestUnit(lp1->GetGlobalTime(), "Time")
                  << " " << std::setw(18)
-                 << (*fSecondary)[lp1]->GetDefinition()->GetParticleName()
+                 << lp1->GetDefinition()->GetParticleName()
                  << G4endl;
         }
       }
@@ -284,7 +274,7 @@ void G4ITSteppingVerbose::StepInfoForLeadingTrack()
   if(fVerboseLevel < 2)
   {
     CopyState();
-    G4int prec = G4cout.precision(3);
+    G4long prec = G4cout.precision(3);
     //    G4cout.precision(16);
 
     if(fVerboseLevel >= 4) VerboseTrack();
@@ -324,7 +314,7 @@ void G4ITSteppingVerbose::StepInfoForLeadingTrack()
            << G4BestUnit(fTrack->GetTrackLength(), "Length") << " ";
 
     // Put cut comment here
-    if(fTrack->GetNextVolume() != 0)
+    if(fTrack->GetNextVolume() != nullptr)
     {
       G4cout << std::setw(11) << fTrack->GetNextVolume()->GetName() << " ";
     }
@@ -332,7 +322,7 @@ void G4ITSteppingVerbose::StepInfoForLeadingTrack()
     {
       G4cout << std::setw(11) << "OutOfWorld" << " ";
     }
-    if(fStep->GetPostStepPoint()->GetProcessDefinedStep() != 0)
+    if(fStep->GetPostStepPoint()->GetProcessDefinedStep() != nullptr)
     {
       G4cout
           << fStep->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName();
@@ -357,7 +347,8 @@ void G4ITSteppingVerbose::StepInfoForLeadingTrack()
                << std::setw(3) << (*fSecondary).size() << " ---------------"
                << G4endl;
 
-        for(size_t lp1=(*fSecondary).size()-tN2ndariesTot; lp1<(*fSecondary).size(); lp1++)
+        for(std::size_t lp1=(*fSecondary).size()-tN2ndariesTot;
+                   lp1<(*fSecondary).size(); ++lp1)
         {
           G4cout << "    : "
           << std::setw( 9)
@@ -388,7 +379,7 @@ void G4ITSteppingVerbose::StepInfo()
   }
 
   CopyState();
-  G4int prec = G4cout.precision(3);
+  G4long prec = G4cout.precision(3);
 //    G4cout.precision(16);
 
   if(fVerboseLevel >= 4) VerboseTrack();
@@ -428,7 +419,7 @@ void G4ITSteppingVerbose::StepInfo()
          << " ";
 
   // Put cut comment here
-  if(fTrack->GetNextVolume() != 0)
+  if(fTrack->GetNextVolume() != nullptr)
   {
     G4cout << std::setw(11) << fTrack->GetNextVolume()->GetName() << " ";
   }
@@ -436,7 +427,7 @@ void G4ITSteppingVerbose::StepInfo()
   {
     G4cout << std::setw(11) << "OutOfWorld" << " ";
   }
-  if(fStep->GetPostStepPoint()->GetProcessDefinedStep() != 0)
+  if(fStep->GetPostStepPoint()->GetProcessDefinedStep() != nullptr)
   {
     G4cout
         << fStep->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName();
@@ -460,7 +451,8 @@ void G4ITSteppingVerbose::StepInfo()
              << std::setw(3) << (*fSecondary).size() << " ---------------"
              << G4endl;
 
-      for(size_t lp1=(*fSecondary).size()-tN2ndariesTot; lp1<(*fSecondary).size(); lp1++)
+      for(std::size_t lp1=(*fSecondary).size()-tN2ndariesTot;
+                 lp1<(*fSecondary).size(); ++lp1)
       {
         G4cout << "    : "
         << std::setw( 9)
@@ -593,7 +585,7 @@ void G4ITSteppingVerbose::TrackingStarted(G4Track* track)
     return;
   }
 
-  G4int prec = G4cout.precision(3);
+  G4long prec = G4cout.precision(3);
   if(fVerboseLevel > 0)
   {
     fTrack = track;
@@ -640,7 +632,7 @@ void G4ITSteppingVerbose::TrackingStarted(G4Track* track)
 //           << " " << std::setw(9)
 //           << G4BestUnit(fTrack->GetTrackLength(), "Length") << " ";
 
-    if(fTrack->GetNextVolume())
+    if(fTrack->GetNextVolume() != nullptr)
     {
       G4cout << std::setw(11) << fTrack->GetNextVolume()->GetName() << " ";
     }
@@ -663,7 +655,7 @@ void G4ITSteppingVerbose::TrackingEnded(G4Track* track)
          << track->GetDefinition()->GetParticleName() << "," << "   Track ID : "
          << track->GetTrackID();
 
-  if(track->GetNextVolume())
+  if(track->GetNextVolume() != nullptr)
   {
     G4cout << std::setw(11) << track->GetNextVolume()->GetName() << " ";
   }
@@ -698,8 +690,8 @@ void G4ITSteppingVerbose::AlongStepDoItOneByOne()
 
   if(fN2ndariesAlongStepDoIt > 0)
   {
-    for(size_t lp1 = (*fSecondary).size() - fN2ndariesAlongStepDoIt;
-        lp1 < (*fSecondary).size(); lp1++)
+    for(std::size_t lp1 = (*fSecondary).size() - fN2ndariesAlongStepDoIt;
+        lp1 < (*fSecondary).size(); ++lp1)
     {
       G4cout << "      " << std::setw(9)
              << G4BestUnit((*fSecondary)[lp1]->GetPosition().x(), "Length")
@@ -740,8 +732,8 @@ void G4ITSteppingVerbose::PostStepDoItOneByOne()
 
   if(fN2ndariesPostStepDoIt > 0)
   {
-    for(size_t lp1 = (*fSecondary).size() - fN2ndariesPostStepDoIt;
-        lp1 < (*fSecondary).size(); lp1++)
+    for(std::size_t lp1 = (*fSecondary).size() - fN2ndariesPostStepDoIt;
+        lp1 < (*fSecondary).size(); ++lp1)
     {
       G4cout << "      " << std::setw(9)
              << G4BestUnit((*fSecondary)[lp1]->GetPosition().x(), "Length")
@@ -772,7 +764,7 @@ void G4ITSteppingVerbose::VerboseTrack()
 // Show header
   G4cout << G4endl;
   G4cout << "    ++G4Track Information " << G4endl;
-  G4int prec = G4cout.precision(3);
+  G4long prec = G4cout.precision(3);
 
   G4cout << "      -----------------------------------------------" << G4endl;
   G4cout << "        G4Track Information  " << std::setw(20) << G4endl;
@@ -829,7 +821,7 @@ void G4ITSteppingVerbose::VerboseTrack()
   G4cout << "        Parent Track ID #   : " << std::setw(20)
          << fTrack->GetParentID() << G4endl;
   G4cout << "        Next Volume         : " << std::setw(20);
-  if(fTrack->GetNextVolume() != 0)
+  if(fTrack->GetNextVolume() != nullptr)
   {
     G4cout << fTrack->GetNextVolume()->GetName() << " ";
   }
@@ -894,7 +886,7 @@ void G4ITSteppingVerbose::VerboseTrack()
          << G4BestUnit(fTrack->GetVertexKineticEnergy(), "Energy") << G4endl;
 
   G4cout << "        Creator Process     : " << std::setw(20);
-  if(fTrack->GetCreatorProcess() == 0)
+  if(fTrack->GetCreatorProcess() == nullptr)
   {
     G4cout << " Event Generator" << G4endl;
   }
@@ -931,7 +923,7 @@ void G4ITSteppingVerbose::ShowStep() const
   }
 
   G4String volName;
-  G4int oldprc;
+  G4long oldprc;
 
 // Show header
   G4cout << G4endl;
@@ -1002,7 +994,7 @@ void G4ITSteppingVerbose::ShowStep() const
          << fStep->GetPostStepPoint()->GetVelocity() << G4endl;
   G4cout << "         Volume Name         : " << std::setw(20)
          << fStep->GetPreStepPoint()->GetPhysicalVolume()->GetName();
-  if(fStep->GetPostStepPoint()->GetPhysicalVolume())
+  if(fStep->GetPostStepPoint()->GetPhysicalVolume() != nullptr)
   {
     volName = fStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
   }
@@ -1073,7 +1065,7 @@ void G4ITSteppingVerbose::ShowStep() const
 
   G4cout << G4endl;
   G4cout << "         Process defined Step: ";
-  if(fStep->GetPreStepPoint()->GetProcessDefinedStep() == 0)
+  if(fStep->GetPreStepPoint()->GetProcessDefinedStep() == nullptr)
   {
     G4cout << std::setw(20) << "Undefined";
   }
@@ -1083,7 +1075,7 @@ void G4ITSteppingVerbose::ShowStep() const
         << std::setw(20)
         << fStep->GetPreStepPoint()->GetProcessDefinedStep()->GetProcessName();
   }
-  if(fStep->GetPostStepPoint()->GetProcessDefinedStep() == 0)
+  if(fStep->GetPostStepPoint()->GetProcessDefinedStep() == nullptr)
   {
     G4cout << std::setw(20) << "Undefined";
   }
@@ -1143,16 +1135,16 @@ void G4ITSteppingVerbose::PreStepVerbose(G4Track* track)
   G4String volumeName;
 
   G4TouchableHandle nextTouchable = track->GetNextTouchableHandle();
-  G4VPhysicalVolume* volume(0);
+  G4VPhysicalVolume* volume(nullptr);
 
-  if(nextTouchable && (volume = nextTouchable->GetVolume()))
+  if(nextTouchable && ((volume = nextTouchable->GetVolume()) != nullptr))
   {
     volumeName = volume->GetName();
 
     if(volume->IsParameterised() || volume->IsReplicated())
     {
       volumeName += " ";
-      volumeName += nextTouchable->GetReplicaNumber();
+      volumeName += (char)nextTouchable->GetReplicaNumber();
     }
   }
   else
@@ -1182,16 +1174,16 @@ void G4ITSteppingVerbose::PostStepVerbose(G4Track* track)
          << "---";
 
   G4TouchableHandle nextTouchable = track->GetNextTouchableHandle();
-  G4VPhysicalVolume* volume(0);
+  G4VPhysicalVolume* volume(nullptr);
 
-  if(nextTouchable && (volume = nextTouchable->GetVolume()))
+  if(nextTouchable && ((volume = nextTouchable->GetVolume()) != nullptr))
   {
     G4String volumeName = volume->GetName();
 
     if(volume->IsParameterised() || volume->IsReplicated())
     {
       volumeName += " ";
-      volumeName += nextTouchable->GetReplicaNumber();
+      volumeName += (char)nextTouchable->GetReplicaNumber();
     }
 
     G4cout << setw(25) << volumeName;
@@ -1200,7 +1192,7 @@ void G4ITSteppingVerbose::PostStepVerbose(G4Track* track)
   {
     G4cout << setw(25) << "OutOfWorld";
   }
-  if(track->GetStep()->GetPostStepPoint()->GetProcessDefinedStep())
+  if(track->GetStep()->GetPostStepPoint()->GetProcessDefinedStep() != nullptr)
   {
     G4cout
         << setw(22)
@@ -1215,16 +1207,16 @@ void G4ITSteppingVerbose::PostStepVerbose(G4Track* track)
 
   if(fVerboseLevel > 2)
   {
-    const G4TrackVector* secondaries = 0;
-    if((secondaries = track->GetStep()->GetSecondary()))
+    const G4TrackVector* secondaries = nullptr;
+    if((secondaries = track->GetStep()->GetSecondary()) != nullptr)
     {
-      if(secondaries->empty() == false)
+      if(!secondaries->empty())
       {
         G4cout << "\t\t ---->";
-        for(size_t j = 0; j < secondaries->size(); ++j)
+        for(const auto secondarie : *secondaries)
         {
-          G4cout << GetIT((*secondaries)[j])->GetName() << "("
-                 << (*secondaries)[j]->GetTrackID() << ")" << " ";
+          G4cout << GetIT(secondarie)->GetName() << "("
+                 << secondarie->GetTrackID() << ")" << " ";
         }
         G4cout << G4endl;
       }

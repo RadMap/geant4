@@ -23,35 +23,22 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file F06ActionInitialization.cc
-/// \brief Implementation of the F04ActionInitialization class
+/// \brief Implementation of the F06ActionInitialization class
 
 #include "F06ActionInitialization.hh"
+
 #include "F06PrimaryGeneratorAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-F06ActionInitialization::F06ActionInitialization()
- : G4VUserActionInitialization()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-F06ActionInitialization::~F06ActionInitialization()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void F06ActionInitialization::BuildForMaster() const
-{
-}
+void F06ActionInitialization::BuildForMaster() const {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void F06ActionInitialization::Build() const
 {
   SetUserAction(new F06PrimaryGeneratorAction);
-}  
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

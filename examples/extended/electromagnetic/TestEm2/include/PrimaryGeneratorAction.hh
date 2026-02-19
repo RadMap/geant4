@@ -23,18 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm2/include/PrimaryGeneratorAction.hh
+/// \file PrimaryGeneratorAction.hh
 /// \brief Definition of the PrimaryGeneratorAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PrimaryGeneratorAction_h
 #define PrimaryGeneratorAction_h 1
 
-#include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4ParticleGun.hh"
+#include "G4VUserPrimaryGeneratorAction.hh"
 #include "globals.hh"
 
 class G4Event;
@@ -44,19 +40,18 @@ class DetectorConstruction;
 
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
-  PrimaryGeneratorAction(DetectorConstruction*);    
-  virtual ~PrimaryGeneratorAction();
+  public:
+    PrimaryGeneratorAction(DetectorConstruction*);
+    ~PrimaryGeneratorAction() override;
 
-  virtual void GeneratePrimaries(G4Event*);
-  inline G4ParticleGun* GetParticleGun() {return fParticleGun;};
-    
-private:
-  G4ParticleGun*           fParticleGun;
-  DetectorConstruction*    fDetector;
+    void GeneratePrimaries(G4Event*) override;
+    inline G4ParticleGun* GetParticleGun() { return fParticleGun; };
+
+  private:
+    G4ParticleGun* fParticleGun = nullptr;
+    DetectorConstruction* fDetector = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

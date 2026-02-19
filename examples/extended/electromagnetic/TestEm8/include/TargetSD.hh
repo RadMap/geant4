@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm8/include/TargetSD.hh
+/// \file TargetSD.hh
 /// \brief Definition of the TargetSD class
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // TestEm8: Gaseous detector
@@ -36,7 +35,7 @@
 // Modified:
 //
 ////////////////////////////////////////////////////////////////////////
-// 
+//
 
 #ifndef TargetSD_h
 #define TargetSD_h 1
@@ -53,24 +52,23 @@ class Run;
 
 class TargetSD : public G4VSensitiveDetector
 {
-public: // Without description
+  public:
+    explicit TargetSD(const G4String&);
+    ~TargetSD() override = default;
 
-  TargetSD(const G4String&);
-  virtual ~TargetSD();
+    void Initialize(G4HCofThisEvent*) override;
+    G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
+    void EndOfEvent(G4HCofThisEvent*) override;
+    void clear() override;
+    void PrintAll() override;
 
-  virtual void Initialize(G4HCofThisEvent*);
-  virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
-  virtual void EndOfEvent(G4HCofThisEvent*);
-  virtual void clear();
-  virtual void PrintAll();
+    TargetSD& operator=(const TargetSD& right) = delete;
+    TargetSD(const TargetSD&) = delete;
 
-private:
-
-  Run* fRun;
-
+  private:
+    Run* fRun = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #endif
-

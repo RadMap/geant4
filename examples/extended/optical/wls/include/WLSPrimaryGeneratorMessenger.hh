@@ -23,42 +23,35 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/wls/include/WLSPrimaryGeneratorMessenger.hh
+/// \file WLSPrimaryGeneratorMessenger.hh
 /// \brief Definition of the WLSPrimaryGeneratorMessenger class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef WLSPrimaryGeneratorMessenger_h
 #define WLSPrimaryGeneratorMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
 
-class G4UIdirectory;
-class G4UIcmdWithADoubleAndUnit;
-
 class WLSPrimaryGeneratorAction;
+
+class G4UIdirectory;
+class G4UIcmdWithABool;
+class G4UIcmdWithADoubleAndUnit;
 
 class WLSPrimaryGeneratorMessenger : public G4UImessenger
 {
   public:
-
     WLSPrimaryGeneratorMessenger(WLSPrimaryGeneratorAction*);
-    virtual ~WLSPrimaryGeneratorMessenger();
- 
-    virtual void SetNewValue(G4UIcommand*, G4String);
- 
+    ~WLSPrimaryGeneratorMessenger() override;
+
+    void SetNewValue(G4UIcommand*, G4String) override;
+
   private:
+    WLSPrimaryGeneratorAction* fAction = nullptr;
 
-    WLSPrimaryGeneratorAction*   fAction;
+    G4UIdirectory* fGunDir = nullptr;
 
-    G4UIdirectory*               fGunDir;
-
-    G4UIcmdWithADoubleAndUnit*   fSetPolarizationCmd;
-    G4UIcmdWithADoubleAndUnit*   fSetDecayTimeConstantCmd;
+    G4UIcmdWithADoubleAndUnit* fSetPolarizationCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fSetDecayTimeConstantCmd = nullptr;
 };
 
 #endif

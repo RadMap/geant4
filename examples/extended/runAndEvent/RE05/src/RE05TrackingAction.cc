@@ -23,24 +23,25 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file RE05/src/RE05TrackingAction.cc
+/// \file RE05TrackingAction.cc
 /// \brief Implementation of the RE05TrackingAction class
-//
 
 #include "RE05TrackingAction.hh"
-#include "G4TrackingManager.hh"
+
 #include "G4Track.hh"
+#include "G4TrackingManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void RE05TrackingAction::PreUserTrackingAction(const G4Track* aTrack)
 {
   // Create trajectory only for primaries
-  if(aTrack->GetParentID()==0)
-  { fpTrackingManager->SetStoreTrajectory(true); }
-  else
-  { fpTrackingManager->SetStoreTrajectory(false); }
+  if (aTrack->GetParentID() == 0) {
+    fpTrackingManager->SetStoreTrajectory(true);
+  }
+  else {
+    fpTrackingManager->SetStoreTrajectory(false);
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -25,17 +25,17 @@
 //
 // Class G4GeometryManager implementation
 //
-// 26.07.95, P.Kent - Initial version, including optimisation build
+// Author: Paul Kent (CERN), 26.07.1995 - Initial version
+//         John Apostolakis (CERN), 12.06.2024 - Added parallel optimisation
 // --------------------------------------------------------------------
 
 #include <iomanip>
+
+#include "G4ios.hh"
 #include "G4Timer.hh"
 #include "G4GeometryManager.hh"
 #include "G4SystemOfUnits.hh"
-
-#ifdef  G4GEOMETRY_VOXELDEBUG
-#include "G4ios.hh"
-#endif
+#include "G4Threading.hh"
 
 // Needed for building optimisations
 //
@@ -50,19 +50,50 @@
 #include "G4SolidStore.hh"
 #include "G4VSolid.hh"
 
+// Needed for parallel optimisation
+#include "G4AutoLock.hh"
+#include "G4VoxelisationHelper.hh"
+
+namespace
+{
+  // Mutex to obtain a volume to optimise
+  G4Mutex createHelperMutex = G4MUTEX_INITIALIZER;
+}
+
 // ***************************************************************************
 // Static class data
 // ***************************************************************************
 //
 G4ThreadLocal G4GeometryManager* G4GeometryManager::fgInstance = nullptr;
-G4ThreadLocal G4bool G4GeometryManager::fIsClosed = false;
+
+G4VoxelisationHelper* G4GeometryManager::fParallelVoxeliser = nullptr;
+ // Only one instance created by the master thread's G4GeometryManager
+ // Expected Future: data member (when only one instance)
+
+// Static *global* class data
+G4bool G4GeometryManager::fParallelVoxelOptimisationRequested = true;
+  // Records User choice to use parallel voxel optimisation (or not)
+
+G4bool G4GeometryManager::fOptimiseInParallelConfigured = false;
+  // Configured = requested && available (ie if MT or Threads is used)
+  // Value calculated during each effort to optimise
 
 // ***************************************************************************
-// Constructor. Set the geometry to be open
+// Contructor
 // ***************************************************************************
 //
-G4GeometryManager::G4GeometryManager() 
+G4GeometryManager::G4GeometryManager()
 {
+  fIsClosed = false;
+
+  // Ensure that the helper objects are created
+  // even if there is no master thread
+  // Note: no longer needed once G4GeometryManager is a canonical Singleton
+  G4AutoLock lock(createHelperMutex);
+  if( fParallelVoxeliser == nullptr )
+  {
+    fParallelVoxeliser= new G4VoxelisationHelper();
+  }
 }
 
 // ***************************************************************************
@@ -73,6 +104,18 @@ G4GeometryManager::~G4GeometryManager()
 {
   fgInstance = nullptr;
   fIsClosed = false;
+
+  // Only the master thread can delete the helper objects
+  //  - a different mechanism is needed for setups with no master
+  // TODO: See if shared_ptr could help here?
+  if( G4Threading::IsMasterThread() )
+  {
+    if( fParallelVoxeliser != nullptr )
+    {
+      delete fParallelVoxeliser;
+      fParallelVoxeliser = nullptr;
+    }
+  }
 }
 
 // ***************************************************************************
@@ -85,19 +128,33 @@ G4GeometryManager::~G4GeometryManager()
 G4bool G4GeometryManager::CloseGeometry(G4bool pOptimise, G4bool verbose,
                                         G4VPhysicalVolume* pVolume)
 {
-  if (!fIsClosed)
+  if (!fIsClosed && G4Threading::IsMasterThread())
   {
+    G4bool workDone= false;
     if (pVolume != nullptr)
     {
-      BuildOptimisations(pOptimise, pVolume);
+      workDone= BuildOptimisations(pOptimise, pVolume);
     }
     else
     {
-      BuildOptimisations(pOptimise, verbose);
+      workDone= BuildOptimisations(pOptimise, verbose);
     }
-    fIsClosed = true;
+    fIsClosed = workDone; // Sequential will be done; parallel ongoing
   }
   return true;
+}
+
+// ***************************************************************************
+// Inform whether closing of geometry has finished
+// ***************************************************************************
+
+G4bool G4GeometryManager::IsGeometryClosed() 
+{ 
+  if( fOptimiseInParallelConfigured )
+  {
+    fIsClosed= fParallelVoxeliser->IsParallelOptimisationFinished();
+  }
+  return fIsClosed;
 }
 
 // ***************************************************************************
@@ -108,7 +165,7 @@ G4bool G4GeometryManager::CloseGeometry(G4bool pOptimise, G4bool verbose,
 //
 void G4GeometryManager::OpenGeometry(G4VPhysicalVolume* pVolume)
 {
-  if (fIsClosed)
+  if (fIsClosed && G4Threading::IsMasterThread())
   {
     if (pVolume != nullptr)
     {
@@ -119,16 +176,8 @@ void G4GeometryManager::OpenGeometry(G4VPhysicalVolume* pVolume)
       DeleteOptimisations();
     }
     fIsClosed = false;
+    // fGeometryCloseRequested= false;
   }
-}
-
-// ***************************************************************************
-// Returns status of geometry
-// ***************************************************************************
-//
-G4bool G4GeometryManager::IsGeometryClosed()
-{
-  return fIsClosed;
 }
 
 // ***************************************************************************
@@ -155,151 +204,263 @@ G4GeometryManager* G4GeometryManager::GetInstanceIfExist()
 }
 
 // ***************************************************************************
+// Simplest user method to request parallel optimisation.
+// ***************************************************************************
+//
+void G4GeometryManager::OptimiseInParallel( G4bool val )
+{
+  RequestParallelOptimisation(val);
+}
+
+// ***************************************************************************
+// Respond whether parallel optimisation is done
+// ***************************************************************************
+//
+G4bool G4GeometryManager::IsParallelOptimisationFinished()
+{ 
+  return fParallelVoxeliser->IsParallelOptimisationFinished(); 
+}
+
+
+// ***************************************************************************
+// Respond whether parallel optimisation is configured
+// ***************************************************************************
+// 
+G4bool G4GeometryManager::IsParallelOptimisationConfigured()
+{
+  return fOptimiseInParallelConfigured;
+}
+
+// ***************************************************************************
 // Creates optimisation info. Builds all voxels if allOpts=true
 // otherwise it builds voxels only for replicated volumes.
 // ***************************************************************************
+// Returns whether optimisation is finished
 //
-void G4GeometryManager::BuildOptimisations(G4bool allOpts, G4bool verbose)
+G4bool G4GeometryManager::BuildOptimisations(G4bool allOpts, G4bool verbose)
 {
-   G4Timer timer;
-   G4Timer allTimer;
-   std::vector<G4SmartVoxelStat> stats;
-   if (verbose)  { allTimer.Start(); }
+  G4bool finishedOptimisation = false;
+  
+  fOptimiseInParallelConfigured = fParallelVoxelOptimisationRequested
+                               && G4Threading::IsMultithreadedApplication();
 
-   G4LogicalVolumeStore* Store = G4LogicalVolumeStore::GetInstance();
-   G4LogicalVolume* volume;
-   G4SmartVoxelHeader* head;
- 
-   for (size_t n=0; n<Store->size(); ++n)
-   {
-     if (verbose) timer.Start();
-     volume=(*Store)[n];
-     // For safety, check if there are any existing voxels and
-     // delete before replacement
-     //
-     head = volume->GetVoxelHeader();
-     delete head;
-     volume->SetVoxelHeader(0);
-     if (    ( (volume->IsToOptimise())
-            && (volume->GetNoDaughters()>=kMinVoxelVolumesLevel1&&allOpts) )
-          || ( (volume->GetNoDaughters()==1)
-            && (volume->GetDaughter(0)->IsReplicated()==true)
-            && (volume->GetDaughter(0)->GetRegularStructureId()!=1) ) ) 
-     {
+  if( fOptimiseInParallelConfigured )
+  {
+    fParallelVoxeliser->PrepareParallelOptimisation(allOpts, verbose);
+  }
+  else
+  {
+    BuildOptimisationsSequential(allOpts, verbose);
+    finishedOptimisation= true;
+    fIsClosed= true;
+  }
+
+  return finishedOptimisation;
+}
+
+// ***************************************************************************
+// Creates optimisation info. Builds all voxels if allOpts=true
+// otherwise it builds voxels only for replicated volumes.
+//
+// This is the original sequential implementation of this method; was called
+// - at first initialisation to create voxels,
+// - at re-initialisation if the geometry has changed.
+// ***************************************************************************
+//
+void G4GeometryManager::BuildOptimisationsSequential(G4bool allOpts,
+                                                     G4bool verbose)
+{
+  G4Timer timer;
+  G4Timer allTimer;
+  std::vector<G4SmartVoxelStat> stats;
+  
+  if (verbose)  { allTimer.Start(); }
+  
+  G4LogicalVolumeStore* Store = G4LogicalVolumeStore::GetInstance();
+  G4LogicalVolume* volume;
+  G4SmartVoxelHeader* head;
+
 #ifdef G4GEOMETRY_VOXELDEBUG
-       G4cout << "**** G4GeometryManager::BuildOptimisations" << G4endl
-              << "     Examining logical volume name = "
-              << volume->GetName() << G4endl;
+  G4cout << G4endl
+     << "*** G4GeometryManager::BuildOptimisationsSequential() called on tid "
+     << G4Threading::G4GetThreadId() << " all-opts= " << allOpts << G4endl;
 #endif
-       head = new G4SmartVoxelHeader(volume);
-       if (head != nullptr)
-       {
-         volume->SetVoxelHeader(head);
-       }
-       else
-       {
-         std::ostringstream message;
-         message << "VoxelHeader allocation error." << G4endl
-                 << "Allocation of new VoxelHeader" << G4endl
-                 << "        for volume " << volume->GetName() << " failed.";
-         G4Exception("G4GeometryManager::BuildOptimisations()", "GeomMgt0003",
-                     FatalException, message);
-       }
-       if (verbose)
-       {
-         timer.Stop();
-         stats.push_back( G4SmartVoxelStat( volume, head,
-                                            timer.GetSystemElapsed(),
-                                            timer.GetUserElapsed() ) );
-       }
-     }
-     else
-     {
-       // Don't create voxels for this node
+  
+  for (auto & n : *Store)
+  {
+    if (verbose) { timer.Start(); }
+    volume=n;
+    // For safety, check if there are any existing voxels and
+    // delete before replacement
+    //
+    head = volume->GetVoxelHeader();
+    delete head;
+    volume->SetVoxelHeader(nullptr);
+    if (    ( (volume->IsToOptimise())
+             && (volume->GetNoDaughters()>=kMinVoxelVolumesLevel1&&allOpts) )
+        || ( (volume->GetNoDaughters()==1)
+            && (volume->GetDaughter(0)->IsReplicated())
+            && (volume->GetDaughter(0)->GetRegularStructureId()!=1) ) )
+    {
 #ifdef G4GEOMETRY_VOXELDEBUG
-       G4cout << "**** G4GeometryManager::BuildOptimisations" << G4endl
-              << "     Skipping logical volume name = " << volume->GetName()
-              << G4endl;
+    G4cout << "** G4GeometryManager::BuildOptimisationsSequential()"
+           << "   Examining logical volume name = '" << volume->GetName()
+           << "'  #daughters= " << volume->GetNoDaughters()  << G4endl;
 #endif
-     }
+      head = new G4SmartVoxelHeader(volume);
+      
+      if (head != nullptr)
+      {
+        volume->SetVoxelHeader(head);
+      }
+      else
+      {
+        std::ostringstream message;
+        message << "VoxelHeader allocation error." << G4endl
+                << "Allocation of new VoxelHeader" << G4endl
+                << "        for volume '" << volume->GetName() << "' failed.";
+        G4Exception("G4GeometryManager::BuildOptimisations()", "GeomMgt0003",
+                    FatalException, message);
+      }
+      if (verbose)
+      {
+        timer.Stop();
+        stats.emplace_back( volume, head,
+                           timer.GetSystemElapsed(),
+                           timer.GetUserElapsed() );
+      }
+    }
+    else
+    {
+      // Don't create voxels for this node
+#ifdef G4GEOMETRY_VOXELDEBUG
+      auto numDaughters = volume->GetNoDaughters();
+      G4cout << "- Skipping logical volume with " << numDaughters
+             << " daughters and name = '" << volume->GetName() << "' " << G4endl;
+      if( numDaughters > 1 )
+      {
+        G4cout << "[Placement]";
+      }
+      else
+      {
+        if( numDaughters == 1 )
+        {
+          G4cout << ( volume->GetDaughter(0)->IsReplicated() ? "[Replicated]"
+                                                             : "[Placement]" );
+        }
+      }
+      G4cout << G4endl;
+#endif
+    }
   }
   if (verbose)
   {
-     allTimer.Stop();
-     ReportVoxelStats( stats, allTimer.GetSystemElapsed()
-                            + allTimer.GetUserElapsed() );
+    allTimer.Stop();
+    
+    G4VoxelisationHelper::ReportVoxelStats( stats, allTimer.GetSystemElapsed()
+                                                 + allTimer.GetUserElapsed() );
   }
 }
 
 // ***************************************************************************
-// Creates optimisation info for the specified volumes subtree.
+// Method which user calls to ask for parallel optimisation (or turn it off).
 // ***************************************************************************
 //
-void G4GeometryManager::BuildOptimisations(G4bool allOpts,
-                                           G4VPhysicalVolume* pVolume)
+void G4GeometryManager::RequestParallelOptimisation(G4bool flag, G4bool verbose)
 {
-   if (pVolume == nullptr) { return; }
+  fParallelVoxelOptimisationRequested = flag;
+  if( flag )
+  {
+     fParallelVoxeliser->SetVerbosity(verbose);
+  }
+}
 
-   // Retrieve the mother logical volume, if not NULL,
-   // otherwise apply global optimisation for the world volume
-   //
-   G4LogicalVolume* tVolume = pVolume->GetMotherLogical();
-   if (tVolume == nullptr) { return BuildOptimisations(allOpts, false); }
+// ***************************************************************************
+// Method for a thread/task to contribute dynamically to Optimisation
+// ***************************************************************************
+//
+void G4GeometryManager::UndertakeOptimisation()
+{
+   fParallelVoxeliser->UndertakeOptimisation();
+}
 
-   G4SmartVoxelHeader* head = tVolume->GetVoxelHeader();
-   delete head;
-   tVolume->SetVoxelHeader(nullptr);
-   if (    ( (tVolume->IsToOptimise())
-          && (tVolume->GetNoDaughters()>=kMinVoxelVolumesLevel1&&allOpts) )
-        || ( (tVolume->GetNoDaughters()==1)
-          && (tVolume->GetDaughter(0)->IsReplicated()==true) ) ) 
-   {
-     head = new G4SmartVoxelHeader(tVolume);
-     if (head != nullptr)
-     {
-       tVolume->SetVoxelHeader(head);
-     }
-     else
-     {
-       std::ostringstream message;
-       message << "VoxelHeader allocation error." << G4endl
-               << "Allocation of new VoxelHeader" << G4endl
-               << "        for volume " << tVolume->GetName() << " failed.";
-       G4Exception("G4GeometryManager::BuildOptimisations()", "GeomMgt0003",
-                   FatalException, message);
-     }
-   }
-   else
-   {
-     // Don't create voxels for this node
+
+// ***************************************************************************
+// Creates Optimisation info for the specified volumes subtree.
+// ***************************************************************************
+// Returns whether all work is done
+//
+G4bool G4GeometryManager::BuildOptimisations(G4bool allOpts,
+                                             G4VPhysicalVolume* pVolume)
+{
+  if (pVolume == nullptr) { return false; }
+
+  // Retrieve the mother logical volume, if not NULL,
+  // otherwise apply global optimisation for the world volume
+  //
+  G4LogicalVolume* tVolume = pVolume->GetMotherLogical();
+  if (tVolume == nullptr)
+  {
+    G4bool done=BuildOptimisations(allOpts, false);
+    return done;
+  }
+
+  G4SmartVoxelHeader* head = tVolume->GetVoxelHeader();
+  delete head;
+  tVolume->SetVoxelHeader(nullptr);
+  if (    ( (tVolume->IsToOptimise())
+         && (tVolume->GetNoDaughters()>=kMinVoxelVolumesLevel1&&allOpts) )
+       || ( (tVolume->GetNoDaughters()==1)
+         && (tVolume->GetDaughter(0)->IsReplicated()) ) ) 
+  {
+    head = new G4SmartVoxelHeader(tVolume);
+    if (head != nullptr)
+    {
+      tVolume->SetVoxelHeader(head);
+    }
+    else
+    {
+      std::ostringstream message;
+      message << "VoxelHeader allocation error." << G4endl
+              << "Allocation of new VoxelHeader" << G4endl
+              << "        for volume " << tVolume->GetName() << " failed.";
+      G4Exception("G4GeometryManager::BuildOptimisations()", "GeomMgt0003",
+                  FatalException, message);
+    }
+  }
+  else
+  {
+    // Don't create voxels for this node
 #ifdef G4GEOMETRY_VOXELDEBUG
-     G4cout << "**** G4GeometryManager::BuildOptimisations" << G4endl
-            << "     Skipping logical volume name = " << tVolume->GetName()
-            << G4endl;
+    G4cout << "** G4GeometryManager::BuildOptimisations()" << G4endl
+           << "     Skipping logical volume name = " << tVolume->GetName()
+           << G4endl;
 #endif
-   }
+  }
 
-   // Scan recursively the associated logical volume tree
-   //
+  // Scan recursively the associated logical volume tree
+  //
   tVolume = pVolume->GetLogicalVolume();
-  if (tVolume->GetNoDaughters())
+  if (tVolume->GetNoDaughters() != 0)
   {
     BuildOptimisations(allOpts, tVolume->GetDaughter(0));
   }
+
+  return true; // Work is all done -- no parallelism currently
 }
 
 // ***************************************************************************
 // Removes all optimisation info.
-// Loops over all logical volumes, deleting non-null voxels pointers,
+// Loops over all logical volumes, deleting non-null voxels pointers.
 // ***************************************************************************
 //
 void G4GeometryManager::DeleteOptimisations()
 {
   G4LogicalVolume* tVolume = nullptr;
   G4LogicalVolumeStore* Store = G4LogicalVolumeStore::GetInstance();
-  for (size_t n=0; n<Store->size(); ++n)
+  for (auto & n : *Store)
   {
-    tVolume=(*Store)[n];
+    tVolume=n;
     delete tVolume->GetVoxelHeader();
     tVolume->SetVoxelHeader(nullptr);
   }
@@ -312,7 +473,7 @@ void G4GeometryManager::DeleteOptimisations()
 //
 void G4GeometryManager::DeleteOptimisations(G4VPhysicalVolume* pVolume)
 {
-  if (!pVolume) { return; }
+  if (pVolume == nullptr) { return; }
 
   // Retrieve the mother logical volume, if not NULL,
   // otherwise global deletion to world volume.
@@ -325,7 +486,7 @@ void G4GeometryManager::DeleteOptimisations(G4VPhysicalVolume* pVolume)
   // Scan recursively the associated logical volume tree
   //
   tVolume = pVolume->GetLogicalVolume();
-  if (tVolume->GetNoDaughters())
+  if (tVolume->GetNoDaughters() != 0)
   {
     DeleteOptimisations(tVolume->GetDaughter(0));
   }
@@ -338,7 +499,7 @@ void G4GeometryManager::DeleteOptimisations(G4VPhysicalVolume* pVolume)
 //
 void G4GeometryManager::SetWorldMaximumExtent(G4double extent)
 {
-  if (G4SolidStore::GetInstance()->size())
+  if (!G4SolidStore::GetInstance()->empty())
   {
      // Sanity check to assure that extent is fixed BEFORE creating
      // any geometry object (solids in this case)
@@ -348,114 +509,4 @@ void G4GeometryManager::SetWorldMaximumExtent(G4double extent)
                  "Extent can be set only BEFORE creating any geometry object!");
   }
   G4GeometryTolerance::GetInstance()->SetSurfaceTolerance(extent);
-}
-
-// ***************************************************************************
-// Reports statistics on voxel optimisation when closing geometry.
-// ***************************************************************************
-//
-void
-G4GeometryManager::ReportVoxelStats( std::vector<G4SmartVoxelStat> & stats,
-                                     G4double totalCpuTime )
-{
-  G4cout << "G4GeometryManager::ReportVoxelStats -- Voxel Statistics"
-         << G4endl << G4endl;
- 
-  //
-  // Get total memory use
-  //
-  G4int i, nStat = stats.size();
-  G4long totalMemory = 0;
- 
-  for( i=0; i<nStat; ++i )  { totalMemory += stats[i].GetMemoryUse(); }
- 
-  G4cout << "    Total memory consumed for geometry optimisation:   "
-         << totalMemory/1024 << " kByte" << G4endl;
-  G4cout << "    Total CPU time elapsed for geometry optimisation: " 
-         << std::setprecision(2) << totalCpuTime << " seconds"
-         << std::setprecision(6) << G4endl;
- 
-  //
-  // First list: sort by total CPU time
-  //
-  std::sort( stats.begin(), stats.end(),
-    [](const G4SmartVoxelStat& a, const G4SmartVoxelStat& b)
-  {
-    return a.GetTotalTime() > b.GetTotalTime();
-  } );
-         
-  G4int nPrint = nStat > 10 ? 10 : nStat;
-
-  if (nPrint)
-  {
-    G4cout << "\n    Voxelisation: top CPU users:" << G4endl;
-    G4cout << "    Percent   Total CPU    System CPU       Memory  Volume\n"
-           << "    -------   ----------   ----------     --------  ----------"
-           << G4endl;
-    //         12345678901.234567890123.234567890123.234567890123k .
-  }
-
-  for(i=0; i<nPrint; ++i)
-  {
-    G4double total = stats[i].GetTotalTime();
-    G4double system = stats[i].GetSysTime();
-    G4double perc = 0.0;
-
-    if (system < 0) { system = 0.0; }
-    if ((total < 0) || (totalCpuTime < perMillion))
-      { total = 0; }
-    else
-      { perc = total*100/totalCpuTime; }
-
-    G4cout << std::setprecision(2) 
-           << std::setiosflags(std::ios::fixed|std::ios::right)
-           << std::setw(11) << perc
-           << std::setw(13) << total
-           << std::setw(13) << system
-           << std::setw(13) << (stats[i].GetMemoryUse()+512)/1024
-           << "k " << std::setiosflags(std::ios::left)
-           << stats[i].GetVolume()->GetName()
-           << std::resetiosflags(std::ios::floatfield|std::ios::adjustfield)
-           << std::setprecision(6)
-           << G4endl;
-  }
- 
-  //
-  // Second list: sort by memory use
-  //
-  std::sort( stats.begin(), stats.end(),
-    [](const G4SmartVoxelStat& a, const G4SmartVoxelStat& b)
-  {
-    return a.GetMemoryUse() > b.GetMemoryUse();
-  } );
- 
-  if (nPrint)
-  {
-    G4cout << "\n    Voxelisation: top memory users:" << G4endl;
-    G4cout << "    Percent     Memory      Heads    Nodes   Pointers    Total CPU    Volume\n"
-           << "    -------   --------     ------   ------   --------   ----------    ----------"
-           << G4endl;
-    //         12345678901.2345678901k .23456789.23456789.2345678901.234567890123.   .
-  }
-
-  for(i=0; i<nPrint; ++i)
-  {
-    G4long memory = stats[i].GetMemoryUse();
-    G4double totTime = stats[i].GetTotalTime();
-    if (totTime < 0) { totTime = 0.0; }
-
-    G4cout << std::setprecision(2) 
-           << std::setiosflags(std::ios::fixed|std::ios::right)
-           << std::setw(11) << G4double(memory*100)/G4double(totalMemory)
-           << std::setw(11) << memory/1024 << "k "
-           << std::setw( 9) << stats[i].GetNumberHeads()
-           << std::setw( 9) << stats[i].GetNumberNodes()
-           << std::setw(11) << stats[i].GetNumberPointers()
-           << std::setw(13) << totTime << "    "
-           << std::setiosflags(std::ios::left)
-           << stats[i].GetVolume()->GetName()
-           << std::resetiosflags(std::ios::floatfield|std::ios::adjustfield)
-           << std::setprecision(6)
-           << G4endl;
-  }
 }

@@ -35,8 +35,7 @@
 //   Bz = B[2] = 0 .
 // Here X,Y,Z are the coordinates of a space point of interest.
 
-// 03.02.1997, V.Grichine - Created
-// 11.05.2012, B.Riese  - Allow displaced origin and rotation
+// Author: Vladimir Grichine (CERN), 03.02.1997 - Created
 // -------------------------------------------------------------------
 #ifndef G4QUADRUPOLEMAGFIELD_HH
 #define G4QUADRUPOLEMAGFIELD_HH
@@ -45,19 +44,47 @@
 #include "G4ThreeVector.hh"
 #include "G4RotationMatrix.hh"
 
+/**
+ * @brief G4QuadrupoleMagField allows for the creation of quadrupole magnetic
+ * field, given the gradient value for quadrupole magnetic lense.
+ */
+
 class G4QuadrupoleMagField : public G4MagneticField
 {
-  public: // with description
+  public:
 
-    G4QuadrupoleMagField(G4double          pGradient);
-    G4QuadrupoleMagField(G4double          pGradient, 
-                         G4ThreeVector     pOrigin, 
+    /**
+     * Constructor for G4QuadrupoleMagField.
+     *  @param[in] pGradient Field gradient value.
+     */
+    G4QuadrupoleMagField(G4double pGradient);
+
+    /**
+     * Constructor for G4QuadrupoleMagField.
+     *  @param[in] pGradient Field gradient value.
+     *  @param[in] pOrigin Origin position.
+     *  @param[in] pMatrix Rotation matrix.
+     */
+    G4QuadrupoleMagField(G4double pGradient, 
+                         const G4ThreeVector& pOrigin, 
                          G4RotationMatrix* pMatrix);
-   ~G4QuadrupoleMagField();
 
-    void GetFieldValue(const G4double yTrack[],
-                             G4double B[]     ) const;
-    G4Field* Clone() const;
+    /**
+     * Default Destructor.
+     */
+    ~G4QuadrupoleMagField() override = default;
+
+    /**
+     * Returns the field value on the given position 'yTrack'.
+     *  @param[in] yTrack Time position array.
+     *  @param[out] B The returned field array.
+     */
+    void GetFieldValue(const G4double yTrack[], G4double B[]) const override;
+
+    /**
+     * Returns a pointer to a new allocated clone of this object.
+     */
+    G4Field* Clone() const override;
 
   private:
 
@@ -67,4 +94,3 @@ class G4QuadrupoleMagField : public G4MagneticField
 };
 
 #endif
-

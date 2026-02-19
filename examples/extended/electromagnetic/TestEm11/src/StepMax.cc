@@ -23,20 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm11/src/StepMax.cc
+/// \file StepMax.cc
 /// \brief Implementation of the StepMax class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "StepMax.hh"
+
 #include "StepMaxMessenger.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 StepMax::StepMax(const G4String& processName, G4ProcessType type)
- : G4VDiscreteProcess(processName,type),fMess(0)
+  : G4VDiscreteProcess(processName, type)
 {
   fMaxStep1 = fMaxStep2 = DBL_MAX;
   fApplyMaxStep2 = true;
@@ -45,7 +42,10 @@ StepMax::StepMax(const G4String& processName, G4ProcessType type)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-StepMax::~StepMax() { delete fMess; }
+StepMax::~StepMax()
+{
+  delete fMess;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -56,37 +56,46 @@ G4bool StepMax::IsApplicable(const G4ParticleDefinition& particle)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void StepMax::SetMaxStep1(G4double step) {fMaxStep1 = step;}
+void StepMax::SetMaxStep1(G4double step)
+{
+  fMaxStep1 = step;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void StepMax::SetMaxStep2(G4double step) {fMaxStep2 = step;}
+void StepMax::SetMaxStep2(G4double step)
+{
+  fMaxStep2 = step;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void StepMax::ApplyMaxStep2(G4bool value) {fApplyMaxStep2 = value;}
+void StepMax::ApplyMaxStep2(G4bool value)
+{
+  fApplyMaxStep2 = value;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4double StepMax::PostStepGetPhysicalInteractionLength( const G4Track&,
-                                                   G4double,
-                                                   G4ForceCondition* condition )
+G4double StepMax::PostStepGetPhysicalInteractionLength(const G4Track&, G4double,
+                                                       G4ForceCondition* condition)
 {
   // condition is set to "Not Forced"
   *condition = NotForced;
 
-  if (fApplyMaxStep2) return fMaxStep2;
-  else               return fMaxStep1;
+  if (fApplyMaxStep2)
+    return fMaxStep2;
+  else
+    return fMaxStep1;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4VParticleChange* StepMax::PostStepDoIt(const G4Track& aTrack, const G4Step&)
 {
-   // do nothing
-   aParticleChange.Initialize(aTrack);
-   return &aParticleChange;
+  // do nothing
+  aParticleChange.Initialize(aTrack);
+  return &aParticleChange;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

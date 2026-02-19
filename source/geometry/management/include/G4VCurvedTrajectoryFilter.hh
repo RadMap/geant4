@@ -39,38 +39,54 @@
 // subclass of G4VTrajectoryPoint, which must take responsibility for
 // deleting them.
 
-// First version: Oct 30, 2002 - Jacek Generowicz
+// Author: Jacek Generowicz (CERN), 30.10.2002
 // ------------------------------------------------------------------------
-#ifndef G4VCurvedTrajectoryFilter_hh
-#define G4VCurvedTrajectoryFilter_hh
+#ifndef G4VCURVEDTRAJECTORYFILTER_HH
+#define G4VCURVEDTRAJECTORYFILTER_HH
 
 #include "G4ThreeVector.hh"
 #include <vector>
 
+/**
+ * @brief G4VCurvedTrajectoryFilter defines a filter for deciding which
+ * intermediate points on a curved trajectory merit being stored. It defines
+ * the compromise between accuracy of representation of the curved trajectory
+ * and memory use. Derived classes should implement the filtering algorithm.
+ */
+
 class G4VCurvedTrajectoryFilter
 {
+  public:
 
-public:  // with description
-
-  G4VCurvedTrajectoryFilter();
-  virtual ~G4VCurvedTrajectoryFilter();
+    /**
+     * Default Constructor & Destructor.
+     */
+    G4VCurvedTrajectoryFilter() = default;
+    virtual ~G4VCurvedTrajectoryFilter() = default;
 
     // Probably do not want these objects to be copied,
-    // so make the copy constructor private
+    // so make the copy constructor deleted in derived classes.
   
-  void CreateNewTrajectorySegment();
-    // Each segment stores the auxiliary points of a single step.
+    /**
+     * Each segment stores the auxiliary points of a single step.
+     */
+    void CreateNewTrajectorySegment();
 
-  virtual void TakeIntermediatePoint( G4ThreeVector newPoint ) = 0;
-    // Submit intermediate points for the filter to consider keeping or
-    // rejecting. Derived classes should implement the filtering algorithm
-    // in this method.
+    /**
+     * Submits intermediate points for the filter to consider keeping or
+     * rejecting. Derived classes should implement the filtering algorithm
+     * in this method.
+     */
+    virtual void TakeIntermediatePoint( G4ThreeVector newPoint ) = 0; 
 
-  std::vector<G4ThreeVector>* GimmeThePointsAndForgetThem();
+    /**
+     * Returns the vector of points, transferring the ownership.
+     */
+    std::vector<G4ThreeVector>* GimmeThePointsAndForgetThem();
   
-protected:
+  protected:
 
-  std::vector<G4ThreeVector>* fpFilteredPoints = nullptr;
+    std::vector<G4ThreeVector>* fpFilteredPoints = nullptr;
 };
 
-#endif  /* G4VCurvedTrajectoryFilter_hh */
+#endif

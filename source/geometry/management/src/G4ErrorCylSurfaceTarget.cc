@@ -25,7 +25,7 @@
 //
 // G4ErrorCylSurfaceTarget class implementation
 // 
-// Created: P.Arce, September 2004
+// Author: Pedro Arce (CIEMAT), September 2004
 // --------------------------------------------------------------------
 
 #include "G4ErrorCylSurfaceTarget.hh"
@@ -36,6 +36,7 @@
 #endif
 
 #include "geomdefs.hh"
+#include "G4Normal3D.hh"
 #include "G4Plane3D.hh"
 
 //---------------------------------------------------------------------
@@ -72,12 +73,6 @@ G4ErrorCylSurfaceTarget( const G4double& radius,
     Dump( " $$$ creating G4ErrorCylSurfaceTarget ");
   }
 #endif
-}
-
-//---------------------------------------------------------------------
-
-G4ErrorCylSurfaceTarget::~G4ErrorCylSurfaceTarget()
-{
 }
 
 //---------------------------------------------------------------------

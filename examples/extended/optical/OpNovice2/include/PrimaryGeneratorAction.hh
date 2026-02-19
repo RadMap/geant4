@@ -23,19 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file optical/OpNovice2/include/PrimaryGeneratorAction.hh
+/// \file PrimaryGeneratorAction.hh
 /// \brief Definition of the PrimaryGeneratorAction class
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PrimaryGeneratorAction_h
 #define PrimaryGeneratorAction_h 1
 
-#include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4ParticleGun.hh"
+#include "G4VUserPrimaryGeneratorAction.hh"
 #include "globals.hh"
 
 class G4Event;
@@ -47,18 +42,24 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
     PrimaryGeneratorAction();
-    virtual ~PrimaryGeneratorAction();
+    ~PrimaryGeneratorAction() override;
 
-    virtual void GeneratePrimaries(G4Event*);
+    void GeneratePrimaries(G4Event*) override;
 
-    G4ParticleGun* GetParticleGun() {return fParticleGun;};
+    G4ParticleGun* GetParticleGun() { return fParticleGun; };
 
     void SetOptPhotonPolar();
     void SetOptPhotonPolar(G4double);
+    void SetRandomDirection(G4bool val = true);
+    G4bool GetPolarized() { return fPolarized; };
+    G4double GetPolarization() { return fPolarization; }
 
   private:
-    G4ParticleGun* fParticleGun;
-    PrimaryGeneratorMessenger* fGunMessenger;
+    G4ParticleGun* fParticleGun = nullptr;
+    PrimaryGeneratorMessenger* fGunMessenger = nullptr;
+    G4bool fRandomDirection = false;
+    G4bool fPolarized = false;
+    G4double fPolarization = 0.;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

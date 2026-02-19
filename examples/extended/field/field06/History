@@ -1,26 +1,35 @@
-// ------------------------------------------------------------------
+# Example field06 History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                    field06 History file
-                    --------------------
-This file should be used by the G4 example coordinator to briefly
-summarize all major modifications introduced in the code and keep
-track of all tags.
+-------------------------------------------------------------------------------
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2024-09-18 Gabriele Cosmo (fieldex06-V11-02-00)
+- Use default MixMax random generator.
+
+## 2023-07-05 Ivana Hrivnacova (fieldex06-V11-01-00)
+- Clang-tidy, new coding guidelines
+- Clean-up trailing white-spaces
+
+## 2021-12-10 Ben Morgan (fieldex06-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+November 10, 2020 B. Morgan - fieldex06-V10-06-00
+- Migration to G4RunManagerFactory.
 
 Nov   1, 2019 J.Apostolakis - fieldex06-V10-05-01
 - Adjusted for change in G4Transportation (need to inform of use of gravity)
-    and corrected creation of G4ChordFinder.  
+    and corrected creation of G4ChordFinder.
 
 July 27, 2018 I.Hrivnacova - fieldex06-V10-04-01
 - Macro review and code clean-up:
-  - Separated other than visualization settings from vis.mac in a 
+  - Separated other than visualization settings from vis.mac in a
     new init_vis.mac
   - Added "beamOn 10" button in gui.mac
   - Updated README files
@@ -39,7 +48,7 @@ July 18, 2016 I. Hrivnacova - fieldex06-V10-02-01
   by calling the new G4StepLimiterPhysics::SetApplyToAll() function
 
 July 01, 2016 I. Hrivnacova - fieldex06-V10-02-00
-- Replaced F06ExtraPhysics with use of G4StepLimiterPhysics, 
+- Replaced F06ExtraPhysics with use of G4StepLimiterPhysics,
   code clean-up
 
 June 26, 2015 P. Gumplinger - fieldex06-V10-01-01/02/03
@@ -85,7 +94,7 @@ May 06th, 2013 P. Gumplinger - fieldex06-V09-06-02
 
 April 1st, 2013 Andrea Dotti - fieldex06-V09-06-01
 ------------------------------------
-- Update to new G4VUserPhysicsList interface 
+- Update to new G4VUserPhysicsList interface
 
 December 2nd, 2012 John Allison - fieldex06-V09-06-00
 ------------------------------------

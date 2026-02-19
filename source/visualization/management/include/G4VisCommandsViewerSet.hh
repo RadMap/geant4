@@ -36,6 +36,7 @@
 
 class G4UIdirectory;
 class G4UIcommand;
+class G4UIcmdWithoutParameter;
 class G4UIcmdWithAString;
 class G4UIcmdWithABool;
 class G4UIcmdWithAnInteger;
@@ -59,6 +60,8 @@ private:
   G4UIcmdWithAString*   fpCommandCutawayMode;
   G4UIcommand*          fpCommandDefaultColour;
   G4UIcommand*          fpCommandDefaultTextColour;
+  G4UIcmdWithADouble*   fpCommandDotsSize;
+  G4UIcmdWithABool*     fpCommandDotsSmooth;
   G4UIcmdWithABool*     fpCommandEdge;
   G4UIcommand*          fpCommandExplodeFactor;
   G4UIcmdWithADouble*   fpCommandGlobalMarkerScale;
@@ -70,13 +73,18 @@ private:
   G4UIcommand*          fpCommandLightsVector;
   G4ThreeVector         fLightsVector;
   G4UIcmdWithAnInteger* fpCommandLineSegments;
+  G4UIcmdWithoutParameter* fpCommandLineWidth;
   G4UIcmdWithAnInteger* fpCommandNumberOfCloudPoints;
   G4UIcmdWithABool*     fpCommandPicking;
   G4UIcommand*          fpCommandProjection;
   G4UIcmdWithAString*   fpCommandRotationStyle;
   G4UIcommand*          fpCommandSectionPlane;
+  G4UIcmdWithABool*     fpCommandSpecialMeshRendering;
+  G4UIcmdWithAString*   fpCommandSpecialMeshRenderingOption;
+  G4UIcommand*          fpCommandSpecialMeshVolumes;
   G4UIcmdWithAString*   fpCommandStyle;
   G4UIcmdWith3VectorAndUnit* fpCommandTargetPoint;
+  G4UIcommand*          fpCommandTransparencyByDepth;
   G4UIcommand*          fpCommandUpThetaPhi;
   G4UIcommand*          fpCommandUpVector;
   G4ThreeVector         fUpVector;
@@ -89,6 +97,7 @@ private:
   G4UIcommand*          fpCommandTimeWindowEndTime;
   G4UIcmdWithADouble*   fpCommandTimeWindowFadeFactor;
   G4UIcommand*          fpCommandTimeWindowStartTime;
+  G4UIcmdWithABool*     fpCommandZoomToCursor;
 };
 
 #endif

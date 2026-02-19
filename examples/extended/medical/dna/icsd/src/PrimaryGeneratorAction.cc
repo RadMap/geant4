@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PrimaryGeneratorAction.cc
+/// \brief Implementation of the PrimaryGeneratorAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,35 +34,43 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file PrimaryGeneratorAction.cc
-/// \brief Implementation of the PrimaryGeneratorAction class
 
 #include "PrimaryGeneratorAction.hh"
+
+#include "G4LogicalVolumeStore.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4Tubs.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-PrimaryGeneratorAction::PrimaryGeneratorAction()
-: G4VUserPrimaryGeneratorAction()
+PrimaryGeneratorAction::PrimaryGeneratorAction() : G4VUserPrimaryGeneratorAction()
 {
-    G4int n_particle = 1;
-    fpParticleGun  = new G4ParticleGun(n_particle);
+  G4int n_particle = 1;
+  fpParticleGun = new G4ParticleGun(n_particle);
 
-    // default gun parameters
-    //  fParticleGun->SetParticleEnergy(500.*eV);
-    fpParticleGun->SetParticleMomentumDirection(G4ThreeVector(1.,0.,0.));
-    fpParticleGun->SetParticlePosition(G4ThreeVector(-1.15*nanometer,0.,0));
+  // default gun parameters
+  fpParticleGun->SetParticleEnergy(500. * eV);
+  fpParticleGun->SetParticleMomentumDirection(G4ThreeVector(1., 0., 0.));
+  fpParticleGun->SetParticlePosition(G4ThreeVector(-1.15 * nanometer, 0., 0));
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 PrimaryGeneratorAction::~PrimaryGeneratorAction()
 {
-    delete fpParticleGun;
+  delete fpParticleGun;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-    fpParticleGun->GeneratePrimaryVertex(anEvent);
+  G4Tubs* targetSolid =
+    dynamic_cast<G4Tubs*>(G4LogicalVolumeStore::GetInstance()->GetVolume("Target")->GetSolid());
+
+  if (targetSolid != nullptr) {
+    G4double radius = targetSolid->GetOuterRadius();
+    fpParticleGun->SetParticlePosition(G4ThreeVector(-radius, 0., 0));
+  }
+
+  fpParticleGun->GeneratePrimaryVertex(anEvent);
 }

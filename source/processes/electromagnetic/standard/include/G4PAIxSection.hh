@@ -22,9 +22,6 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-//
-//
 // 
 // G4PAIxSection.hh -- header file
 //
@@ -58,7 +55,7 @@
 #include "globals.hh"
 #include "Randomize.hh"
 
-#include"G4SandiaTable.hh"
+#include "G4SandiaTable.hh"
 
 class G4MaterialCutsCouple;
 class G4Sandiatable;
@@ -71,8 +68,7 @@ public:
   G4PAIxSection();
   G4PAIxSection( G4MaterialCutsCouple* matCC);
 	  
-  G4PAIxSection( G4int materialIndex,
-	                 G4double maxEnergyTransfer   );
+  G4PAIxSection( G4int materialIndex, G4double maxEnergyTransfer );
 	  
   G4PAIxSection( G4int materialIndex,           // for proton loss table
 		         G4double maxEnergyTransfer,
@@ -103,10 +99,10 @@ public:
           
   G4double RutherfordIntegral( G4int intervalNumber,
 			       G4double limitLow,
-			       G4double limitHigh     );
+			       G4double limitHigh );
 
   G4double ImPartDielectricConst( G4int intervalNumber,
-				  G4double energy        );
+				  G4double energy );
 
   G4double GetPhotonRange( G4double energy );
   G4double GetElectronRange( G4double energy );
@@ -114,18 +110,18 @@ public:
   G4double RePartDielectricConst(G4double energy);
 
   G4double DifPAIxSection( G4int intervalNumber,
-			   G4double betaGammaSq    );
+			   G4double betaGammaSq );
 
   G4double PAIdNdxCerenkov( G4int intervalNumber,
-			    G4double betaGammaSq    );
+			    G4double betaGammaSq );
   G4double PAIdNdxMM( G4int intervalNumber,
-		      G4double betaGammaSq    );
+		      G4double betaGammaSq );
 
   G4double PAIdNdxPlasmon( G4int intervalNumber,
-			   G4double betaGammaSq    );
+			   G4double betaGammaSq );
 
   G4double PAIdNdxResonance( G4int intervalNumber,
-			     G4double betaGammaSq    );
+			     G4double betaGammaSq );
 
 
   void     IntegralPAIxSection();
@@ -209,35 +205,33 @@ public:
   inline G4double GetIntegralPlasmon(G4int i) const;
   inline G4double GetIntegralResonance(G4int i) const;
 
+  G4PAIxSection & operator=(const G4PAIxSection &right) = delete;
+  G4PAIxSection(const G4PAIxSection&) = delete;
+
 private :
 
   void CallError(G4int i, const G4String& methodName) const;
-
-  G4PAIxSection & operator=(const G4PAIxSection &right) = delete;
-  G4PAIxSection(const G4PAIxSection&) = delete;
 
   // Local class constants
  
   static const G4double fDelta; // energy shift from interval border = 0.001
   static const G4double fError; // error in lin-log approximation = 0.005
 
-  static G4int fNumberOfGammas;         // = 111;
-  static const G4double fLorentzFactor[112];  //  static gamma array
+  static G4int fNumberOfGammas; // = 111;
+  static const G4double fLorentzFactor[112]; // static gamma array
 
   static 
-  const G4int fRefGammaNumber; //The number of gamma for creation of spline (15)
+  const G4int fRefGammaNumber; // The number of gamma for creation of spline (15)
 
-  G4int    fIntervalNumber ;    //  The number of energy intervals
-  G4double fNormalizationCof;   // Normalization cof for PhotoAbsorptionXsection
+  G4int    fIntervalNumber ;   // The number of energy intervals
+  G4double fNormalizationCof;  // Normalization cof for PhotoAbsorptionXsection
 
-  // G4double fBetaGammaSq;        // (beta*gamma)^2
-
-  G4int fMaterialIndex;  // current material index
-  G4double fDensity;            // Current density
-  G4double fElectronDensity;    // Current electron (number) density
+  G4int fMaterialIndex;      // current material index
+  G4double fDensity;         // Current density
+  G4double fElectronDensity; // Current electron (number) density
   G4double fLowEnergyCof;    // Correction cof for low energy region
-  G4int    fSplineNumber;       // Current size of spline
-  G4int    fVerbose;       // verbose flag
+  G4int    fSplineNumber;    // Current size of spline
+  G4int    fVerbose;         // verbose flag
 
   // Arrays of Sandia coefficients
 
@@ -254,22 +248,22 @@ private :
   static
   const G4int  fMaxSplineSize ; // Max size of output splain arrays = 500
 
-  G4DataVector          fSplineEnergy;   // energy points of splain
+  G4DataVector          fSplineEnergy;     // energy points of splain
   G4DataVector   fRePartDielectricConst;   // Real part of dielectric const
   G4DataVector   fImPartDielectricConst;   // Imaginary part of dielectric const
   G4DataVector            fIntegralTerm;   // Integral term in PAI cross section
   G4DataVector          fDifPAIxSection;   // Differential PAI cross section
   G4DataVector            fdNdxCerenkov;   // dNdx of Cerenkov collisions
   G4DataVector            fdNdxPlasmon;    // dNdx of Plasmon collisions
-  G4DataVector            fdNdxMM;    // dNdx of MM-Cerenkov collisions
-  G4DataVector            fdNdxResonance;    // dNdx of Resonance collisions
+  G4DataVector            fdNdxMM;         // dNdx of MM-Cerenkov collisions
+  G4DataVector            fdNdxResonance;  // dNdx of Resonance collisions
 
   G4DataVector     fIntegralPAIxSection;   // Integral PAI cross section  ?
   G4DataVector     fIntegralPAIdEdx;       // Integral PAI dEdx  ?
   G4DataVector     fIntegralCerenkov;      // Integral Cerenkov N>omega  ?
   G4DataVector     fIntegralPlasmon;       // Integral Plasmon N>omega  ?
-  G4DataVector     fIntegralMM;       // Integral MM N>omega  ?
-  G4DataVector     fIntegralResonance;       // Integral resonance N>omega  ?
+  G4DataVector     fIntegralMM;            // Integral MM N>omega  ?
+  G4DataVector     fIntegralResonance;     // Integral resonance N>omega  ?
 
   G4double fPAItable[500][112]; // Output array
 

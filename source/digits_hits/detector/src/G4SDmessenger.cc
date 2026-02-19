@@ -28,33 +28,34 @@
 // ---------------------------------------------------------------------
 
 #include "G4SDmessenger.hh"
+
 #include "G4SDManager.hh"
-#include "G4UIdirectory.hh"
-#include "G4UIcmdWithoutParameter.hh"
 #include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWithAnInteger.hh"
+#include "G4UIcmdWithoutParameter.hh"
+#include "G4UIdirectory.hh"
 
-G4SDmessenger::G4SDmessenger(G4SDManager* SDManager):fSDMan(SDManager)
+G4SDmessenger::G4SDmessenger(G4SDManager* SDManager) : fSDMan(SDManager)
 {
   hitsDir = new G4UIdirectory("/hits/");
   hitsDir->SetGuidance("Sensitive detectors and Hits");
 
-  listCmd = new G4UIcmdWithoutParameter("/hits/list",this);
+  listCmd = new G4UIcmdWithoutParameter("/hits/list", this);
   listCmd->SetGuidance("List sensitive detector tree.");
 
-  activeCmd = new G4UIcmdWithAString("/hits/activate",this);
+  activeCmd = new G4UIcmdWithAString("/hits/activate", this);
   activeCmd->SetGuidance("Activate sensitive detector(s).");
-  activeCmd->SetParameterName("detector",true);
+  activeCmd->SetParameterName("detector", true);
   activeCmd->SetDefaultValue("/");
 
-  inactiveCmd = new G4UIcmdWithAString("/hits/inactivate",this);
+  inactiveCmd = new G4UIcmdWithAString("/hits/inactivate", this);
   inactiveCmd->SetGuidance("Inactivate sensitive detector(s).");
-  inactiveCmd->SetParameterName("detector",true);
+  inactiveCmd->SetParameterName("detector", true);
   inactiveCmd->SetDefaultValue("/");
 
-  verboseCmd = new G4UIcmdWithAnInteger("/hits/verbose",this);
+  verboseCmd = new G4UIcmdWithAnInteger("/hits/verbose", this);
   verboseCmd->SetGuidance("Set the Verbose level.");
-  verboseCmd->SetParameterName("level",false);
+  verboseCmd->SetParameterName("level", false);
 }
 
 G4SDmessenger::~G4SDmessenger()
@@ -66,17 +67,19 @@ G4SDmessenger::~G4SDmessenger()
   delete hitsDir;
 }
 
-void G4SDmessenger::SetNewValue(G4UIcommand * command,G4String newVal)
+void G4SDmessenger::SetNewValue(G4UIcommand* command, G4String newVal)
 {
-  if( command==listCmd )
-  { fSDMan->ListTree(); }
-  if( command==activeCmd )
-  { fSDMan->Activate(newVal,1); }
-  if( command==inactiveCmd )
-  { fSDMan->Activate(newVal,0); }
-  if( command==verboseCmd )
-  { fSDMan->SetVerboseLevel(verboseCmd->GetNewIntValue(newVal)); }
+  if (command == listCmd) {
+    fSDMan->ListTree();
+  }
+  if (command == activeCmd) {
+    fSDMan->Activate(newVal, true);
+  }
+  if (command == inactiveCmd) {
+    fSDMan->Activate(newVal, false);
+  }
+  if (command == verboseCmd) {
+    fSDMan->SetVerboseLevel(verboseCmd->GetNewIntValue(newVal));
+  }
   return;
 }
-
-

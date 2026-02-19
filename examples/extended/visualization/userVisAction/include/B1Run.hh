@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file B1Run.hh
 /// \brief Definition of the B1Run class
 
@@ -46,19 +45,18 @@ class B1Run : public G4Run
 
     // method from the base class
     virtual void Merge(const G4Run*);
-    
-    void AddEdep (G4double edep); 
+
+    void AddEdep(G4double edep);
 
     // get methods
-    G4double GetEdep()  const { return fEdep; }
+    G4double GetEdep() const { return fEdep; }
     G4double GetEdep2() const { return fEdep2; }
 
   private:
-    G4double  fEdep;
-    G4double  fEdep2;
+    G4double fEdep;
+    G4double fEdep2;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

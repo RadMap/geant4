@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------------
 # Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.27)
 project(TestEm15)
 
 #----------------------------------------------------------------------------
@@ -40,7 +40,8 @@ target_link_libraries(TestEm15 ${Geant4_LIBRARIES} )
 # relies on these scripts being in the current working directory.
 #
 set(TestEm15_SCRIPTS
-    gamma.mac electron.mac muon.mac proton.mac TestEm15.in TestEm15.out vis.mac
+    gamma.mac electron.mac muon.mac proton.mac
+    TestEm15.in TestEm15.out vis.mac
   )
 
 foreach(_script ${TestEm15_SCRIPTS})

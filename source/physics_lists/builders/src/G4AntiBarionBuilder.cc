@@ -36,64 +36,9 @@
 //----------------------------------------------------------------------------
 //
 #include "G4AntiBarionBuilder.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4ParticleTable.hh"
-#include "G4ProcessManager.hh"
+#include "G4HadronicBuilder.hh"
 
-G4AntiBarionBuilder::
-G4AntiBarionBuilder(): wasActivated(false) 
-{  
-  theAntiProtonInelastic=new G4AntiProtonInelasticProcess;
-  theAntiNeutronInelastic=new G4AntiNeutronInelasticProcess;
-  theAntiDeuteronInelastic=new G4AntiDeuteronInelasticProcess;
-  theAntiTritonInelastic=new G4AntiTritonInelasticProcess;
-  theAntiHe3Inelastic=new G4AntiHe3InelasticProcess;
-  theAntiAlphaInelastic=new G4AntiAlphaInelasticProcess;
-}
-
-
-void G4AntiBarionBuilder::
-Build()
+void G4AntiBarionBuilder::Build()
 {
-  wasActivated = true;
-
-  std::vector<G4VAntiBarionBuilder *>::iterator i;
-  for(i=theModelCollections.begin(); i!=theModelCollections.end(); i++)
-  {
-    (*i)->Build(theAntiProtonInelastic);
-    (*i)->Build(theAntiNeutronInelastic);
-    (*i)->Build(theAntiDeuteronInelastic);
-    (*i)->Build(theAntiTritonInelastic);
-    (*i)->Build(theAntiHe3Inelastic);
-    (*i)->Build(theAntiAlphaInelastic);
-  }
-  G4ProcessManager * theProcMan;
-  theProcMan = G4AntiProton::AntiProton()->GetProcessManager();
-  theProcMan->AddDiscreteProcess(theAntiProtonInelastic);
-  
-  theProcMan = G4AntiNeutron::AntiNeutron()->GetProcessManager();
-  theProcMan->AddDiscreteProcess(theAntiNeutronInelastic);
-  
-  theProcMan = G4AntiDeuteron::AntiDeuteron()->GetProcessManager();
-  theProcMan->AddDiscreteProcess(theAntiDeuteronInelastic);
-
-  theProcMan = G4AntiTriton::AntiTriton()->GetProcessManager();
-  theProcMan->AddDiscreteProcess(theAntiTritonInelastic);
-  
-  theProcMan = G4AntiHe3::AntiHe3()->GetProcessManager();
-  theProcMan->AddDiscreteProcess(theAntiHe3Inelastic);
-  
-  theProcMan = G4AntiAlpha::AntiAlpha()->GetProcessManager();
-  theProcMan->AddDiscreteProcess(theAntiAlphaInelastic);
+  G4HadronicBuilder::BuildAntiLightIonsFTFP();
 }
-
-void G4AntiBarionBuilder::RegisterMe(G4PhysicsBuilderInterface* aB ) {
-  auto bld = dynamic_cast<G4VAntiBarionBuilder*>(aB);
-  if ( bld != nullptr ) {
-      theModelCollections.push_back(bld);
-  } else {
-      G4PhysicsBuilderInterface::RegisterMe(aB);
-  }
-
-}
-

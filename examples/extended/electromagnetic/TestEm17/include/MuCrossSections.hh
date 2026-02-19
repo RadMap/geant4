@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm17/include/MuCrossSections.hh
+/// \file MuCrossSections.hh
 /// \brief Definition of the MuCrossSections class
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef MuCrossSections_h
 #define MuCrossSections_h 1
@@ -37,6 +33,7 @@
 
 class G4Material;
 class G4Element;
+class G4NistManager;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -44,23 +41,25 @@ class MuCrossSections
 {
   public:
     MuCrossSections();
-   ~MuCrossSections();
+    ~MuCrossSections() = default;
 
-  public:
-    G4double CR_Macroscopic (const G4String&, const G4Material*, 
-                             G4double, G4double);   
-    G4double CR_PerAtom     (const G4String&, const G4Element*, 
-                             G4double, G4double);
-                       
+    G4double CR_Macroscopic(const G4String&, const G4Material*, G4double, G4double);
+    G4double CR_PerAtom(const G4String&, const G4Element*, G4double, G4double);
+
   private:
-    G4double CRB_Mephi (G4double, G4double, G4double, G4double);
-    G4double CRK_Mephi (G4double, G4double, G4double, G4double);
-    G4double CRN_Mephi (G4double, G4double, G4double, G4double);
-    G4double CRP_Mephi (G4double, G4double, G4double, G4double);    
+    G4double CRB_Mephi(G4double, G4double, G4double, G4double);
+    G4double CRK_Mephi(G4double, G4double, G4double, G4double);
+    G4double CRN_Mephi(G4double, G4double, G4double, G4double);
+    G4double CRP_Mephi(G4double, G4double, G4double, G4double);
+    G4double CRM_Mephi(G4double, G4double, G4double);
+    G4double U_func(G4double Z, G4double rho2, G4double xi, G4double Y, G4double pairEnergy,
+                    const G4double B = 183.);
+
+    G4NistManager* fNist;
+    G4double fMuonMass;
+    G4double fMueRatio;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-    

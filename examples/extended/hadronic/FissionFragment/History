@@ -1,18 +1,35 @@
--------------------------------------------------------------------
+# Example FissionFragment History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top). It must **not**
+be used as a substitute for writing good git commit messages!
 
-                 FissionFragment History file
-                 ----------------------------
-This file should be used by the G4 example coordinator to briefly
-summarize all major modifications introduced in the code and keep
-track of all tags.
+## 2023-10-26 Alberto Ribon (exExtHadFissFrag-V11-01-00)
+- README : documented macro batch.in
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2022-10-04 Ben Morgan (exExtHadFissFrag-V11-00-01)
+- Replace sprintf with ostringstream to fix deprecation warning on macOS 13
+
+## 2021-12-10 Ben Morgan (exExtHadFissFrag-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+01-06-21 G. Folger (exExtHadFissFrag-V10-07-01)
+- Fixed CMake build script to define target properly.
+
+22-03-21 A. Ribon (exExtHadFissFrag-V10-07-00)
+- Improved comment.
+
+10-11-20 B, Morgan (exExtHadFissFrag-V10-06-01)
+- Migration to G4RunManagerFactory.
+
+05-08-20    A. Ribon		(exExtHadFissFrag-V10-06-00)
+- FissionFragment.cc , batch.in , README , .README.txt :
+  o Replaced deprecated HP environmental variables with corresponding
+    UI commands.
 
 08-05-18    J. Allison		(exExtHadFissFrag-V10-04-01)
 - FissionFragment.cc:
@@ -57,17 +74,17 @@ track of all tags.
 - Fixed fuel plate placement issue. Removed need for tag
   "exExtHadFissFrag-V10-00-08"
 - Fixed sampling location for neutron source
-	
-	
+
+
 23-06-14    B. Wendt            (exExtHadFissFrag-V10-00-08)
 - Attempt to correct compilation warnings on gcc-4.1 regarding a call
   to "int abs(int)" in FFDetectorConstruction.cc
-	
-	
+
+
 13-06-14    Gunter Folger       (exExtHadFissFrag-V10-00-07)
 - correct compilation warning on unused variable run in FFRunAction
 - add input file for testing: batch.in
-	
-	
+
+
 06-06-13    B. Wendt            (exExtHadFissFrag-V10-00-06)
 - First release

@@ -1,18 +1,64 @@
-----------------------------------------------------
+# Example TestEm3 History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top). It must **not**
+be used as a substitute for writing good git commit messages!
 
-                    TestEm3 History file
-                    --------------------
-This file should be used by the G4 example coordinator to briefly
-summarize all major modifications introduced in the code and keep
-track of all tags.
+## 2024-10-22 Michel Maire (testem3-V11-02-02)
+- TrackingAction: in energy leakage, add special traitement for positron
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2024-10-01 Michel Maire (testem3-V11-02-01)
+- Run::Merge(): add fEnergyDeposit[k]  (bugzilla 2626)
+
+## 2024-04-03 Michel Maire (testem3-V11-02-00)
+- Readme: documente stepMax.mac
+
+## 2023-05-04 Vladimir Ivantchenko (testem3-V11-01-02)
+- Run.cc: fixed division by zero for the case if energy deposition in a layer is zero
+
+## 2023-04-15 Michel Maire (testem3-V11-01-01)
+- revision of all headers
+
+## 2023-01-23 Michel Maire (testem3-V11-01-00)
+- compute and plot energy leakage and total energy
+
+## 2022-01-18 Jonas Hahnfeld (testem3-V11-00-01)
+- Prefer pointer to `const G4Material` if possible
+
+## 2021-12-10 Ben Morgan (testem3-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+     
+06-10-21 I. Hrivnacova (testem3-V10-07-03)
+- Migration to new G4AnalysisManager.hh header;
+  define the default output file type (root).
+
+19-07-21 I. Hrivnacova (testem3-V10-07-02)
+- Updated for changes in the analysis category:
+  removed deleting of the analysis manager,
+  as this is now done by the Geant4 kernel.
+
+06-05-21 mma (testem3-V10-07-01)
+- Migration to G4RunManagerFactory and G4SteppingVerboseWithUnits.
+       
+14-12-20 mma (testem3-V10-07-00)
+- updated PhysListEmStandard.cc
+- StepMax, StepMaxMessenger, PhysicsList, PhysicsListMessenger :
+    revert, to make command /testem/stepMax working in interactive mode
+- added macro stepMax.mac
+      
+14-09-20 I. Hrivnacova (testem3-V10-06-01)
+- Renamed TestEm3_2.in in geom.mac
+
+01-09-20 mma, I. Hrivnacova (testem3-V10-06-00)
+- Macro & commands review:
+  - Added macro descriptions in README
+  - Added TestEm3_2.in with commands not used in TestEm3.in
+  - Fixed not working macros: ionC12.mac, lockwood.mac, storeTables.mac
+  - Removed obsolete macro retrieveTables.mac 
 
 26-11-19 I. Hrivnacova (testem3-V10-05-00)
 - Fixed Doxygen warnings

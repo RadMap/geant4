@@ -23,26 +23,23 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/MCTruth/mctruthex.cc
-/// \brief Main program of the eventgenerator/HepMC/MCTruth example
-//
-//
-#include "G4RunManager.hh"
-#include "G4UImanager.hh"
+/// \file mctruthex.cc
+/// \brief Main program of the HepMC/MCTruth example
 
-#include "FTFP_BERT.hh"
-#include "PrimaryGeneratorAction.hh"
 #include "DetectorConstruction.hh"
-
-#include "MCTruthTrackingAction.hh"
+#include "FTFP_BERT.hh"
 #include "MCTruthEventAction.hh"
-
 #include "MCTruthManager.hh"
+#include "MCTruthTrackingAction.hh"
+#include "PrimaryGeneratorAction.hh"
+
+#include "G4RunManagerFactory.hh"
+#include "G4UImanager.hh"
 
 int main()
 {
-  // Construct the default run manager
-  G4RunManager* runManager = new G4RunManager;
+  // Construct a serial run manager
+  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::SerialOnly);
 
   // set mandatory initialization classes
   runManager->SetUserInitialization(new DetectorConstruction);
@@ -77,5 +74,3 @@ int main()
   // job termination
   delete runManager;
 }
-
-

@@ -27,8 +27,8 @@
 //
 // Class description:
 //
-//   Class implementing a CSG-like type "PGON" Geant 3.21 volume,
-//   inherited from class G4VCSGfaceted:
+// Class implementing a CSG-like type "PGON" Geant 3.21 volume,
+// inherited from class G4VCSGfaceted:
 //
 //   G4Polyhedra( const G4String& name,
 //                G4double phiStart,         - initial phi starting angle
@@ -44,10 +44,10 @@
 //                G4double phiTotal,    - total phi angle
 //                G4int    numSide,     - number sides
 //                G4int    numRZ,       - number corners in r,z space
-//                const G4double r[],   - r coordinate of these corners
-//                const G4double z[] )  - z coordinate of these corners
+//                const G4double r[],   - r coordinates of these corners
+//                const G4double z[] )  - z coordinates of these corners
 
-// Author: David C. Williams (davidw@scipp.ucsc.edu)
+// Author: David C. Williams (UCSC), 1998 - First implementation
 // --------------------------------------------------------------------
 #ifndef G4POLYHEDRA_HH
 #define G4POLYHEDRA_HH
@@ -71,125 +71,226 @@
 class G4EnclosingCylinder;
 class G4ReduciblePolygon;
 
+/**
+ * @brief G4Polyhedra represents a composed closed polyhedra (PGON) made of
+ * planar sizes along the Z axis, with or without cut in Phi.
+ */
+
 class G4Polyhedra : public G4VCSGfaceted
 {
- public:  // with description
+  public:
 
-  G4Polyhedra( const G4String& name,
-                     G4double phiStart,    // initial phi starting angle
-                     G4double phiTotal,    // total phi angle
-                     G4int numSide,        // number sides
-                     G4int numZPlanes,     // number of z planes
-               const G4double zPlane[],    // position of z planes
-               const G4double rInner[],    // tangent distance to inner surface
-               const G4double rOuter[]  ); // tangent distance to outer surface
+    /**
+     * Constructs a polyhedra, given its parameters.
+     *  @param[in] name The solid name.
+     *  @param[in] phiStart Initial Phi starting angle.
+     *  @param[in] phiTotal Total Phi angle.
+     *  @param[in] numSide Number of sides.
+     *  @param[in] numZPlanes Number of Z planes.
+     *  @param[in] zPlane Position of Z planes.
+     *  @param[in] rInner Tangent distance to inner surface.
+     *  @param[in] rOuter Tangent distance to outer surface.
+     */
+    G4Polyhedra(const G4String& name,
+                      G4double phiStart,   // initial phi starting angle
+                      G4double phiTotal,   // total phi angle
+                      G4int numSide,       // number sides
+                      G4int numZPlanes,    // number of z planes
+                const G4double zPlane[],   // position of z planes
+                const G4double rInner[],   // tangent distance to inner surface
+                const G4double rOuter[] ); // tangent distance to outer surface
 
-  G4Polyhedra( const G4String& name,
-                     G4double phiStart,    // initial phi starting angle
-                     G4double phiTotal,    // total phi angle
-                     G4int    numSide,     // number sides
-                     G4int    numRZ,       // number corners in r,z space
-               const G4double r[],         // r coordinate of these corners
-               const G4double z[]       ); // z coordinate of these corners
+    /**
+     * Alternative constructor of a polyhedra, given corners coordinates.
+     *  @param[in] name The solid name.
+     *  @param[in] phiStart Initial Phi starting angle.
+     *  @param[in] phiTotal Total Phi angle.
+     *  @param[in] numSide Number of sides.
+     *  @param[in] numRZ Number of corners in r,Z space.
+     *  @param[in] r r coordinates of corners.
+     *  @param[in] z Z coordinates of corners.
+     */
+    G4Polyhedra(const G4String& name,
+                      G4double phiStart,   // initial phi starting angle
+                      G4double phiTotal,   // total phi angle
+                      G4int    numSide,    // number sides
+                      G4int    numRZ,      // number corners in r,z space
+                const G4double r[],        // r coordinates of these corners
+                const G4double z[] );      // z coordinates of these corners
 
-  virtual ~G4Polyhedra();
+    /**
+     * Destructor.
+     */
+    ~G4Polyhedra() override;
 
-  // Methods for solid
+    /**
+     * Accessors.
+     */
+    inline G4int GetNumSide()        const;
+    inline G4double GetStartPhi()    const;
+    inline G4double GetEndPhi()      const;
+    inline G4double GetSinStartPhi() const;
+    inline G4double GetCosStartPhi() const;
+    inline G4double GetSinEndPhi()   const;
+    inline G4double GetCosEndPhi()   const;
+    inline G4bool IsOpen()           const;
+    inline G4bool IsGeneric()        const;
+    inline G4int GetNumRZCorner()    const;
+    inline G4PolyhedraSideRZ GetCorner( const G4int index ) const;
 
-  EInside Inside( const G4ThreeVector& p ) const;
-  G4double DistanceToIn( const G4ThreeVector& p,
-                         const G4ThreeVector& v ) const;
-  G4double DistanceToIn( const G4ThreeVector& p ) const;
+    /**
+     * Returns internal scaled parameters.
+     */
+    inline G4PolyhedraHistorical* GetOriginalParameters() const;
 
-  void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const;
-  G4bool CalculateExtent(const EAxis pAxis,
-                         const G4VoxelLimits& pVoxelLimit,
-                         const G4AffineTransform& pTransform,
-                         G4double& pmin, G4double& pmax) const;
+    /**
+     * Sets internal parameters. Parameters 'Rmin' and 'Rmax' in input must
+     * be scaled first by a factor computed as 'cos(0.5*phiTotal/theNumSide)',
+     * if not already scaled.
+     */
+    inline void SetOriginalParameters(G4PolyhedraHistorical* pars);
 
-  void ComputeDimensions(       G4VPVParameterisation* p,
-                          const G4int n,
-                          const G4VPhysicalVolume* pRep);
+    /**
+     * Concrete implementations of the expected query interfaces for
+     * solids, as defined in G4VSolid. Remaining functions are concretely
+     * defined in the base class G4VCSGfaceted.
+     */
+    EInside Inside( const G4ThreeVector& p ) const override;
+    G4double DistanceToIn( const G4ThreeVector& p,
+                           const G4ThreeVector& v ) const override;
+    G4double DistanceToIn( const G4ThreeVector& p ) const override;
 
-  G4GeometryType  GetEntityType() const;
+    /**
+     * Computes the bounding limits of the solid.
+     *  @param[out] pMin The minimum bounding limit point.
+     *  @param[out] pMax The maximum bounding limit point.
+     */
+    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const override;
 
-  G4VSolid* Clone() const;
+    /**
+     * Calculates the minimum and maximum extent of the solid, when under the
+     * specified transform, and within the specified limits.
+     *  @param[in] pAxis The axis along which compute the extent.
+     *  @param[in] pVoxelLimit The limiting space dictated by voxels.
+     *  @param[in] pTransform The internal transformation applied to the solid.
+     *  @param[out] pMin The minimum extent value.
+     *  @param[out] pMax The maximum extent value.
+     *  @returns True if the solid is intersected by the extent region.
+     */
+    G4bool CalculateExtent(const EAxis pAxis,
+                           const G4VoxelLimits& pVoxelLimit,
+                           const G4AffineTransform& pTransform,
+                                 G4double& pmin, G4double& pmax) const override;
 
-  G4ThreeVector GetPointOnSurface() const;
+    /**
+     * Dispatch method for parameterisation replication mechanism and
+     * dimension computation.
+     */
+    void ComputeDimensions(G4VPVParameterisation* p,
+                           const G4int n,
+                           const G4VPhysicalVolume* pRep) override;
 
-  std::ostream& StreamInfo( std::ostream& os ) const;
+    /**
+     * Returns the type ID, "G4Polyhedra" of the solid.
+     */
+    G4GeometryType GetEntityType() const override;
 
-  G4Polyhedron* CreatePolyhedron() const;
+    /**
+     * Returns true as the solid has only planar faces.
+     */
+    G4bool IsFaceted () const override;
 
-  G4bool Reset();
+    /**
+     * Makes a clone of the object for use in multi-treading.
+     *  @returns A pointer to the new cloned allocated solid.
+     */
+    G4VSolid* Clone() const override;
 
-  // Accessors
+    /**
+     * Returning an estimation of the solid volume (capacity) and
+     * surface area, in internal units.
+     */
+    G4double GetCubicVolume() override;
+    G4double GetSurfaceArea() override;
 
-  inline G4int GetNumSide()        const;
-  inline G4double GetStartPhi()    const;
-  inline G4double GetEndPhi()      const;
-  inline G4double GetSinStartPhi() const;
-  inline G4double GetCosStartPhi() const;
-  inline G4double GetSinEndPhi()   const;
-  inline G4double GetCosEndPhi()   const;
-  inline G4bool IsOpen()           const;
-  inline G4bool IsGeneric()        const;
-  inline G4int GetNumRZCorner()    const;
-  inline G4PolyhedraSideRZ GetCorner( const G4int index ) const;
+    /**
+     * Returns a random point located and uniformly distributed on the
+     * surface of the solid.
+     */
+    G4ThreeVector GetPointOnSurface() const override;
 
-  inline G4PolyhedraHistorical* GetOriginalParameters() const;
-    // Returns internal scaled parameters.
-  inline void SetOriginalParameters(G4PolyhedraHistorical* pars);
-    // Sets internal parameters. Parameters 'Rmin' and 'Rmax' in input must
-    // be scaled first by a factor computed as 'cos(0.5*phiTotal/theNumSide)',
-    // if not already scaled.
+    /**
+     * Streams the object contents to an output stream.
+     */
+    std::ostream& StreamInfo( std::ostream& os ) const override;
 
- public:  // without description
+    /**
+     * Returns a pointer to a generated polyhedron used for visualisation.
+     */
+    G4Polyhedron* CreatePolyhedron() const override;
 
-  G4Polyhedra(__void__&);
-    // Fake default constructor for usage restricted to direct object
-    // persistency for clients requiring preallocation of memory for
-    // persistifiable objects.
+    /**
+     * Clears all parameters and rebuild the shape, for use in divisions.
+     */
+    G4bool Reset();
 
-  G4Polyhedra( const G4Polyhedra& source );
-  G4Polyhedra& operator=( const G4Polyhedra& source );
-    // Copy constructor and assignment operator.
+    /**
+     * Fake default constructor for usage restricted to direct object
+     * persistency for clients requiring preallocation of memory for
+     * persistifiable objects.
+     */
+    G4Polyhedra(__void__&);
 
- protected:  // without description
+    /**
+     * Copy constructor and assignment operator.
+     */
+    G4Polyhedra( const G4Polyhedra& source );
+    G4Polyhedra& operator=( const G4Polyhedra& source );
 
-  void SetOriginalParameters(G4ReduciblePolygon* rz);
-    // Sets internal parameters for the generic constructor.
+  private:
 
-  void Create( G4double phiStart,           // initial phi starting angle
-               G4double phiTotal,           // total phi angle
-               G4int    numSide,            // number sides
-               G4ReduciblePolygon* rz );    // rz coordinates
-    // Generates the shape and is called by each constructor, after the
-    // conversion of the arguments
+    /**
+     * Sets internal parameters for the generic constructor.
+     */
+    void SetOriginalParameters(G4ReduciblePolygon* rz);
 
-  void CopyStuff( const G4Polyhedra& source );
-  void DeleteStuff();
+    /**
+     * Generates the shape and is called by each constructor,
+     * after the conversion of the arguments.
+     */
+    void Create( G4double phiStart,           // initial phi starting angle
+                 G4double phiTotal,           // total phi angle
+                 G4int    numSide,            // number sides
+                 G4ReduciblePolygon* rz );    // rz coordinates
 
-  // Methods for generation of random points on surface
+    /**
+     * Copy parameters from other solid or reset them.
+     * Used in copy constructor and assignment operator.
+     */
+    void CopyStuff( const G4Polyhedra& source );
+    void DeleteStuff();
 
-  G4ThreeVector GetPointOnPlane(G4ThreeVector p0, G4ThreeVector p1,
-                                G4ThreeVector p2, G4ThreeVector p3) const;
-  G4ThreeVector GetPointOnTriangle(G4ThreeVector p0, G4ThreeVector p1,
-                                   G4ThreeVector p2) const;
-  G4ThreeVector GetPointOnSurfaceCorners() const;
+    /**
+     * Sets the vector of surface elements. Auxiliary method used for
+     * sampling random points on surface.
+     */
+    void SetSurfaceElements() const;
 
- protected:  // without description
+  private:
 
-  G4int numSide = 0;    // Number of sides
-  G4double startPhi;    // Starting phi value (0 < phiStart < 2pi)
-  G4double endPhi;      // end phi value (0 < endPhi-phiStart < 2pi)
-  G4bool phiIsOpen = false;   // true if there is a phi segment
-  G4bool genericPgon = false; // true if created through 2nd generic constructor
-  G4int numCorner = 0;  // number RZ points
-  G4PolyhedraSideRZ* corners = nullptr;  // our corners
-  G4PolyhedraHistorical* original_parameters = nullptr; // original input params
+    G4int numSide = 0;    // Number of sides
+    G4double startPhi;    // Starting phi value (0 < phiStart < 2pi)
+    G4double endPhi;      // end phi value (0 < endPhi-phiStart < 2pi)
+    G4bool phiIsOpen = false;   // true if there is a phi segment
+    G4bool genericPgon = false; // true if created through 2nd generic ctor
+    G4int numCorner = 0;  // number RZ points
+    G4PolyhedraSideRZ* corners = nullptr;  // our corners
+    G4PolyhedraHistorical* original_parameters = nullptr; // original input pars
 
-  G4EnclosingCylinder* enclosingCylinder = nullptr;
+    G4EnclosingCylinder* enclosingCylinder = nullptr;
+
+    struct surface_element { G4double area=0.; G4int i0=0, i1=0, i2=0; };
+    mutable std::vector<surface_element>* fElements = nullptr;
 };
 
 #include "G4Polyhedra.icc"

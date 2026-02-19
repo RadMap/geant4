@@ -48,6 +48,7 @@
 
 #include "G4PSTARStopping.hh" 
 #include "G4NISTStoppingData.hh" 
+#include "G4EmParameters.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -82,7 +83,7 @@ void G4PSTARStopping::PrintWarning(G4int i) const
 void G4PSTARStopping::Initialise()
 {
   // this method may be called several times during initialisation
-  G4int nmat = G4Material::GetNumberOfMaterials();
+  G4int nmat = (G4int)G4Material::GetNumberOfMaterials();
   if(nmat == nvectors) { return; }
 
   // loop via material list to add extra data
@@ -352,11 +353,12 @@ void G4PSTARStopping::FindData(G4int j, const G4Material* mat)
 
 void G4PSTARStopping::AddData(const G4float* stop, const G4Material* mat)
 {
-  G4LPhysicsFreeVector* v = 
-    new G4LPhysicsFreeVector(60, T0[0], T0[59]);
-  for(size_t i=0; i<60; ++i) { v->PutValues(i, T0[i], ((G4double)stop[i])*fac); }
-  v->SetSpline(true);
+  auto v = new G4PhysicsFreeVector(60, T0[0], T0[59], true);
+  for(size_t i=0; i<60; ++i) { 
+    v->PutValues(i, T0[i], ((G4double)stop[i])*fac); 
+  }
   v->FillSecondDerivatives();
+  v->EnableLogBinSearch(G4EmParameters::Instance()->NumberForFreeVector());
   materials.push_back(mat);
   sdata.push_back(v);
   ++nvectors;

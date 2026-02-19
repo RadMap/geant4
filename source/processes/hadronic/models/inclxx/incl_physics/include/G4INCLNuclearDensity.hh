@@ -83,10 +83,12 @@ namespace G4INCL {
      */
     G4double getTransmissionRadius(Particle const * const p) const {
       const ParticleType t = p->getType();
-// assert(t!=Neutron && t!=PiZero && t!=DeltaZero && t!=Eta && t!=Omega && t!=EtaPrime && t!=Photon && t!= Lambda && t!=SigmaZero && t!=KZero && t!=KZeroBar && t!=KShort && t!=KLong); // no neutral particles here
+// assert(t!= antiLambda && t!=antiNeutron && t!=Neutron && t!=PiZero && t!=DeltaZero && t!=Eta && t!=Omega && t!=EtaPrime && t!=Photon && t!= Lambda && t!=SigmaZero && t!=KZero && t!=KZeroBar && t!=KShort && t!=KLong); // no neutral particles here
       if(t==Composite) {
         return transmissionRadius[t] +
           ParticleTable::getNuclearRadius(t, p->getA(), p->getZ());
+      } else if(t==antiComposite){
+        return transmissionRadius[t] + ParticleTable::getNuclearRadius(t,-(p->getA()),-(p->getZ()));
       } else
         return transmissionRadius[t];
     };
@@ -97,6 +99,7 @@ namespace G4INCL {
      */
     G4double getTransmissionRadius(ParticleType type) const {
 // assert(type!=Composite);
+// assert(type!=antiComposite);
       return transmissionRadius[type];
     };
 

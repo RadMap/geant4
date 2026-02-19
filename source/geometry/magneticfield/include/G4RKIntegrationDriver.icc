@@ -25,7 +25,7 @@
 //
 // G4RKIntegrationDriver inline implementation
 //
-// Created: D.Sorokin, 2017
+// Author: Dmitry Sorokin (CERN, Google Summer of Code 2017), 20.10.2017
 // --------------------------------------------------------------------
 
 #include "globals.hh"
@@ -91,7 +91,7 @@ ComputeNewStepSize( G4double  errMaxNorm,    // max error  (normalised)
     {
         return ShrinkStepSize(hstepCurrent, errMaxNorm);
     }
-    else if (errMaxNorm >= 0)
+    if (errMaxNorm >= 0)
     {
         return GrowStepSize(hstepCurrent, errMaxNorm);
     }
@@ -222,4 +222,16 @@ template <class T>
 void G4RKIntegrationDriver<T>::SetEquationOfMotion(G4EquationOfMotion* equation)
 {
     pIntStepper->SetEquationOfMotion(equation);
+}
+
+template <class T>
+void G4RKIntegrationDriver<T>::StreamInfo( std::ostream& os ) const
+{
+    os << "State of G4RKIntegrationDriver: " << std::endl;
+    os << "  Max number of Steps = " << fMaxNoSteps << std::endl;
+    os << "  Safety factor       = " << safety  << std::endl;
+    os << "  Power - shrink      = " << pshrnk << std::endl;
+    os << "  Power - grow        = " << pgrow << std::endl;
+    os << "  threshold - shrink  = " << errorConstraintShrink << std::endl;
+    os << "  threshold - grow    = " << errorConstraintGrow   << std::endl;
 }

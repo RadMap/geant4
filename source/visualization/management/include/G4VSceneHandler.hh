@@ -43,20 +43,13 @@
 #include "G4ViewerList.hh"
 #include "G4ViewParameters.hh"
 #include "G4THitsMap.hh"
+#include "G4PseudoScene.hh"
+
+#include <map>
 
 class G4Scene;
-class G4VViewer;
-class G4Colour;
-class G4Visible;
-class G4ModelingParameters;
-class G4VModel;
 class G4VGraphicsSystem;
-class G4LogicalVolume;
-class G4VPhysicalVolume;
-class G4Material;
-class G4Event;
 class G4AttHolder;
-class G4DisplacedSolid;
 
 class G4VSceneHandler: public G4VGraphicsScene {
 
@@ -139,6 +132,7 @@ public: // With description
   virtual void AddCompound (const G4VDigi&);
   virtual void AddCompound (const G4THitsMap<G4double>&);
   virtual void AddCompound (const G4THitsMap<G4StatDouble>&);
+  virtual void AddCompound (const G4Mesh&);
 
   //////////////////////////////////////////////////////////////
   // Functions for adding primitives.
@@ -181,7 +175,7 @@ public: // With description
   // IMPORTANT: invoke this from your polymorphic versions, e.g.:
   // void MyXXXSceneHandler::BeginPrimitives2D
   // (const G4Transform3D& objectTransformation) {
-  //   G4VSceneHandler::BeginPrimitives2D ();
+  //   G4VSceneHandler::BeginPrimitives2D (objectTransformation);
   //   ...
   // }
 
@@ -193,15 +187,14 @@ public: // With description
   // }
 
   virtual void AddPrimitive (const G4Polyline&)   = 0;
-  virtual void AddPrimitive (const G4Scale&);
-  // Default implementation in this class but can be over-ridden.
   virtual void AddPrimitive (const G4Text&)       = 0;
   virtual void AddPrimitive (const G4Circle&)     = 0;      
   virtual void AddPrimitive (const G4Square&)     = 0;      
   virtual void AddPrimitive (const G4Polymarker&);
-  // Default implementation in this class but can be over-ridden.
   virtual void AddPrimitive (const G4Polyhedron&) = 0;
-
+  virtual void AddPrimitive (const G4Plotter&);
+  
+  // Other virtual functions
   virtual const G4VisExtent& GetExtent() const;
 
   //////////////////////////////////////////////////////////////
@@ -235,9 +228,20 @@ public: // With description
   //////////////////////////////////////////////////////////////
   // Public utility functions.
 
-  const G4Colour& GetColour ();
+  const G4Colour& GetColour ();  // To be deprecated?
   const G4Colour& GetColor  ();
   // Returns colour - checks fpVisAttribs and gets applicable colour.
+  // Assumes fpVisAttribs point to the G4VisAttributes of the current object.
+  // If the pointer is null, the colour is obtained from the default view
+  // parameters of the current viewer.
+
+  const G4Colour& GetColour (const G4Visible&);
+  const G4Colour& GetColor  (const G4Visible&);
+  // Returns colour, or viewer default colour.
+  // Makes no assumptions about the validity of data member fpVisAttribs.
+  // If the G4Visible has no vis attributes, i.e., the pointer is null,
+  // the colour is obtained from the default view parameters of the
+  // current viewer.
 
   const G4Colour& GetTextColour (const G4Text&);
   const G4Colour& GetTextColor  (const G4Text&);
@@ -316,6 +320,12 @@ protected:
   virtual void ProcessScene ();
 
   //////////////////////////////////////////////////////////////
+  // As above, but transients only. For example, at end of run, in "Idle"
+  // state, you might wish to re-draw the trajectories with a different
+  // time window.
+  virtual void ProcessTransients ();
+
+  //////////////////////////////////////////////////////////////
   // Default routine used by default AddSolid ().
   virtual void RequestPrimitives (const G4VSolid& solid);
 
@@ -337,6 +347,94 @@ protected:
   // publicly inherits G4AttHolder - see, e.g., SoG4Polyhedron in the
   // Open Inventor driver.  G4AttHolder deletes G4AttValues in its
   // destructor to ensure proper clean-up of G4AttValues.
+
+  //////////////////////////////////////////////////////////////
+  // Special mesh rendering utilities...
+
+  struct NameAndVisAtts {
+    NameAndVisAtts(const G4String& name = "",const G4VisAttributes& visAtts = G4VisAttributes())
+    : fName(name),fVisAtts(visAtts) {}
+    G4String fName;
+    G4VisAttributes fVisAtts;
+  };
+
+  class PseudoSceneFor3DRectMeshPositions: public G4PseudoScene {
+  public:
+    PseudoSceneFor3DRectMeshPositions
+    (G4PhysicalVolumeModel* pvModel  // input
+     , const G4Mesh* pMesh  // input...the following are outputs by reference
+     , std::multimap<const G4Material*,const G4ThreeVector>& positionByMaterial
+     , std::map<const G4Material*,NameAndVisAtts>& nameAndVisAttsByMaterial)
+    : fpPVModel(pvModel)
+    , fpMesh(pMesh)
+    , fPositionByMaterial(positionByMaterial)
+    , fNameAndVisAttsByMaterial(nameAndVisAttsByMaterial)
+    {}
+  private:
+    using G4PseudoScene::AddSolid;  // except for...
+    void AddSolid(const G4Box&) override;
+    void ProcessVolume(const G4VSolid&) override {
+      // Do nothing if uninteresting solids found, e.g., the container if not marked invisible.
+    }
+    G4PhysicalVolumeModel* fpPVModel;
+    const G4Mesh* fpMesh;
+    std::multimap<const G4Material*,const G4ThreeVector>& fPositionByMaterial;
+    std::map<const G4Material*,NameAndVisAtts>& fNameAndVisAttsByMaterial;
+  };
+
+  class PseudoSceneForTetVertices: public G4PseudoScene {
+  public:
+    PseudoSceneForTetVertices
+    (G4PhysicalVolumeModel* pvModel  // input
+     , const G4Mesh* pMesh  // input...the following are outputs by reference
+     , std::multimap<const G4Material*,std::vector<G4ThreeVector>>& verticesByMaterial
+     , std::map<const G4Material*,NameAndVisAtts>& nameAndVisAttsByMaterial)
+    : fpPVModel(pvModel)
+    , fpMesh(pMesh)
+    , fVerticesByMaterial(verticesByMaterial)
+    , fNameAndVisAttsByMaterial(nameAndVisAttsByMaterial)
+    {}
+  private:
+    using G4PseudoScene::AddSolid;  // except for...
+    void AddSolid(const G4VSolid& solid) override;
+    void ProcessVolume(const G4VSolid&) override {
+      // Do nothing if uninteresting solids found, e.g., the container if not marked invisible.
+    }
+    G4PhysicalVolumeModel* fpPVModel;
+    const G4Mesh* fpMesh;
+    std::multimap<const G4Material*,std::vector<G4ThreeVector>>& fVerticesByMaterial;
+    std::map<const G4Material*,NameAndVisAtts>& fNameAndVisAttsByMaterial;
+  };
+
+  void StandardSpecialMeshRendering(const G4Mesh&);
+  // Standard way of special mesh rendering.
+  // MySceneHandler::AddCompound(const G4Mesh& mesh) may use this if
+  // appropriate or implement its own special mesh rendereing.
+
+  void Draw3DRectMeshAsDots(const G4Mesh&);
+  // For a rectangular 3-D mesh, draw as coloured dots by colour and material,
+  // one dot randomly placed in each visible mesh cell.
+
+  void Draw3DRectMeshAsSurfaces(const G4Mesh&);
+  // For a rectangular 3-D mesh, draw as surfaces by colour and material
+  // with inner shared faces removed.
+
+  void DrawTetMeshAsDots(const G4Mesh&);
+  // For a tetrahedron mesh, draw as coloured dots by colour and material,
+  // one dot randomly placed in each visible mesh cell.
+
+  void DrawTetMeshAsSurfaces(const G4Mesh&);
+  // For a tetrahedron mesh, draw as surfaces by colour and material
+  // with inner shared faces removed.
+
+  G4ThreeVector GetPointInBox(const G4ThreeVector& pos,
+                              G4double halfX,
+                              G4double halfY,
+                              G4double halfZ) const;
+  // Sample a random point inside the box
+
+  G4ThreeVector GetPointInTet(const std::vector<G4ThreeVector>& vertices) const;
+  // Sample a random point inside the tetrahedron
 
   //////////////////////////////////////////////////////////////
   // Data members
@@ -361,6 +459,7 @@ protected:
   G4int              fNestingDepth;    // For Begin/EndPrimitives.
   const G4VisAttributes* fpVisAttribs; // Working vis attributes.
   const G4Transform3D fIdentityTransformation;
+  std::map<G4VPhysicalVolume*,G4String> fProblematicVolumes;
 
 private:
 

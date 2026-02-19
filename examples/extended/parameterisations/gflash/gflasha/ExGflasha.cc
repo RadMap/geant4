@@ -23,74 +23,70 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflasha.cc
-/// \brief Main program of the parameterisations/gflash/gflasha example
-//
-// Created by Joanna Weng 26.11.2004
+/// \brief Main program of the gflash/gflasha example
 
-// G4 includes 
-#include "G4Types.hh"
-#include "G4ios.hh"
+// G4 includes
+#include "G4PhysListFactory.hh"
+#include "G4RunManagerFactory.hh"
 #include "G4Timer.hh"
+#include "G4Types.hh"
 #include "G4UImanager.hh"
+#include "G4ios.hh"
 
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
-
-// my project 
-#include "ExGflashDetectorConstruction.hh"
+// my project
 #include "ExGflashActionInitialization.hh"
+#include "ExGflashDetectorConstruction.hh"
 
-#include "FTFP_BERT.hh"
 #include "G4FastSimulationPhysics.hh"
-
-#include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
+#include "G4VisExecutive.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-int main(int argc,char** argv)
-{   
+int main(int argc, char** argv)
+{
   // Instantiate G4UIExecutive if interactive mode
   G4UIExecutive* ui = nullptr;
-  if ( argc == 1 ) {
+  if (argc == 1) {
     ui = new G4UIExecutive(argc, argv);
   }
 
   // timer to see GFlash performance
   G4Timer timer;
   timer.Start();
-  
-  G4cout<<"+-------------------------------------------------------+"<<G4endl;
-  G4cout<<"|                                                       |"<<G4endl;
-  G4cout<<"|          This is an example of Shower                 |"<<G4endl;
-  G4cout<<"|          Parameterization with GFLASH                 |"<<G4endl;
-  G4cout<<"+-------------------------------------------------------+"<<G4endl;
-  
 
+  G4cout << "+-------------------------------------------------------+" << G4endl;
+  G4cout << "|                                                       |" << G4endl;
+  G4cout << "|          This is an example of Shower                 |" << G4endl;
+  G4cout << "|          Parameterization with GFLASH                 |" << G4endl;
+  G4cout << "+-------------------------------------------------------+" << G4endl;
 
-#ifdef G4MULTITHREADED
-  G4MTRunManager * runManager = new G4MTRunManager;
-#else
-  G4RunManager * runManager = new G4RunManager;
-#endif
-  
+  auto* runManager = G4RunManagerFactory::CreateRunManager();
+
   // UserInitialization classes (mandatory)
-  ExGflashDetectorConstruction* detector = new ExGflashDetectorConstruction;
+  auto detector = new ExGflashDetectorConstruction;
   runManager->SetUserInitialization(detector);
 
   // -- Select a physics list:
-  G4VModularPhysicsList* physicsList = new FTFP_BERT();
+  G4PhysListFactory listFactory;
+  G4String name;
+  auto list_name = std::getenv("PHYSLIST");
+  if (list_name == nullptr || std::strlen(list_name) == 0) {
+    name = "FTFP_BERT";
+  }
+  else {
+    name = list_name;
+  }
+  G4VModularPhysicsList* physicsList = listFactory.GetReferencePhysList(name);
+
   // -- Create a fast simulation physics constructor, used to augment
   // -- the above physics list to allow for fast simulation:
-  G4FastSimulationPhysics* fastSimulationPhysics = new G4FastSimulationPhysics();
-  
+  auto fastSimulationPhysics = new G4FastSimulationPhysics();
+
   // -- We now configure the fastSimulationPhysics object.
-  // -- The gflash model (GFlashShowerModel, see ExGflashDetectorConstruction.cc)
+  // -- The gflash model (GFlashShowerModel, see
+  // ExGflashDetectorConstruction.cc)
   // -- is applicable to e+ and e- : we augment the physics list for these
   // -- particles (by adding a G4FastSimulationManagerProcess with below's
   // -- calls), this will make the fast simulation to be activated:
@@ -101,7 +97,7 @@ int main(int argc,char** argv)
   // -- (will happen at initialization of the run manager)
   // -- for physics process construction, the fast simulation
   // -- configuration will be applied as well.
-  physicsList->RegisterPhysics( fastSimulationPhysics );
+  physicsList->RegisterPhysics(fastSimulationPhysics);
   runManager->SetUserInitialization(physicsList);
 
   // Action initialization:
@@ -111,30 +107,27 @@ int main(int argc,char** argv)
   visManager->Initialize();
 
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
-  UImanager->ApplyCommand("/run/verbose 0");
-  runManager->Initialize();
-  UImanager->ApplyCommand("/Step/Verbose 0");
-  
-  if (ui)   // Define UI terminal for interactive mode
-  { 
+
+  if (ui != nullptr)  // Define UI terminal for interactive mode
+  {
     UImanager->ApplyCommand("/control/execute vis.mac");
     ui->SessionStart();
     delete ui;
   }
-  else           // Batch mode
-  { 
-    G4String s=*(argv+1);
-    UImanager->ApplyCommand("/control/execute "+s);
+  else  // Batch mode
+  {
+    G4String s = *(argv + 1);
+    UImanager->ApplyCommand("/control/execute " + s);
   }
-  
+
   delete visManager;
   delete runManager;
-  
+
   timer.Stop();
   G4cout << G4endl;
   G4cout << "******************************************";
   G4cout << G4endl;
-  G4cout << "Total Real Elapsed Time is: "<< timer.GetRealElapsed();
+  G4cout << "Total Real Elapsed Time is: " << timer.GetRealElapsed();
   G4cout << G4endl;
   G4cout << "Total System Elapsed Time: " << timer.GetSystemElapsed();
   G4cout << G4endl;
@@ -142,7 +135,7 @@ int main(int argc,char** argv)
   G4cout << G4endl;
   G4cout << "******************************************";
   G4cout << G4endl;
-  
+
   return 0;
 }
 

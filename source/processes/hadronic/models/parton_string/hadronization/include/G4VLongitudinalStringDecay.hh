@@ -31,6 +31,7 @@
 #ifndef G4VLongitudinalStringDecay_h
 #define G4VLongitudinalStringDecay_h 1
 
+#include "G4HadronicInteraction.hh"
 #include "G4VStringFragmentation.hh"
 #include "G4DynamicParticle.hh"
 #include "G4KineticTrack.hh"
@@ -38,14 +39,18 @@
 #include "G4HadronBuilder.hh"
 #include <vector>
 
-class G4FragmentingString;
-//**************************************************************************************
+//*****************************************************************************
 
-class G4VLongitudinalStringDecay 
+class G4FragmentingString;
+
+class G4VLongitudinalStringDecay : public G4HadronicInteraction
 {
   public:
-             G4VLongitudinalStringDecay();     
+
+    G4VLongitudinalStringDecay(const G4String& name = "StringDecay");
     virtual ~G4VLongitudinalStringDecay();
+
+    G4HadFinalState *ApplyYourself(const G4HadProjectile&, G4Nucleus&) final;
 
   private:
     // not implemented to protect/forbid use
@@ -151,7 +156,6 @@ class G4VLongitudinalStringDecay
     void SetDiquarkSuppression(G4double aValue);
     void SetDiquarkBreakProbability(G4double aValue);
 
-    void SetVectorMesonProbability(G4double aValue);
     void SetSpinThreeHalfBarionProbability(G4double aValue);
    
     void SetScalarMesonMixings( std::vector<G4double> aVector);
@@ -188,7 +192,7 @@ class G4VLongitudinalStringDecay
 
     G4HadronBuilder *hadronizer;
 
-    G4double pspin_meson;
+    std::vector<G4double> pspin_meson;
     G4double pspin_barion;
     std::vector<G4double> vectorMesonMix;
     std::vector<G4double> scalarMesonMix;
@@ -248,7 +252,7 @@ class G4VLongitudinalStringDecay
     G4int NumberOf_FS;
 };
 
-//*************************************************************************************
+//******************************************************************************
 // Class G4VLongitudinalStringDecay 
 
 #endif

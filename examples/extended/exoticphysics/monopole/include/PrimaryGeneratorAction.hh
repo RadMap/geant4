@@ -23,18 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/monopole/include/PrimaryGeneratorAction.hh
+/// \file PrimaryGeneratorAction.hh
 /// \brief Definition of the PrimaryGeneratorAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PrimaryGeneratorAction_h
 #define PrimaryGeneratorAction_h 1
 
-#include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4ParticleGun.hh"
+#include "G4VUserPrimaryGeneratorAction.hh"
 #include "globals.hh"
 
 class DetectorConstruction;
@@ -43,25 +39,21 @@ class DetectorConstruction;
 
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
+  public:
+    PrimaryGeneratorAction(DetectorConstruction*);
+    ~PrimaryGeneratorAction();
 
-  PrimaryGeneratorAction(DetectorConstruction*);    
-  ~PrimaryGeneratorAction();
+    virtual void GeneratePrimaries(G4Event*);
 
-  virtual void GeneratePrimaries(G4Event*);
-    
-  inline G4ParticleGun* GetParticleGun() {return fParticleGun;}
-    
-private:
+    inline G4ParticleGun* GetParticleGun() { return fParticleGun; }
 
-  G4ParticleGun*         fParticleGun;
-  DetectorConstruction*  fDetector;
+  private:
+    G4ParticleGun* fParticleGun;
+    DetectorConstruction* fDetector;
 
-  G4bool                 bPrimPositionDefined;
+    G4bool fPrimPositionDefined;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-

@@ -23,23 +23,26 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file src/RE02ActionInitialization.cc
+/// \file RE02ActionInitialization.cc
 /// \brief Implementation of the RE02ActionInitialization class
-//
 
 #include "RE02ActionInitialization.hh"
+
+#include "RE02EventAction.hh"
 #include "RE02PrimaryGeneratorAction.hh"
 #include "RE02RunAction.hh"
-#include "RE02EventAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 RE02ActionInitialization::RE02ActionInitialization()
-{;}
+{
+  ;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 RE02ActionInitialization::~RE02ActionInitialization()
-{;}
+{
+  ;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void RE02ActionInitialization::Build() const
@@ -59,4 +62,3 @@ void RE02ActionInitialization::BuildForMaster() const
   G4UserRunAction* run_action = new RE02RunAction;
   SetUserAction(run_action);
 }
-

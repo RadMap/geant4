@@ -25,7 +25,7 @@
 //
 // G4ElectroMagneticField implementation
 //
-// Created: J.Apostolakis, 12.11.1998
+// Author: John Apostolakis (CERN), 12.11.1998 - Created
 // --------------------------------------------------------------------
 
 #include "G4ElectroMagneticField.hh"
@@ -35,19 +35,10 @@ G4ElectroMagneticField::G4ElectroMagneticField()
 {
 }
 
-G4ElectroMagneticField::~G4ElectroMagneticField()
-{
-}
-
-G4ElectroMagneticField::G4ElectroMagneticField(const G4ElectroMagneticField& r)
-  : G4Field( r )    // To allow extension to joint EM & g field
-{
-}
-
 G4ElectroMagneticField& 
 G4ElectroMagneticField::operator = (const G4ElectroMagneticField& p)
 {
-  if (&p == this) return *this;
+  if (&p == this) { return *this; }
   G4Field::operator=(p);
   return *this;
 }

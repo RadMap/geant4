@@ -23,33 +23,32 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
 /// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
 
 #pragma once
 #include "G4VModularPhysicsList.hh"
 #include "globals.hh"
+
 #include <memory>
 
 class G4VPhysicsConstructor;
 class G4EmDNAChemistry_option2;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
-public:
+  public:
     PhysicsList();
-    ~PhysicsList() override;
-    
+    ~PhysicsList() override = default;
+
     void ConstructParticle() override;
     void ConstructProcess() override;
 
     void RegisterConstructor(const G4String& name);
 
-private:
-    std::unique_ptr<G4VPhysicsConstructor>    fDNAPhysicsList;
+  private:
+    std::unique_ptr<G4VPhysicsConstructor> fDNAPhysicsList;
     std::unique_ptr<G4EmDNAChemistry_option2> fChemistryList_option2;
-    G4String                                  fPhysDNAName;
+    G4String fPhysDNAName;
 };

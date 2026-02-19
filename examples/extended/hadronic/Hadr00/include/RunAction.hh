@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr00/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-//
 
 #ifndef RunAction_h
 #define RunAction_h 1
@@ -36,14 +34,14 @@
 //      GEANT4 Header file
 //      RunAction
 //
-// 
+//
 // -------------------------------------------------------------
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#include "G4UserRunAction.hh"
 #include "G4Run.hh"
+#include "G4UserRunAction.hh"
 #include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -53,25 +51,20 @@ class DetectorConstruction;
 
 class RunAction : public G4UserRunAction
 {
-public: // Without description
+  public:  // Without description
+    RunAction(const DetectorConstruction* det = 0);
+    virtual ~RunAction();
 
-  RunAction(const DetectorConstruction* det = 0);
-  virtual ~RunAction();
+  public:  // With description
+    virtual void BeginOfRunAction(const G4Run*);
+    // In this method histogramms are booked
 
-public: // With description
- 
-  virtual void BeginOfRunAction(const G4Run*);
-  // In this method histogramms are booked
+    virtual void EndOfRunAction(const G4Run*);
+    // In this method bookHisto method is called in which histogramms are filled
 
-  virtual void EndOfRunAction(const G4Run*);
-  // In this method bookHisto method is called in which histogramms are filled
-
-private:
- 
-  HistoManager*         fHisto;
-  const DetectorConstruction* fDetector;
-
+  private:
+    HistoManager* fHisto;
+    const DetectorConstruction* fDetector;
 };
 
 #endif
-

@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// class G4PhantomParameterisation implementation
+// Class G4PhantomParameterisation implementation
 //
-// May 2007 Pedro Arce, first version
-//
+// Author: Pedro Arce (CIEMAT), May 2007
 // --------------------------------------------------------------------
 
 #include "G4PhantomParameterisation.hh"
@@ -46,9 +45,7 @@ G4PhantomParameterisation::G4PhantomParameterisation()
 
  
 //------------------------------------------------------------------
-G4PhantomParameterisation::~G4PhantomParameterisation()
-{
-}
+G4PhantomParameterisation::~G4PhantomParameterisation() = default;
 
 
 //------------------------------------------------------------------
@@ -56,21 +53,22 @@ void G4PhantomParameterisation::
 BuildContainerSolid( G4VPhysicalVolume* pMotherPhysical )
 {
   fContainerSolid = pMotherPhysical->GetLogicalVolume()->GetSolid();
-  fContainerWallX = fNoVoxelX * fVoxelHalfX;
-  fContainerWallY = fNoVoxelY * fVoxelHalfY;
-  fContainerWallZ = fNoVoxelZ * fVoxelHalfZ;
+  fContainerWallX = fNoVoxelsX * fVoxelHalfX;
+  fContainerWallY = fNoVoxelsY * fVoxelHalfY;
+  fContainerWallZ = fNoVoxelsZ * fVoxelHalfZ;
 
   // CheckVoxelsFillContainer();
 }
+
 
 //------------------------------------------------------------------
 void G4PhantomParameterisation::
 BuildContainerSolid( G4VSolid* pMotherSolid )
 {
   fContainerSolid = pMotherSolid;
-  fContainerWallX = fNoVoxelX * fVoxelHalfX;
-  fContainerWallY = fNoVoxelY * fVoxelHalfY;
-  fContainerWallZ = fNoVoxelZ * fVoxelHalfZ;
+  fContainerWallX = fNoVoxelsX * fVoxelHalfX;
+  fContainerWallY = fNoVoxelsY * fVoxelHalfY;
+  fContainerWallZ = fNoVoxelsZ * fVoxelHalfZ;
 
   // CheckVoxelsFillContainer();
 }
@@ -94,9 +92,9 @@ GetTranslation(const G4int copyNo ) const
 {
   CheckCopyNo( copyNo );
 
-  size_t nx;
-  size_t ny;
-  size_t nz;
+  std::size_t nx;
+  std::size_t ny;
+  std::size_t nz;
 
   ComputeVoxelIndices( copyNo, nx, ny, nz );
 
@@ -120,15 +118,15 @@ G4Material* G4PhantomParameterisation::
 ComputeMaterial(const G4int copyNo, G4VPhysicalVolume *, const G4VTouchable *) 
 { 
   CheckCopyNo( copyNo );
-  size_t matIndex = GetMaterialIndex(copyNo);
+  std::size_t matIndex = GetMaterialIndex(copyNo);
 
   return fMaterials[ matIndex ];
 }
 
 
 //------------------------------------------------------------------
-size_t G4PhantomParameterisation::
-GetMaterialIndex( size_t copyNo ) const
+std::size_t G4PhantomParameterisation::
+GetMaterialIndex( std::size_t copyNo ) const
 {
   CheckCopyNo( copyNo );
 
@@ -138,36 +136,38 @@ GetMaterialIndex( size_t copyNo ) const
 
 
 //------------------------------------------------------------------
-size_t G4PhantomParameterisation::
-GetMaterialIndex( size_t nx, size_t ny, size_t nz ) const
+std::size_t G4PhantomParameterisation::
+GetMaterialIndex( std::size_t nx, std::size_t ny, std::size_t nz ) const
 {
-  size_t copyNo = nx + fNoVoxelX*ny + fNoVoxelXY*nz;
+  std::size_t copyNo = nx + fNoVoxelsX*ny + fNoVoxelsXY*nz;
   return GetMaterialIndex( copyNo );
 }
 
 
 //------------------------------------------------------------------
 G4Material*
-G4PhantomParameterisation::GetMaterial( size_t nx, size_t ny, size_t nz) const
+G4PhantomParameterisation::GetMaterial( std::size_t nx, std::size_t ny, std::size_t nz) const
 {
   return fMaterials[GetMaterialIndex(nx,ny,nz)];
 }
 
+
 //------------------------------------------------------------------
-G4Material* G4PhantomParameterisation::GetMaterial( size_t copyNo ) const
+G4Material* G4PhantomParameterisation::GetMaterial( std::size_t copyNo ) const
 {
   return fMaterials[GetMaterialIndex(copyNo)];
 }
 
+
 //------------------------------------------------------------------
 void G4PhantomParameterisation::
-ComputeVoxelIndices(const G4int copyNo, size_t& nx,
-                            size_t& ny, size_t& nz ) const
+ComputeVoxelIndices(const G4int copyNo, std::size_t& nx,
+                          std::size_t& ny, std::size_t& nz ) const
 {
   CheckCopyNo( copyNo );
-  nx = size_t(copyNo%fNoVoxelX);
-  ny = size_t( (copyNo/fNoVoxelX)%fNoVoxelY );
-  nz = size_t(copyNo/fNoVoxelXY);
+  nx = std::size_t(copyNo%fNoVoxelsX);
+  ny = std::size_t( (copyNo/fNoVoxelsX)%fNoVoxelsY );
+  nz = std::size_t(copyNo/fNoVoxelsXY);
 }
 
 
@@ -186,31 +186,31 @@ CheckVoxelsFillContainer( G4double contX, G4double contY, G4double contZ ) const
 
   // Any bigger value than kCarTolerance will give an error in GetReplicaNo()
   //
-  if( std::fabs(contX-fNoVoxelX*fVoxelHalfX) >= toleranceForError
-   || std::fabs(contY-fNoVoxelY*fVoxelHalfY) >= toleranceForError  
-   || std::fabs(contZ-fNoVoxelZ*fVoxelHalfZ) >= toleranceForError )
+  if( std::fabs(contX-fNoVoxelsX*fVoxelHalfX) >= toleranceForError
+   || std::fabs(contY-fNoVoxelsY*fVoxelHalfY) >= toleranceForError  
+   || std::fabs(contZ-fNoVoxelsZ*fVoxelHalfZ) >= toleranceForError )
   {
     std::ostringstream message;
     message << "Voxels do not fully fill the container: "
             << fContainerSolid->GetName() << G4endl
-            << "        DiffX= " << contX-fNoVoxelX*fVoxelHalfX << G4endl
-            << "        DiffY= " << contY-fNoVoxelY*fVoxelHalfY << G4endl
-            << "        DiffZ= " << contZ-fNoVoxelZ*fVoxelHalfZ << G4endl
+            << "        DiffX= " << contX-fNoVoxelsX*fVoxelHalfX << G4endl
+            << "        DiffY= " << contY-fNoVoxelsY*fVoxelHalfY << G4endl
+            << "        DiffZ= " << contZ-fNoVoxelsZ*fVoxelHalfZ << G4endl
             << "        Maximum difference is: " << toleranceForError;
     G4Exception("G4PhantomParameterisation::CheckVoxelsFillContainer()",
                 "GeomNav0002", FatalException, message);
 
   }
-  else if( std::fabs(contX-fNoVoxelX*fVoxelHalfX) >= toleranceForWarning
-        || std::fabs(contY-fNoVoxelY*fVoxelHalfY) >= toleranceForWarning  
-        || std::fabs(contZ-fNoVoxelZ*fVoxelHalfZ) >= toleranceForWarning )
+  else if( std::fabs(contX-fNoVoxelsX*fVoxelHalfX) >= toleranceForWarning
+        || std::fabs(contY-fNoVoxelsY*fVoxelHalfY) >= toleranceForWarning  
+        || std::fabs(contZ-fNoVoxelsZ*fVoxelHalfZ) >= toleranceForWarning )
   {
     std::ostringstream message;
     message << "Voxels do not fully fill the container: "
             << fContainerSolid->GetName() << G4endl
-            << "          DiffX= " << contX-fNoVoxelX*fVoxelHalfX << G4endl
-            << "          DiffY= " << contY-fNoVoxelY*fVoxelHalfY << G4endl
-            << "          DiffZ= " << contZ-fNoVoxelZ*fVoxelHalfZ << G4endl
+            << "          DiffX= " << contX-fNoVoxelsX*fVoxelHalfX << G4endl
+            << "          DiffY= " << contY-fNoVoxelsY*fVoxelHalfY << G4endl
+            << "          DiffZ= " << contZ-fNoVoxelsZ*fVoxelHalfZ << G4endl
             << "          Maximum difference is: " << toleranceForWarning;
     G4Exception("G4PhantomParameterisation::CheckVoxelsFillContainer()",
                 "GeomNav1002", JustWarning, message);
@@ -227,17 +227,22 @@ GetReplicaNo( const G4ThreeVector& localPoint, const G4ThreeVector& localDir )
   //
   if( fContainerSolid->Inside( localPoint ) == kOutside )
   {
-    std::ostringstream message;
-    message << "Point outside voxels!" << G4endl
-            << "        localPoint - " << localPoint
-            << " - is outside container solid: "
-            << fContainerSolid->GetName() << G4endl
-            << "DIFFERENCE WITH PHANTOM WALLS X: "
-            << std::fabs(localPoint.x()) - fContainerWallX
-            << " Y: " << std::fabs(localPoint.y()) - fContainerWallY
-            << " Z: " << std::fabs(localPoint.z()) - fContainerWallZ;
-    G4Exception("G4PhantomParameterisation::GetReplicaNo()", "GeomNav0003",
-                FatalErrorInArgument, message);
+    if( std::fabs(localPoint.x()) - fContainerWallX > kCarTolerance
+	&& std::fabs(localPoint.y()) - fContainerWallY > kCarTolerance
+	&& std::fabs(localPoint.z()) - fContainerWallZ > kCarTolerance )
+    {
+      std::ostringstream message;
+      message << "Point outside voxels!" << G4endl
+	      << "        localPoint - " << localPoint
+	      << " - is outside container solid: "
+	      << fContainerSolid->GetName() << G4endl
+	      << "DIFFERENCE WITH PHANTOM WALLS X: "
+	      << std::fabs(localPoint.x()) - fContainerWallX
+	      << " Y: " << std::fabs(localPoint.y()) - fContainerWallY
+	      << " Z: " << std::fabs(localPoint.z()) - fContainerWallZ;
+      G4Exception("G4PhantomParameterisation::GetReplicaNo()", "GeomNav0003",
+		  FatalErrorInArgument, message);
+    }
   }
   
   // Check the voxel numbers corresponding to localPoint
@@ -253,18 +258,18 @@ GetReplicaNo( const G4ThreeVector& localPoint, const G4ThreeVector& localDir )
   // if the direction is negative substract 1
 
   G4double fx = (localPoint.x()+fContainerWallX+kCarTolerance)/(fVoxelHalfX*2.);
-  G4int nx = G4int(fx);
+  auto  nx = G4int(fx);
 
   G4double fy = (localPoint.y()+fContainerWallY+kCarTolerance)/(fVoxelHalfY*2.); 
-  G4int ny = G4int(fy);
+  auto  ny = G4int(fy);
 
   G4double fz = (localPoint.z()+fContainerWallZ+kCarTolerance)/(fVoxelHalfZ*2.);
-  G4int nz = G4int(fz);
+  auto  nz = G4int(fz);
 
   // If it is on the surface side, check the direction: if direction is
   // negative place it in the previous voxel (if direction is positive it is
   // already in the next voxel).
-  // Correct also cases where n = -1 or n = fNoVoxel. It is always traced to be
+  // Correct also cases where n = -1 or n = fNoVoxels. It is always traced to be
   // due to multiple scattering: track is entering a voxel but multiple
   // scattering changes the angle towards outside
   //
@@ -279,7 +284,7 @@ GetReplicaNo( const G4ThreeVector& localPoint, const G4ThreeVector& localDir )
     }
     else
     {
-      if( nx == G4int(fNoVoxelX) )  
+      if( nx == G4int(fNoVoxelsX) )  
       {
         nx -= 1;       
       }
@@ -296,7 +301,7 @@ GetReplicaNo( const G4ThreeVector& localPoint, const G4ThreeVector& localDir )
     }
     else
     {
-      if( ny == G4int(fNoVoxelY) )  
+      if( ny == G4int(fNoVoxelsY) )  
       {
         ny -= 1;       
       }
@@ -313,14 +318,14 @@ GetReplicaNo( const G4ThreeVector& localPoint, const G4ThreeVector& localDir )
     }
     else
     {
-      if( nz == G4int(fNoVoxelZ) )  
+      if( nz == G4int(fNoVoxelsZ) )  
       {
         nz -= 1;       
       }
     }
   }
   
-  G4int copyNo = nx + fNoVoxelX*ny + fNoVoxelXY*nz;
+  auto  copyNo = G4int(nx + fNoVoxelsX*ny + fNoVoxelsXY*nz);
 
   // Check if there are still errors 
   //
@@ -330,9 +335,9 @@ GetReplicaNo( const G4ThreeVector& localPoint, const G4ThreeVector& localDir )
     nx = 0;
     isOK = false;
   }
-  else if( nx >= G4int(fNoVoxelX) )
+  else if( nx >= G4int(fNoVoxelsX) )
   {
-    nx = fNoVoxelX-1;
+    nx = G4int(fNoVoxelsX)-1;
     isOK = false;
   }
   if( ny < 0 )
@@ -340,9 +345,9 @@ GetReplicaNo( const G4ThreeVector& localPoint, const G4ThreeVector& localDir )
     ny = 0;
     isOK = false;
   }
-  else if( ny >= G4int(fNoVoxelY) )
+  else if( ny >= G4int(fNoVoxelsY) )
   {
-    ny = fNoVoxelY-1;
+    ny = G4int(fNoVoxelsY)-1;
     isOK = false;
   }
   if( nz < 0 )
@@ -350,26 +355,31 @@ GetReplicaNo( const G4ThreeVector& localPoint, const G4ThreeVector& localDir )
     nz = 0;
     isOK = false;
   }
-  else if( nz >= G4int(fNoVoxelZ) )
+  else if( nz >= G4int(fNoVoxelsZ) )
   {
-    nz = fNoVoxelZ-1;
+    nz = G4int(fNoVoxelsZ)-1;
     isOK = false;
   }
   if( !isOK )
   {
-    std::ostringstream message;
-    message << "Corrected the copy number! It was negative or too big" << G4endl
-            << "          LocalPoint: " << localPoint << G4endl
-            << "          LocalDir: " << localDir << G4endl
-            << "          Voxel container size: " << fContainerWallX
-            << " " << fContainerWallY << " " << fContainerWallZ << G4endl
-            << "          LocalPoint - wall: "
-            << localPoint.x()-fContainerWallX << " "
-            << localPoint.y()-fContainerWallY << " "
-            << localPoint.z()-fContainerWallZ;
-    G4Exception("G4PhantomParameterisation::GetReplicaNo()",
-                "GeomNav1002", JustWarning, message);
-    copyNo = nx + fNoVoxelX*ny + fNoVoxelXY*nz;
+    if( std::fabs(localPoint.x()-fContainerWallX) > kCarTolerance &&
+	std::fabs(localPoint.y()-fContainerWallY) > kCarTolerance &&
+	std::fabs(localPoint.z()-fContainerWallZ) > kCarTolerance ){    // only if difference is big 
+      std::ostringstream message;
+      message << "Corrected the copy number! It was negative or too big" << G4endl
+	      << "          LocalPoint: " << localPoint << G4endl
+	      << "          LocalDir: " << localDir << G4endl
+	      << "          Voxel container size: " << fContainerWallX
+	      << " " << fContainerWallY << " " << fContainerWallZ << G4endl
+	      << "          LocalPoint - wall: "
+	      << localPoint.x()-fContainerWallX << " "
+	      << localPoint.y()-fContainerWallY << " "
+	      << localPoint.z()-fContainerWallZ;
+      G4Exception("G4PhantomParameterisation::GetReplicaNo()",
+		  "GeomNav1002", JustWarning, message);
+    }
+    
+    copyNo = G4int(nx + fNoVoxelsX*ny + fNoVoxelsXY*nz);
   }
 
   return copyNo;
@@ -377,14 +387,14 @@ GetReplicaNo( const G4ThreeVector& localPoint, const G4ThreeVector& localDir )
 
 
 //------------------------------------------------------------------
-void G4PhantomParameterisation::CheckCopyNo( const G4int copyNo ) const
+void G4PhantomParameterisation::CheckCopyNo( const G4long copyNo ) const
 { 
-  if( copyNo < 0 || copyNo >= G4int(fNoVoxel) )
+  if( copyNo < 0 || copyNo >= G4int(fNoVoxels) )
   {
     std::ostringstream message;
     message << "Copy number is negative or too big!" << G4endl
             << "        Copy number: " << copyNo << G4endl
-            << "        Total number of voxels: " << fNoVoxel;
+            << "        Total number of voxels: " << fNoVoxels;
     G4Exception("G4PhantomParameterisation::CheckCopyNo()",
                 "GeomNav0002", FatalErrorInArgument, message);
   }

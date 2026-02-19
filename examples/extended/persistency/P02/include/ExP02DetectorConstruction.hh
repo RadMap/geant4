@@ -23,32 +23,29 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P02/include/ExP02DetectorConstruction.hh
+/// \file ExP02DetectorConstruction.hh
 /// \brief Definition of the ExP02DetectorConstruction class
-//
-//
+
 #ifndef ExP02DetectorConstruction_H
 #define ExP02DetectorConstruction_H 1
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 
-#include "G4VUserDetectorConstruction.hh"
 #include "G4Element.hh"
+#include "G4VUserDetectorConstruction.hh"
 
 /// Detector construction
 
 class ExP02DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-
     ExP02DetectorConstruction();
     ~ExP02DetectorConstruction();
 
     virtual G4VPhysicalVolume* Construct();
 
   private:
-    
     // Logical volumes
     //
     G4LogicalVolume* fExperimentalHall_log;
@@ -65,4 +62,3 @@ class ExP02DetectorConstruction : public G4VUserDetectorConstruction
 };
 
 #endif
-

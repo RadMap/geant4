@@ -23,471 +23,705 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: G4DNAELSEPAElasticModel.cc 97497 2016-06-03 11:41:57Z matkara $
+// Created on 2016/01/18
+//
+// Authors: D. Sakata, W.G. Shin, S. Incerti
+//
+// Based on a recent release of the ELSEPA code
+// developed and provided kindly by F. Salvat et al.
+// See
+// Computer Physics Communications, 165(2), 157-190. (2005)
+// http://dx.doi.org/10.1016/j.cpc.2004.09.006
 //
 
 #include "G4DNAELSEPAElasticModel.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4DNAMolecularMaterial.hh"
-#include "G4Exp.hh"
+#include "G4EmParameters.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 using namespace std;
 
-#define ELSEPA_VERBOSE
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4DNAELSEPAElasticModel::
-G4DNAELSEPAElasticModel(const G4ParticleDefinition*, const G4String& nam) :
-    G4VEmModel(nam), isInitialised(false)
+G4DNAELSEPAElasticModel::G4DNAELSEPAElasticModel(const G4ParticleDefinition*,
+const G4String& nam) :
+G4VEmModel(nam)
 {
-  SetLowEnergyLimit(10. * eV);
-  SetHighEnergyLimit(1. * MeV);
-
   verboseLevel = 0;
-  // Verbosity scale:
-  // 0 = nothing 
-  // 1 = warning for energy non-conservation 
-  // 2 = details of energy budget
-  // 3 = calculation of cross sections, file openings, sampling of atoms
-  // 4 = entering in methods
 
-#ifdef ELSEPA_VERBOSE
-  if (verboseLevel > 0)
+  G4ProductionCutsTable* theCoupleTable =
+  G4ProductionCutsTable::GetProductionCutsTable();
+  auto  numOfCouples = (G4int)theCoupleTable->GetTableSize();
+
+  fpBaseWater = G4Material::GetMaterial("G4_WATER");
+
+  for(G4int i=0; i<numOfCouples; ++i)
   {
-    G4cout << "ELSEPA Elastic model is constructed "
-           << G4endl
-           << "Energy range: "
-           << LowEnergyLimit() / eV << " eV - "
-           << HighEnergyLimit() / MeV << " MeV"
-           << G4endl;
+    const G4MaterialCutsCouple* couple =
+         theCoupleTable->GetMaterialCutsCouple(i);
+
+    const G4Material* material = couple->GetMaterial()->GetBaseMaterial();
+    if(!material) material = couple->GetMaterial();
+
+    auto  nelm = (G4int)material->GetNumberOfElements();
+
+    if(nelm==1)
+    {// Protection: only for single element
+      G4int Z = 79;
+      const G4ElementVector* theElementVector = material->GetElementVector();
+      Z =  G4lrint((*theElementVector)[0]->GetZ());
+      // Protection: only for GOLD
+      if (Z==79){
+        fkillBelowEnergy_Au = 10. * eV;  // Kills e- tracking
+        flowEnergyLimit  = 0   * eV;  // Must stay at zero for killing
+        fhighEnergyLimit = 1   * GeV; // Default
+        SetLowEnergyLimit (flowEnergyLimit);
+        SetHighEnergyLimit(fhighEnergyLimit);
+      }else{
+        //continue;
+      }
+    }else{// Protection: H2O only is available
+      if(material==fpBaseWater){
+        flowEnergyLimit  = 10. * eV;
+        fhighEnergyLimit = 10.   * MeV;
+        SetLowEnergyLimit (flowEnergyLimit);
+        SetHighEnergyLimit(fhighEnergyLimit);
+      }else{
+        //continue;
+      }
+    }
+
+    if (verboseLevel > 0)
+    {
+      G4cout << "ELSEPA Elastic model is constructed for "
+      << material->GetName() << G4endl
+      << "Energy range: "
+      << flowEnergyLimit / eV << " eV - "
+      << fhighEnergyLimit / MeV << " MeV"
+      << G4endl;
+    }
   }
-#endif
-  
-  fParticleChangeForGamma = 0;
-  fpMolWaterDensity = 0;
-  fpData = 0;
+
+  fParticleChangeForGamma = nullptr;
+  fpMolDensity = nullptr;
+
+  fpData_Au=nullptr;
+  fpData_H2O=nullptr;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 G4DNAELSEPAElasticModel::~G4DNAELSEPAElasticModel()
 {
-  // For total cross section
-  if(fpData) delete fpData;
+  delete fpData_Au;
+  delete fpData_H2O;
 
-  // For final state
-  eVecm.clear();
+  eEdummyVec_Au.clear();
+  eEdummyVec_H2O.clear();
+  eCum_Au.clear();
+  eCum_H2O.clear();
+  fAngleData_Au.clear();
+  fAngleData_H2O.clear();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void G4DNAELSEPAElasticModel::Initialise(const G4ParticleDefinition* particle,
-                                           const G4DataVector& /*cuts*/)
+const G4DataVector& )
 {
-#ifdef ELSEPA_VERBOSE
   if (verboseLevel > 3)
-  {
-    G4cout << "Calling G4DNAELSEPAElasticModel::Initialise()" << G4endl;
-  }
-#endif
-  
+  G4cout << "Calling G4DNAELSEPAElasticModel::Initialise()" << G4endl;
+
+  if (isInitialised) {return;}
+
   if(particle->GetParticleName() != "e-")
   {
-    G4Exception("G4DNAELSEPAElasticModel::Initialise",
-                "em0002",
-                FatalException,
-                "Model not applicable to particle type.");
-  }
-
-  // Energy limits
-
-  if (LowEnergyLimit() < 10*eV)
-  {
-    G4cout << "G4DNAELSEPAElasticModel: low energy limit increased from "
-           << LowEnergyLimit()/eV << " eV to " << 10 << " eV"
-           << G4endl;
-    SetLowEnergyLimit(10.*eV);
-  }
-
-  if (HighEnergyLimit() > 1.*MeV)
-  {
-    G4cout << "G4DNAELSEPAElasticModel: high energy limit decreased from "
-           << HighEnergyLimit()/MeV << " MeV to " << 1. << " MeV"
-           << G4endl;
-    SetHighEnergyLimit(1.*MeV);
-  }
-
-  if (isInitialised) { return; }
-
-  // *** ELECTRON
-  // For total cross section
-  // Reading of data files 
-
-  G4double scaleFactor = 1*cm*cm;
-
-  G4String fileElectron("dna/sigma_elastic_e_elsepa_muffin");
-
-//	Alternative option
-//  G4String fileElectron("dna/sigma_elastic_e_elsepa_free");
-
-  fpData = new G4DNACrossSectionDataSet(new G4LogLogInterpolation(),
-                                        eV,
-                                        scaleFactor );
-  fpData->LoadData(fileElectron);
-  // For final state
-
-  char *path = getenv("G4LEDATA");
-
-  if (!path)
-  {
-    G4Exception("G4ELSEPAElasticModel::Initialise",
-                "em0006",
-                FatalException,
-                "G4LEDATA environment variable not set.");
+    G4Exception("G4DNAELSEPAElasticModel::Initialise","em0001",
+      FatalException,"Model not applicable to particle type.");
     return;
   }
 
-  std::ostringstream eFullFileName;
+  G4ProductionCutsTable* theCoupleTable =
+  G4ProductionCutsTable::GetProductionCutsTable();
+  auto  numOfCouples = (G4int)theCoupleTable->GetTableSize();
 
-//	Alternative option
-//  eFullFileName << path << "/dna/sigmadiff_cumulated_elastic_e_elsepa_free.dat";
+  // UNIT OF TCS
+  G4double scaleFactor = 1.*cm*cm;
 
-  eFullFileName << path << "/dna/sigmadiff_cumulated_elastic_e_elsepa_muffin.dat";
-  std::ifstream eDiffCrossSection(eFullFileName.str().c_str());
+  fpData_Au=nullptr;
+  fpData_H2O=nullptr;
+  fpBaseWater = G4Material::GetMaterial("G4_WATER");
 
-  if (!eDiffCrossSection)
+  for(G4int i=0; i<numOfCouples; ++i)
   {
-    G4ExceptionDescription errMsg;
-    errMsg << "Missing data file:/dna/sigmadiff_cumulated_elastic_e_elsepa_muffin.dat; "
-           << "please use G4EMLOW7.8 and above.";
-    
-    G4Exception("G4DNAELSEPAElasticModel::Initialise",
-                "em0003",
-                FatalException,
-                errMsg);
-  }
+    const G4MaterialCutsCouple* couple =
+         theCoupleTable->GetMaterialCutsCouple(i);
+    const G4Material* material = couple->GetMaterial()->GetBaseMaterial();
+    if(!material) material = couple->GetMaterial();
 
-  // March 25th, 2014 - Vaclav Stepan, Sebastien Incerti
-  // Added clear for MT
+    auto  nelm = (G4int)material->GetNumberOfElements();
+    if (nelm==1){// Protection: only for single element
+      const G4ElementVector* theElementVector = material->GetElementVector();
+      G4int Z =  G4lrint((*theElementVector)[0]->GetZ());
+      if (Z!=79)// Protection: only for GOLD
+      {
+        continue;
+      }
 
-  eTdummyVec.clear();
-  eVecm.clear();
-  eDiffCrossSectionData.clear();
+      if (Z>0)
+      {
+        G4String fileZElectron("dna/sigma_elastic_e_elsepa_Z");
+        std::ostringstream oss;
+        oss.str("");
+        oss.clear(stringstream::goodbit);
+        oss << Z;
+        fileZElectron += oss.str()+"_muffintin";
 
-  //
+        fpData_Au = new G4DNACrossSectionDataSet(new G4LogLogInterpolation,
+                                                 eV,
+                                                 scaleFactor );
+        fpData_Au->LoadData(fileZElectron);
 
-  eTdummyVec.push_back(0.);
+        std::ostringstream eFullFileNameZ;
+        const char *path = G4EmParameters::Instance()->GetDirLEDATA();
 
-  while(!eDiffCrossSection.eof())
-  {
-    double tDummy;
-    double eDummy;
-    eDiffCrossSection >> tDummy >> eDummy;
+        if (path == nullptr)
+        {
+          G4Exception("G4DNAELSEPAElasticModel::Initialise","em0002",
+            FatalException,"G4LEDATA environment variable not set.");
+          return;
+        }
 
-    // SI : mandatory eVecm initialization
+        eFullFileNameZ.str("");
+        eFullFileNameZ.clear(stringstream::goodbit);
 
-    if (tDummy != eTdummyVec.back())
-    {
-      eTdummyVec.push_back(tDummy);
-      eVecm[tDummy].push_back(0.);
+        eFullFileNameZ
+          << path
+          << "/dna/sigmadiff_cumulated_elastic_e_elsepa_Z"
+          << Z << "_muffintin.dat";
+
+        std::ifstream eDiffCrossSectionZ(eFullFileNameZ.str().c_str());
+
+        if (!eDiffCrossSectionZ)
+        {
+          G4Exception("G4DNAELSEPAElasticModel::Initialise","em0003",
+            FatalException,"Missing data file for cumulated DCS");
+          return;
+        }
+
+        eEdummyVec_Au.clear();
+        eCum_Au.clear();
+        fAngleData_Au.clear();
+
+        eEdummyVec_Au.push_back(0.);
+        do
+        {
+          G4double eDummy;
+          G4double cumDummy;
+          eDiffCrossSectionZ>>eDummy>>cumDummy;
+          if (eDummy != eEdummyVec_Au.back())
+          {
+           eEdummyVec_Au.push_back(eDummy);
+           eCum_Au[eDummy].push_back(0.);
+          }
+          eDiffCrossSectionZ>>fAngleData_Au[eDummy][cumDummy];
+          if (cumDummy != eCum_Au[eDummy].back())
+          {
+            eCum_Au[eDummy].push_back(cumDummy);
+          }
+        }while(!eDiffCrossSectionZ.eof());
+      }
+
+    }else{// Protection: H2O only is available
+      if(material == fpBaseWater && !fpData_H2O){
+        if (LowEnergyLimit() < 10*eV)
+        {
+          G4cout<<"G4DNAELSEPAElasticModel: low energy limit increased from "
+                << LowEnergyLimit()/eV << " eV to " << 10 << " eV"
+                << G4endl;
+          SetLowEnergyLimit(10.*eV);
+        }
+
+        if (HighEnergyLimit() > 10.*MeV)
+        {
+          G4cout<<"G4DNAELSEPAElasticModel: high energy limit decreased from "
+                << HighEnergyLimit()/MeV << " MeV to " << 10. << " MeV"
+                << G4endl;
+          SetHighEnergyLimit(10.*MeV);
+        }
+
+        G4String fileZElectron("dna/sigma_elastic_e_elsepa_muffin");
+
+        fpData_H2O = new G4DNACrossSectionDataSet(new G4LogLogInterpolation,
+                                                 eV,
+                                                 scaleFactor );
+        fpData_H2O->LoadData(fileZElectron);
+
+        std::ostringstream eFullFileNameZ;
+
+        const char *path = G4EmParameters::Instance()->GetDirLEDATA();
+        if (path == nullptr)
+        {
+          G4Exception("G4DNAELSEPAElasticModel::Initialise","em0004",
+            FatalException,"G4LEDATA environment variable not set.");
+          return;
+        }
+
+        eFullFileNameZ.str("");
+        eFullFileNameZ.clear(stringstream::goodbit);
+
+        eFullFileNameZ
+          << path
+          <<  "/dna/sigmadiff_cumulated_elastic_e_elsepa_muffin.dat";
+
+        std::ifstream eDiffCrossSectionZ(eFullFileNameZ.str().c_str());
+
+        if (!eDiffCrossSectionZ)
+         G4Exception("G4DNAELSEPAElasticModel::Initialise","em0005",
+         FatalException,
+         "Missing data file for cumulated DCS");
+
+        eEdummyVec_H2O.clear();
+        eCum_H2O.clear();
+        fAngleData_H2O.clear();
+
+        eEdummyVec_H2O.push_back(0.);
+
+        do
+        {
+          G4double eDummy;
+          G4double cumDummy;
+          eDiffCrossSectionZ>>eDummy>>cumDummy;
+          if (eDummy != eEdummyVec_H2O.back())
+          {
+           eEdummyVec_H2O.push_back(eDummy);
+           eCum_H2O[eDummy].push_back(0.);
+          }
+          eDiffCrossSectionZ>>fAngleData_H2O[eDummy][cumDummy];
+          if (cumDummy != eCum_H2O[eDummy].back()){
+            eCum_H2O[eDummy].push_back(cumDummy);
+          }
+        }while(!eDiffCrossSectionZ.eof());
+      }
     }
-
-    eDiffCrossSection >> eDiffCrossSectionData[tDummy][eDummy];
-
-    if (eDummy != eVecm[tDummy].back()) eVecm[tDummy].push_back(eDummy);
-  }
-
-  // End final state
-#ifdef ELSEPA_VERBOSE
-  if (verboseLevel>0)
-  {
     if (verboseLevel > 2)
+    G4cout << "Loaded cross section files of ELSEPA Elastic model for"
+           << material->GetName() << G4endl;
+
+    if( verboseLevel>0 )
     {
-      G4cout << "Loaded cross section files for ELSEPA Elastic model" << G4endl;
+      G4cout << "ELSEPA elastic model is initialized " << G4endl
+      << "Energy range: "
+      << LowEnergyLimit() /  eV << " eV - "
+      << HighEnergyLimit()/ MeV << " MeV"
+      << G4endl;
     }
+  } // Loop on couples
 
-    G4cout << "ELSEPA Elastic model is initialized " << G4endl
-           << "Energy range: "
-           << LowEnergyLimit() / eV << " eV - "
-           << HighEnergyLimit() / MeV << " MeV"
-           << G4endl;
-  }
-#endif
-
-  // Initialize water density pointer
-  G4DNAMolecularMaterial::Instance()->Initialize();
-  
-  fpMolWaterDensity = G4DNAMolecularMaterial::Instance()->
-    GetNumMolPerVolTableFor(G4Material::GetMaterial("G4_WATER"));
 
   fParticleChangeForGamma = GetParticleChangeForGamma();
-  isInitialised = true;
 
+  fpMolDensity =
+  G4DNAMolecularMaterial::Instance()->
+  GetNumMolPerVolTableFor(G4Material::GetMaterial("G4_WATER"));
+
+  isInitialised = true;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4double
-G4DNAELSEPAElasticModel::
-CrossSectionPerVolume(const G4Material* material,
-#ifdef ELSEPA_VERBOSE
-                      const G4ParticleDefinition* p,
-#else
-                      const G4ParticleDefinition*,
-#endif
-                      G4double ekin,
-                      G4double,
-                      G4double)
+G4double G4DNAELSEPAElasticModel::CrossSectionPerVolume
+(const G4Material* material,
+ const G4ParticleDefinition* particle,
+ G4double ekin,
+ G4double,
+ G4double)
 {
-#ifdef ELSEPA_VERBOSE
+
   if (verboseLevel > 3)
   {
-   G4cout << "Calling CrossSectionPerVolume() of G4DNAELSEPAElasticModel"
-          << G4endl;
+    G4cout <<
+    "Calling CrossSectionPerVolume() of G4DNAELSEPAElasticModel"
+    << G4endl;
   }
-#endif
 
-  // Calculate total cross section for model
+  G4double atomicNDensity=0.0;
+  G4double sigma=0;
 
-  G4double sigma = 0.;
-  G4double waterDensity = (*fpMolWaterDensity)[material->GetIndex()];
-
-  if(waterDensity!= 0.0)
+  std::size_t nelm = material->GetNumberOfElements();
+  if (nelm==1)  // Protection: only for single element
   {
-    if (ekin < HighEnergyLimit() && ekin >= LowEnergyLimit())
-    {
-      //SI : XS must not be zero otherwise sampling of secondaries method ignored
-      //
-      sigma = fpData->FindValue(ekin);
-    }
+    // Protection: only for GOLD
+    if (material->GetZ()!=79) return 0.0;
 
-#ifdef ELSEPA_VERBOSE
+    const G4ElementVector* theElementVector = material->GetElementVector();
+    G4int Z = G4lrint((*theElementVector)[0]->GetZ());
+
+    const G4String& particleName = particle->GetParticleName();
+    atomicNDensity = material->GetAtomicNumDensityVector()[0];
+    if(atomicNDensity!= 0.0)
+    {
+      if (ekin < fhighEnergyLimit)
+      {
+        if (ekin < fkillBelowEnergy_Au) return DBL_MAX;
+
+        if (ekin < 10*eV) sigma = fpData_Au->FindValue(10*eV);
+        else              sigma = fpData_Au->FindValue(ekin);
+      }
+    }
     if (verboseLevel > 2)
     {
       G4cout << "__________________________________" << G4endl;
       G4cout << "=== G4DNAELSEPAElasticModel - XS INFO START" << G4endl;
-      G4cout << "=== Kinetic energy(eV)=" << ekin/eV << " particle : " << p->GetParticleName() << G4endl;
-      G4cout << "=== Cross section per water molecule (cm^2)=" << sigma/cm/cm << G4endl;
-      G4cout << "=== Cross section per water molecule (cm^-1)=" << sigma*waterDensity/(1./cm) << G4endl;
+      G4cout << "=== Material is made of one element with Z =" << Z << G4endl;
+      G4cout << "=== Kinetic energy(eV)=" << ekin/eV << " particle : "
+             << particleName << G4endl;
+      G4cout << "=== Cross section per atom for Z="<<Z<<" is (cm^2)"
+             << sigma/cm/cm << G4endl;
+      G4cout << "=== Cross section per atom for Z="<<Z<<" is (cm^-1)="
+             << sigma*atomicNDensity/(1./cm) << G4endl;
       G4cout << "=== G4DNAELSEPAElasticModel - XS INFO END" << G4endl;
     }
-#endif
+  }
+  else
+  {
+    atomicNDensity = (*fpMolDensity)[material->GetIndex()];
+    if(atomicNDensity!= 0.0)
+    {
+      if (ekin < HighEnergyLimit() && ekin >= LowEnergyLimit())
+      {
+        sigma = fpData_H2O->FindValue(ekin);
+      }
+    }
+    if (verboseLevel > 2)
+    {
+      G4cout << "__________________________________" << G4endl;
+      G4cout << "=== G4DNAELSEPAElasticModel - XS INFO START" << G4endl;
+      G4cout << "=== Kinetic energy(eV)=" << ekin/eV
+             << " particle : " << particle->GetParticleName() << G4endl;
+      G4cout << "=== Cross section per water molecule (cm^2)="
+             << sigma/cm/cm << G4endl;
+      G4cout << "=== Cross section per water molecule (cm^-1)="
+             << sigma*atomicNDensity/(1./cm) << G4endl;
+      G4cout << "=== G4DNAELSEPAElasticModel - XS INFO END" << G4endl;
+    }
   }
 
-  return sigma*waterDensity;
+  return sigma*atomicNDensity;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void G4DNAELSEPAElasticModel::SampleSecondaries(std::vector<G4DynamicParticle*>* /*fvect*/,
-                                                  const G4MaterialCutsCouple* /*couple*/,
-                                                  const G4DynamicParticle* aDynamicElectron,
-                                                  G4double,
-                                                  G4double)
+void G4DNAELSEPAElasticModel::SampleSecondaries(
+      std::vector<G4DynamicParticle*>*,
+      const G4MaterialCutsCouple* couple,
+      const G4DynamicParticle* aDynamicElectron,
+      G4double,
+      G4double)
 {
 
-
-#ifdef ELSEPA_VERBOSE
-  if (verboseLevel > 3)
-  {
-    G4cout << "Calling SampleSecondaries() of G4DNAELSEPAElasticModel" << G4endl;
+  if (verboseLevel > 3){
+    G4cout <<
+    "Calling SampleSecondaries() of G4DNAELSEPAElasticModel"
+    << G4endl;
   }
-#endif
 
   G4double electronEnergy0 = aDynamicElectron->GetKineticEnergy();
 
-//  if (electronEnergy0 < HighEnergyLimit()) // necessaire ?
+  const G4Material* material = couple->GetMaterial()->GetBaseMaterial();
+  if(!material) material = couple->GetMaterial();
+
+  std::size_t nelm = material->GetNumberOfElements();
+  if (nelm==1) // Protection: only for single element
   {
-    G4double cosTheta = RandomizeCosTheta(electronEnergy0);
+    const G4ElementVector* theElementVector = material->GetElementVector();
+    G4int Z =  G4lrint((*theElementVector)[0]->GetZ());
+    if (Z!=79) return;
+    if (electronEnergy0 < fkillBelowEnergy_Au)
+    {
+      fParticleChangeForGamma->SetProposedKineticEnergy(0.);
+      fParticleChangeForGamma->ProposeMomentumDirection(G4ThreeVector(0,0,0));
+      fParticleChangeForGamma->ProposeTrackStatus(fStopAndKill);
+      fParticleChangeForGamma->ProposeLocalEnergyDeposit(electronEnergy0);
+      return;
+    }
 
-    G4double phi = 2. * pi * G4UniformRand();
+    if(electronEnergy0>= fkillBelowEnergy_Au && electronEnergy0 < fhighEnergyLimit)
+    {
+      G4double cosTheta = 0;
+      if (electronEnergy0>=10*eV)
+      {
+        cosTheta = RandomizeCosTheta(Z,electronEnergy0);
+      }
+      else
+      {
+        cosTheta = RandomizeCosTheta(Z,10*eV);
+      }
 
-    G4ThreeVector zVers = aDynamicElectron->GetMomentumDirection();
-    G4ThreeVector xVers = zVers.orthogonal();
-    G4ThreeVector yVers = zVers.cross(xVers);
+      G4double phi = 2. * CLHEP::pi * G4UniformRand();
 
-    G4double xDir = std::sqrt(1. - cosTheta*cosTheta);
-    G4double yDir = xDir;
-    xDir *= std::cos(phi);
-    yDir *= std::sin(phi);
+      G4ThreeVector zVers = aDynamicElectron->GetMomentumDirection();
+      G4ThreeVector xVers = zVers.orthogonal();
+      G4ThreeVector yVers = zVers.cross(xVers);
 
-    G4ThreeVector zPrimeVers((xDir*xVers + yDir*yVers + cosTheta*zVers));
+      G4double xDir = std::sqrt(1. - cosTheta*cosTheta);
+      G4double yDir = xDir;
+      xDir *= std::cos(phi);
+      yDir *= std::sin(phi);
 
-    fParticleChangeForGamma->ProposeMomentumDirection(zPrimeVers.unit());
+      G4ThreeVector zPrimeVers((xDir*xVers + yDir*yVers + cosTheta*zVers));
+      fParticleChangeForGamma->ProposeMomentumDirection(zPrimeVers.unit());
+      fParticleChangeForGamma->SetProposedKineticEnergy(electronEnergy0);
 
-    fParticleChangeForGamma->SetProposedKineticEnergy(electronEnergy0);
-    // necessaire ?
+    }
+  }
+  else
+  {
+    if(material == fpBaseWater)
+    {
+      //The data for water is stored as Z=0
+      G4double cosTheta = RandomizeCosTheta(0,electronEnergy0);
+
+      G4double phi = 2. * pi * G4UniformRand();
+
+      G4ThreeVector zVers = aDynamicElectron->GetMomentumDirection();
+      G4ThreeVector xVers = zVers.orthogonal();
+      G4ThreeVector yVers = zVers.cross(xVers);
+
+      G4double xDir = std::sqrt(1. - cosTheta*cosTheta);
+      G4double yDir = xDir;
+      xDir *= std::cos(phi);
+      yDir *= std::sin(phi);
+
+      G4ThreeVector zPrimeVers((xDir*xVers + yDir*yVers + cosTheta*zVers));
+      fParticleChangeForGamma->ProposeMomentumDirection(zPrimeVers.unit());
+      fParticleChangeForGamma->SetProposedKineticEnergy(electronEnergy0);
+    }
   }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4double G4DNAELSEPAElasticModel::Theta(//G4ParticleDefinition * particleDefinition,
-                                          G4double k,
-                                          G4double integrDiff)
+G4double G4DNAELSEPAElasticModel::Theta(G4int Z,
+         G4ParticleDefinition * particleDefinition,
+         G4double k,
+         G4double integrDiff)
 {
-  G4double theta = 0.;
-  G4double valueT1 = 0;
-  G4double valueT2 = 0;
-  G4double valueE21 = 0;
-  G4double valueE22 = 0;
-  G4double valueE12 = 0;
-  G4double valueE11 = 0;
-  G4double xs11 = 0;
-  G4double xs12 = 0;
-  G4double xs21 = 0;
-  G4double xs22 = 0;
 
-//  if (particleDefinition == G4Electron::ElectronDefinition()) // necessaire ?
-  {
-    std::vector<double>::iterator t2 = std::upper_bound(eTdummyVec.begin(),
-                                                        eTdummyVec.end(), k);
-    std::vector<double>::iterator t1 = t2 - 1;
+ G4double theta   = 0.;
+ G4double valueE1 = 0.;
+ G4double valueE2 = 0.;
+ G4double valuecum21 = 0.;
+ G4double valuecum22 = 0.;
+ G4double valuecum12 = 0.;
+ G4double valuecum11 = 0.;
+ G4double a11 = 0.;
+ G4double a12 = 0.;
+ G4double a21 = 0.;
+ G4double a22 = 0.;
 
-    std::vector<double>::iterator e12 = std::upper_bound(eVecm[(*t1)].begin(),
-                                                         eVecm[(*t1)].end(),
-                                                         integrDiff);
-    std::vector<double>::iterator e11 = e12 - 1;
+ if (particleDefinition == G4Electron::ElectronDefinition())
+ {
 
-    std::vector<double>::iterator e22 = std::upper_bound(eVecm[(*t2)].begin(),
-                                                         eVecm[(*t2)].end(),
-                                                         integrDiff);
-    std::vector<double>::iterator e21 = e22 - 1;
-
-    valueT1 = *t1;
-    valueT2 = *t2;
-    valueE21 = *e21;
-    valueE22 = *e22;
-    valueE12 = *e12;
-    valueE11 = *e11;
-
-    xs11 = eDiffCrossSectionData[valueT1][valueE11];
-    xs12 = eDiffCrossSectionData[valueT1][valueE12];
-    xs21 = eDiffCrossSectionData[valueT2][valueE21];
-    xs22 = eDiffCrossSectionData[valueT2][valueE22];
+  std::vector<G4double>::iterator e2;
+  if(Z==0){
+    e2 = std::upper_bound(eEdummyVec_H2O.begin(),
+                          eEdummyVec_H2O.end(), k);
+  }else if (Z==79){
+    e2 = std::upper_bound(eEdummyVec_Au.begin(),
+                          eEdummyVec_Au.end(), k);
   }
 
-  if (xs11 == 0 && xs12 == 0 && xs21 == 0 && xs22 == 0) return (0.);
+  auto e1 = e2 - 1;
 
-  theta = QuadInterpolator(valueE11, valueE12, valueE21, valueE22, xs11, xs12,
-                           xs21, xs22, valueT1, valueT2, k, integrDiff);
+  std::vector<G4double>::iterator cum12;
+  if(Z==0){
+    cum12   = std::upper_bound(eCum_H2O[(*e1)].begin(),
+                               eCum_H2O[(*e1)].end(),integrDiff);
+  }else if (Z==79){
+    cum12   = std::upper_bound(eCum_Au[(*e1)].begin(),
+                               eCum_Au[(*e1)].end(),integrDiff);
+  }
 
-  return theta;
+  auto cum11 = cum12 - 1;
+
+  //std::vector<G4double>::iterator cum22
+  //           = std::upper_bound(eCumZ[Z][(*e2)].begin(),
+  //           eCumZ[Z][(*e2)].end(),integrDiff);
+  std::vector<G4double>::iterator cum22;
+  if(Z==0){
+    cum22  = std::upper_bound(eCum_H2O[(*e2)].begin(),
+                              eCum_H2O[(*e2)].end(),integrDiff);
+  }else if(Z==79){
+    cum22  = std::upper_bound(eCum_Au[(*e2)].begin(),
+                              eCum_Au[(*e2)].end(),integrDiff);
+  }
+
+  auto cum21 = cum22 - 1;
+
+  valueE1  = *e1;
+  valueE2  = *e2;
+  valuecum11 = *cum11;
+  valuecum12 = *cum12;
+  valuecum21 = *cum21;
+  valuecum22 = *cum22;
+
+  if(Z==0){
+    a11 = fAngleData_H2O[valueE1][valuecum11];
+    a12 = fAngleData_H2O[valueE1][valuecum12];
+    a21 = fAngleData_H2O[valueE2][valuecum21];
+    a22 = fAngleData_H2O[valueE2][valuecum22];
+  }else if (Z==79){
+    a11 = fAngleData_Au[valueE1][valuecum11];
+    a12 = fAngleData_Au[valueE1][valuecum12];
+    a21 = fAngleData_Au[valueE2][valuecum21];
+    a22 = fAngleData_Au[valueE2][valuecum22];
+  }
+
+ }
+
+ if (a11 == 0 && a12 == 0 && a21 == 0 && a22 == 0) return (0.);
+
+ theta = QuadInterpolator(valuecum11, valuecum12, valuecum21, valuecum22,
+          a11, a12,a21, a22, valueE1, valueE2, k, integrDiff);
+ return theta;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+//
+G4double G4DNAELSEPAElasticModel::LogLinInterpolate(G4double e1,
+G4double e2,
+G4double e,
+G4double xs1,
+G4double xs2)
+{
+ G4double value=0.;
+ if(e1!=0){
+   G4double a = std::log10(e)  - std::log10(e1);
+   G4double b = std::log10(e2) - std::log10(e);
+   value = xs1 + a/(a+b)*(xs2-xs1);
+ }
+ else{
+   G4double d1 = xs1;
+   G4double d2 = xs2;
+   value = (d1 + (d2 - d1) * (e - e1) / (e2 - e1));
+ }
+
+ return value;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 G4double G4DNAELSEPAElasticModel::LinLogInterpolate(G4double e1,
-                                                      G4double e2,
-                                                      G4double e,
-                                                      G4double xs1,
-                                                      G4double xs2)
+G4double e2,
+G4double e,
+G4double xs1,
+G4double xs2)
 {
-  G4double d1 = std::log(xs1);
-  G4double d2 = std::log(xs2);
-  G4double value = G4Exp(d1 + (d2 - d1) * (e - e1) / (e2 - e1));
-  return value;
+ G4double d1 = std::log10(xs1);
+ G4double d2 = std::log10(xs2);
+ G4double value = std::pow(10,(d1 + (d2 - d1) * (e - e1) / (e2 - e1)));
+ return value;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 G4double G4DNAELSEPAElasticModel::LinLinInterpolate(G4double e1,
-                                                      G4double e2,
-                                                      G4double e,
-                                                      G4double xs1,
-                                                      G4double xs2)
+G4double e2,
+G4double e,
+G4double xs1,
+G4double xs2)
 {
-  G4double d1 = xs1;
-  G4double d2 = xs2;
-  G4double value = (d1 + (d2 - d1) * (e - e1) / (e2 - e1));
-  return value;
+ G4double d1 = xs1;
+ G4double d2 = xs2;
+ G4double value = (d1 + (d2 - d1) * (e - e1) / (e2 - e1));
+ return value;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 G4double G4DNAELSEPAElasticModel::LogLogInterpolate(G4double e1,
-                                                      G4double e2,
-                                                      G4double e,
-                                                      G4double xs1,
-                                                      G4double xs2)
+G4double e2,
+G4double e,
+G4double xs1,
+G4double xs2)
 {
-  G4double a = (std::log10(xs2) - std::log10(xs1))
-      / (std::log10(e2) - std::log10(e1));
-  G4double b = std::log10(xs2) - a * std::log10(e2);
-  G4double sigma = a * std::log10(e) + b;
-  G4double value = (std::pow(10., sigma));
-  return value;
+ G4double a = (std::log10(xs2) - std::log10(xs1))
+             / (std::log10(e2) - std::log10(e1));
+ G4double b = std::log10(xs2) - a * std::log10(e2);
+ G4double sigma = a * std::log10(e) + b;
+ G4double value = (std::pow(10., sigma));
+ return value;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4double G4DNAELSEPAElasticModel::QuadInterpolator(G4double e11,
-                                                     G4double e12,
-                                                     G4double e21,
-                                                     G4double e22,
-                                                     G4double xs11,
-                                                     G4double xs12,
-                                                     G4double xs21,
-                                                     G4double xs22,
-                                                     G4double t1,
-                                                     G4double t2,
-                                                     G4double t,
-                                                     G4double e)
+G4double G4DNAELSEPAElasticModel::QuadInterpolator(
+G4double cum11,
+G4double cum12,
+G4double cum21,
+G4double cum22,
+G4double a11,
+G4double a12,
+G4double a21,
+G4double a22,
+G4double e1,
+G4double e2,
+G4double t,
+G4double cum)
 {
-  // Log-Log
-  /*
-   G4double interpolatedvalue1 = LogLogInterpolate(e11, e12, e, xs11, xs12);
-   G4double interpolatedvalue2 = LogLogInterpolate(e21, e22, e, xs21, xs22);
-   G4double value = LogLogInterpolate(t1, t2, t, interpolatedvalue1, interpolatedvalue2);
+   G4double value=0;
+   G4double interpolatedvalue1=0;
+   G4double interpolatedvalue2=0;
 
+   if(cum11!=0){
+     interpolatedvalue1 = LinLogInterpolate(cum11, cum12, cum, a11, a12);
+   }
+   else{
+     interpolatedvalue1 = LinLinInterpolate(cum11, cum12, cum, a11, a12);
+   }
+   if(cum21!=0){
+     interpolatedvalue2 = LinLogInterpolate(cum21, cum22, cum, a21, a22);
+   }
+   else{
+     interpolatedvalue2 = LinLinInterpolate(cum21, cum22, cum, a21, a22);
+   }
 
-   // Lin-Log
-   G4double interpolatedvalue1 = LinLogInterpolate(e11, e12, e, xs11, xs12);
-   G4double interpolatedvalue2 = LinLogInterpolate(e21, e22, e, xs21, xs22);
-   G4double value = LinLogInterpolate(t1, t2, t, interpolatedvalue1, interpolatedvalue2);
-   */
+   value = LogLinInterpolate(e1,e2,t,interpolatedvalue1,interpolatedvalue2);
 
-  // Lin-Lin
-  G4double interpolatedvalue1 = LinLinInterpolate(e11, e12, e, xs11, xs12);
-  G4double interpolatedvalue2 = LinLinInterpolate(e21, e22, e, xs21, xs22);
-  G4double value = LinLinInterpolate(t1, t2, t, interpolatedvalue1,
-                                     interpolatedvalue2);
-
-  return value;
+ return value;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4double G4DNAELSEPAElasticModel::RandomizeCosTheta(G4double k)
+G4double G4DNAELSEPAElasticModel::RandomizeCosTheta(G4int Z, G4double k)
 {
 
-  G4double integrdiff = 0;
+  G4double integrdiff = 0.;
   G4double uniformRand = G4UniformRand();
   integrdiff = uniformRand;
 
   G4double theta = 0.;
   G4double cosTheta = 0.;
-  theta = Theta(//G4Electron::ElectronDefinition(),
-                k / eV, integrdiff);
+  theta = Theta(Z, G4Electron::ElectronDefinition(), k / eV, integrdiff);
 
-  cosTheta = std::cos(theta * pi / 180);
+  cosTheta = std::cos(theta * CLHEP::pi / 180.);
 
   return cosTheta;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void G4DNAELSEPAElasticModel::SetKillBelowThreshold(G4double)
+void G4DNAELSEPAElasticModel::SetKillBelowThreshold(G4double threshold)
 {
-  G4ExceptionDescription errMsg;
-  errMsg << "The method G4DNAELSEPAElasticModel::SetKillBelowThreshold is deprecated";
-  
-  G4Exception("G4DNAELSEPAElasticModel::SetKillBelowThreshold",
-              "deprecated",
-              JustWarning,
-              errMsg);
+  fkillBelowEnergy_Au = threshold;
+
+  if (threshold < 10 * eV)
+  {
+    G4cout<< "*** WARNING : the G4DNAELSEPAElasticModel model is not "
+    "defined below 10 eV !" << G4endl;
+  }
 }

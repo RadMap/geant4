@@ -22,21 +22,20 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
+/// @file G4VMPIextraWorker.hh
+/// @brief The interface class for an extra MPI worker
 
-// The interface class for an extra MPI worker
-//
 // Author: Ivana Hrivnacova, 21/11/2018 (ivana@ipno.in2p3.fr)
 
 #ifndef G4MVPIEXTRAWORKER_HH
 
-class G4VMPIextraWorker {
-public:
-  G4VMPIextraWorker() {}
-  virtual ~G4VMPIextraWorker() {}
+class G4VMPIextraWorker
+{
+  public:
+    G4VMPIextraWorker() {}
+    virtual ~G4VMPIextraWorker() {}
 
-  virtual void BeamOn() = 0;
+    virtual void BeamOn() = 0;
 };
 
-#endif //G4MPIVEXTRAWORKER_HH
-
+#endif  // G4MPIVEXTRAWORKER_HH

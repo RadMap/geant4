@@ -61,22 +61,18 @@ public:
 
   explicit G4hPairProduction(const G4String& processName = "hPairProd");
 
-  virtual ~G4hPairProduction();
-
-  virtual G4bool IsApplicable(const G4ParticleDefinition& p) override;
+  ~G4hPairProduction() = default;
 
   // print description in html
-  virtual void ProcessDescription(std::ostream&) const override;
+  void ProcessDescription(std::ostream&) const override;
+
+  G4hPairProduction & operator=(const G4hPairProduction &right) = delete;
+  G4hPairProduction(const G4hPairProduction&) = delete;
 
 protected:
 
   virtual void InitialiseEnergyLossProcess(const G4ParticleDefinition*,
 					   const G4ParticleDefinition*) override;
-
-private:
-
-  G4hPairProduction & operator=(const G4hPairProduction &right) = delete;
-  G4hPairProduction(const G4hPairProduction&) = delete;
 
 };
 

@@ -23,44 +23,37 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4DecayTable class implementation
 //
-//
-// 
-// ------------------------------------------------------------
-//      GEANT 4 class implementation file
-//
-//      History: first implementation, based on object model of
-//      27 July 1996 H.Kurashige
-// ----------------------------------------
-//      implementation for STL          14 Feb. 2000 H.Kurashige
-// ------------------------------------------------------------
+// Author: H.Kurashige, 7 July 1996
+// --------------------------------------------------------------------
 
-#include "globals.hh"
 #include "G4DecayTable.hh"
+
 #include "Randomize.hh"
+#include "globals.hh"
 
 G4DecayTable::G4DecayTable()
-  :parent(nullptr), channels(nullptr)
 {
-  channels =  new G4VDecayChannelVector;
+  channels = new G4VDecayChannelVector;
 }
 
 G4DecayTable::~G4DecayTable()
 {
-  // remove and delete all contents  
-  G4VDecayChannelVector::iterator iCh;
-  for (iCh = channels->begin(); iCh!= channels->end(); ++iCh) {
-    delete (*iCh);
+  // remove and delete all contents
+  for (const auto channel : *channels) {
+    delete channel;
   }
   channels->clear();
-  delete  channels;
+  delete channels;
   channels = nullptr;
   parent = nullptr;
-}    
+}
 
-void G4DecayTable::Insert( G4VDecayChannel * aChannel){
-  if (parent == nullptr) { 
-    parent = (G4ParticleDefinition*)(aChannel->GetParent()); 
+void G4DecayTable::Insert(G4VDecayChannel* aChannel)
+{
+  if (parent == nullptr) {
+    parent = (G4ParticleDefinition*)(aChannel->GetParent());
   }
   if (parent != aChannel->GetParent()) {
 #ifdef G4VERBOSE
@@ -68,31 +61,30 @@ void G4DecayTable::Insert( G4VDecayChannel * aChannel){
            << "       " << parent->GetParticleName()
            << " input:" << aChannel->GetParent()->GetParticleName() << G4endl;
 #endif
-  } else {
+  }
+  else {
     G4double br = aChannel->GetBR();
-    G4VDecayChannelVector::iterator iCh;
-    for (iCh = channels->begin(); iCh!= channels->end(); ++iCh) {
+    for (auto iCh = channels->cbegin(); iCh != channels->cend(); ++iCh) {
       if (br > (*iCh)->GetBR()) {
-	channels->insert(iCh,aChannel);
-	return;
+        channels->insert(iCh, aChannel);
+        return;
       }
     }
     channels->push_back(aChannel);
   }
 }
 
-G4VDecayChannel *G4DecayTable::SelectADecayChannel(G4double parentMass)
+G4VDecayChannel* G4DecayTable::SelectADecayChannel(G4double parentMass)
 {
   // check if contents exist
-  if (channels->size()<1) return nullptr;
+  if (channels->empty()) return nullptr;
 
-  if(parentMass < 0.) parentMass=parent->GetPDGMass(); 
+  if (parentMass < 0.) parentMass = parent->GetPDGMass();
 
-  G4VDecayChannelVector::iterator iCh;
   G4double sumBR = 0.;
-  for (iCh = channels->begin(); iCh!= channels->end(); ++iCh) {
-    if ( !((*iCh)->IsOKWithParentMass(parentMass)) ) continue;
-    sumBR += (*iCh)->GetBR();
+  for (const auto channel : *channels) {
+    if (!(channel->IsOKWithParentMass(parentMass))) continue;
+    sumBR += channel->GetBR();
   }
   if (sumBR <= 0.0) {
 #ifdef G4VERBOSE
@@ -102,15 +94,15 @@ G4VDecayChannel *G4DecayTable::SelectADecayChannel(G4double parentMass)
     return nullptr;
   }
 
-  const size_t MAX_LOOP = 10000;
-  for (size_t loop_counter=0; loop_counter <MAX_LOOP; ++loop_counter){
+  const std::size_t MAX_LOOP = 10000;
+  for (std::size_t loop_counter = 0; loop_counter < MAX_LOOP; ++loop_counter) {
     G4double sum = 0.0;
-    G4double br= sumBR*G4UniformRand();
+    G4double br = sumBR * G4UniformRand();
     // select decay channel
-    for (iCh = channels->begin(); iCh!= channels->end(); ++iCh) {
-      sum += (*iCh)->GetBR();
-      if ( !((*iCh)->IsOKWithParentMass(parentMass)) ) continue;
-      if (br < sum) return (*iCh);
+    for (const auto channel : *channels) {
+      sum += channel->GetBR();
+      if (!(channel->IsOKWithParentMass(parentMass))) continue;
+      if (br < sum) return channel;
     }
   }
   return nullptr;
@@ -119,23 +111,11 @@ G4VDecayChannel *G4DecayTable::SelectADecayChannel(G4double parentMass)
 void G4DecayTable::DumpInfo() const
 {
   G4cout << "G4DecayTable:  " << parent->GetParticleName() << G4endl;
-  G4int index =0;
-  G4VDecayChannelVector::iterator iCh;
-  for (iCh = channels->begin(); iCh!= channels->end(); ++iCh) {
+  G4int index = 0;
+  for (const auto channel : *channels) {
     G4cout << index << ": ";
-    (*iCh)->DumpInfo();
+    channel->DumpInfo();
     index += 1;
   }
   G4cout << G4endl;
 }
-
-
-
-
-
-
-
-
-
-
-

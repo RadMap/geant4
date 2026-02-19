@@ -23,19 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file exoticphysics/ucn/include/ExUCNPrimaryGeneratorAction.hh
+/// \file ExUCNPrimaryGeneratorAction.hh
 /// \brief Definition of the ExUCNPrimaryGeneratorAction class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef ExUCNPrimaryGeneratorAction_h
 #define ExUCNPrimaryGeneratorAction_h 1
 
-#include "globals.hh"
 #include "G4VUserPrimaryGeneratorAction.hh"
+#include "globals.hh"
 
 class G4Event;
 class G4ParticleGun;
@@ -44,16 +39,14 @@ class G4ParticleGun;
 
 class ExUCNPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
+  public:
+    ExUCNPrimaryGeneratorAction(void);
+    virtual ~ExUCNPrimaryGeneratorAction();
 
-  ExUCNPrimaryGeneratorAction(void);    
-  virtual ~ExUCNPrimaryGeneratorAction();
+    virtual void GeneratePrimaries(G4Event*);
 
-  virtual void GeneratePrimaries(G4Event*);
-
-private:
-
-  G4ParticleGun* fParticleGun;
+  private:
+    G4ParticleGun* fParticleGun;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

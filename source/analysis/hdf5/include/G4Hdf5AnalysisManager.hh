@@ -25,7 +25,7 @@
 //
 
 // The main manager for Hdf5 analysis.
-// It delegates most of functions to the object specific managers. 
+// It delegates most of functions to the object specific managers.
 
 // Author: Ivana Hrivnacova, 20/07/2017 (ivana@ipno.in2p3.fr)
 
@@ -35,70 +35,51 @@
 #include "G4ToolsAnalysisManager.hh"
 #include "globals.hh"
 
-#include "tools/hdf5/ntuple"
+#include "toolx/hdf5/ntuple"
 
 #include <memory>
+#include <string_view>
 
-class G4Hdf5FileManager;
-class G4Hdf5NtupleManager;
+class G4Hdf5AnalysisManager;
+class G4Hdf5NtupleFileManager;
+template <class T>
+class G4ThreadLocalSingleton;
 
 class G4Hdf5AnalysisManager : public G4ToolsAnalysisManager
 {
+  friend class G4ThreadLocalSingleton<G4Hdf5AnalysisManager>;
+
   public:
-    explicit G4Hdf5AnalysisManager(G4bool isMaster = true);
-    ~G4Hdf5AnalysisManager();
-    
-    // static methods
+    ~G4Hdf5AnalysisManager() override;
+
+    // Static methods
     static G4Hdf5AnalysisManager* Instance();
     static G4bool IsInstance();
 
     // Access methods
-    tools::hdf5::ntuple* GetNtuple() const;
-    tools::hdf5::ntuple* GetNtuple(G4int ntupleId) const;
+    toolx::hdf5::ntuple* GetNtuple() const;
+    toolx::hdf5::ntuple* GetNtuple(G4int ntupleId) const;
 
     // Iterators
-    std::vector<tools::hdf5::ntuple*>::iterator BeginNtuple();
-    std::vector<tools::hdf5::ntuple*>::iterator EndNtuple();
-    std::vector<tools::hdf5::ntuple*>::const_iterator BeginConstNtuple() const;
-    std::vector<tools::hdf5::ntuple*>::const_iterator EndConstNtuple() const;
-    
+    std::vector<toolx::hdf5::ntuple*>::iterator BeginNtuple();
+    std::vector<toolx::hdf5::ntuple*>::iterator EndNtuple();
+    std::vector<toolx::hdf5::ntuple*>::const_iterator BeginConstNtuple() const;
+    std::vector<toolx::hdf5::ntuple*>::const_iterator EndConstNtuple() const;
+
   protected:
-    // virtual methods from base class
-    virtual G4bool OpenFileImpl(const G4String& fileName) final;
-    virtual G4bool WriteImpl() final;
-    virtual G4bool CloseFileImpl(G4bool reset) final; 
-    virtual G4bool IsOpenFileImpl() const final;
+    // Virtual methods from base class
+    G4bool OpenFileImpl(const G4String& fileName) final;
+    G4bool CloseFileImpl(G4bool reset) final;
 
   private:
-    // constants
-    static constexpr unsigned int fgkDefaultBasketSize = 32000; 
+    G4Hdf5AnalysisManager();
 
-    // static data members
-    static G4Hdf5AnalysisManager* fgMasterInstance;
-    static G4ThreadLocal G4Hdf5AnalysisManager* fgInstance;
+    // Static data members
+    inline static G4ThreadLocal G4bool fgIsInstance { false };
+    static constexpr std::string_view fkClass { "G4Hdf5AnalysisManager" };
 
-    // methods
-    template <typename T>
-    G4bool WriteHn(const std::vector<T*>& htVector,
-                   const std::vector<G4HnInformation*>& hnVector,
-                   const G4String& directoryName,
-                   const G4String& hnType);
-    template <typename T>
-    G4bool WritePn(const std::vector<T*>& htVector,
-                   const std::vector<G4HnInformation*>& hnVector,
-                   const G4String& directoryName,
-                   const G4String& hnType);
-    G4bool WriteDirectory(); 
-    G4bool WriteH1(); 
-    G4bool WriteH2();
-    G4bool WriteH3();
-    G4bool WriteP1();
-    G4bool WriteP2();
-    G4bool Reset();
-
-    // data members
-    G4Hdf5NtupleManager*  fNtupleManager;
-    std::shared_ptr<G4Hdf5FileManager>  fFileManager;
+    // Data members
+    std::shared_ptr<G4Hdf5NtupleFileManager>  fNtupleFileManager { nullptr };
 };
 
 #include "G4Hdf5AnalysisManager.icc"

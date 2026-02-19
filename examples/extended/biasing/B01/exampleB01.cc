@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file biasing/B01/exampleB01.cc
+/// \file exampleB01.cc
 /// \brief Main program of the biasing/B01 example
-//
-//
-//
-//
+
 // --------------------------------------------------------------
 //      GEANT 4 - exampleB01
 //
@@ -55,29 +52,22 @@
 // --------------------------------------------------------------
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include <iostream>
+#include "G4GeometryManager.hh"
+#include "G4RunManagerFactory.hh"
+#include "G4Types.hh"
+#include "G4UImanager.hh"
+#include "G4VPhysicalVolume.hh"
 
+#include <iostream>
 #include <stdlib.h>
 
-#include "G4Types.hh"
-
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
-
-#include "G4VPhysicalVolume.hh"
-#include "G4UImanager.hh"
-#include "G4GeometryManager.hh"
-
 // user classes
+#include "B01ActionInitialization.hh"
 #include "B01DetectorConstruction.hh"
 #include "FTFP_BERT.hh"
+
 #include "G4ImportanceBiasing.hh"
 #include "G4WeightWindowBiasing.hh"
-
-#include "B01ActionInitialization.hh"
 // #include "B01PrimaryGeneratorAction.hh"
 // #include "B01RunAction.hh"
 
@@ -89,74 +79,62 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   G4int mode = 0;
-  if (argc>1)  mode = atoi(argv[1]);
+  if (argc > 1) mode = atoi(argv[1]);
 
   G4int numberOfEvents = 100;
   G4long myseed = 345354;
 
-#ifdef G4MULTITHREADED
-  G4MTRunManager * runManager = new G4MTRunManager;
-  G4cout << " Number of cores: " << G4Threading::G4GetNumberOfCores() << G4endl;
-  G4cout << " and using 2 of them! " << G4endl;
+  auto* runManager = G4RunManagerFactory::CreateRunManager();
   runManager->SetNumberOfThreads(2);
-  //  runManager->SetNumberOfThreads(G4Threading::G4GetNumberOfCores());
-#else
-  G4RunManager * runManager = new G4RunManager;
-#endif
 
   G4Random::setTheSeed(myseed);
 
-  G4VWeightWindowAlgorithm *wwAlg = 0; // pointer for WeightWindow (mode>0)
+  G4VWeightWindowAlgorithm* wwAlg = 0;  // pointer for WeightWindow (mode>0)
 
   // create the detector      ---------------------------
   B01DetectorConstruction* detector = new B01DetectorConstruction();
   runManager->SetUserInitialization(detector);
-  G4GeometrySampler mgs(detector->GetWorldVolume(),"neutron");
+  G4GeometrySampler mgs(detector->GetWorldVolume(), "neutron");
 
   G4VModularPhysicsList* physicsList = new FTFP_BERT;
-  if(mode == 0)
-    {
-      physicsList->RegisterPhysics(new G4ImportanceBiasing(&mgs));
-    }
-  else
-    {
-      wwAlg = new G4WeightWindowAlgorithm(1,    // upper limit factor
-                                          1,    // survival factor
-                                          100); // max. number of splitting
+  if (mode == 0) {
+    physicsList->RegisterPhysics(new G4ImportanceBiasing(&mgs));
+  }
+  else {
+    wwAlg = new G4WeightWindowAlgorithm(1,  // upper limit factor
+                                        1,  // survival factor
+                                        100);  // max. number of splitting
 
-      physicsList->RegisterPhysics(new G4WeightWindowBiasing
-                                  (&mgs, wwAlg, onBoundary));
-                                    // place of action
-    }
+    physicsList->RegisterPhysics(new G4WeightWindowBiasing(&mgs, wwAlg, onBoundary));
+    // place of action
+  }
   runManager->SetUserInitialization(physicsList);
 
- // Set user action classes through Worker Initialization
- //
+  // Set user action classes through Worker Initialization
+  //
   B01ActionInitialization* actions = new B01ActionInitialization;
   runManager->SetUserInitialization(actions);
 
   runManager->Initialize();
 
-  if (mode == 0)
-    {
-      detector->CreateImportanceStore();
-    }
-  else
-    {
-      detector->CreateWeightWindowStore();
-    }
+  if (mode == 0) {
+    detector->CreateImportanceStore();
+  }
+  else {
+    detector->CreateWeightWindowStore();
+  }
 
   //  runManager->BeamOn(numberOfEvents);
 
-  //temporary fix before runManager->BeamOn works...
+  // temporary fix before runManager->BeamOn works...
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
   G4String command1 = "/control/cout/setCoutFile threadOut";
   UImanager->ApplyCommand(command1);
-  G4String command2 = "/run/beamOn " +
-                      G4UIcommand::ConvertToString(numberOfEvents);;
+  G4String command2 = "/run/beamOn " + G4UIcommand::ConvertToString(numberOfEvents);
+  ;
   UImanager->ApplyCommand(command2);
 
   // open geometry for clean biasing stores clean-up

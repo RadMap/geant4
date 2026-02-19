@@ -41,9 +41,18 @@
 
 #include "G4VGraphicsScene.hh"
 #include "G4Polyhedron.hh"
+#include "G4PolyhedronArbitrary.hh"
 #include "HepPolyhedronProcessor.h"
 
-///////////////////////////////////////////////////////////////////
+#include "G4IntersectionSolid.hh"
+#include "G4AutoLock.hh"
+
+namespace
+{
+  G4RecursiveMutex unionMutex = G4MUTEX_INITIALIZER;
+}
+
+//////////////////////////////////////////////////////////////////////////
 //
 // Transfer all data members to G4BooleanSolid which is responsible
 // for them. pName will be in turn sent to G4VSolid
@@ -53,14 +62,10 @@ G4UnionSolid:: G4UnionSolid( const G4String& pName,
                                    G4VSolid* pSolidB )
   : G4BooleanSolid(pName,pSolidA,pSolidB)
 {
-  G4ThreeVector pdelta(0.5*kCarTolerance,0.5*kCarTolerance,0.5*kCarTolerance);
-  G4ThreeVector pmin, pmax;
-  BoundingLimits(pmin, pmax);
-  fPMin = pmin - pdelta;
-  fPMax = pmax + pdelta;
+  Init();
 }
 
-/////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // Constructor
  
@@ -72,14 +77,10 @@ G4UnionSolid::G4UnionSolid( const G4String& pName,
   : G4BooleanSolid(pName,pSolidA,pSolidB,rotMatrix,transVector)
 
 {
-  G4ThreeVector pdelta(0.5*kCarTolerance,0.5*kCarTolerance,0.5*kCarTolerance);
-  G4ThreeVector pmin, pmax;
-  BoundingLimits(pmin, pmax);
-  fPMin = pmin - pdelta;
-  fPMax = pmax + pdelta;
+  Init();
 }
 
-///////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // Constructor
  
@@ -89,14 +90,10 @@ G4UnionSolid::G4UnionSolid( const G4String& pName,
                             const G4Transform3D& transform )
   : G4BooleanSolid(pName,pSolidA,pSolidB,transform)
 {
-  G4ThreeVector pdelta(0.5*kCarTolerance,0.5*kCarTolerance,0.5*kCarTolerance);
-  G4ThreeVector pmin, pmax;
-  BoundingLimits(pmin, pmax);
-  fPMin = pmin - pdelta;
-  fPMax = pmax + pdelta;
+  Init();
 } 
 
-//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // Fake default constructor - sets only member data and allocates memory
 //                            for usage restricted to object persistency.
@@ -106,15 +103,7 @@ G4UnionSolid::G4UnionSolid( __void__& a )
 {
 }
 
-///////////////////////////////////////////////////////////
-//
-// Destructor
-
-G4UnionSolid::~G4UnionSolid()
-{
-}
-
-///////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // Copy constructor
 
@@ -123,9 +112,10 @@ G4UnionSolid::G4UnionSolid(const G4UnionSolid& rhs)
 {
   fPMin = rhs.fPMin;
   fPMax = rhs.fPMax;
+  halfCarTolerance = 0.5*kCarTolerance;
 }
 
-///////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // Assignment operator
 
@@ -141,8 +131,24 @@ G4UnionSolid& G4UnionSolid::operator = (const G4UnionSolid& rhs)
 
   fPMin = rhs.fPMin;
   fPMax = rhs.fPMax;
+  halfCarTolerance = rhs.halfCarTolerance;
+
   return *this;
 }  
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Initialisation
+
+void G4UnionSolid::Init()
+{
+  G4ThreeVector pdelta(kCarTolerance,kCarTolerance,kCarTolerance);
+  G4ThreeVector pmin, pmax;
+  BoundingLimits(pmin, pmax);
+  fPMin = pmin - pdelta;
+  fPMax = pmax + pdelta;
+  halfCarTolerance = 0.5*kCarTolerance;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -211,7 +217,7 @@ G4UnionSolid::CalculateExtent( const EAxis pAxis,
   return out ;  // It exists in this slice if either one does.
 }
  
-/////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // Important comment: When solids A and B touch together along flat
 // surface the surface points will be considered as kSurface, while points 
@@ -219,7 +225,7 @@ G4UnionSolid::CalculateExtent( const EAxis pAxis,
 
 EInside G4UnionSolid::Inside( const G4ThreeVector& p ) const
 {
-  if (std::max(p.z()-fPMax.z(),fPMin.z()-p.z()) > 0) return kOutside;
+  if (std::max(p.z()-fPMax.z(), fPMin.z()-p.z()) > 0) { return kOutside; }
 
   EInside positionA = fPtrSolidA->Inside(p);
   if (positionA == kInside)  { return positionA; } // inside A
@@ -238,7 +244,7 @@ EInside G4UnionSolid::Inside( const G4ThreeVector& p ) const
            fPtrSolidB->SurfaceNormal(p)).mag2() < rtol) ? kInside : kSurface;
 }
 
-//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // Get surface normal
 
@@ -249,10 +255,10 @@ G4UnionSolid::SurfaceNormal( const G4ThreeVector& p ) const
   EInside positionB = fPtrSolidB->Inside(p);
 
   if (positionA == kSurface &&
-      positionB == kOutside) return fPtrSolidA->SurfaceNormal(p);
+      positionB == kOutside) { return fPtrSolidA->SurfaceNormal(p); }
 
   if (positionA == kOutside &&
-      positionB == kSurface) return fPtrSolidB->SurfaceNormal(p);
+      positionB == kSurface) { return fPtrSolidB->SurfaceNormal(p); }
 
   if (positionA == kSurface &&
       positionB == kSurface)
@@ -278,13 +284,13 @@ G4UnionSolid::SurfaceNormal( const G4ThreeVector& p ) const
   return fPtrSolidA->SurfaceNormal(p);
 }
 
-/////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // The same algorithm as in DistanceToIn(p)
 
 G4double 
 G4UnionSolid::DistanceToIn( const G4ThreeVector& p,
-                                   const G4ThreeVector& v  ) const 
+                            const G4ThreeVector& v  ) const 
 {
 #ifdef G4BOOLDEBUG
   if( Inside(p) == kInside )
@@ -303,16 +309,16 @@ G4UnionSolid::DistanceToIn( const G4ThreeVector& p,
 #endif
 
   return std::min(fPtrSolidA->DistanceToIn(p,v),
-                    fPtrSolidB->DistanceToIn(p,v) ) ;
+                  fPtrSolidB->DistanceToIn(p,v) ) ;
 }
 
-////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // Approximate nearest distance from the point p to the union of
 // two solids
 
 G4double 
-G4UnionSolid::DistanceToIn( const G4ThreeVector& p) const 
+G4UnionSolid::DistanceToIn( const G4ThreeVector& p ) const 
 {
 #ifdef G4BOOLDEBUG
   if( Inside(p) == kInside )
@@ -330,20 +336,20 @@ G4UnionSolid::DistanceToIn( const G4ThreeVector& p) const
   G4double distA = fPtrSolidA->DistanceToIn(p) ;
   G4double distB = fPtrSolidB->DistanceToIn(p) ;
   G4double safety = std::min(distA,distB) ;
-  if(safety < 0.0) safety = 0.0 ;
+  if(safety < 0.0) { safety = 0.0 ; }
   return safety ;
 }
 
-//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // The same algorithm as DistanceToOut(p)
 
 G4double 
 G4UnionSolid::DistanceToOut( const G4ThreeVector& p,
-           const G4ThreeVector& v,
-           const G4bool calcNorm,
-                 G4bool *validNorm,
-                 G4ThreeVector *n      ) const 
+                             const G4ThreeVector& v,
+                             const G4bool calcNorm,
+                                   G4bool* validNorm,
+                                   G4ThreeVector* n  ) const 
 {
   G4double  dist = 0.0, disTmp = 0.0 ;
   G4ThreeVector normTmp;
@@ -392,7 +398,7 @@ G4UnionSolid::DistanceToOut( const G4ThreeVector& p,
         }
       }
       while( (fPtrSolidA->Inside(p+dist*v) != kOutside)
-          && (disTmp > 0.5*kCarTolerance) );
+          && (disTmp > halfCarTolerance) );
     }
     else // if( positionB != kOutside )
     {
@@ -410,7 +416,7 @@ G4UnionSolid::DistanceToOut( const G4ThreeVector& p,
         }
       }
       while( (fPtrSolidB->Inside(p+dist*v) != kOutside)
-          && (disTmp > 0.5*kCarTolerance) );
+          && (disTmp > halfCarTolerance) );
     }
   }
   if( calcNorm )
@@ -421,7 +427,7 @@ G4UnionSolid::DistanceToOut( const G4ThreeVector& p,
   return dist ;
 }
 
-//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // Inverted algorithm of DistanceToIn(p)
 
@@ -455,7 +461,7 @@ G4UnionSolid::DistanceToOut( const G4ThreeVector& p ) const
        (positionA == kSurface && positionB == kInside  )     )
     {     
       distout= std::max(fPtrSolidA->DistanceToOut(p),
-                          fPtrSolidB->DistanceToOut(p) ) ;
+                        fPtrSolidB->DistanceToOut(p) ) ;
     }
     else
     {
@@ -472,13 +478,13 @@ G4UnionSolid::DistanceToOut( const G4ThreeVector& p ) const
   return distout;
 }
 
-//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // GetEntityType
 
 G4GeometryType G4UnionSolid::GetEntityType() const 
 {
-  return G4String("G4UnionSolid");
+  return {"G4UnionSolid"};
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -490,7 +496,7 @@ G4VSolid* G4UnionSolid::Clone() const
   return new G4UnionSolid(*this);
 }
 
-//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // ComputeDimensions
 
@@ -499,9 +505,13 @@ G4UnionSolid::ComputeDimensions(       G4VPVParameterisation*,
                                  const G4int,
                                  const G4VPhysicalVolume* ) 
 {
+  DumpInfo();
+  G4Exception("G4UnionSolid::ComputeDimensions()",
+              "GeomSolids0001", FatalException,
+              "Method not applicable in this context!");
 }
 
-/////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // DescribeYourselfTo
 
@@ -511,18 +521,71 @@ G4UnionSolid::DescribeYourselfTo ( G4VGraphicsScene& scene ) const
   scene.AddSolid (*this);
 }
 
-////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //
 // CreatePolyhedron
 
 G4Polyhedron* 
-G4UnionSolid::CreatePolyhedron () const 
+G4UnionSolid::CreatePolyhedron () const
 {
-  HepPolyhedronProcessor processor;
-  // Stack components and components of components recursively
-  // See G4BooleanSolid::StackPolyhedron
-  G4Polyhedron* top = StackPolyhedron(processor, this);
-  G4Polyhedron* result = new G4Polyhedron(*top);
-  if (processor.execute(*result)) { return result; }
-  else { return nullptr; }
+  if (fExternalBoolProcessor == nullptr)
+  {
+    HepPolyhedronProcessor processor;
+    // Stack components and components of components recursively
+    // See G4BooleanSolid::StackPolyhedron
+    G4Polyhedron* top = StackPolyhedron(processor, this);
+    auto result = new G4Polyhedron(*top);
+    if (processor.execute(*result))
+    {
+      return result;
+    }
+    return nullptr;
+  }
+  else
+  {
+    return fExternalBoolProcessor->Process(this);
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// GetCubicVolume
+
+G4double G4UnionSolid::GetCubicVolume()
+{
+  if( fCubicVolume >= 0. )
+  {
+    return fCubicVolume;
+  }
+  G4RecursiveAutoLock l(&unionMutex);
+  G4ThreeVector bminA, bmaxA, bminB, bmaxB;
+  fPtrSolidA->BoundingLimits(bminA, bmaxA);
+  fPtrSolidB->BoundingLimits(bminB, bmaxB);
+  G4bool noIntersection =
+     bminA.x() >= bmaxB.x() || bminA.y() >= bmaxB.y() || bminA.z() >= bmaxB.z() ||
+     bminB.x() >= bmaxA.x() || bminB.y() >= bmaxA.y() || bminB.z() >= bmaxA.z();
+
+  if (noIntersection)
+  {
+    fCubicVolume = fPtrSolidA->GetCubicVolume() + fPtrSolidB->GetCubicVolume();
+  }
+  else
+  {
+    if (GetNumOfConstituents() > 10)
+    {
+      fCubicVolume = G4BooleanSolid::GetCubicVolume();
+    }
+    else
+    {
+      G4IntersectionSolid intersectVol("Temporary-Intersection-for-Union",
+                                       fPtrSolidA, fPtrSolidB);
+      intersectVol.SetCubVolStatistics(GetCubVolStatistics());
+      intersectVol.SetCubVolEpsilon(GetCubVolEpsilon());
+
+      fCubicVolume = fPtrSolidA->GetCubicVolume() + fPtrSolidB->GetCubicVolume()
+        - intersectVol.GetCubicVolume();
+    }
+  }
+  l.unlock();
+  return fCubicVolume;
 }

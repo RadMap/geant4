@@ -41,11 +41,12 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4NistManager.hh"
+#include "G4PhysicsModelCatalog.hh"
 
 double MyRNG(void*) { return  G4Random::getTheEngine()->flat(); }
 
 G4LENDModel::G4LENDModel( G4String name )
-:G4HadronicInteraction( name )
+  :G4HadronicInteraction( name ), secID(-1)
 {
 
    proj = NULL; //will be set in an inherited class
@@ -55,13 +56,17 @@ G4LENDModel::G4LENDModel( G4String name )
 
    //default_evaluation = "endl99"; 
    //default_evaluation = "ENDF.B-VII.0";
-   default_evaluation = "ENDF/BVII.1";
+   //default_evaluation = "ENDF/BVII.1";
+   //default_evaluation = "ENDF/B-8.0";
+   //default_evaluation = "ENDF/B-7.1";
+   default_evaluation = "";
 
    allow_nat = false;
    allow_any = false;
 
    lend_manager = G4LENDManager::GetInstance();  
 
+   secID = G4PhysicsModelCatalog::GetModelID( "model_" + GetModelName() );
 }
 
 G4LENDModel::~G4LENDModel()
@@ -95,19 +100,19 @@ void G4LENDModel::create_used_target_map()
 
    lend_manager->RequestChangeOfVerboseLevel( verboseLevel );
 
-   size_t numberOfElements = G4Element::GetNumberOfElements();
+   std::size_t numberOfElements = G4Element::GetNumberOfElements();
    static const G4ElementTable* theElementTable = G4Element::GetElementTable();
 
-   for ( size_t i = 0 ; i < numberOfElements ; ++i )
+   for ( std::size_t i = 0 ; i < numberOfElements ; ++i )
    {
 
       const G4Element* anElement = (*theElementTable)[i];
-      G4int numberOfIsotope = anElement->GetNumberOfIsotopes(); 
+      G4int numberOfIsotope = (G4int)anElement->GetNumberOfIsotopes(); 
 
       if ( numberOfIsotope > 0 )
       {
       // User Defined Abundances   
-         for ( G4int i_iso = 0 ; i_iso < numberOfIsotope ; i_iso++ )
+         for ( G4int i_iso = 0 ; i_iso < numberOfIsotope ; ++i_iso )
          {
             G4int iZ = anElement->GetIsotope( i_iso )->GetZ();
             G4int iA = anElement->GetIsotope( i_iso )->GetN();

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
 
 <define>
   <constant name="HALFPI" value="pi/2."/>
@@ -34,7 +34,7 @@
 </materials>
 
 <solids>
-  <box  name="WorldBox" x="1.1" y="1.1" z="1.1" lunit="m"/>
+  <box  name="WorldBox" x="1.5" y="1.5" z="1.5" lunit="m"/>
   <tube name="TubeSol" rmin="0.1075" rmax="0.1875" z="0.1875" deltaphi="TWOPI" startphi="0" aunit="rad" lunit="m"/>
 </solids>
 

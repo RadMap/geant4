@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm8/include/PhysicsListMessenger.hh
+/// \file PhysicsListMessenger.hh
 /// \brief Definition of the PhysicsListMessenger class
-//
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName:   PhysicsListMessenger
@@ -37,7 +35,7 @@
 // Author:      V.Ivanchenko 01.09.2010
 //
 //----------------------------------------------------------------------------
-// 
+//
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -45,8 +43,8 @@
 #ifndef PhysicsListMessenger_h
 #define PhysicsListMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class PhysicsList;
 class G4UIdirectory;
@@ -57,32 +55,31 @@ class G4UIcmdWithAnInteger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsListMessenger: public G4UImessenger
+class PhysicsListMessenger : public G4UImessenger
 {
-public:
-  
-  PhysicsListMessenger(PhysicsList* );
-  virtual ~PhysicsListMessenger();
-    
-  virtual void SetNewValue(G4UIcommand*, G4String);
-    
-private:
-  
-  PhysicsList* fPhysicsList;
+  public:
+    explicit PhysicsListMessenger(PhysicsList*);
+    ~PhysicsListMessenger() override;
 
-  G4UIdirectory*             fPhysDir;           
-  G4UIcmdWithADoubleAndUnit* fECmd;
-  G4UIcmdWithAnInteger*      fEBCmd;
-  G4UIcmdWithAnInteger*      fCBCmd;
-  G4UIcmdWithAnInteger*      fCMCmd;
-  G4UIcmdWithAString*        fListCmd;
-  G4UIcmdWithADoubleAndUnit* fADCCmd;
-  G4UIcmdWithADouble*        fNorCmd;
-  G4UIcmdWithADoubleAndUnit* fSmCmd;
-    
+    void SetNewValue(G4UIcommand*, G4String) override;
+
+    PhysicsListMessenger& operator=(const PhysicsListMessenger& right) = delete;
+    PhysicsListMessenger(const PhysicsListMessenger&) = delete;
+
+  private:
+    PhysicsList* fPhysicsList;
+
+    G4UIdirectory* fPhysDir;
+    G4UIcmdWithADoubleAndUnit* fECmd;
+    G4UIcmdWithAnInteger* fEBCmd;
+    G4UIcmdWithAnInteger* fCBCmd;
+    G4UIcmdWithAnInteger* fCMCmd;
+    G4UIcmdWithAString* fListCmd;
+    G4UIcmdWithADoubleAndUnit* fADCCmd;
+    G4UIcmdWithADouble* fNorCmd;
+    G4UIcmdWithADoubleAndUnit* fSmCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

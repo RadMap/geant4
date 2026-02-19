@@ -23,52 +23,46 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+/// \file StepMax.hh
+/// \brief Definition of the StepMax class
 
 #ifndef StepMax_h
 #define StepMax_h 1
 
-#include "globals.hh"
-#include "G4VEmProcess.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4Step.hh"
+#include "G4VDiscreteProcess.hh"
+#include "globals.hh"
 
-class PhysicsListMessenger;
+class StepMaxMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class StepMax : public G4VEmProcess
+class StepMax : public G4VDiscreteProcess
 {
-public:
+  public:
+    StepMax(const G4String& processName = "UserMaxStep");
+    ~StepMax() override;
 
-  StepMax(PhysicsListMessenger* mess);
-  virtual ~StepMax();
+    G4bool IsApplicable(const G4ParticleDefinition&) override;
 
-  virtual G4bool IsApplicable(const G4ParticleDefinition&);
+    void SetMaxStep(G4double);
 
-  virtual void PreparePhysicsTable(const G4ParticleDefinition&);
+    G4double GetMaxStep() { return fMaxChargedStep; };
 
-  virtual void BuildPhysicsTable(const G4ParticleDefinition&);
+    G4double PostStepGetPhysicalInteractionLength(const G4Track& track, G4double previousStepSize,
+                                                  G4ForceCondition* condition) override;
 
-  virtual void InitialiseProcess(const G4ParticleDefinition*);
+    G4VParticleChange* PostStepDoIt(const G4Track&, const G4Step&) override;
 
-  virtual G4double PostStepGetPhysicalInteractionLength(const G4Track& track,
-                                                        G4double previousStep,
-                                                        G4ForceCondition* cond);
+    G4double GetMeanFreePath(const G4Track&, G4double, G4ForceCondition*) override;
 
-  virtual G4VParticleChange* PostStepDoIt(const G4Track&, const G4Step&);
+  private:
+    G4double fMaxChargedStep = DBL_MAX;
 
-private:
-
-  PhysicsListMessenger* fMessenger;
-
-  G4double fMaxChargedStep;
-  G4bool fInitialised;
+    StepMaxMessenger* fMess = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

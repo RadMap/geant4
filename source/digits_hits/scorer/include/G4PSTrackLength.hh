@@ -35,54 +35,47 @@
 ////////////////////////////////////////////////////////////////////////////////
 // (Description)
 //   This is a primitive scorer class for scoring track length.
-// 
+//
 //
 // Created: 2005-11-14  Tsukasa ASO, Akinori Kimura.
-// Modified: 2007-02-02 Tsukasa ASO, Add MultiplyKineticEnergy() 
-//                                  and DivideByVelocity(). 
+// Modified: 2007-02-02 Tsukasa ASO, Add MultiplyKineticEnergy()
+//                                  and DivideByVelocity().
 //           2010-07-22   Introduce Unit specification.
 //
-// 
+//
 ///////////////////////////////////////////////////////////////////////////////
 
 class G4PSTrackLength : public G4VPrimitiveScorer
 {
- 
- public: // with description
-      G4PSTrackLength(G4String name, G4int depth=0);
-      G4PSTrackLength(G4String name, const G4String& unit, G4int depth=0);
-      virtual ~G4PSTrackLength();
+ public:
+  G4PSTrackLength(const G4String& name, G4int depth = 0);
+  G4PSTrackLength(const G4String& name, const G4String& unit, G4int depth = 0);
+  ~G4PSTrackLength() override = default;
 
-      inline void Weighted(G4bool flg=true) { weighted = flg; }
-      // Multiply track weight
+  inline void Weighted(G4bool flg = true) { weighted = flg; }
+  // Multiply track weight
 
-      void MultiplyKineticEnergy(G4bool flg=true);
-      // Multiply Kinetic Energy
+  void MultiplyKineticEnergy(G4bool flg = true);
+  // Multiply Kinetic Energy
 
-      void DivideByVelocity(G4bool flg=true);
-      // Divide by velocity
+  void DivideByVelocity(G4bool flg = true);
+  // Divide by velocity
 
+  void Initialize(G4HCofThisEvent*) override;
+  void clear() override;
+  void PrintAll() override;
 
-  protected: // with description
-      virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
+  virtual void SetUnit(const G4String& unit);
 
-  public: 
-      virtual void Initialize(G4HCofThisEvent*);
-      virtual void EndOfEvent(G4HCofThisEvent*);
-      virtual void clear();
-      virtual void DrawAll();
-      virtual void PrintAll();
+ protected:
+  G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
+  virtual void DefineUnitAndCategory();
 
-      virtual void SetUnit(const G4String& unit);
-
-  protected:
-      virtual void DefineUnitAndCategory();
-
-  private:
-      G4int HCID;
-      G4THitsMap<G4double>* EvtMap;
-      G4bool weighted;
-      G4bool multiplyKinE;
-      G4bool divideByVelocity;
+ private:
+  G4int HCID;
+  G4THitsMap<G4double>* EvtMap;
+  G4bool weighted;
+  G4bool multiplyKinE;
+  G4bool divideByVelocity;
 };
 #endif

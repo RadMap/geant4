@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/dmparticle/src/TestParameters.cc
+/// \file TestParameters.cc
 /// \brief Implementation of the TestParameters class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName:   TestParameters
@@ -40,8 +39,9 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "TestParameters.hh"
-#include "G4UnitsTable.hh"
+
 #include "G4SystemOfUnits.hh"
+#include "G4UnitsTable.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -51,7 +51,7 @@ TestParameters* TestParameters::fManager = nullptr;
 
 TestParameters* TestParameters::GetPointer()
 {
-  if(!fManager) {
+  if (!fManager) {
     fManager = new TestParameters();
   }
   return fManager;
@@ -61,19 +61,18 @@ TestParameters* TestParameters::GetPointer()
 
 TestParameters::TestParameters()
 {
-  fMaxEnergy   = 100.*GeV;
-  fBinsE       = 100;
-  fPositionZ   = 0.0;
-  fBeamEnergy  = 0.0;
-  fEpsilon     = 100.0;
+  fMaxEnergy = 100. * GeV;
+  fBinsE = 100;
+  fPositionZ = 0.0;
+  fBeamEnergy = 0.0;
+  fEpsilon = 100.0;
 
   fParticle = nullptr;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TestParameters::~TestParameters()
-{}
+TestParameters::~TestParameters() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

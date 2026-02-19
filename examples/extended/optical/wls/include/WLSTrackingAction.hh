@@ -23,28 +23,21 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/wls/include/WLSTrackingAction.hh
+/// \file WLSTrackingAction.hh
 /// \brief Definition of the WLSTrackingAction class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef WLSTrackingAction_h
 #define WLSTrackingAction_h 1
 
 #include "G4UserTrackingAction.hh"
 
-class WLSTrackingAction : public G4UserTrackingAction {
-
+class WLSTrackingAction : public G4UserTrackingAction
+{
   public:
+    WLSTrackingAction() = default;
+    ~WLSTrackingAction() override = default;
 
-    WLSTrackingAction() { };
-    virtual ~WLSTrackingAction() { };
-
-    virtual void PreUserTrackingAction(const G4Track*);
-
+    void PreUserTrackingAction(const G4Track*) override;
 };
 
 #endif

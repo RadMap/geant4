@@ -1,21 +1,50 @@
-----------------------------------------------------------------------------
+# Example decayer6 History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top). It must **not**
+be used as a substitute for writing good git commit messages!
 
-                      examples History file
-                      ---------------------
-This file should be used by the test developer to briefly summarize all major
-modifications introduced in the code and keep track of all tags.
+## 2025-07-28 I. Hrivnacova (p6decayer-V11-03-00)
+- Removed 'common' subdirectory and copied only classes used in this example
+  (DetectorConstruction, GunPrimaryGeneration) in  this example include and src
+- Migrated README pages to Markdown
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2024-04-25 Ben Morgan (p6decayer-V11-02-00)
+- Update CMake script to use new Pythia6 setup/build variables
+
+## 2023-11-14 I. Hrivnacova (p6decayer-V11-01-01)
+- Fixes for Doxygen:
+  Move class description comments after namespace
+
+## 2023-11-09 I. Hrivnacova (p6decayer-V11-01-00)
+- Updated common directory (excommon-V11-01-00)
+
+## 2022-11-07 I. Hrivnacova (p6decayer-V11-00-02)
+- Updated common directory (excommon-V11-00-01)
+- Fixed P6DExtDecayerPhysics compilation
+
+## 2022-10-26 I. Hrivnacova (p6decayer-V11-00-01)
+- P6DExtDecayerPhysics.cc:
+  Make sure that the ext decayer is set to G4Decay process only once
+  to avoid potential misleading.
+  (Inspired by M. Asai update in p8decayer-V11-00-01.)
+
+## 2021-12-10 Ben Morgan (p6decayer-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+13/11/20 B.Morgan (p6decayer-V10-06-01)
+- Enforce use of Serial RunManager.
+
+10/11/2020 B.Morgan (p6decayer-V10-06-00)
+- Migration to G4RunManagerFactory.
 
 29/09/2017 I.Hrivnacova   (p6decayer-V10-03-00,01)
 - Updated for changes in common classes
-- Updated main (removed G4UI_USE, G4VIS_USE macros, moved initialization 
+- Updated main (removed G4UI_USE, G4VIS_USE macros, moved initialization
   in macros)
 
 24/10/2016 I.Hrivnacova   (p6decayer-V10-02-05)
@@ -25,16 +54,16 @@ modifications introduced in the code and keep track of all tags.
 - remove direct use of aParticleIterator, use GetParticleTableIterator().
     fix required by clang39 on Linux and MAC
 
-21/07/2016 I.Hrivnacova   (p6decayer-V10-02-03)                        
+21/07/2016 I.Hrivnacova   (p6decayer-V10-02-03)
 -  Adding extern keyword to data declarations in pythia6_common_address.c
    This fixes problem on MAC OSX, where no decay happenned.
 
-20/07/2016 I.Hrivnacova   (p6decayer-V10-02-02)                        
+20/07/2016 I.Hrivnacova   (p6decayer-V10-02-02)
 -  Fixed compiler warning
 -  Coding guidelines in common
 
-04/07/2016 I.Hrivnacova   (p6decayer-V10-02-01)                        
-                          (p6decayer-V10-02-00)                        
+04/07/2016 I.Hrivnacova   (p6decayer-V10-02-01)
+                          (p6decayer-V10-02-00)
 -  Fixes for Doxygen documentation
 
 04/11/2015 - I.Hrivnacova (p6decayer-V10-01-01)
@@ -42,7 +71,7 @@ modifications introduced in the code and keep track of all tags.
 
 09/06/2015 - I.Hrivnacova (p6decayer-V10-01-00)
 -------------------------
-- Set a specific prefix to common library and test 
+- Set a specific prefix to common library and test
   to avoid name clashes when building all extended examples at once
 
 06/11/2014 - I.Hrivnacova (p6decayer-V10-00-03)
@@ -95,7 +124,7 @@ Code clean-up:
 -------------------------
 - Introduced use of classes from common
 - Introduced a physics builder for adding the external decayer to
-  an existing physics list 
+  an existing physics list
 - Applied coding guidelines
 
 02/12/2010 - I.Hrivnacova (p6decayer-V09-03-02)

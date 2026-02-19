@@ -23,18 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file field/field02/include/F02CalorimeterSD.hh
+/// \file F02CalorimeterSD.hh
 /// \brief Definition of the F02CalorimeterSD class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef F02CalorimeterSD_h
 #define F02CalorimeterSD_h 1
 
-#include "G4VSensitiveDetector.hh"
 #include "F02CalorHit.hh"
+
+#include "G4VSensitiveDetector.hh"
 
 class F02DetectorConstruction;
 class G4HCofThisEvent;
@@ -45,19 +42,17 @@ class G4Step;
 class F02CalorimeterSD : public G4VSensitiveDetector
 {
   public:
+    F02CalorimeterSD(G4String, F02DetectorConstruction*);
+    ~F02CalorimeterSD() override;
 
-      F02CalorimeterSD(G4String, F02DetectorConstruction* );
-      virtual ~F02CalorimeterSD();
-
-      virtual void Initialize(G4HCofThisEvent*);
-      virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
-      virtual void EndOfEvent(G4HCofThisEvent*);
+    void Initialize(G4HCofThisEvent*) override;
+    G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
+    void EndOfEvent(G4HCofThisEvent*) override;
 
   private:
-
-      F02CalorHitsCollection*  fCalCollection;
-      F02DetectorConstruction* fDetector;
-      G4int*                   fHitID;
+    F02CalorHitsCollection* fCalCollection = nullptr;
+    F02DetectorConstruction* fDetector = nullptr;
+    G4int* fHitID = nullptr;
 };
 
 #endif

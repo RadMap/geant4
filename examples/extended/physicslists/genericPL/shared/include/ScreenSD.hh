@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ScreenSD.hh
 /// \brief Definition of the ScreenSD class
-//
 
 #ifndef ScreenSD_h
 #define ScreenSD_h 1
@@ -41,11 +39,11 @@ class ScreenSD : public G4VSensitiveDetector
 {
   public:
     ScreenSD(const G4String& name);
-    virtual ~ScreenSD();
+    ~ScreenSD() override = default;
 
-    virtual void   Initialize(G4HCofThisEvent* hce);
-    virtual G4bool ProcessHits(G4Step* step, G4TouchableHistory* history);
-    virtual void   EndOfEvent(G4HCofThisEvent* hce);
+    void Initialize(G4HCofThisEvent* hce) override;
+    G4bool ProcessHits(G4Step* step, G4TouchableHistory* history) override;
+    void EndOfEvent(G4HCofThisEvent* hce) override;
 };
 
 #endif

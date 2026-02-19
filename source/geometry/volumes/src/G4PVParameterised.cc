@@ -23,9 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 // 
-// class G4PVParameterised implementation
+// Class G4PVParameterised implementation
 //
-// 29.07.95, P.Kent - first non-stub version
+// Author: Paul Kent (CERN), 29 July 1995 - first non-stub version
 // ----------------------------------------------------------------------
 
 #include "G4PVParameterised.hh"
@@ -46,14 +46,14 @@ G4PVParameterised::G4PVParameterised( const G4String& pName,
                                             G4VPVParameterisation* pParam,
                                             G4bool pSurfChk )
 : G4PVReplica(pName, nReplicas, pAxis, pLogical,
-              pMotherPhysical ? pMotherPhysical->GetLogicalVolume() : nullptr ),
+              pMotherPhysical != nullptr ? pMotherPhysical->GetLogicalVolume() : nullptr ),
     fparam(pParam)
 {
-  G4LogicalVolume* motherLogical= pMotherPhysical ?
+  G4LogicalVolume* motherLogical= pMotherPhysical != nullptr ?
       pMotherPhysical->GetLogicalVolume() : nullptr;
 
   SetMotherLogical( motherLogical );
-  if( motherLogical )
+  if( motherLogical != nullptr )
   {
     // Registration moved here to ensure that the volume is recognised as Parameterised     
     motherLogical->AddDaughter(this);
@@ -62,7 +62,8 @@ G4PVParameterised::G4PVParameterised( const G4String& pName,
 #ifdef G4VERBOSE  
   if ((pMotherPhysical != nullptr) && (pMotherPhysical->IsParameterised()))
   {
-    std::ostringstream message, hint;
+    std::ostringstream message;
+    std::ostringstream hint;
     message << "A parameterised volume is being placed" << G4endl
             << "inside another parameterised volume !";
     hint << "To make sure that no overlaps are generated," << G4endl
@@ -92,7 +93,7 @@ G4PVParameterised::G4PVParameterised( const G4String& pName,
     fparam(pParam)
 {
   SetMotherLogical( pMotherLogical );
-  if( pMotherLogical )
+  if( pMotherLogical != nullptr )
   {
     // Registration moved here to ensure that the volume is recognised as Parameterised
     pMotherLogical->AddDaughter(this);
@@ -106,13 +107,6 @@ G4PVParameterised::G4PVParameterised( const G4String& pName,
 //
 G4PVParameterised::G4PVParameterised( __void__& a )
   : G4PVReplica(a)
-{
-}
-
-// ----------------------------------------------------------------------
-// Destructor
-//
-G4PVParameterised::~G4PVParameterised()
 {
 }
 
@@ -178,9 +172,10 @@ G4PVParameterised::CheckOverlaps(G4int res, G4double tol,
 
   G4int trials = 0;
   G4bool retval = false;
-  G4VSolid *solidA = nullptr, *solidB = nullptr;
+  G4VSolid* solidA = nullptr;
+  G4VSolid* solidB = nullptr;
   G4LogicalVolume* motherLog = GetMotherLogical();
-  G4VSolid *motherSolid = motherLog->GetSolid();
+  G4VSolid* motherSolid = motherLog->GetSolid();
   std::vector<G4ThreeVector> points;
 
   if (verbose)
@@ -251,11 +246,11 @@ G4PVParameterised::CheckOverlaps(G4int res, G4double tol,
       //
       G4AffineTransform Td( GetRotation(), GetTranslation() );
 
-      for (auto pos=points.cbegin(); pos!=points.cend(); ++pos)
+      for (const auto & point : points)
       {
         // Transform each point according to daughter's frame
         //
-        G4ThreeVector md = Td.InverseTransformPoint(*pos);
+        G4ThreeVector md = Td.InverseTransformPoint(point);
 
         if (solidB->Inside(md)==kInside)
         {

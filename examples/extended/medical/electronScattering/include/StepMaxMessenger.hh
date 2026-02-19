@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/electronScattering/include/StepMaxMessenger.hh
+/// \file StepMaxMessenger.hh
 /// \brief Definition of the StepMaxMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef StepMaxMessenger_h
 #define StepMaxMessenger_h 1
@@ -41,16 +37,16 @@ class G4UIcmdWithADoubleAndUnit;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class StepMaxMessenger: public G4UImessenger
+class StepMaxMessenger : public G4UImessenger
 {
   public:
     StepMaxMessenger(StepMax*);
-   ~StepMaxMessenger();
-    
+    ~StepMaxMessenger();
+
     virtual void SetNewValue(G4UIcommand*, G4String);
-    
+
   private:
-    StepMax*                   fStepMax;
+    StepMax* fStepMax;
     G4UIcmdWithADoubleAndUnit* fStepMaxCmd;
 };
 

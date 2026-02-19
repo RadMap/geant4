@@ -23,91 +23,78 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/fanoCavity/fanoCavity.cc
+/// \file fanoCavity.cc
 /// \brief Main program of the medical/fanoCavity example
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-#include "G4Types.hh"
 
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
-
-#include "G4UImanager.hh"
-#include "Randomize.hh"
-
+#include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
+#include "EventAction.hh"
 #include "PhysicsList.hh"
 #include "PrimaryGeneratorAction.hh"
-#include "ActionInitialization.hh"
-
 #include "RunAction.hh"
-#include "EventAction.hh"
-#include "TrackingAction.hh"
-#include "SteppingAction.hh"
-#include "SteppingVerbose.hh"
 #include "StackingAction.hh"
+#include "SteppingAction.hh"
+#include "TrackingAction.hh"
 
+#include "G4RunManagerFactory.hh"
+#include "G4SteppingVerbose.hh"
+#include "G4Types.hh"
 #include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
+#include "Randomize.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-int main(int argc,char** argv) {
-
-  //detect interactive mode (if no arguments) and define UI session
+int main(int argc, char** argv)
+{
+  // detect interactive mode (if no arguments) and define UI session
   G4UIExecutive* ui = nullptr;
-  if (argc == 1) ui = new G4UIExecutive(argc,argv);
+  if (argc == 1) ui = new G4UIExecutive(argc, argv);
 
-  //Construct the default run manager
-#ifdef G4MULTITHREADED
-  G4MTRunManager* runManager = new G4MTRunManager;
-  G4int nThreads = 2;
-  if (argc==3) {
-    int iTmp = G4UIcommand::ConvertToInt(argv[2]);
-    nThreads = (iTmp<0)? G4Threading::G4GetNumberOfCores() : iTmp;
+  // Use SteppingVerbose with Unit
+  G4int precision = 4;
+  G4SteppingVerbose::UseBestUnit(precision);
+
+  // Creating run manager
+  auto runManager = G4RunManagerFactory::CreateRunManager();
+
+  if (argc == 3) {
+    G4int nThreads = G4UIcommand::ConvertToInt(argv[2]);
+    runManager->SetNumberOfThreads(nThreads);
   }
-  runManager->SetNumberOfThreads(nThreads);
-#else
-  G4VSteppingVerbose::SetInstance(new SteppingVerbose);
-  G4RunManager* runManager = new G4RunManager;
-#endif
 
-  //set mandatory initialization classes
+  // set mandatory initialization classes
   DetectorConstruction* det;
   PhysicsList* phys;
 
-  runManager->SetUserInitialization(det  = new DetectorConstruction);
+  runManager->SetUserInitialization(det = new DetectorConstruction);
   runManager->SetUserInitialization(phys = new PhysicsList(det));
 
-  //set user action classes
-   runManager->SetUserInitialization(new ActionInitialization(det));
+  // set user action classes
+  runManager->SetUserInitialization(new ActionInitialization(det));
 
-  //initialize visualization
+  // initialize visualization
   G4VisManager* visManager = nullptr;
 
-  //get the pointer to the User Interface manager
+  // get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if (ui)  {
-   //interactive mode
-   visManager = new G4VisExecutive;
-   visManager->Initialize();
-   ui->SessionStart();
-   delete ui;
+  if (ui) {
+    // interactive mode
+    visManager = new G4VisExecutive;
+    visManager->Initialize();
+    ui->SessionStart();
+    delete ui;
   }
-  else  {
-  //batch mode
-   G4String command = "/control/execute ";
-   G4String fileName = argv[1];
-   UImanager->ApplyCommand(command+fileName);
+  else {
+    // batch mode
+    G4String command = "/control/execute ";
+    G4String fileName = argv[1];
+    UImanager->ApplyCommand(command + fileName);
   }
 
-  //job termination
+  // job termination
   delete visManager;
   delete runManager;
 }

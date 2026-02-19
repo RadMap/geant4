@@ -23,52 +23,81 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// File: G4FileUtilities.cc
+// G4FileUtilities implementation
 //
-// History:
-//   01.08.24  Youhei Morita  Initial creation
+// Author: Youhei Morita, 24.08.2001
+// --------------------------------------------------------------------
 
 #ifndef WIN32
 
 #include "G4FileUtilities.hh"
 
-// Implementation of Default Constructor
+#include <sys/types.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdlib.h>
+
+// --------------------------------------------------------------------
 G4FileUtilities::G4FileUtilities()
 {
 }
 
-// Implementation of Default Destructor
+// --------------------------------------------------------------------
 G4FileUtilities::~G4FileUtilities()
 {
 }
 
-// Implementation of FileExists
-G4bool G4FileUtilities::FileExists(const std::string file)
+// --------------------------------------------------------------------
+G4bool G4FileUtilities::FileExists(const G4String& file)
 {
-  char* c = (char *) file.c_str();
+  char* c = (char*) file.c_str();
 
-  G4int fd = ::open( c, O_RDONLY ); 
+  G4int fd = ::open(c, O_RDONLY);
   // G4int error = errno;
-  if ( fd != -1 ) {
-    ::close( fd );
+  if(fd != -1)
+  {
+    ::close(fd);
     return true;
-  } else {
+  }
+  else
+  {
     return false;
   }
 }
 
-// Implementation of CopyFile
-G4int G4FileUtilities::CopyFile(const std::string srcFile, const std::string dstFile)
+// --------------------------------------------------------------------
+G4String G4FileUtilities::StrErrNo() const
 {
-  std::string cmd = "cp " + srcFile + " " + dstFile;
-  return Shell( cmd );
+  return ::strerror(errno);
 }
 
-// Implementation of DeleteFile
-G4int G4FileUtilities::DeleteFile(const std::string file, const std::string option)
+// --------------------------------------------------------------------
+G4int G4FileUtilities::Shell(const G4String& str)
 {
-  std::string cmd = "rm " + option + " " + file;
-  return Shell( cmd );
+  return ::system(str.c_str());
+}
+
+// --------------------------------------------------------------------
+G4int G4FileUtilities::CopyFile(const G4String& srcFile,
+                                const G4String& dstFile)
+{
+  G4String cmd = "cp " + srcFile + " " + dstFile;
+  return Shell(cmd);
+}
+
+// --------------------------------------------------------------------
+G4int G4FileUtilities::DeleteFile(const G4String& file,
+                                  const G4String& option)
+{
+  G4String cmd = "rm " + option + " " + file;
+  return Shell(cmd);
+}
+
+// --------------------------------------------------------------------
+G4String G4FileUtilities::GetEnv(const G4String& env)
+{
+  return ::getenv(env.c_str());
 }
 
 #endif

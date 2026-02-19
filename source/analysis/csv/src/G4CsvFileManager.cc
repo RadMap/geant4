@@ -27,18 +27,87 @@
 // Author: Ivana Hrivnacova, 18/06/2013  (ivana@ipno.in2p3.fr)
 
 #include "G4CsvFileManager.hh"
+#include "G4CsvHnFileManager.hh"
 #include "G4AnalysisManagerState.hh"
+#include "G4AnalysisUtilities.hh"
+#include "G4Filesystem.hh"
+
+using namespace G4Analysis;
+using namespace tools;
 
 //_____________________________________________________________________________
 G4CsvFileManager::G4CsvFileManager(const G4AnalysisManagerState& state)
- : G4VFileManager(state)
-{}
+ : G4VTFileManager(state)
+{
+  // Create helpers defined in the base class
+  fH1FileManager = std::make_shared<G4CsvHnFileManager<histo::h1d>>(this);
+  fH2FileManager = std::make_shared<G4CsvHnFileManager<histo::h2d>>(this);
+  fH3FileManager = std::make_shared<G4CsvHnFileManager<histo::h3d>>(this);
+  fP1FileManager = std::make_shared<G4CsvHnFileManager<histo::p1d>>(this);
+  fP2FileManager = std::make_shared<G4CsvHnFileManager<histo::p2d>>(this);
+}
+
+//
+// private methods
+//
 
 //_____________________________________________________________________________
-G4CsvFileManager::~G4CsvFileManager()
-{}
+G4String G4CsvFileManager::GetNtupleFileName(CsvNtupleDescription* ntupleDescription)
+{
+  // get ntuple file name
+  auto ntupleFileName = ntupleDescription->GetFileName();
+  auto cycle = GetCycle();
+  if (ntupleFileName.size() != 0u) {
+    // update filename per object per thread
+    ntupleFileName = GetTnFileName(ntupleFileName, GetFileType(), cycle);
+  }
+  else {
+    // compose ntuple file name from the default file name
+    ntupleFileName = GetNtupleFileName(ntupleDescription->GetNtupleBooking().name(), cycle);
+  }
 
-// 
+  if ( IsNtupleDirectory() ) {
+    ntupleFileName = "./" + GetNtupleDirectoryName() + "/" + ntupleFileName;
+  }
+
+  return ntupleFileName;
+}
+
+//
+// protected methods
+//
+
+//_____________________________________________________________________________
+std::shared_ptr<std::ofstream> G4CsvFileManager::CreateFileImpl(const G4String& fileName)
+{
+  std::shared_ptr<std::ofstream> file = std::make_shared<std::ofstream>(fileName);
+  if ( file->fail() ) {
+    Warn("Cannot create file " + fileName, fkClass, "CreateFileImpl");
+    return nullptr;
+  }
+
+  return file;
+}
+
+//_____________________________________________________________________________
+G4bool G4CsvFileManager::WriteFileImpl(std::shared_ptr<std::ofstream> /*file*/)
+{
+  // Nothing to be done here
+  return true;
+}
+
+//_____________________________________________________________________________
+G4bool G4CsvFileManager::CloseFileImpl(std::shared_ptr<std::ofstream> file)
+{
+  if ( ! file ) return false;
+
+  // close file
+  file->close();
+
+  return true;
+}
+
+//
 // public methods
 //
 
@@ -48,85 +117,89 @@ G4bool G4CsvFileManager::OpenFile(const G4String& fileName)
   // Keep file name
   fFileName =  fileName;
 
-  fLockFileName = true;
-  fLockNtupleDirectoryName = true;
   fIsOpenFile = true;
-  
-  return true;
-}  
-  
-//_____________________________________________________________________________
-G4bool G4CsvFileManager::WriteFile() 
-{
-  // nothing to be done for Csv file
+
   return true;
 }
 
 //_____________________________________________________________________________
-G4bool G4CsvFileManager::CloseFile()
+G4bool G4CsvFileManager::SetHistoDirectoryName(const G4String& dirName)
 {
-  fLockFileName = false;
-  fIsOpenFile = false;
-  return true; 
-} 
-   
+  // A directory is taken into account only if it exists in file system
+  if ( G4fs::is_directory(dirName.data()) ) {
+     fIsHistoDirectory = G4VFileManager::SetHistoDirectoryName(dirName);
+     return fIsHistoDirectory;
+  }
+
+  G4Analysis::Warn("Directory " + dirName + " does not exists.\n"
+    "Histograms will be written in the current directory.",
+    fkClass, "SetHistoDirectoryName");
+  return false;
+}
+
+//_____________________________________________________________________________
+G4bool G4CsvFileManager::SetNtupleDirectoryName(const G4String& dirName)
+{
+  // A directory is taken into account only if it exists in file system
+  if ( G4fs::is_directory(dirName.data()) ) {
+     fIsNtupleDirectory = G4VFileManager::SetNtupleDirectoryName(dirName);
+     return fIsNtupleDirectory;
+  }
+
+  G4Analysis::Warn("Directory " + dirName + " does not exists.\n"
+    "Ntuples will be written in the current directory.",
+    fkClass, "SetNtupleDirectoryName");
+  return false;
+}
+
+//_____________________________________________________________________________
+G4bool G4CsvFileManager::NotifyNtupleFile(CsvNtupleDescription* ntupleDescription)
+{
+  // Notify not empty file
+  auto ntupleFileName = GetNtupleFileName(ntupleDescription);
+
+  return SetIsEmpty(ntupleFileName, ! ntupleDescription->GetHasFill());
+}
+
 //_____________________________________________________________________________
 G4bool G4CsvFileManager::CreateNtupleFile(
-  G4TNtupleDescription<tools::wcsv::ntuple>* ntupleDescription)
+  CsvNtupleDescription* ntupleDescription)
 {
-  G4String ntupleName = ntupleDescription->fNtupleBooking.name();
+  // Get ntuple file name per object (if defined)
+  auto ntupleFileName = GetNtupleFileName(ntupleDescription);
 
-#ifdef G4VERBOSE
-  if ( fState.GetVerboseL4() ) 
-    fState.GetVerboseL4()
-      ->Message("create", "file", GetNtupleFileName(ntupleName));
-#endif
+  // Update file name if it is already in use
+  while ( GetTFile(ntupleFileName, false) != nullptr ) {
+    // the file is already in use
+    auto oldName = ntupleFileName;
+    auto newName = GetBaseName(oldName) + "_bis." + GetExtension(oldName);
+    ntupleDescription->SetFileName(newName);
 
-  auto ntupleFile = new std::ofstream(GetNtupleFileName(ntupleName));
-  if ( ntupleFile->fail() ) {
-    delete ntupleFile;
-    G4ExceptionDescription description;
-    description << "      " << "Cannot open file " 
-                << GetNtupleFileName(ntupleName);
-    G4Exception("G4CsvFileManager::CreateNtupleFile()",
-                "Analysis_W001", JustWarning, description);
-    return false;
+    Warn("Ntuple filename " + oldName + " is already in use.\n" +
+         "It will be replaced with : " + newName,
+         fkClass, "CreateNtupleFile");
+
+    ntupleFileName = GetNtupleFileName(ntupleDescription);
   }
-  
-#ifdef G4VERBOSE
-  if ( fState.GetVerboseL1() ) 
-    fState.GetVerboseL1()
-      ->Message("create", "file", GetNtupleFileName(ntupleName));
-#endif
 
-  ntupleDescription->fFile = ntupleFile;
-  return true;
-}  
+  // Create new ntuple file
+  ntupleDescription->SetFile(CreateTFile(ntupleFileName));
+
+  return (ntupleDescription->GetFile() != nullptr);
+}
 
 //_____________________________________________________________________________
 G4bool G4CsvFileManager::CloseNtupleFile(
-  G4TNtupleDescription<tools::wcsv::ntuple>* ntupleDescription)
+  CsvNtupleDescription* ntupleDescription)
 {
-  // Do nothing if there is no file
-  if ( ! ntupleDescription->fFile ) return true;
+  // Notifying not empty file is done in G4CsvNtupleFileManager::ActionAtWrite,
+  // as here we increment the cycle number and GetNtupleFileName returns a file name
+  // for the next cycle version.
 
-  G4String ntupleName = ntupleDescription->fNtupleBooking.name();
+  // Ntuple files are registered in file manager map.
+  // they will be closed with CloseFiles() calls
 
-#ifdef G4VERBOSE
-  if ( fState.GetVerboseL4() ) 
-    fState.GetVerboseL4()
-      ->Message("close", "file", GetNtupleFileName(ntupleName));
-#endif
+  ntupleDescription->GetFile().reset();
 
-  // close file
-  ntupleDescription->fFile->close(); 
-
-#ifdef G4VERBOSE
-  if ( fState.GetVerboseL1() ) 
-    fState.GetVerboseL1()
-      ->Message("close", "file", GetNtupleFileName(ntupleName));
-#endif
-
-  return true; 
-} 
-   
+  return true;
+}

@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file RunAction.cc
+/// \brief Implementation of the RunAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,57 +34,47 @@
 // M. Batmunkh et al. J Radiat Res Appl Sci 8 (2015) 498-507
 // O. Belov et al. Physica Medica 32 (2016) 1510-1520
 // The Geant4-DNA web site is available at http://geant4-dna.org
-// 
+//
 // -------------------------------------------------------------------
 // November 2016
 // -------------------------------------------------------------------
 //
-/// \file RunAction.cc
-/// \brief Implementation of the RunAction class
 
 #include "RunAction.hh"
-#include "G4Run.hh"
-#include "TrackingAction.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4RunManager.hh"
-#include "Analysis.hh"
-#include "G4Threading.hh"
+
 #include "CommandLineParser.hh"
-//#include "NeuronLoadDataFile.hh"
-#include "Run.hh"
-#include "Randomize.hh"
-#include <iomanip>
-#include "G4UnitsTable.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4UImanager.hh"
 #include "DetectorConstruction.hh"
 #include "PrimaryGeneratorAction.hh"
+#include "Run.hh"
+#include "TrackingAction.hh"
+
+#include "G4AnalysisManager.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4Run.hh"
 #include "G4RunManager.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4Threading.hh"
 #include "G4UImanager.hh"
+#include "G4UnitsTable.hh"
+#include "Randomize.hh"
+
+#include <iomanip>
 
 using namespace G4DNAPARSER;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::RunAction(DetectorConstruction* det, PrimaryGeneratorAction* prim) 
-: G4UserRunAction(), //fpTrackingAction(0), fInitialized(0),
- fDebug(false),
-fDetector(det),fPrimary(prim),fRun(0) 
-{
-   //CreateHistogram();
-}
+RunAction::RunAction(DetectorConstruction* det, PrimaryGeneratorAction* prim)
+  : G4UserRunAction(), fDetector(det), fPrimary(prim)
+{}
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-RunAction::~RunAction()
-{  
-  //delete G4AnalysisManager::Instance();
-}
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4Run* RunAction::GenerateRun()
-{ 
-  fRun = new Run(fDetector); 
+{
+  if (nullptr == fRun) {
+    fRun = new Run(fDetector);
+  }
   return fRun;
 }
 
@@ -89,92 +82,20 @@ G4Run* RunAction::GenerateRun()
 
 void RunAction::BeginOfRunAction(const G4Run* /*run*/)
 {
+  RunInitManager::Instance()->Initialize();
 
-RunInitManager::Instance()->Initialize();
-
-  // keep run condition
-  if ( fPrimary ) { 
-    G4ParticleDefinition* particle 
-      = fPrimary->GetParticleGun()->GetParticleDefinition();
+  if (nullptr != fPrimary) {
+    G4ParticleDefinition* particle = fPrimary->GetParticleGun()->GetParticleDefinition();
     G4double energy = fPrimary->GetParticleGun()->GetParticleEnergy();
     fRun->SetPrimary(particle, energy);
   }
-
-/*
-  G4cout << "##### Create analysis manager " << "  " << this << G4endl;
-  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-  analysisManager->SetFirstHistoId(1);
-//  if(!analysisManager->IsActive()) {return; }
-
-  G4cout << "Using " << analysisManager->GetType() <<
-      " analysis manager" << G4endl;
-   // Open an output file
-  analysisManager->OpenFile("neuronG4");
-  G4cout << "\n----> Histogram file is opened in neuronG4" <<
-      "." << analysisManager->GetFileType() << G4endl;
-// -----------------------------------------------------
-  //Declare ntuples
-  //
-  // Create 1st ntuple (id = 1)
-  //
-  analysisManager->CreateNtuple("ntuple0", "Soma3D");
-  analysisManager->CreateNtupleDColumn("ind");
-  analysisManager->CreateNtupleDColumn("dist");
-  analysisManager->CreateNtupleDColumn("edep");
-  analysisManager->CreateNtupleDColumn("dose");
-  analysisManager->FinishNtuple();
-  //G4cout << "Ntuple-1 created" << G4endl;
-
-  // Create 2nd ntuple (id = 2)
-  //
-  analysisManager->CreateNtuple("ntuple1", "Dend3D");
-  analysisManager->CreateNtupleDColumn("indD");
-  analysisManager->CreateNtupleDColumn("distD");
-  analysisManager->CreateNtupleDColumn("edepD");
-  analysisManager->CreateNtupleDColumn("doseD");
-  analysisManager->FinishNtuple();
-  //G4cout << "Ntuple-2 created" << G4endl;
-
-  // Create 3rd ntuple (id = 3)
-  //
-  analysisManager->CreateNtuple("ntuple2", "Axon3D");
-  analysisManager->CreateNtupleDColumn("indA");
-  analysisManager->CreateNtupleDColumn("distA");
-  analysisManager->CreateNtupleDColumn("edepA");
-  analysisManager->CreateNtupleDColumn("doseA");
-  analysisManager->FinishNtuple();
-  //G4cout << "Ntuple-3 created" << G4endl;
-
-  // Create 4rd ntuple (id = 4)
-  //
-  analysisManager->CreateNtuple("ntuple3", "Outputs per event");
-  analysisManager->CreateNtupleDColumn("EdepAll");
-  analysisManager->CreateNtupleDColumn("EdepMed");
-  analysisManager->CreateNtupleDColumn("EdepSlice");
-  analysisManager->CreateNtupleDColumn("EdepNeuron");
-  analysisManager->FinishNtuple();
-  //G4cout << "Ntuple-4 created" << G4endl;
-  // ............................
-  G4cout << "All Ntuples have been created " << G4endl;
-*/
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void RunAction::EndOfRunAction(const G4Run* /*run*/)
-{ 
-
-  if (isMaster) fRun->EndOfRun(); 
-
-// save histogramms
-/*  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance(); 
-  //save histograms   
-  analysisManager->Write();
-  analysisManager->CloseFile();  
-  // Complete clean-up
-  delete G4AnalysisManager::Instance();
-*/
- 
+{
+  if (isMaster) fRun->EndOfRun();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -182,16 +103,11 @@ void RunAction::EndOfRunAction(const G4Run* /*run*/)
 void RunAction::CreateHistogram()
 {
   // Book histograms, ntuple
-
   // Create analysis manager
-  // The choice of analysis technology is done via selection of a namespace
-  // in Analysis.hh
 
   CommandLineParser* parser = CommandLineParser::GetParser();
   Command* command(0);
-  if((command = parser->GetCommandIfActive("-out"))==0) return;
-//
-// Declare ntuples
+  if ((command = parser->GetCommandIfActive("-out")) == 0) return;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -200,22 +116,19 @@ void RunAction::WriteHistogram()
 {
   CommandLineParser* parser = CommandLineParser::GetParser();
   Command* commandLine(0);
-  if((commandLine = parser->GetCommandIfActive("-out"))==0) return;
+  if ((commandLine = parser->GetCommandIfActive("-out")) == 0) return;
 
   // print histogram statistics
   //
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-  // if(!analysisManager->IsActive()) {return; }
 
   // save histograms
   //
   analysisManager->Write();
   analysisManager->CloseFile();
 
-  if(fDebug)
-  {
-    G4cout << "================ ROOT FILES HAVE BEEN WRITTEN"
-           << G4endl;
+  if (fDebug) {
+    G4cout << "================ ROOT FILES HAVE BEEN WRITTEN" << G4endl;
   }
 }
 
@@ -223,14 +136,11 @@ void RunAction::WriteHistogram()
 
 void RunAction::PrintRunInfo(const G4Run* run)
 {
-  G4cout << "================ Run is = "
-         << run->GetRunID() << G4endl;
-  G4cout << "================ Run type is = "
-         << G4RunManager::GetRunManager()->GetRunManagerType() << G4endl;
-  G4cout << "================ Event processed = "
-         << run->GetNumberOfEventToBeProcessed() << G4endl;
-  G4cout << "================ Nevent = "
-         << run->GetNumberOfEvent() << G4endl;
+  G4cout << "================ Run is = " << run->GetRunID() << G4endl;
+  G4cout << "================ Run type is = " << G4RunManager::GetRunManager()->GetRunManagerType()
+         << G4endl;
+  G4cout << "================ Event processed = " << run->GetNumberOfEventToBeProcessed() << G4endl;
+  G4cout << "================ Nevent = " << run->GetNumberOfEvent() << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

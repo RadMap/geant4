@@ -23,36 +23,32 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE03/src/RE03PrimaryGeneratorAction.cc
+/// \file RE03PrimaryGeneratorAction.cc
 /// \brief Implementation of the RE03PrimaryGeneratorAction class
-//
-//
 
 #include "RE03PrimaryGeneratorAction.hh"
 
 #include "G4Event.hh"
+#include "G4ParticleDefinition.hh"
 #include "G4ParticleGun.hh"
 #include "G4ParticleTable.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4SystemOfUnits.hh"    
+#include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 RE03PrimaryGeneratorAction::RE03PrimaryGeneratorAction()
-  :G4VUserPrimaryGeneratorAction(),
-   fParticleGun(0)
+  : G4VUserPrimaryGeneratorAction(), fParticleGun(0)
 {
   G4int n_particle = 1;
-  fParticleGun  = new G4ParticleGun(n_particle);
-  
+  fParticleGun = new G4ParticleGun(n_particle);
+
   // default particle kinematic
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4String particleName;
-  G4ParticleDefinition* particle
-                    = particleTable->FindParticle(particleName="e-");
+  G4ParticleDefinition* particle = particleTable->FindParticle(particleName = "e-");
   fParticleGun->SetParticleDefinition(particle);
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
-  fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,-1.01*m));
-  fParticleGun->SetParticleEnergy(1.*GeV);
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
+  fParticleGun->SetParticlePosition(G4ThreeVector(0., 0., -1.01 * m));
+  fParticleGun->SetParticleEnergy(1. * GeV);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -66,4 +62,3 @@ void RE03PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }
-

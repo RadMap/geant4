@@ -23,48 +23,50 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file DetectorConstruction.hh
+/// \brief Definition of the DetectorConstruction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
 // Med. Phys. 37 (2010) 4692-4708
 // and papers
 // M. Batmunkh et al. J Radiat Res Appl Sci 8 (2015) 498-507
-// O. Belov et al. Physica Medica 32 (2016) 1510-1520 
+// O. Belov et al. Physica Medica 32 (2016) 1510-1520
 // The Geant4-DNA web site is available at http://geant4-dna.org
-// 
+//
 // -------------------------------------------------------------------
 // November 2016
 // -------------------------------------------------------------------
 //
-/// \file DetectorConstruction.hh 
-/// \brief Definition of the DetectorConstruction class
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
 
-#include "G4VUserDetectorConstruction.hh"
-#include "G4VSolid.hh"
-#include "G4UnionSolid.hh"
-#include "G4VPhysicalVolume.hh"
-#include "G4LogicalVolume.hh"
 #include "G4Box.hh"
-#include "G4Sphere.hh"
+#include "G4LogicalVolume.hh"
 #include "G4Material.hh"
 #include "G4NistManager.hh"
 #include "G4PVPlacement.hh"
+#include "G4Sphere.hh"
+#include "G4UnionSolid.hh"
 #include "G4UserLimits.hh"
+#include "G4VPhysicalVolume.hh"
+#include "G4VSolid.hh"
+#include "G4VUserDetectorConstruction.hh"
 #include "G4VisAttributes.hh"
 //
-#include "G4PVParameterised.hh"
 #include "NeuronLoadDataFile.hh"
-#include "G4Tubs.hh"
-#include "G4Orb.hh"
+
 #include "G4Ellipsoid.hh"
 #include "G4LogicalVolumeStore.hh"
+#include "G4Orb.hh"
+#include "G4PVParameterised.hh"
 #include "G4PhysicalVolumeStore.hh"
 #include "G4SolidStore.hh"
+#include "G4Tubs.hh"
 
-const G4int kMT = 100000;
+#include <vector>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -72,101 +74,103 @@ class G4Region;
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
+  public:
+    DetectorConstruction();
+    ~DetectorConstruction() override;
 
-  DetectorConstruction();
-  virtual ~DetectorConstruction();
-  virtual G4VPhysicalVolume* Construct();
-  G4Region* GetTargetRegion() {return fpRegion;}    
+    G4VPhysicalVolume* Construct() override;
+    G4Region* GetTargetRegion() const { return fpRegion; }
 
-// For neuron constructions!
-  NeuronLoadDataFile * GetNeuronLoadParamz() {return fNeuronLoadParamz;};  
-  const G4VPhysicalVolume* GetsomaPV(G4int i) {return fsomaPV[i];};
-  const G4VPhysicalVolume* GetdendritePV(G4int i) {return fdendritePV[i];};
-  const G4VPhysicalVolume* GetaxonPV(G4int i) {return faxonPV[i];};
-  G4Material* GetTargetMaterial()  {return fpWaterMaterial;};
-  
-private:
-  G4Material*        fpDefaultMaterial;
-  G4Material*        fpWaterMaterial;
-  G4Region*          fpRegion;
+    NeuronLoadDataFile* GetNeuronLoadParamz() const { return fNeuronLoadParamz; };
+    const G4VPhysicalVolume* GetsomaPV(G4int i) const { return fsomaPV[i]; };
+    const G4VPhysicalVolume* GetdendritePV(G4int i) const { return fdendritePV[i]; };
+    const G4VPhysicalVolume* GetaxonPV(G4int i) const { return faxonPV[i]; };
+    G4Material* GetTargetMaterial() const { return fpWaterMaterial; };
 
-  void DefineMaterials(); 
-  G4VPhysicalVolume* ConstructDetector();    
-  
-  // For neuron constructions!  
-  NeuronLoadDataFile * fNeuronLoadParamz;    
-  G4bool  fCheckOverlaps; // option to activate checking of volumes overlaps    
-  G4VSolid * fsomaS[kMT], *fdendriteS[kMT], *faxonS[kMT];      
-  G4LogicalVolume * fsomaLV[kMT], *fdendriteLV[kMT], *faxonLV[kMT];
-  G4VPhysicalVolume *  fsomaPV[kMT], *fdendritePV[kMT], *faxonPV[kMT];
+    G4int GetnbSomacomp() const { return fnbSomacomp; }  //
+    G4double GetMassSomacomp(G4int i) const { return fMassSomacomp[i]; }  //
+    G4double GetMassSomaTot() const { return fMassSomaTot; }  //
+    G4ThreeVector GetPosSomacomp(G4int i) const { return fPosSomacomp[i]; }  //
 
-  G4VisAttributes * fSomaColour;
-  G4VisAttributes * fDendColour;
-  G4VisAttributes * fAxonColour;
-  G4VisAttributes * fSpineColour;    
-  G4VisAttributes * fNeuronColour;  
+    G4int GetnbDendritecomp() const { return fnbDendritecomp; }  //
+    G4double GetMassDendcomp(G4int i) const { return fMassDendcomp[i]; }  //
+    G4double GetMassDendTot() const { return fMassDendTot; }  //
+    G4ThreeVector GetPosDendcomp(G4int i) const { return fPosDendcomp[i]; }  //
+    G4double GetDistADendSoma(G4int i) const { return fDistADendSoma[i]; }  //
+    G4double GetDistBDendSoma(G4int i) const { return fDistBDendSoma[i]; }  //
 
-public:
+    G4int GetnbAxoncomp() const { return fnbAxoncomp; }  //
+    G4double GetMassAxoncomp(G4int i) const { return fMassAxoncomp[i]; }  //
+    G4double GetMassAxonTot() const { return fMassAxonTot; }  //
+    G4ThreeVector GetPosAxoncomp(G4int i) const { return fPosAxoncomp[i]; }  //
+    G4double GetDistAxonsoma(G4int i) const { return fDistAxonsoma[i]; }  //
 
-  G4int   GetnbSomacomp()   {return fnbSomacomp;} //
-  G4double  GetMassSomacomp (G4int i) {return fMassSomacomp[i];} //
-  G4double GetMassSomaTot () {return fMassSomaTot;} //
-  G4ThreeVector GetPosSomacomp(G4int i) {return fPosSomacomp[i];} //
-  
-  G4int   GetnbDendritecomp()   {return fnbDendritecomp;} //
-  G4double GetMassDendcomp (G4int i) {return fMassDendcomp[i];} //  
-  G4double GetMassDendTot () {return fMassDendTot;}  //
-  G4ThreeVector GetPosDendcomp(G4int i) {return fPosDendcomp[i];} //
-  G4double  GetDistADendSoma (G4int i) {return fDistADendSoma[i];} //
-  G4double  GetDistBDendSoma (G4int i) {return fDistBDendSoma[i];} //
-  
-  G4int   GetnbAxoncomp()   {return fnbAxoncomp;} //
-  G4double  GetMassAxoncomp (G4int i) {return fMassAxoncomp[i];} //
-  G4double GetMassAxonTot () {return fMassAxonTot;}  //
-  G4ThreeVector GetPosAxoncomp(G4int i) {return fPosAxoncomp[i];} //
-  G4double  GetDistAxonsoma (G4int i) {return fDistAxonsoma[i];} //
+    G4double GetTotVolNeuron() const { return fTotVolNeuron; }
+    G4double GetTotSurfNeuron() const { return fTotSurfNeuron; }
+    G4double GetTotMassNeuron() const { return fTotMassNeuron; }  //
+    G4double GetTotVolSlice() const { return fTotVolSlice; }
+    G4double GetTotSurfSlice() const { return fTotSurfSlice; }
+    G4double GetTotMassSlice() const { return fTotMassSlice; }  //
+    G4double GetTotVolMedium() const { return fTotVolMedium; }
+    G4double GetTotSurfMedium() const { return fTotSurfMedium; }  //
+    G4double GetTotMassMedium() const { return fTotMassMedium; }  //
 
-  G4double GetTotVolNeuron() {return fTotVolNeuron;}
-  G4double GetTotSurfNeuron () {return fTotSurfNeuron;} 
-  G4double GetTotMassNeuron () {return fTotMassNeuron;} //  
-  G4double GetTotVolSlice() {return fTotVolSlice;} 
-  G4double GetTotSurfSlice () {return fTotSurfSlice;} 
-  G4double GetTotMassSlice() {return fTotMassSlice;}  //
-  G4double GetTotVolMedium() {return fTotVolMedium;} 
-  G4double GetTotSurfMedium() {return fTotSurfMedium;} //
-  G4double GetTotMassMedium() {return fTotMassMedium;}  //
- 
-private:
+  private:
+    void DefineMaterials();
 
-  G4int fnbSomacomp; 
-  G4int fnbDendritecomp;
-  G4int fnbAxoncomp;
-  
-  G4ThreeVector * fPosSomacomp ; 
-  G4double * fMassSomacomp ;
-  G4double fMassSomaTot ;
-  
-  G4double * fDistADendSoma ;
-  G4double * fDistBDendSoma ;
-  G4double * fMassDendcomp ;
-  G4double fMassDendTot ;
-  G4ThreeVector * fPosDendcomp ; 
+    G4Material* fpWaterMaterial{nullptr};
+    G4Material* fpWorldMaterial{nullptr};
+    G4Region* fpRegion{nullptr};
 
-  G4double * fDistAxonsoma ;
-  G4double * fMassAxoncomp ;
-  G4double fMassAxonTot ;
-  G4ThreeVector * fPosAxoncomp ;  
- 
-  G4double fTotVolNeuron ;
-  G4double fTotSurfNeuron ;
-  G4double fTotMassNeuron ;  
-  G4double fTotVolSlice;
-  G4double fTotSurfSlice ;
-  G4double fTotMassSlice; 
-  G4double fTotVolMedium ;
-  G4double fTotSurfMedium ;
-  G4double fTotMassMedium ; 
+    // For neuron constructions!
+    NeuronLoadDataFile* fNeuronLoadParamz;
+    G4bool fCheckOverlaps{false};
 
+    std::vector<G4VSolid*> fsomaS;
+    std::vector<G4VSolid*> fdendriteS;
+    std::vector<G4VSolid*> faxonS;
+    std::vector<G4LogicalVolume*> fsomaLV;
+    std::vector<G4LogicalVolume*> fdendriteLV;
+    std::vector<G4LogicalVolume*> faxonLV;
+    std::vector<G4VPhysicalVolume*> fsomaPV;
+    std::vector<G4VPhysicalVolume*> fdendritePV;
+    std::vector<G4VPhysicalVolume*> faxonPV;
+
+    G4VisAttributes* fSomaColour{nullptr};
+    G4VisAttributes* fDendColour{nullptr};
+    G4VisAttributes* fAxonColour{nullptr};
+    G4VisAttributes* fSpineColour{nullptr};
+    G4VisAttributes* fNeuronColour{nullptr};
+
+    G4int fnbSomacomp{0};
+    G4int fnbDendritecomp{0};
+    G4int fnbAxoncomp{0};
+
+    std::vector<G4ThreeVector> fPosSomacomp;
+    std::vector<G4double> fMassSomacomp;
+
+    std::vector<G4double> fDistADendSoma;
+    std::vector<G4double> fDistBDendSoma;
+    std::vector<G4double> fMassDendcomp;
+    std::vector<G4ThreeVector> fPosDendcomp;
+
+    std::vector<G4double> fDistAxonsoma;
+    std::vector<G4double> fMassAxoncomp;
+    std::vector<G4ThreeVector> fPosAxoncomp;
+
+    G4double fMassSomaTot{0.0};
+    G4double fMassDendTot{0.0};
+    G4double fMassAxonTot{0.0};
+
+    G4double fTotVolNeuron{0.0};
+    G4double fTotSurfNeuron{0.0};
+    G4double fTotMassNeuron{0.0};
+    G4double fTotVolSlice{0.0};
+    G4double fTotSurfSlice{0.0};
+    G4double fTotMassSlice{0.0};
+    G4double fTotVolMedium{0.0};
+    G4double fTotSurfMedium{0.0};
+    G4double fTotMassMedium{0.0};
 };
+
 #endif

@@ -23,31 +23,28 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P02/include/ExP02DetConstrReader.hh
+/// \file ExP02DetConstrReader.hh
 /// \brief Definition of the ExP02DetConstrReader class
-//
-//
-//
+
 #ifndef ExP02DetConstrReader_h
 #define ExP02DetConstrReader_h 1
 
-#include "globals.hh"
 #include "G4VUserDetectorConstruction.hh"
+#include "globals.hh"
 
 class G4VPhysicalVolume;
 
-/// Detector construction reader using ROOT I/O 
+/// Detector construction reader using ROOT I/O
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class ExP02DetConstrReader : public G4VUserDetectorConstruction
 {
   public:
-  
-     ExP02DetConstrReader();
+    ExP02DetConstrReader();
     ~ExP02DetConstrReader();
 
-     virtual G4VPhysicalVolume* Construct();     
+    virtual G4VPhysicalVolume* Construct();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

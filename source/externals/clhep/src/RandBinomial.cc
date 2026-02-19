@@ -20,6 +20,8 @@
 #include "CLHEP/Utility/thread_local.h"
 #include <algorithm>	// for min() and max()
 #include <cmath>	// for exp()
+#include <iostream>
+#include <vector>
 
 namespace CLHEP {
 
@@ -328,7 +330,7 @@ double RandBinomial::genBinomial( HepRandomEngine *anEngine, long n, double p )
 }
 
 std::ostream & RandBinomial::put ( std::ostream & os ) const {
-  int pr=os.precision(20);
+  long pr=os.precision(20);
   std::vector<unsigned long> t(2);
   os << " " << name() << "\n";
   os << "Uvec" << "\n";

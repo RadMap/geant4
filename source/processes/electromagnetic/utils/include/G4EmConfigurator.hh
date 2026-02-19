@@ -58,6 +58,7 @@
 class G4VEnergyLossProcess;
 class G4VEmProcess;
 class G4VMultipleScattering;
+class G4TransportationWithMsc;
 
 class G4EmConfigurator 
 {
@@ -93,19 +94,22 @@ public:
                      G4VEmProcess* p);
 
   void PrepareModels(const G4ParticleDefinition* aParticle,
-                     G4VMultipleScattering* p);
+                     G4VMultipleScattering* p,
+                     G4TransportationWithMsc* trans = nullptr);
 
   void Clear();
 
   inline void SetVerbose(G4int value);
 
-private:
+  // hide assignment operator
+  G4EmConfigurator & operator=(const G4EmConfigurator &right) = delete;
+  G4EmConfigurator(const G4EmConfigurator&) = delete;
 
-  G4Region* FindRegion(const G4String&);
+private:
 
   void SetModelForRegion(G4VEmModel* model,
                          G4VEmFluctuationModel* fm,
-                         G4Region* reg,
+                         const G4Region* reg,
                          const G4String& particleName,
                          const G4String& processName,
                          G4double emin,
@@ -113,10 +117,6 @@ private:
 
   G4bool UpdateModelEnergyRange(G4VEmModel* mod,
                                 G4double emin, G4double emax);
-
-  // hide assignment operator
-  G4EmConfigurator & operator=(const G4EmConfigurator &right) = delete;
-  G4EmConfigurator(const G4EmConfigurator&) = delete;
 
   std::vector<G4VEmModel*> models;  
   std::vector<G4VEmFluctuationModel*> flucModels;  

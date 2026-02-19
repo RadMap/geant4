@@ -23,53 +23,44 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm13/src/RunAction.cc
+/// \file RunAction.cc
 /// \brief Implementation of the RunAction class
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "RunAction.hh"
+
 #include "DetectorConstruction.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "Run.hh"
 
 #include "G4Run.hh"
 #include "G4UnitsTable.hh"
-
 #include "Randomize.hh"
+
 #include <iomanip>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 RunAction::RunAction(DetectorConstruction* det, PrimaryGeneratorAction* kin)
-:G4UserRunAction(),fDetector(det),fPrimary(kin),fRun(0)
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-RunAction::~RunAction()
-{ }
+  : fDetector(det), fPrimary(kin)
+{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4Run* RunAction::GenerateRun()
-{ 
-  fRun = new Run(fDetector); 
+{
+  fRun = new Run(fDetector);
   return fRun;
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void RunAction::BeginOfRunAction(const G4Run*)
-{    
+{
   // show Rndm status
-  if (isMaster)  G4Random::showEngineStatus();
-     
+  if (isMaster) G4Random::showEngineStatus();
+
   // keep run condition
-  if ( fPrimary ) { 
-    G4ParticleDefinition* particle 
-      = fPrimary->GetParticleGun()->GetParticleDefinition();
+  if (fPrimary) {
+    G4ParticleDefinition* particle = fPrimary->GetParticleGun()->GetParticleDefinition();
     G4double energy = fPrimary->GetParticleGun()->GetParticleEnergy();
     fRun->SetPrimary(particle, energy);
   }
@@ -79,11 +70,11 @@ void RunAction::BeginOfRunAction(const G4Run*)
 
 void RunAction::EndOfRunAction(const G4Run*)
 {
-  // compute and print statistic 
+  // compute and print statistic
   if (isMaster) fRun->EndOfRun();
 
   // show Rndm status
-  if (isMaster)  G4Random::showEngineStatus(); 
+  if (isMaster) G4Random::showEngineStatus();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

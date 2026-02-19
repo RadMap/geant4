@@ -54,12 +54,16 @@ class G4ProcessManager;
 class G4ParticleDefinition;
 class G4EmConfigurator;
 class G4VMscModel;
+class G4VEmProcess;
 
 class G4EmModelActivator 
 {
 public:
 
   explicit G4EmModelActivator(const G4String& emphys="");
+
+  G4EmModelActivator & operator=(const G4EmModelActivator &right) = delete;
+  G4EmModelActivator(const G4EmModelActivator&) = delete;
 
 private:
 
@@ -69,18 +73,15 @@ private:
 
   void ActivateEmOptions();
 
-  void FindOrAddProcess(const G4ParticleDefinition*, const G4String&);
+  G4VEmProcess* FindOrAddProcess(const G4ParticleDefinition*, const G4String&);
 
   void AddStandardScattering(const G4ParticleDefinition*, G4EmConfigurator*,
                              G4VMscModel*, const G4String&, 
-                             G4double, G4double);
+                             G4double, G4double, const G4String&);
 
   G4bool HasMsc(G4ProcessManager*) const;
 
-  G4VMscModel* GetGSModel();
-
-  G4EmModelActivator & operator=(const G4EmModelActivator &right) = delete;
-  G4EmModelActivator(const G4EmModelActivator&) = delete;
+  void SetMscParameters(const G4ParticleDefinition*, G4VMscModel*, const G4String& phys);
 
   G4EmParameters* theParameters;
   G4String baseName;

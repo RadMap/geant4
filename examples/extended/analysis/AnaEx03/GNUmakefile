@@ -16,14 +16,14 @@ all: lib bin
 setup:
 	@echo "Copying files from shared"
 	@./shared/scripts/copy_files.sh shared
-
+        
 clean_setup:
 	@echo "Removing files copied from shared"
 	@./shared/scripts/clean_files.sh shared
 
-#### G4ANALYSIS_USE := true
-
 include $(G4INSTALL)/config/binmake.gmk
+
+CPPFLAGS += -I./shared/include
 
 visclean:
 	rm -f g4*.prim g4*.eps g4*.wrl

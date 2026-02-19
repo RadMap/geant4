@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/fanoCavity2/include/PhysListEmStandard_GS.hh
+/// \file PhysListEmStandard_GS.hh
 /// \brief Definition of the PhysListEmStandard_GS class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysListEmStandard_GS_h
 #define PhysListEmStandard_GS_h 1
@@ -40,30 +36,22 @@
 
 class PhysListEmStandard_GS : public G4VPhysicsConstructor
 {
-public: 
-  PhysListEmStandard_GS(const G4String& name);
- ~PhysListEmStandard_GS();
+  public:
+    PhysListEmStandard_GS(const G4String& name);
+    ~PhysListEmStandard_GS();
 
-public: 
-  // This method is dummy for physics
-  virtual void ConstructParticle() {};
- 
-  // This method will be invoked in the Construct() method.
-  // each physics process will be instantiated and
-  // registered to the process manager of each particle type 
-  virtual void ConstructProcess();
-  
-private:
+  public:
+    // This method is dummy for physics
+    virtual void ConstructParticle() {};
+
+    // This method will be invoked in the Construct() method.
+    // each physics process will be instantiated and
+    // registered to the process manager of each particle type
+    virtual void ConstructProcess();
+
+  private:
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-
-
-
-
-
-
-

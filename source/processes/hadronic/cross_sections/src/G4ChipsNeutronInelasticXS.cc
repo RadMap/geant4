@@ -70,11 +70,11 @@ G4ChipsNeutronInelasticXS::G4ChipsNeutronInelasticXS():G4VCrossSectionDataSet(De
 
 G4ChipsNeutronInelasticXS::~G4ChipsNeutronInelasticXS()
 {
-  G4int lens=LEN->size();
-  for(G4int i=0; i<lens; ++i) delete[] (*LEN)[i];
+  std::size_t lens=LEN->size();
+  for(std::size_t i=0; i<lens; ++i) delete[] (*LEN)[i];
   delete LEN;
-  G4int hens=HEN->size();
-  for(G4int i=0; i<hens; ++i) delete[] (*HEN)[i];
+  std::size_t hens=HEN->size();
+  for(std::size_t i=0; i<hens; ++i) delete[] (*HEN)[i];
   delete HEN;
 }
 
@@ -118,9 +118,9 @@ G4double G4ChipsNeutronInelasticXS::GetChipsCrossSection(G4double pMom, G4int tg
     lastP   = 0.;                      // New momentum history (nothing to compare with)
     lastN   = tgN;                     // The last N of the calculated nucleus
     lastZ   = tgZ;                     // The last Z of the calculated nucleus
-    lastI   = colN.size();             // Size of the Associative Memory DB in the heap
+    lastI   = (G4int)colN.size();      // Size of the Associative Memory DB in the heap
     j  = 0;                            // A#0f records found in DB for this projectile
-    if(lastI) for(G4int i=0; i<lastI; i++) // AMDB exists, try to find the (Z,N) isotope
+    if(lastI) for(G4int i=0; i<lastI; ++i) // AMDB exists, try to find the (Z,N) isotope
     {
       if(colN[i]==tgN && colZ[i]==tgZ) // Try the record "i" in the AMDB
       {
@@ -195,16 +195,11 @@ G4double G4ChipsNeutronInelasticXS::CalculateCrossSection(G4int F, G4int I,
   static const G4double dlP=(malP-milP)/(nH-1); // Step in log energy in the HEN part
   static const G4double milPG=G4Log(.001*Pmin);// Low logarithmEnergy for HEN part GeV/c
   //
-  // Associative memory for acceleration
-  //static std::vector <G4double>  spA;  // shadowing coefficients (A-dependent)
-  G4double sigma=0.;
-  if(F&&I) sigma=0.;                   // @@ *!* Fake line *!* to use F & I !!!Temporary!!!
-  //G4double A=targN+targZ;              // A of the target
   if(F<=0)                             // This isotope was not the last used isotop
   {
     if(F<0)                            // This isotope was found in DAMDB =-----=> RETRIEVE
     {
-      G4int sync=LEN->size();
+      G4int sync=(G4int)LEN->size();
       if(sync<=I) G4cerr<<"*!*G4ChipsNetronNuclCS::CalcCrossSect:Sync="<<sync<<"<="<<I<<G4endl;
       lastLEN=(*LEN)[I];               // Pointer to prepared LowEnergy cross sections
       lastHEN=(*HEN)[I];               // Pointer to prepared High Energy cross sections
@@ -228,7 +223,7 @@ G4double G4ChipsNeutronInelasticXS::CalculateCrossSection(G4int F, G4int I,
       }
       // --- End of possible separate function
       // *** The synchronization check ***
-      G4int sync=LEN->size();
+      G4int sync=(G4int)LEN->size();
       if(sync!=I)
       {
         G4cerr<<"***G4ChipsNetronNuclearCS::CalcCrossSect: Sync="<<sync<<"#"<<I<<", Z=" <<targZ
@@ -240,6 +235,7 @@ G4double G4ChipsNeutronInelasticXS::CalculateCrossSection(G4int F, G4int I,
     } // End of creation of the new set of parameters
   } // End of parameters udate
   // =------------------= NOW the Magic Formula =---------------------------=
+  G4double sigma;
   if (Momentum<lastTH) return 0.;      // It must be already checked in the interface class
   else if (Momentum<Pmin)              // High Energy region
   {

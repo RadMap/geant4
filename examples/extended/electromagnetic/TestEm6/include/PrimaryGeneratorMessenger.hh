@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm6/include/PrimaryGeneratorMessenger.hh
+/// \file PrimaryGeneratorMessenger.hh
 /// \brief Definition of the PrimaryGeneratorMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PrimaryGeneratorMessenger_h
 #define PrimaryGeneratorMessenger_h 1
@@ -42,21 +38,20 @@ class G4UIcmdWithADouble;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PrimaryGeneratorMessenger: public G4UImessenger
+class PrimaryGeneratorMessenger : public G4UImessenger
 {
   public:
     PrimaryGeneratorMessenger(PrimaryGeneratorAction*);
-   ~PrimaryGeneratorMessenger();
-    
+    ~PrimaryGeneratorMessenger();
+
     virtual void SetNewValue(G4UIcommand*, G4String);
-    
+
   private:
-    PrimaryGeneratorAction*    fAction;
-    G4UIdirectory*             fGunDir;     
-    G4UIcmdWithADouble*        fRndmCmd;
+    PrimaryGeneratorAction* fAction;
+    G4UIdirectory* fGunDir;
+    G4UIcmdWithADouble* fRndmCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

@@ -68,6 +68,8 @@
 #include "G4INCLEtaNToPiPiNChannel.hh"
 #include "G4INCLOmegaNElasticChannel.hh"
 #include "G4INCLOmegaNToPiNChannel.hh"
+#include "G4INCLEtaOrOmegaNToLKChannel.hh"
+#include "G4INCLEtaOrOmegaNToSKChannel.hh"
 #include "G4INCLNNToNLKChannel.hh"
 #include "G4INCLNNToNSKChannel.hh"
 #include "G4INCLNNToNLKpiChannel.hh"
@@ -112,6 +114,13 @@
 #include <string>
 #include <sstream>
 // #include <cassert>
+#include "G4INCLNNbarElasticChannel.hh"
+#include "G4INCLNNbarCEXChannel.hh"
+#include "G4INCLNNbarToLLbarChannel.hh"
+#include "G4INCLNNbarToNNbarpiChannel.hh"
+#include "G4INCLNNbarToNNbar2piChannel.hh"
+#include "G4INCLNNbarToNNbar3piChannel.hh"
+#include "G4INCLNNbarToAnnihilationChannel.hh"
 
 namespace G4INCL {
 
@@ -134,6 +143,67 @@ namespace G4INCL {
 
   BinaryCollisionAvatar::~BinaryCollisionAvatar() {
   }
+ 
+void BinaryCollisionAvatar::generateSrcPairsMethod(ParticleList &theList,
+                                                   const G4int theN,
+                                                   const G4int theZ,
+                                                   G4INCL::Particle *p1,
+                                                   G4INCL::Particle *p2) {
+
+  std::vector<ThreeVector> posp;
+  std::vector<ThreeVector> posn;
+  posp.resize(theZ);
+  posn.resize(theN);
+
+  for (int i = 0; i < theZ + theN; ++i) {
+    theList[i]->setNumberOfSrcPair(0);
+  }
+  theNucleus->getStore()->getBook().setSrcPairs(0);
+
+  // Check that the loops in theZ and theN do what we wish!
+  G4int npairs = 0;
+  for (G4int i = 0; i < theZ; ++i) {
+    Particle *ap = theList[i];
+    posp[i] = ap->getPosition();
+    for (G4int j = 0; j < theN; ++j) {
+      Particle *an = theList[j + theZ];
+      posn[j] = an->getPosition();
+      if ((posn[j] - posp[i]).mag() < ParticleTable::getsrcPairDistance() &&
+          ap->getSrcPair() == 0 && an->getSrcPair() == 0 &&
+          ap->getType() != an->getType() && ap->isTargetSpectator() == 1 &&
+          an->isTargetSpectator() == 1) {
+        npairs++;
+        theNucleus->getStore()->getBook().incrementSrcPairs();
+        if (an == p1 || an == p2 || ap == p1 || ap == p2) {
+          theList[i]->setNumberOfSrcPair(npairs);
+          theList[j + theZ]->setNumberOfSrcPair(npairs);
+        }
+      }
+    }
+  }
+
+  G4int nbp = 0, nbn = 0;
+  for (G4int i = 0; i < theZ + theN; ++i) {
+
+    if (theList[i]->getSrcPair() > 0 && theList[i]->getType() == Proton)
+      nbp++;
+
+    if (theList[i]->getSrcPair() > 0 && theList[i]->getType() == Neutron)
+      nbn++;
+  }
+
+  if (nbp != nbn) {
+    INCL_DEBUG("Pairs: " << nbp << " " << nbn << '\n');
+    for (G4int i = 0; i < theZ; ++i) {
+      INCL_DEBUG(ParticleTable::getName(theList[i]->getType())
+                 << " " << theList[i]->isTargetSpectator() << " "
+                 << theList[i]->getSrcPair());
+    }
+    INCL_DEBUG("----------- End ------------------" << '\n');
+  }
+
+  return;
+}
 
   G4INCL::IChannel* BinaryCollisionAvatar::getChannel() {
     // We already check cutNN at avatar creation time, but we have to check it
@@ -175,16 +245,25 @@ namespace G4INCL {
     minimumDistance -= particle2->getPosition();
     const G4double betaDotX = boostVector.dot(minimumDistance);
     const G4double minDist = Math::tenPi*(minimumDistance.mag2() + betaDotX*betaDotX / (1.-boostVector.mag2()));
-    if(minDist > theCrossSection) {
+
+    Config const *theConfig=theNucleus->getStore()->getConfig();
+    if ((minDist > theCrossSection) && 
+        (!((particle1->getType()==antiProton  && particle1->getKineticEnergy() <= theConfig->getAtrestThreshold())   ||
+           (particle2->getType()==antiProton  && particle2->getKineticEnergy() <= theConfig->getAtrestThreshold())   ||
+           (particle1->getType()==antiNeutron && particle1->getKineticEnergy() <= particle1->getPotentialEnergy()) ||
+           (particle2->getType()==antiNeutron && particle2->getKineticEnergy() <= particle2->getPotentialEnergy())))) {
+      if(!((particle1->isAntiNucleon() && particle1->getEnergy() <= particle1->getINCLMass()) ||
+        (particle2->isAntiNucleon() && particle2->getEnergy() <= particle2->getINCLMass()))){
       INCL_DEBUG("CM distance of approach is too small: " << minDist << ">" <<
         theCrossSection <<"; returning a NULL channel" << '\n');
       InteractionAvatar::restoreParticles();
       return NULL;
     }
+    }
 
     /** Bias apply for this reaction in order to get the same
      * ParticleBias for all stange particles.
-     * Can be reduced after because of the watchdog.
+     * Can be reduced after because of the safeguard.
      */
     G4double bias_apply = 1.;
     if(bias != 1.) bias_apply = Particle::getBiasFromVector(Particle::MergeVectorBias(particle1,particle2)) * bias;
@@ -254,15 +333,50 @@ namespace G4INCL {
       if(elasticCX > rChannel) {
 // Elastic NN channel
         isElastic = true;
+      weight = counterweight;
+      if (theNucleus->getStore()->getBook().getAcceptedCollisions() == 0 &&
+          theNucleus->getStore()->getBook().getAcceptedSrcCollisions() == 0 &&
+          ParticleTable::getsrcPairConfig()) {
+        INCL_DEBUG("NN-SRC interaction: elastic channel chosen" << '\n');
+        ParticleList &inside = theNucleus->getStore()->getParticlesforSrc();
+        G4int zz = theNucleus->getZ();
+        generateSrcPairsMethod(inside, theNucleus->getA() - zz, zz, particle1,
+                               particle2);
+        if ((particle1->getSrcPair() > 0 || particle2->getSrcPair() > 0)) {
+          return new ElasticChannel(particle1, particle2, theNucleus);
+        } else {
+          INCL_DEBUG("NN interaction: elastic channel chosen" << '\n');
+          theNucleus->resetSrc();
+          return new ElasticChannel(particle1, particle2);
+        }
+      } else {
         INCL_DEBUG("NN interaction: elastic channel chosen" << '\n');
-        weight = counterweight;
         return new ElasticChannel(particle1, particle2);
+        }
       } else if((elasticCX + deltaProductionCX) > rChannel) {
         isElastic = false;
 // NN -> N Delta channel is chosen
+      weight = counterweight;
+      if (theNucleus->getStore()->getBook().getAcceptedCollisions() == 0 &&
+          theNucleus->getStore()->getBook().getAcceptedSrcCollisions() == 0 &&
+          ParticleTable::getsrcPairConfig()) {
+        INCL_DEBUG("NN-SRC interaction: Delta channel chosen" << '\n');
+        ParticleList &inside = theNucleus->getStore()->getParticlesforSrc();
+        G4int zz = theNucleus->getZ();
+        generateSrcPairsMethod(inside, theNucleus->getA() - zz, zz, particle1,
+                               particle2);
+
+        if ((particle1->getSrcPair() > 0 || particle2->getSrcPair() > 0)) {
+          return new DeltaProductionChannel(particle1, particle2, theNucleus);
+        } else {
+          INCL_DEBUG("NN interaction: Delta channel chosen" << '\n');
+          theNucleus->resetSrc();
+          return new DeltaProductionChannel(particle1, particle2);
+        }
+      } else {
         INCL_DEBUG("NN interaction: Delta channel chosen" << '\n');
-        weight = counterweight;
         return new DeltaProductionChannel(particle1, particle2);
+        }
       } else if(elasticCX + deltaProductionCX + onePiProductionCX > rChannel) {
         isElastic = false;
 // NN -> PiNN channel is chosen
@@ -941,8 +1055,10 @@ namespace G4INCL {
                     const G4double elasticCX = CrossSections::elastic(particle1, particle2);
                     const G4double onePiProductionCX = CrossSections::etaNToPiN(particle1, particle2);
                     const G4double twoPiProductionCX = CrossSections::etaNToPiPiN(particle1, particle2);
+                    const G4double LKProductionCX = CrossSections::etaNToLK(particle1, particle2);
+                    const G4double SKProductionCX = CrossSections::etaNToSK(particle1, particle2);
                     const G4double totCX=CrossSections::total(particle1, particle2);
-// assert(std::fabs(totCX-elasticCX-onePiProductionCX-twoPiProductionCX)<1.);
+// assert(std::fabs(totCX-elasticCX-onePiProductionCX-twoPiProductionCX)-LKProductionCX-SKProductionCX<1.);
                     
                     const G4double rChannel=Random::shoot() * totCX;
                                         
@@ -961,11 +1077,29 @@ namespace G4INCL {
 // EtaN -> EtaPiPiN channel is chosen
                         INCL_DEBUG("EtaN interaction: PiPiN channel chosen" << '\n');
                         return new EtaNToPiPiNChannel(particle1, particle2);
+                    } else if(elasticCX + onePiProductionCX + twoPiProductionCX + LKProductionCX > rChannel) {
+                        isElastic = false;
+// EtaN -> LK channel is chosen
+                        INCL_DEBUG("EtaN interaction: LK channel chosen" << '\n');
+                        return new EtaOrOmegaNToLKChannel(particle1, particle2);
+                    } else if(elasticCX + onePiProductionCX + twoPiProductionCX + LKProductionCX + SKProductionCX > rChannel) {
+                        isElastic = false;
+// EtaN -> SK channel is chosen
+                        INCL_DEBUG("EtaN interaction: SK channel chosen" << '\n');
+                        return new EtaOrOmegaNToSKChannel(particle1, particle2);
                     }
 
                     else {
                         INCL_WARN("inconsistency within the EtaN Cross Sections (sum!=inelastic)" << '\n');
-                        if(twoPiProductionCX>0.) {
+                        if(SKProductionCX>0.) {
+                            INCL_WARN("Returning a SK channel" << '\n');
+                            isElastic = false;
+                            return new EtaOrOmegaNToSKChannel(particle1, particle2);
+                        } else if(LKProductionCX>0.) {
+                            INCL_WARN("Returning a LK channel" << '\n');
+                            isElastic = false;
+                            return new EtaOrOmegaNToLKChannel(particle1, particle2);
+                        } else if(twoPiProductionCX>0.) {
                             INCL_WARN("Returning a PiPiN channel" << '\n');
                             isElastic = false;
                             return new EtaNToPiPiNChannel(particle1, particle2);
@@ -986,8 +1120,10 @@ namespace G4INCL {
                     const G4double elasticCX = CrossSections::elastic(particle1, particle2);
                     const G4double onePiProductionCX = CrossSections::omegaNToPiN(particle1, particle2);
                     const G4double twoPiProductionCX = CrossSections::omegaNToPiPiN(particle1, particle2);
+                    const G4double LKProductionCX = CrossSections::omegaNToLK(particle1, particle2);
+                    const G4double SKProductionCX = CrossSections::omegaNToSK(particle1, particle2);
                     const G4double totCX=CrossSections::total(particle1, particle2);
-// assert(std::fabs(totCX-elasticCX-onePiProductionCX-twoPiProductionCX)<1.);
+// assert(std::fabs(totCX-elasticCX-onePiProductionCX-twoPiProductionCX + LKProductionCX + SKProductionCX)<1.);
                     
                     const G4double rChannel=Random::shoot() * totCX;
      
@@ -1006,10 +1142,28 @@ namespace G4INCL {
 // OmegaN -> PiPiN channel is chosen
                         INCL_DEBUG("OmegaN interaction: PiPiN channel chosen" << '\n');
                         return new OmegaNToPiPiNChannel(particle1, particle2);
+                    } else if(elasticCX + onePiProductionCX + twoPiProductionCX + LKProductionCX > rChannel) {
+                        isElastic = false;
+// OmegaN -> LK channel is chosen
+                        INCL_DEBUG("EtaN interaction: LK channel chosen" << '\n');
+                        return new EtaOrOmegaNToLKChannel(particle1, particle2);
+                    } else if(elasticCX + onePiProductionCX + twoPiProductionCX + LKProductionCX + SKProductionCX > rChannel) {
+                        isElastic = false;
+// OmegaN -> SK channel is chosen
+                        INCL_DEBUG("EtaN interaction: SK channel chosen" << '\n');
+                        return new EtaOrOmegaNToSKChannel(particle1, particle2);
                     }
                     else {
                         INCL_WARN("inconsistency within the OmegaN Cross Sections (sum!=inelastic)" << '\n');
-                        if(twoPiProductionCX>0.) {
+                        if(SKProductionCX>0.) {
+                            INCL_WARN("Returning a SK channel" << '\n');
+                            isElastic = false;
+                            return new EtaOrOmegaNToSKChannel(particle1, particle2);
+                        } else if(LKProductionCX>0.) {
+                            INCL_WARN("Returning a LK channel" << '\n');
+                            isElastic = false;
+                            return new EtaOrOmegaNToLKChannel(particle1, particle2);
+                        } else if(twoPiProductionCX>0.) {
                             INCL_WARN("Returning a PiPiN channel" << '\n');
                             isElastic = false;
                             return new OmegaNToPiPiNChannel(particle1, particle2);
@@ -1233,8 +1387,184 @@ namespace G4INCL {
                 return new NYElasticChannel(particle1, particle2);
             }
         }
-    }
+    } else if ((particle1->isNucleon() && particle2->isAntiNucleon()) || (particle2->isNucleon() && particle1->isAntiNucleon())) {
+//// NNbar
+        
+        //Forcing annihilationfor emitInsideAntinucleon at the end of cascade &&  annihilation if E <= M + p_threhsold (from antideuteron in generateBinaryCollisionAvatar()) 
+        /*const Particle *antinucleon;
+        const Particle *nucleon;
+        
+        if (particle1->isAntiNucleon()) {
+            antinucleon = particle1;
+            nucleon = particle2;
+        }
+        else {
+            antinucleon = particle2;
+            nucleon = particle1;
+        }
+        double Esquared = antinucleon->getEnergy() * antinucleon->getEnergy();
+        double antinucleon_threshold=0;
+        if(antinucleon->getType()==antiNeutron)
+          antinucleon_threshold = theNucleus->getStore()->getConfig()->getnbAtrestThreshold();
+        else if(antinucleon->getType() == antiProton)
+          antinucleon_threshold = theNucleus->getStore()->getConfig()->getAtrestThreshold();
+        else
+          INCL_ERROR("neither antiproton nor antineutron");*/
+        //double Sum_at_rest = antinucleon->getINCLMass() * antinucleon->getINCLMass() + antinucleon_threshold*antinucleon_threshold;
+      // Force the annihilation when T < Threshold (at rest)
+        //Config const *theConfig=theNucleus->getStore()->getConfig();
 
+        if ((theCrossSection == 9999.) || // XS=9999. means force annihilation
+            ((particle1->getType()==antiProton  && particle1->getKineticEnergy() <= theConfig->getAtrestThreshold())   ||
+             (particle2->getType()==antiProton  && particle2->getKineticEnergy() <= theConfig->getAtrestThreshold())   ||
+             (particle1->getType()==antiNeutron && particle1->getKineticEnergy() <= particle1->getPotentialEnergy()) ||
+             (particle2->getType()==antiNeutron && particle2->getKineticEnergy() <= particle2->getPotentialEnergy()))  ||
+            ((particle1->getType()==antiProton  && particle1->getEnergy() <= particle1->getINCLMass())   ||
+             (particle2->getType()==antiProton  && particle2->getEnergy() <= particle2->getINCLMass())   ||
+             (particle1->getType()==antiNeutron && particle1->getEnergy() <= particle1->getINCLMass()) ||
+             (particle2->getType()==antiNeutron && particle2->getEnergy() <= particle2->getINCLMass())))
+        {
+            isElastic = false; 
+            AnnihilationType atype0;
+            if((particle1->getType()==antiProton && particle2->getType()==Proton) || (particle2->getType()==antiProton && particle1->getType()==Proton)){
+              atype0 = PTypeInFlight;
+            }
+            else if((particle1->getType()==antiProton && particle2->getType()==Neutron) || (particle2->getType()==antiProton && particle1->getType()==Neutron)){
+              atype0 = NTypeInFlight;
+            }
+            else if((particle1->getType()==antiNeutron && particle2->getType()==Proton) || (particle2->getType()==antiNeutron && particle1->getType()==Proton)){
+              atype0 = NbarPTypeInFlight;
+            }
+            else if((particle1->getType()==antiNeutron && particle2->getType()==Neutron) || (particle2->getType()==antiNeutron && particle1->getType()==Neutron)){
+              atype0 = NbarNTypeInFlight;
+            }
+            else{
+              atype0 = Def;
+              INCL_ERROR("Annihilation type problem " << '\n');
+            }
+            theNucleus->setAType(atype0);
+            return new NNbarToAnnihilationChannel(theNucleus, particle1, particle2);
+        }
+        //delete antinucleon;
+        //delete nucleon;  
+
+        // Usual interactions
+        const G4double totCX = CrossSections::total(particle1, particle2);
+        const G4double NNbElasticCX = CrossSections::NNbarElastic(particle1,particle2);
+        const G4double NNbCEXCX = CrossSections::NNbarCEX(particle1,particle2);
+        const G4double NNbToLLbCX = CrossSections::NNbarToLLbar(particle1,particle2);
+        const G4double NNbToNNbpiCX = CrossSections::NNbarToNNbarpi(particle1,particle2);
+        const G4double NNbToNNb2piCX = CrossSections::NNbarToNNbar2pi(particle1,particle2);
+        const G4double NNbToNNb3piCX = CrossSections::NNbarToNNbar3pi(particle1,particle2);
+        const G4double AnnihilationCX = CrossSections::NNbarToAnnihilation(particle1, particle2);
+        
+// assert(std::fabs(totCX-NNbElasticCX-NNbCEXCX-NNbToLLbCX-NNbToNNbpiCX-NNbToNNb2piCX-NNbToNNb3piCX-AnnihilationCX)<0.1);
+
+        const G4double rChannel=Random::shoot() * totCX;
+        if (NNbElasticCX > rChannel) {
+            // NNbar (elastic) channel is chosen
+            isElastic = true; 
+            //INCL_WARN("NNbar interaction: NNbarElastic channel chosen" << '\n');
+            return new NNbarElasticChannel(particle1, particle2);
+        } else if (NNbElasticCX + NNbCEXCX > rChannel) {
+            // NNbar (CEX) channel is chosen
+            isElastic = false; // may be charge-exchange also
+            //INCL_WARN("NNbar interaction: NNbarCEX channel chosen" << '\n');
+            return new NNbarCEXChannel(particle1, particle2);
+        } else if (NNbElasticCX + NNbCEXCX + NNbToLLbCX > rChannel) {
+            // NNbarToLLbar channel is chosen
+            isElastic = false; // may be charge-exchange also
+            //INCL_WARN("NNbar interaction: NNbarToLLbar channel chosen" << '\n');
+            return new NNbarToLLbarChannel(particle1, particle2);
+        } else if (NNbElasticCX + NNbCEXCX + NNbToLLbCX + NNbToNNbpiCX > rChannel) {
+            // NNbar to NNbar pi channel is chosen
+            isElastic = false; 
+            //INCL_WARN("NNbar interaction: NNbar pi channel chosen" << '\n');
+            return new NNbarToNNbarpiChannel(particle1, particle2);
+        } else if (NNbElasticCX + NNbCEXCX + NNbToLLbCX + NNbToNNbpiCX + NNbToNNb2piCX > rChannel) {
+            // NNbar to NNbar 2pi channel is chosen
+            isElastic = false; 
+            //INCL_WARN("NNbar interaction: NNbar 2pi channel chosen" << '\n');
+            return new NNbarToNNbar2piChannel(particle1, particle2);
+        } else if (NNbElasticCX + NNbCEXCX + NNbToLLbCX + NNbToNNbpiCX + NNbToNNb2piCX + NNbToNNb3piCX > rChannel) {
+            // NNbar to NNbar 3pi channel is chosen
+            isElastic = false; 
+            //INCL_WARN("NNbar interaction: NNbar 3pi channel chosen" << '\n');
+            return new NNbarToNNbar3piChannel(particle1, particle2);
+        } else if (NNbElasticCX + NNbCEXCX + NNbToLLbCX + NNbToNNbpiCX + NNbToNNb2piCX + NNbToNNb3piCX +AnnihilationCX > rChannel){
+            // NNbar annihilation channel is chosen
+            isElastic = false; 
+            AnnihilationType atype;
+            if((particle1->getType()==antiProton && particle2->getType()==Proton) || (particle2->getType()==antiProton && particle1->getType()==Proton)){
+              atype = PTypeInFlight;
+            }
+            else if((particle1->getType()==antiProton && particle2->getType()==Neutron) || (particle2->getType()==antiProton && particle1->getType()==Neutron)){
+              atype = NTypeInFlight;
+            }
+            else if((particle1->getType()==antiNeutron && particle2->getType()==Proton) || (particle2->getType()==antiNeutron && particle1->getType()==Proton)){
+              atype = NbarPTypeInFlight;
+            }
+            else if((particle1->getType()==antiNeutron && particle2->getType()==Neutron) || (particle2->getType()==antiNeutron && particle1->getType()==Neutron)){
+              atype = NbarNTypeInFlight;
+            }
+            else{
+              atype = Def;
+              INCL_ERROR("Annihilation type problem " << '\n');
+            }
+            theNucleus->setAType(atype);
+            return new NNbarToAnnihilationChannel(theNucleus, particle1, particle2);
+        } else {
+              INCL_WARN("Inconsistency within the NNbar Cross Sections (sum != inelastic)" << '\n');
+              if (NNbToNNb3piCX > 0.0) {
+                  INCL_WARN("Returning an NNbar 3pi channel" << '\n');
+                  isElastic = false; 
+                  return new NNbarToNNbar3piChannel(particle1, particle2);
+              } else if (NNbToNNb2piCX > 0.0) {
+                  INCL_WARN("Returning an NNbar 2pi channel" << '\n');
+                  isElastic = false; 
+                  return new NNbarToNNbar2piChannel(particle1, particle2);
+              } else if (NNbToNNbpiCX > 0.0) {
+                  INCL_WARN("Returning an NNbar pi channel" << '\n');
+                  isElastic = false; 
+                  return new NNbarToNNbarpiChannel(particle1, particle2);
+              } else if (AnnihilationCX > 0.0) {
+                  INCL_WARN("Returning an NNbar annihilation channel" << '\n');
+                  isElastic = false; 
+                  AnnihilationType atype;
+                  if((particle1->getType()==antiProton && particle2->getType()==Proton) || (particle2->getType()==antiProton && particle1->getType()==Proton)){
+                    atype = PTypeInFlight;
+                  }
+                  else if((particle1->getType()==antiProton && particle2->getType()==Neutron) || (particle2->getType()==antiProton && particle1->getType()==Neutron)){
+                    atype = NTypeInFlight;
+                  }
+                  else if((particle1->getType()==antiNeutron && particle2->getType()==Proton) || (particle2->getType()==antiNeutron && particle1->getType()==Proton)){
+                    atype = NbarPTypeInFlight;
+                  }
+                  else if((particle1->getType()==antiNeutron && particle2->getType()==Neutron) || (particle2->getType()==antiNeutron && particle1->getType()==Neutron)){
+                    atype = NbarNTypeInFlight;
+                  }
+                  else{
+                    atype = Def;
+                    INCL_ERROR("Annihilation type problem " << '\n');
+                  }
+                  theNucleus->setAType(atype);
+                  return new NNbarToAnnihilationChannel(theNucleus, particle1, particle2);
+              } else if (NNbCEXCX > 0.0) {
+                  INCL_WARN("Returning an NNbar CEX channel" << '\n');
+                  isElastic = false;
+                  return new NNbarCEXChannel(particle1, particle2);
+              } else if (NNbToLLbCX > 0.0) {
+                  INCL_WARN("Returning an NNbar LLbar channel" << '\n');
+                  isElastic = false;
+                  return new NNbarToLLbarChannel(particle1, particle2);
+              } else {
+                  INCL_WARN("Elastic NNbar channel chosen" << '\n');
+                  isElastic = true;
+                  return new NNbarElasticChannel(particle1, particle2);
+              }
+        }
+    }
+    
     else {
       INCL_DEBUG("BinaryCollisionAvatar can only handle nucleons (for the moment)."
           << '\n'

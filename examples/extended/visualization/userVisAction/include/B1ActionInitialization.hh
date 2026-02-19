@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file B1ActionInitialization.hh
 /// \brief Definition of the B1ActionInitialization class
 
@@ -47,5 +46,3 @@ class B1ActionInitialization : public G4VUserActionInitialization
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-    

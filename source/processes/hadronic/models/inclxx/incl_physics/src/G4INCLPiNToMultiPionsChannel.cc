@@ -74,6 +74,13 @@ namespace G4INCL {
       nucleon = particle2;
       pion = particle1;
     }
+#ifdef INCLXX_IN_GEANT4_MODE
+    // Erase the parent resonance information of the nucleon and pion
+    nucleon->setParentResonancePDGCode(0);
+    nucleon->setParentResonanceID(0);
+    pion->setParentResonancePDGCode(0);
+    pion->setParentResonanceID(0);
+#endif
       G4int ipi=ParticleTable::getIsospin(pion->getType());
       ind2=ParticleTable::getIsospin(nucleon->getType());
 

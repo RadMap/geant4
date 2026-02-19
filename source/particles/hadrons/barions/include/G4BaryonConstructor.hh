@@ -25,24 +25,16 @@
 //
 //
 //
-// 
+//
 // --------------------------------------------------------------
-//	GEANT 4 class implementation file 
+//	GEANT 4 class implementation file
 //
 #ifndef G4BaryonConstructor_h
 #define G4BaryonConstructor_h 1
 
-#include "globals.hh"
-#include "G4ios.hh"
-
 class G4BaryonConstructor
 {
-  //This class is a utility class for construction 
-
-  public:
-    G4BaryonConstructor();
-    ~G4BaryonConstructor();
-  
+    // This class is a utility class for construction
   public:
     static void ConstructParticle();
 

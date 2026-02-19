@@ -37,15 +37,25 @@
 
 #include "G4ChargeExchangePhysics.hh"
 
-#include "G4ChargeExchangeProcess.hh"
+#include "G4ChargeExchangeXS.hh"
 #include "G4ChargeExchange.hh"
 
 #include "G4ParticleDefinition.hh"
+#include "G4PhysicsListHelper.hh"
 #include "G4ProcessManager.hh"
 
 #include "G4MesonConstructor.hh"
 #include "G4BaryonConstructor.hh"
-#include "G4Neutron.hh"
+#include "G4ShortLivedConstructor.hh"
+#include "G4PionPlus.hh"
+#include "G4PionMinus.hh"
+#include "G4KaonPlus.hh"
+#include "G4KaonMinus.hh"
+#include "G4KaonZeroLong.hh"
+#include "G4HadronicParameters.hh"
+#include "G4HadronInelasticProcess.hh"
+#include "G4ChargeExchangeMessenger.hh"
+#include "G4SystemOfUnits.hh"
 
 // factory
 #include "G4PhysicsConstructorFactory.hh"
@@ -53,55 +63,89 @@
 G4_DECLARE_PHYSCONSTR_FACTORY(G4ChargeExchangePhysics);
 
 G4ChargeExchangePhysics::G4ChargeExchangePhysics(G4int ver)
-  : G4VPhysicsConstructor("chargeExchange"), verbose(ver)
+  : G4VPhysicsConstructor("chargeExchange"),
+    fLowEnergyLimit(12*CLHEP::GeV)
 {
-  if(verbose > 1) G4cout << "### ChargeExchangePhysics" << G4endl;
+  // because it is an addition, the type of this constructor is 0
+  G4HadronicParameters::Instance()->SetVerboseLevel(ver);
+  theMessenger = new G4ChargeExchangeMessenger(this);
+  if (ver > 1) {
+    G4cout << "### ChargeExchangePhysics above " 
+	   << fLowEnergyLimit/CLHEP::GeV << " GeV." << G4endl;
+  }
 }
 
 G4ChargeExchangePhysics::~G4ChargeExchangePhysics()
-{}
+{
+  delete theMessenger;
+}
 
 void G4ChargeExchangePhysics::ConstructParticle()
 {
-// G4cout << "G4ChargeExchangePhysics::ConstructParticle" << G4endl;
   G4MesonConstructor pMesonConstructor;
   pMesonConstructor.ConstructParticle();
 
   G4BaryonConstructor pBaryonConstructor;
   pBaryonConstructor.ConstructParticle();
+
+  G4ShortLivedConstructor pShortLivedConstructor;
+  pShortLivedConstructor.ConstructParticle();  
 }
 
 void G4ChargeExchangePhysics::ConstructProcess()
 {
-  G4ChargeExchange* model = new G4ChargeExchange();
+  auto xs = new G4ChargeExchangeXS();
+  xs->SetEnergyLimit(fLowEnergyLimit);
+  xs->SetCrossSectionFactor(fXSFactor);
 
-  if(verbose > 1) {
+  auto model = new G4ChargeExchange(xs);
+
+  if (G4HadronicParameters::Instance()->GetVerboseLevel() > 1) {
     G4cout << "### ChargeExchangePhysics Construct Processes with the model <" 
-	   << model->GetModelName() << ">" << G4endl;
+	   << model->GetModelName() << "> and x-section <" 
+	   << xs->GetName() << ">  XSFactor=" << fXSFactor 
+	   << G4endl;
   }
 
-  auto myParticleIterator=GetParticleIterator();
-  myParticleIterator->reset();
-  while( (*myParticleIterator)() )
-  {
-    G4ParticleDefinition* particle = myParticleIterator->value();
-    G4String pname = particle->GetParticleName();
-    if(pname == "neutron"   || 
-       pname == "pi-"       || 
-       pname == "pi+"       || 
-       pname == "proton"
-       ) { 
-      
-      G4ProcessManager* pmanager = particle->GetProcessManager();
-      G4ChargeExchangeProcess* p = new G4ChargeExchangeProcess();
-      p->RegisterMe(model);
-      pmanager->AddDiscreteProcess(p);
+  // pi-
+  G4ParticleDefinition* part = G4PionMinus::PionMinus(); 
+  auto proc =
+    new G4HadronInelasticProcess(part->GetParticleName()+"ChargeEx", part);
+  proc->AddDataSet( xs );
+  proc->RegisterMe( model );
+  G4ProcessManager* pman = part->GetProcessManager();
+  pman->AddDiscreteProcess(proc);
 
-      if(verbose > 1)
-	G4cout << "### ChargeExchangePhysics added for " 
-	       << particle->GetParticleName() << G4endl;
-    }
-  }
+  // pi+
+  part = G4PionPlus::PionPlus(); 
+  proc = new G4HadronInelasticProcess(part->GetParticleName()+"ChargeEx", part);
+  proc->AddDataSet( xs );
+  proc->RegisterMe( model );
+  pman = part->GetProcessManager();
+  pman->AddDiscreteProcess(proc);
+
+  // kaon-
+  part = G4KaonMinus::KaonMinus(); 
+  proc = new G4HadronInelasticProcess(part->GetParticleName()+"ChargeEx", part);
+  proc->AddDataSet( xs );
+  proc->RegisterMe( model );
+  pman = part->GetProcessManager();
+  pman->AddDiscreteProcess(proc);
+
+
+  // kaon+
+  part = G4KaonPlus::KaonPlus(); 
+  proc = new G4HadronInelasticProcess(part->GetParticleName()+"ChargeEx", part);
+  proc->AddDataSet( xs );
+  proc->RegisterMe( model );
+  pman = part->GetProcessManager();
+  pman->AddDiscreteProcess(proc);
+
+  // KL
+  part = G4KaonZeroLong::KaonZeroLong();
+  proc = new G4HadronInelasticProcess(part->GetParticleName()+"ChargeEx", part);
+  proc->AddDataSet( xs );
+  proc->RegisterMe( model );
+  pman = part->GetProcessManager();
+  pman->AddDiscreteProcess(proc);
 }
-
-

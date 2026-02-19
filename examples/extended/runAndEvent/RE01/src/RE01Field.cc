@@ -23,35 +23,36 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE01/src/RE01Field.cc
+/// \file RE01Field.cc
 /// \brief Implementation of the RE01Field class
-//
-//
 
 #include "RE01Field.hh"
-#include "G4SystemOfUnits.hh"    
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo...... 
-RE01Field::RE01Field()
-  :G4MagneticField()
+#include "G4SystemOfUnits.hh"
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+RE01Field::RE01Field() : G4MagneticField()
 {
-  fBz = 3.0*tesla;
-  fRmax_sq = sqr(50.*cm);
-  fZmax = 100.*cm;
+  fBz = 3.0 * tesla;
+  fRmax_sq = sqr(50. * cm);
+  fZmax = 100. * cm;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo...... 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 RE01Field::~RE01Field()
-{;}
+{
+  ;
+}
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo...... 
-void RE01Field::GetFieldValue(const double point[3],double *bfield) const
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+void RE01Field::GetFieldValue(const double point[3], double* bfield) const
 {
   bfield[0] = 0.;
   bfield[1] = 0.;
-  if(std::abs(point[2])<fZmax && (sqr(point[0])+sqr(point[1]))<fRmax_sq)
-  { bfield[2] = fBz; }
-  else
-  { bfield[2] = 0.; }
+  if (std::abs(point[2]) < fZmax && (sqr(point[0]) + sqr(point[1])) < fRmax_sq) {
+    bfield[2] = fBz;
+  }
+  else {
+    bfield[2] = 0.;
+  }
 }
-

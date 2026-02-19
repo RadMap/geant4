@@ -1,18 +1,40 @@
--------------------------------------------------------------------
+# Example fanoCavity History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top). It must **not**
+be used as a substitute for writing good git commit messages!
 
-                    fanoCavity History file
-                    -----------------------
-This file should be used by the G4 example coordinator to briefly
-summarize all major modifications introduced in the code and keep
-track of all tags.
+## 2024-04-17 Vladimir Ivantchenko (fano-V11-02-01)
+- PhysicsLists - fixed annoing warnings on decay table
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2024-03-11 Vladimir Ivantchenko (fano-V11-02-00)
+- Make PhysicsLists of the example to be coherent with physics_list library
+  of Geant4 11.2ref02
+
+## 2021-12-27 Vladimir Ivantchenko (fano-V11-00-01)
+- Make PhysicsLists of the example to be coherent with physics_list library
+
+## 2021-12-10 Ben Morgan (fano-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+     
+06-10-21 I. Hrivnacova (fano-V10-07-03)
+- Migration to new G4AnalysisManager.hh header;
+  define the default output file type (root).
+
+19-07-21 I. Hrivnacova (fano-V10-07-02)
+- Updated for changes in the analysis category:
+  removed deleting of the analysis manager,
+  as this is now done by the Geant4 kernel.
+
+16-05-21 mma (fano-V10-07-01)
+- Migration to G4RunManagerFactory and G4SteppingVerboseWithUnits.
+
+23-03-21 V. Ivanchenko (fano-V10-07-00)
+- updated physics constructors for 11.0
      
 21-03-19 mma (fano-V10-05-03)
 - DefineMaterial() : restaure G4_WATER

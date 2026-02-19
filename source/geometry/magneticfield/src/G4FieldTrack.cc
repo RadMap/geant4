@@ -25,8 +25,8 @@
 //
 // G4FieldTrack implementation
 //
-// Author: John Apostolakis, CERN - First version, 14.10.1996
-// -------------------------------------------------------------------
+// Author: John Apostolakis (CERN), 14.10.1996 - First version
+// --------------------------------------------------------------------
 
 #include "G4FieldTrack.hh"
 
@@ -38,7 +38,7 @@ std::ostream& operator<<( std::ostream& os, const G4FieldTrack& SixVec)
      const G4int precLen= 12;  // For Length along track
      const G4int precSpin= 9;  // For polarisation
      const G4int precTime= 6;  // For time of flight
-     const G4int oldpr= os.precision(precPos);
+     const G4long oldpr= os.precision(precPos);
      os << " ( ";
      os << " X= " << SixV[0] << " " << SixV[1] << " "
                   << SixV[2] << " ";  // Position
@@ -93,10 +93,7 @@ G4FieldTrack::G4FieldTrack( const G4ThreeVector& pPosition,
    fRestMass_c2(restMass_c2),
    fLabTimeOfFlight(LaboratoryTimeOfFlight), 
    fProperTimeOfFlight(0.),
-   // fMomentumDir(pMomentumDirection),
    fChargeState(  charge, magnetic_dipole_moment, pdgSpin ) 
-   // fChargeState(  charge, magnetic_dipole_moment ) , 
-   // fPDGSpin( pdgSpin )
 {
   UpdateFourMomentum( kineticEnergy, pMomentumDirection ); 
     // Sets momentum direction as well.
@@ -129,7 +126,7 @@ G4FieldTrack::G4FieldTrack( const G4ThreeVector& pPosition,
   fChargeState.SetPDGSpin( pdgSpin );   
 
   G4ThreeVector PolarVec(0.0, 0.0, 0.0); 
-  if( pPolarization )  { PolarVec= *pPolarization; }
+  if( pPolarization != nullptr )  { PolarVec= *pPolarization; }
   SetPolarization( PolarVec );
 }
 
@@ -140,8 +137,6 @@ G4FieldTrack::G4FieldTrack( char )                  //  Nothing is set !!
   G4ThreeVector Zero(0.0, 0.0, 0.0);
   SetCurvePnt( Zero, Zero, 0.0 );
   SetPolarization( Zero ); 
-  // fInitialMomentumMag = 0.00; // Invalid
-  // fLastMomentumMag = 0.0; 
 }
 
 void G4FieldTrack::

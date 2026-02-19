@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PrimaryKiller.cc
+/// \brief Implementation of the PrimaryKiller class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -34,16 +37,14 @@
 //
 #include "PrimaryKiller.hh"
 
-#include <G4UnitsTable.hh>
 #include <G4Event.hh>
-#include <G4SystemOfUnits.hh>
-#include <globals.hh>
-#include <G4UIcmdWithADoubleAndUnit.hh>
-#include <G4RunManager.hh>
 #include <G4EventManager.hh>
+#include <G4RunManager.hh>
+#include <G4UIcmdWithADoubleAndUnit.hh>
+#include <G4UnitsTable.hh>
+#include <globals.hh>
 
-/** \file PrimaryKiller.cc
-    \class PrimaryKiller
+/** \class PrimaryKiller
 
     Kill the primary particle:
     - either after a given energy loss
@@ -53,87 +54,59 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 PrimaryKiller::PrimaryKiller(G4String name, G4int depth)
-: G4VPrimitiveScorer(name,depth),
-  G4UImessenger()
+  : G4VPrimitiveScorer(name, depth), G4UImessenger()
 {
-  fELoss = 0.; // cumulated energy for current event
-  
-  fELossRange_Min = DBL_MAX; // fELoss from which the primary is killed
-  fELossRange_Max = DBL_MAX; // fELoss from which the event is aborted
-  fKineticE_Min = 0; // kinetic energy below which the primary is killed
-  
-  fpELossUI = new G4UIcmdWithADoubleAndUnit("/primaryKiller/eLossMin",this);
-  fpAbortEventIfELossUpperThan =
-    new G4UIcmdWithADoubleAndUnit("/primaryKiller/eLossMax", this);
-  fpMinKineticE =
-   new G4UIcmdWithADoubleAndUnit("/primaryKiller/minKineticE", this);
+  fpELossUI = new G4UIcmdWithADoubleAndUnit("/primaryKiller/eLossMin", this);
+  fpAbortEventIfELossUpperThan = new G4UIcmdWithADoubleAndUnit("/primaryKiller/eLossMax", this);
 }
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PrimaryKiller::~PrimaryKiller()
-{;}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void PrimaryKiller::SetNewValue(G4UIcommand * command,
-                                G4String newValue)
+void PrimaryKiller::SetNewValue(G4UIcommand* command, G4String newValue)
 {
-  if(command == fpELossUI){
+  if (command == fpELossUI) {
     fELossRange_Min = fpELossUI->GetNewDoubleValue(newValue);
   }
-  else if(command == fpAbortEventIfELossUpperThan){
-    fELossRange_Max =
-      fpAbortEventIfELossUpperThan->GetNewDoubleValue(newValue);
+  else if (command == fpAbortEventIfELossUpperThan) {
+    fELossRange_Max = fpAbortEventIfELossUpperThan->GetNewDoubleValue(newValue);
   }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4bool PrimaryKiller::ProcessHits(G4Step* aStep,G4TouchableHistory*)
+G4bool PrimaryKiller::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
   const G4Track* track = aStep->GetTrack();
-  
-  if(track->GetTrackID() != 1) return FALSE;
-  
-  //-------------------
-  
-  double kineticE = aStep->GetPostStepPoint()->GetKineticEnergy();
-  
-  G4double eLoss = aStep->GetPreStepPoint()->GetKineticEnergy()
-                  - kineticE;
 
-  if ( eLoss == 0. ) return FALSE;
-  
+  if (track->GetTrackID() != 1) return FALSE;
+
   //-------------------
 
-  fELoss+=eLoss;
-  
-  if(fELoss > fELossRange_Max){
+  auto kineticE = aStep->GetPostStepPoint()->GetKineticEnergy();
+
+  auto eLoss = aStep->GetPreStepPoint()->GetKineticEnergy() - kineticE;
+
+  if (eLoss == 0.) return FALSE;
+
+  //-------------------
+  fELoss += eLoss;
+
+  if (fELoss > fELossRange_Max) {
     G4RunManager::GetRunManager()->AbortEvent();
-    int eventID =
-     G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
-    G4cout << "Aborts event " << eventID <<", energy loss "
+    int eventID = G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
+    G4cout << "Aborts event " << eventID
+           << ", energy loss "
               "is too large. \n"
-           << " * Energy loss by primary is: "
-           << G4BestUnit(fELoss, "Energy")
-           << ". Event is aborted if the Eloss is > "
-           << G4BestUnit(fELossRange_Max, "Energy")
+           << " * Energy loss by primary is: " << G4BestUnit(fELoss, "Energy")
+           << ". Event is aborted if the Eloss is > " << G4BestUnit(fELossRange_Max, "Energy")
            << G4endl;
-    
   }
-  
-  if(fELoss >= fELossRange_Min ) { //|| kineticE <= fKineticE_Min){
+
+  if (fELoss >= fELossRange_Min) {  //|| kineticE <= fKineticE_Min){
     ((G4Track*)track)->SetTrackStatus(fStopAndKill);
-     G4cout << "Kill track at : "
-           << G4BestUnit(kineticE, "Energy")
-           << ", Energy loss by primary is: "
-           << G4BestUnit(fELoss, "Energy")
-           << ", primary is terminated as Eloss is >: "
-           << G4BestUnit(fELossRange_Min, "Energy")
-           << G4endl; //", EThreshold is: "
-//           << G4BestUnit(fEThreshold, "Energy")
- //          << G4endl;
+    G4cout << "Kill track at : " << G4BestUnit(kineticE, "Energy")
+           << ", Energy loss by primary is: " << G4BestUnit(fELoss, "Energy")
+           << ", primary is terminated as Eloss is >: " << G4BestUnit(fELossRange_Min, "Energy")
+           << G4endl;  //", EThreshold is: "
   }
 
   return true;
@@ -143,30 +116,7 @@ G4bool PrimaryKiller::ProcessHits(G4Step* aStep,G4TouchableHistory*)
 
 void PrimaryKiller::Initialize(G4HCofThisEvent* /*HCE*/)
 {
-  clear();
+  Clear();
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void PrimaryKiller::EndOfEvent(G4HCofThisEvent*)
-{
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void PrimaryKiller::clear()
-{
-  fELoss = 0.;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void PrimaryKiller::DrawAll()
-{;}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void PrimaryKiller::PrintAll()
-{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

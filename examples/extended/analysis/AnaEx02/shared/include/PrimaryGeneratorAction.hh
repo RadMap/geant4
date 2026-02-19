@@ -25,13 +25,6 @@
 //
 /// \file PrimaryGeneratorAction.hh
 /// \brief Definition of the PrimaryGeneratorAction class
-//
-//
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PrimaryGeneratorAction_h
 #define PrimaryGeneratorAction_h 1
@@ -47,19 +40,17 @@ class DetectorConstruction;
 
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
-  PrimaryGeneratorAction(DetectorConstruction*);    
-  virtual ~PrimaryGeneratorAction();
+  public:
+    PrimaryGeneratorAction(DetectorConstruction*);
+    ~PrimaryGeneratorAction() override;
 
-  virtual void GeneratePrimaries(G4Event*);
+    void GeneratePrimaries(G4Event*) override;
 
-private:
-  G4ParticleGun*           fParticleGun;  //pointer a to G4 class
-  DetectorConstruction*    fDetector;     //pointer to the geometry
+  private:
+    G4ParticleGun* fParticleGun = nullptr;  // pointer a to G4 class
+    DetectorConstruction* fDetector = nullptr;  // pointer to the geometry
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-

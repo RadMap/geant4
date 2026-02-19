@@ -44,7 +44,7 @@ class G4TheoFSGenerator;
 class G4LundStringFragmentation;
 class G4ExcitedStringDecay;
 class G4ElectroNuclearCrossSection;
-class G4PhotoNuclearCrossSection;
+class G4VCrossSectionDataSet;
 
 class G4ElectroVDNuclearModel : public G4HadronicInteraction
 {
@@ -71,12 +71,14 @@ class G4ElectroVDNuclearModel : public G4HadronicInteraction
     G4double photonQ2;
 
     G4ElectroNuclearCrossSection* electroXS;
-    G4PhotoNuclearCrossSection* gammaXS;
+    G4VCrossSectionDataSet* gammaXS;
 
     G4TheoFSGenerator* ftfp;
     G4LundStringFragmentation* theFragmentation;
     G4ExcitedStringDecay* theStringDecay;
     G4CascadeInterface* bert;
+
+    G4int secID;  // Creator model ID for the secondaries created by this model
 };
 
 #endif

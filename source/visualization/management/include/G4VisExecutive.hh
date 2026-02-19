@@ -120,12 +120,25 @@ class G4VisExecutive: public G4VisManager {
 
 public: // With description
 
-  G4VisExecutive (const G4String& verbosityString = "warnings");
+  G4VisExecutive(const G4String& verbosityString = "warnings");
+  G4VisExecutive(int argc, char** argv, const G4String& system = "",
+                 const G4String& verbosityString = "warnings");
 
 private:
 
-  void RegisterGraphicsSystems();
-  void RegisterModelFactories();
+  const G4String& GetDefaultGraphicsSystemName() override;
+  void SetDefaultsByArgument(const G4String& system);
+  void SetDefaultsByEnvironment();
+  void SetDefaultsByFile(int argc, char** argv);
+  void SetDefaultsByBatch();
+  void SetDefaultsByBuildFlags();
+  int      fUserArgc;
+  char**   fUserArgv;
+  G4String fUserSpecifiedSystem;
+  G4bool   fSelected;
+
+  void RegisterGraphicsSystems() override;
+  void RegisterModelFactories() override;
 
 };
 

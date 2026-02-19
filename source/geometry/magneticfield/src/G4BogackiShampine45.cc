@@ -53,7 +53,7 @@
 //   for re-use in case of a successful step.
 //   (This is done in a 'later' version using a refined interface).
 //
-// Created: Somnath Banerjee, Google Summer of Code 2015, May-August 2015
+// Author: Somnath Banerjee, Google Summer of Code 2015, May-August 2015
 // Revision: John Apostolakis, CERN, May 2016
 // --------------------------------------------------------------------
 
@@ -88,9 +88,9 @@ G4BogackiShampine45::G4BogackiShampine45(G4EquationOfMotion *EqRhs,
     ak10 = new G4double[numberOfVariables];
     ak11 = new G4double[numberOfVariables];    
 
-    for (auto i = 0; i < 6; ++i)
+    for (auto & i : p)
     {
-       p[i]= new G4double[numberOfVariables];
+       i= new G4double[numberOfVariables];
     }
 
     assert ( GetNumberOfStateVariables() >= 8 );    
@@ -136,9 +136,9 @@ G4BogackiShampine45::~G4BogackiShampine45()
     delete [] ak10;
     delete [] ak11;
 
-    for (auto i = 0; i < 6; ++i)
+    for (auto & i : p)
     {
-       delete [] p[i];
+       delete [] i;
     }
 
     delete [] yTemp;
@@ -473,11 +473,11 @@ void G4BogackiShampine45::SetupInterpolationHigh()
 
       //  Scale all the coefficients by the step size.
       //
-      for (G4int i = 0; i < 6; ++i)
+      for (auto & i : p)
       {
          for (G4int l = 0; l < nwant; ++l)
          {  
-            p[i][l] *= Step;
+            i[l] *= Step;
          }
       }
 

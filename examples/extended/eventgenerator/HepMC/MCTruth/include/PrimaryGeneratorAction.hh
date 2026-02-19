@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/MCTruth/include/PrimaryGeneratorAction.hh
+/// \file PrimaryGeneratorAction.hh
 /// \brief Definition of the PrimaryGeneratorAction class
-//
-//
-//
-//
+
 // --------------------------------------------------------------
 //      GEANT 4 - PrimaryGeneratorAction class
 // --------------------------------------------------------------
@@ -48,16 +45,13 @@ class G4Event;
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-
-    PrimaryGeneratorAction();    
-   ~PrimaryGeneratorAction();
+    PrimaryGeneratorAction();
+    ~PrimaryGeneratorAction();
 
   public:
-
     virtual void GeneratePrimaries(G4Event*);
 
   private:
-
     G4ParticleGun* fParticleGun;
 };
 

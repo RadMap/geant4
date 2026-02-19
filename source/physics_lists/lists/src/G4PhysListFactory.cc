@@ -32,6 +32,7 @@
 //
 // Modified:
 //
+// 2023.04.12 A.Ribon added _HPT variants (i.e. HP + thermal scattering)
 // 2014.08.05 K.L.Genser used provision for Hadronic Physics Variant M in 
 //            Shielding for ShieldingM
 //
@@ -53,6 +54,7 @@
 #include "QGSP_BERT_HP.hh"
 #include "QGSP_BIC.hh"
 #include "QGSP_BIC_HP.hh"
+#include "QGSP_BIC_HPT.hh"
 #include "QGSP_BIC_AllHP.hh"
 #include "QGSP_FTFP_BERT.hh"
 #include "QGS_BIC.hh"
@@ -61,6 +63,7 @@
 #include "Shielding.hh"
 #include "ShieldingLEND.hh"
 #include "NuBeam.hh"
+#include "G4ThermalNeutrons.hh"
 
 #include "G4EmStandardPhysics.hh"
 #include "G4EmStandardPhysics_option1.hh"
@@ -76,24 +79,28 @@
 #include "G4PhysListFactoryMessenger.hh"
 #include "G4UImessenger.hh"
 
-G4PhysListFactory::G4PhysListFactory() 
-  : defName("FTFP_BERT"),verbose(1),theMessenger(nullptr)
+G4PhysListFactory::G4PhysListFactory(G4int ver) 
+  : defName("FTFP_BERT"),verbose(ver),theMessenger(nullptr)
 {
-  nlists_hadr = 23;
-  G4String ss[23] = {
+  nlists_hadr = 36;
+  G4String ss[36] = {
     "FTFP_BERT","FTFP_BERT_TRV","FTFP_BERT_ATL","FTFP_BERT_HP","FTFQGSP_BERT",
-    "FTFP_INCLXX","FTFP_INCLXX_HP","FTF_BIC", "LBE","QBBC",
+    "FTFP_INCLXX","FTFP_INCLXX_HP","FTF_BIC","LBE","QBBC",
     "QGSP_BERT","QGSP_BERT_HP","QGSP_BIC","QGSP_BIC_HP","QGSP_BIC_AllHP",
     "QGSP_FTFP_BERT","QGSP_INCLXX","QGSP_INCLXX_HP","QGS_BIC",
-    "Shielding","ShieldingLEND","ShieldingM","NuBeam"};
-  for(size_t i=0; i<nlists_hadr; ++i) {
+    "Shielding","ShieldingLEND","ShieldingLIQMD","ShieldingM","NuBeam",
+    "Shielding_HP","ShieldingLIQMD_HP","ShieldingM_HP",
+    "FTFP_BERT_HPT","FTFP_INCLXX_HPT","QGSP_BERT_HPT","QGSP_BIC_HPT",
+    "QGSP_BIC_AllHPT","QGSP_INCLXX_HPT","Shielding_HPT","ShieldingLIQMD_HPT",
+    "ShieldingM_HPT"};
+  for (std::size_t i=0; i<nlists_hadr; ++i) {
     listnames_hadr.push_back(ss[i]);
   }
 
   nlists_em = 12;
   G4String s1[12] = {"","_EMV","_EMX","_EMY","_EMZ","_LIV","_PEN",
-		     "__GS","__SS","_EM0","_WVI","__LE"};
-  for(size_t i=0; i<nlists_em; ++i) {
+    "__GS","__SS","_EM0","_WVI","__LE"};
+  for (std::size_t i=0; i<nlists_em; ++i) {
     listnames_em.push_back(s1[i]);
   }
 }
@@ -107,9 +114,9 @@ G4VModularPhysicsList*
 G4PhysListFactory::ReferencePhysList()
 {
   // instantiate PhysList by environment variable "PHYSLIST"
-  G4String name = "";
-  char* path = std::getenv("PHYSLIST");
-  if (path) {
+  G4String name;
+  const char* path = std::getenv("PHYSLIST");
+  if (nullptr != path) {
     name = G4String(path);
   } else {
     name = defName;
@@ -127,105 +134,127 @@ G4VModularPhysicsList*
 G4PhysListFactory::GetReferencePhysList(const G4String& name)
 {
   // analysis on the string 
-  size_t n = name.size();
+  std::size_t n = name.size();
 
   // last characters in the string
-  size_t em_opt = 0;
-  G4String em_name = "";
+  std::size_t em_opt = 0;
+  G4String em_name;
 
   // check EM options
-  if(n > 4) {
-    em_name = name.substr(n - 4, 4);
-    for(size_t i=1; i<nlists_em; ++i) { 
-      if(listnames_em[i] == em_name) { 
+  if (n > 4) {
+    G4String ss = name.substr(n - 4, 4);
+    for (std::size_t i=1; i<nlists_em; ++i) { 
+      if (listnames_em[i] == ss) { 
 	em_opt = i;
+	em_name = ss;
         n -= 4;
         break; 
       }
     }
-    if(0 == em_opt) { em_name = ""; }
+    // default EM physics
+    if ("_EM0" == em_name) {
+      em_opt = 0;
+    }
   }
 
-  // hadronic pHysics List
+  // hadronic physics 
   G4String had_name = name.substr(0, n);
 
   if(0 < verbose) {
     G4cout << "G4PhysListFactory::GetReferencePhysList <" << had_name
-	   << em_name << ">  EMoption= " << em_opt << G4endl;
+	   << em_name << ">" << G4endl;
   }
   G4VModularPhysicsList* p = nullptr;
-  if(had_name == "FTFP_BERT")           {p = new FTFP_BERT(verbose);}
-  else if(had_name == "FTFP_BERT_HP")   {p = new FTFP_BERT_HP(verbose);}
-  else if(had_name == "FTFP_BERT_TRV")  {p = new FTFP_BERT_TRV(verbose);}
-  else if(had_name == "FTFP_BERT_ATL")  {p = new FTFP_BERT_ATL(verbose);}
-  else if(had_name == "FTFQGSP_BERT")   {p = new FTFQGSP_BERT(verbose);}
-  else if(had_name == "FTFP_INCLXX")    {p = new FTFP_INCLXX(verbose);}
-  else if(had_name == "FTFP_INCLXX_HP") {p = new FTFP_INCLXX_HP(verbose);}
-  else if(had_name == "FTF_BIC")        {p = new FTF_BIC(verbose);}
-  else if(had_name == "LBE")            {p = new LBE();}
-  else if(had_name == "QBBC")           {p = new QBBC(verbose);}
-  else if(had_name == "QGSP_BERT")      {p = new QGSP_BERT(verbose);}
-  else if(had_name == "QGSP_BERT_HP")   {p = new QGSP_BERT_HP(verbose);}
-  else if(had_name == "QGSP_BIC")       {p = new QGSP_BIC(verbose);}
-  else if(had_name == "QGSP_BIC_HP")    {p = new QGSP_BIC_HP(verbose);}
-  else if(had_name == "QGSP_BIC_AllHP") {p = new QGSP_BIC_AllHP(verbose);}
-  else if(had_name == "QGSP_FTFP_BERT") {p = new QGSP_FTFP_BERT(verbose);}
-  else if(had_name == "QGSP_INCLXX")    {p = new QGSP_INCLXX(verbose);}
-  else if(had_name == "QGSP_INCLXX_HP") {p = new QGSP_INCLXX_HP(verbose);}
-  else if(had_name == "QGS_BIC")        {p = new QGS_BIC(verbose);}
-  else if(had_name == "Shielding")      {p = new Shielding(verbose);}
-  else if(had_name == "ShieldingLEND")  {p = new ShieldingLEND(verbose);}
-  else if(had_name == "ShieldingM")     {p = new Shielding(verbose,"HP","M");}
-  else if(had_name == "NuBeam")         {p = new NuBeam(verbose);}
+  if(had_name == "FTFP_BERT")               {p = new FTFP_BERT(verbose);}
+  else if(had_name == "FTFP_BERT_HP")       {p = new FTFP_BERT_HP(verbose);}
+  else if(had_name == "FTFP_BERT_TRV")      {p = new FTFP_BERT_TRV(verbose);}
+  else if(had_name == "FTFP_BERT_ATL")      {p = new FTFP_BERT_ATL(verbose);}
+  else if(had_name == "FTFQGSP_BERT")       {p = new FTFQGSP_BERT(verbose);}
+  else if(had_name == "FTFP_INCLXX")        {p = new FTFP_INCLXX(verbose);}
+  else if(had_name == "FTFP_INCLXX_HP")     {p = new FTFP_INCLXX_HP(verbose);}
+  else if(had_name == "FTF_BIC")            {p = new FTF_BIC(verbose);}
+  else if(had_name == "LBE")                {p = new LBE();}
+  else if(had_name == "QBBC")               {p = new QBBC(verbose);}
+  else if(had_name == "QGSP_BERT")          {p = new QGSP_BERT(verbose);}
+  else if(had_name == "QGSP_BERT_HP")       {p = new QGSP_BERT_HP(verbose);}
+  else if(had_name == "QGSP_BIC")           {p = new QGSP_BIC(verbose);}
+  else if(had_name == "QGSP_BIC_HP")        {p = new QGSP_BIC_HP(verbose);}
+  else if(had_name == "QGSP_BIC_AllHP")     {p = new QGSP_BIC_AllHP(verbose);}
+  else if(had_name == "QGSP_FTFP_BERT")     {p = new QGSP_FTFP_BERT(verbose);}
+  else if(had_name == "QGSP_INCLXX")        {p = new QGSP_INCLXX(verbose);}
+  else if(had_name == "QGSP_INCLXX_HP")     {p = new QGSP_INCLXX_HP(verbose);}
+  else if(had_name == "QGS_BIC")            {p = new QGS_BIC(verbose);}
+  else if(had_name == "Shielding")          {p = new Shielding(verbose);}
+  else if(had_name == "ShieldingLEND")      {p = new ShieldingLEND(verbose);}
+  else if(had_name == "ShieldingLIQMD")     {p = new Shielding(verbose,"HP","",true);}  
+  else if(had_name == "ShieldingM")         {p = new Shielding(verbose,"HP","M");}
+  else if(had_name == "NuBeam")             {p = new NuBeam(verbose);}
+  else if(had_name == "Shielding_HP")       {p = new Shielding(verbose);}
+  else if(had_name == "ShieldingLIQMD_HP")  {p = new Shielding(verbose,"HP","",true);}
+  else if(had_name == "ShieldingM_HP")      {p = new Shielding(verbose,"HP","M");}
+  else if(had_name == "FTFP_BERT_HPT")      {p = new FTFP_BERT_HP(verbose);
+                                             p->RegisterPhysics(new G4ThermalNeutrons);}
+  else if(had_name == "FTFP_INCLXX_HPT")    {p = new FTFP_INCLXX_HP(verbose);
+                                             p->RegisterPhysics(new G4ThermalNeutrons);}
+  else if(had_name == "QGSP_BERT_HPT")      {p = new QGSP_BERT_HP(verbose);
+                                             p->RegisterPhysics(new G4ThermalNeutrons);}
+  else if(had_name == "QGSP_BIC_HPT")       {p = new QGSP_BIC_HPT(verbose);}
+  else if(had_name == "QGSP_BIC_AllHPT")    {p = new QGSP_BIC_AllHP(verbose);
+                                             p->RegisterPhysics(new G4ThermalNeutrons);}
+  else if(had_name == "QGSP_INCLXX_HPT")    {p = new QGSP_INCLXX_HP(verbose);
+                                             p->RegisterPhysics(new G4ThermalNeutrons);}
+  else if(had_name == "Shielding_HPT")      {p = new Shielding(verbose);
+                                             p->RegisterPhysics(new G4ThermalNeutrons);}
+  else if(had_name == "ShieldingLIQMD_HPT") {p = new Shielding(verbose,"HP","",true);
+                                             p->RegisterPhysics(new G4ThermalNeutrons);}
+  else if(had_name == "ShieldingM_HPT")     {p = new Shielding(verbose,"HP","M");
+                                             p->RegisterPhysics(new G4ThermalNeutrons);}
   else {
-    G4cout << "### G4PhysListFactory WARNING: "
-	   << "PhysicsList " << had_name << " is not known"
-	   << G4endl;
+    G4ExceptionDescription ed;
+    ed << "ERROR: The requested physics list " << had_name
+       << " is NOT available in the Physics List Factory.\n"
+       << "Please choose a valid physics list.\n";
+
+    G4Exception("G4PhysListFactory", "pl0003", FatalException, ed);
+    return nullptr;
   }
-  if(p) {
-    G4cout << "<<< Reference Physics List " << had_name
-	   << em_name << " is built" << G4endl;
-    G4int ver = p->GetVerboseLevel();
-    p->SetVerboseLevel(0);
-    if(0 < em_opt && had_name != "LBE") {
-      if(1 == em_opt) { 
+  if(nullptr != p) {
+    if (had_name != "LBE") {
+      if (1 == em_opt) { 
 	p->ReplacePhysics(new G4EmStandardPhysics_option1(verbose)); 
-      } else if(2 == em_opt) {
+      } else if (2 == em_opt) {
 	p->ReplacePhysics(new G4EmStandardPhysics_option2(verbose)); 
-      } else if(3 == em_opt) {
+      } else if (3 == em_opt) {
 	p->ReplacePhysics(new G4EmStandardPhysics_option3(verbose)); 
-      } else if(4 == em_opt) {
+      } else if (4 == em_opt) {
 	p->ReplacePhysics(new G4EmStandardPhysics_option4(verbose)); 
-      } else if(5 == em_opt) {
+      } else if (5 == em_opt) {
 	p->ReplacePhysics(new G4EmLivermorePhysics(verbose)); 
-      } else if(6 == em_opt) {
+      } else if (6 == em_opt) {
 	p->ReplacePhysics(new G4EmPenelopePhysics(verbose)); 
-      } else if(7 == em_opt) {
+      } else if (7 == em_opt) {
 	p->ReplacePhysics(new G4EmStandardPhysicsGS(verbose)); 
-      } else if(8 == em_opt) {
+      } else if (8 == em_opt) {
 	p->ReplacePhysics(new G4EmStandardPhysicsSS(verbose)); 
-      } else if(9 == em_opt) {
-	p->ReplacePhysics(new G4EmStandardPhysics(verbose)); 
-      } else if(10 == em_opt) {
+      } else if (10 == em_opt) {
 	p->ReplacePhysics(new G4EmStandardPhysicsWVI(verbose)); 
-      } else if(11 == em_opt) {
+      } else if (11 == em_opt) {
 	p->ReplacePhysics(new G4EmLowEPPhysics(verbose)); 
       }
     }
-    p->SetVerboseLevel(ver);
     theMessenger = new G4PhysListFactoryMessenger(p);
   }
-  G4cout << G4endl;
+  if(0 < verbose) G4cout << G4endl;
   return p;
 }
   
-G4bool G4PhysListFactory::IsReferencePhysList(const G4String& name)
+G4bool G4PhysListFactory::IsReferencePhysList(const G4String& name) const
 {
   G4bool res = false;
-  size_t n = name.size();
+  std::size_t n = name.size();
   if(n > 4) {
     G4String em_name = name.substr(n - 4, 4);
-    for(size_t i=1; i<nlists_em; ++i) { 
+    for (std::size_t i=1; i<nlists_em; ++i) { 
       if(listnames_em[i] == em_name) { 
         n -= 4;
         break; 
@@ -233,7 +262,7 @@ G4bool G4PhysListFactory::IsReferencePhysList(const G4String& name)
     }
   }
   G4String had_name = name.substr(0, n);
-  for(size_t i=0; i<nlists_hadr; ++i) {
+  for (std::size_t i=0; i<nlists_hadr; ++i) {
     if(had_name == listnames_hadr[i]) {
       res = true;
       break;

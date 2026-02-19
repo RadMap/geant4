@@ -23,76 +23,50 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4SensitiveVolumeList
 //
+// Class description:
 //
-// ------------------------------------------------------------
-//      GEANT 4 class header file --- Copyright CERN 1996
-//      CERN Geneva Switzerland
-//
-//      History: first implementation, based on Hits+Digi domain
-//      object model of April 1996, S.Piperov
-//
-//   ----------------  G4SensitiveVolumeList  -----------------
-
-#ifndef G4SensitiveVolumeList_h
-#define G4SensitiveVolumeList_h 1
-
-//#include "g4rw/tpordvec.h"
-//#include "g4rw/tvordvec.h"
-#include <vector>
-#include "G4LogicalVolume.hh"
-#include "G4VPhysicalVolume.hh"
-
-// class description:
-//
-//  This class object can have lists of logical and physical volumes.
+// This class object can have lists of logical and physical volumes.
 // In case a sensitive detector is shared by several logical volumes and/or
 // a logical volume is shared by several physical volumes, this class can be
 // used by the veto list for individual logical/physical volumes.
 //
+// Author: S.Piperov, 1996
+// --------------------------------------------------------------------
+#ifndef G4SensitiveVolumeList_h
+#define G4SensitiveVolumeList_h 1
 
-class G4SensitiveVolumeList 
+#include "G4LogicalVolume.hh"
+#include "G4VPhysicalVolume.hh"
+
+#include <vector>
+
+class G4SensitiveVolumeList
 {
+ public:
+  // Equality Operations
+  G4bool operator==(const G4SensitiveVolumeList& right) const;
+  G4bool operator!=(const G4SensitiveVolumeList& right) const;
 
-  public:
-    //Constructors
-      G4SensitiveVolumeList();
-      G4SensitiveVolumeList(const G4SensitiveVolumeList &right);
+  // Return true if given physical volume is in list
+  G4bool CheckPV(const G4VPhysicalVolume* pvp) const;
 
-    //Destructor
-      ~G4SensitiveVolumeList();
+  // Return true if given logical volume is in list
+  G4bool CheckLV(const G4LogicalVolume* lvp) const;
 
-    //Assignment Operation
-    G4SensitiveVolumeList & operator=(const G4SensitiveVolumeList &right
-);
+  // Get and Set Operations for Has Relationships
+  const std::vector<G4VPhysicalVolume*>& GetThePhysicalVolumeList() const;
+  void SetThePhysicalVolumeList(const std::vector<G4VPhysicalVolume*> value);
 
-    //Equality Operations
-      G4bool operator==(const G4SensitiveVolumeList &right) const;
-      G4bool operator!=(const G4SensitiveVolumeList &right) const;
+  const std::vector<G4LogicalVolume*>& GetTheLogicalVolumeList() const;
+  void SetTheLogicalVolumeList(const std::vector<G4LogicalVolume*> value);
 
+ private:
+  // Data Members for Has Relationships
 
-    //Other Operations
-      G4bool CheckPV(const G4VPhysicalVolume *pvp) const;
-      G4bool CheckLV(const G4LogicalVolume *lvp) const;
-
-    //Get and Set Operations for Has Relationships
-      const std::vector<G4VPhysicalVolume*>& GetThePhysicalVolumeList() const;
-      void SetThePhysicalVolumeList(const std::vector<G4VPhysicalVolume*> value);
-
-      const std::vector<G4LogicalVolume*>& GetTheLogicalVolumeList() const;
-      void SetTheLogicalVolumeList(const std::vector<G4LogicalVolume*> value);
-
-
-
-  private: 
-
-    //Data Members for Has Relationships
-
-      std::vector<G4VPhysicalVolume*> thePhysicalVolumeList;
-      std::vector<G4LogicalVolume*> theLogicalVolumeList;
-
+  std::vector<G4VPhysicalVolume*> thePhysicalVolumeList;
+  std::vector<G4LogicalVolume*> theLogicalVolumeList;
 };
 
-
 #endif
-

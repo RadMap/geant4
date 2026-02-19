@@ -22,10 +22,7 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-//
-//
-// 
+
 ////////////////////////////////////////////////////////////////////////
 // G4SurfaceProperty Definition
 ////////////////////////////////////////////////////////////////////////
@@ -33,7 +30,7 @@
 // Class Description:
 //
 // A base class describing a surface property.
-// Derived classes are G4Opticalsurface, G4Firovsurface, etc.      
+// Derived classes are G4Opticalsurface, G4Firovsurface, etc.
 // Contains the enumeration G4SurfaceType.
 
 // File:        G4SurfaceProperty.hh
@@ -42,102 +39,65 @@
 // Version:     1.0
 // Created:     13-10-2003
 // Author:      Fan Lei
-// Updated:     Mariele Stockhoff 2017-02-24 add DAVIS model 
+// Updated:     Mariele Stockhoff 2017-02-24 add DAVIS model
 ////////////////////////////////////////////////////////////////////////
 
 #ifndef G4SurfaceProperty_h
 #define G4SurfaceProperty_h 1
 
-/////////////
-// Includes
-/////////////
+#include "G4String.hh"
+#include "G4Types.hh"
 
 #include <vector>
 
-#include "G4Types.hh"
-#include "G4String.hh"
-
 class G4SurfaceProperty;
 
-typedef std::vector<G4SurfaceProperty*> G4SurfacePropertyTable;
+using G4SurfacePropertyTable = std::vector<G4SurfaceProperty*>;
 
+// clang-format off
 enum G4SurfaceType
 {
-   dielectric_metal,            // dielectric-metal interface
-   dielectric_dielectric,       // dielectric-dielectric interface
-   dielectric_LUT,              // dielectric-Look-Up-Table interface
-   dielectric_LUTDAVIS,         // dielectric-Look-Up-Table DAVIS interface
-   dielectric_dichroic,         // dichroic filter interface
-   firsov,                      // for Firsov Process
-   x_ray                        // for x-ray mirror process
+  dielectric_metal,       // dielectric-metal interface
+  dielectric_dielectric,  // dielectric-dielectric interface
+  dielectric_LUT,         // dielectric-Look-Up-Table interface
+  dielectric_LUTDAVIS,    // dielectric-Look-Up-Table DAVIS interface
+  dielectric_dichroic,    // dichroic filter interface
+  firsov,                 // for Firsov Process
+  x_ray,                  // for x-ray mirror process
+  coated                 // coated_dielectric-dielectric interface
 };
-
-/////////////////////
-// Class Definition
-/////////////////////
+// clang-format on
 
 class G4SurfaceProperty
 {
-  public: // Without description
+ public:
+  // Constructor of a X-ray optical surface object.
+  G4SurfaceProperty();
+  G4SurfaceProperty(const G4String& name, G4SurfaceType type = x_ray);
+  virtual ~G4SurfaceProperty() = default;
 
-     //////////////
-     // Operators
-     //////////////
+  // Returns the surface name.
+  const G4String& GetName() const { return theName; }
+  // Sets the surface name.
+  void SetName(const G4String& name) { theName = name; }
 
-    // G4SurfaceProperty(const G4SurfaceProperty &right);
-    // const G4SurfaceProperty & operator=(const G4SurfaceProperty &right);
+  // Returns the surface type.
+  const G4SurfaceType& GetType() const { return theType; }
+  // Sets the surface type.
+  virtual void SetType(const G4SurfaceType& type) { theType = type; }
 
-    // G4bool operator==(const G4SurfaceProperty &right) const;
-    // G4bool operator!=(const G4SurfaceProperty &right) const;
+  // To handle the table of surface properties.
+  static void CleanSurfacePropertyTable();
+  static const G4SurfacePropertyTable* GetSurfacePropertyTable();
+  static size_t GetNumberOfSurfaceProperties();
+  static void DumpTableInfo();
 
-  public: // With description
+ protected:
+  G4String theName;  // Surface name
 
-    ////////////////////////////////
-    // Constructors and Destructor
-    ////////////////////////////////
+  G4SurfaceType theType;  // Surface type
 
-    G4SurfaceProperty(const G4String& name, G4SurfaceType type = x_ray);
-    // Constructor of a X-ray optical surface object.
-
-  public: // Without description
-
-    G4SurfaceProperty();
-    virtual ~G4SurfaceProperty();
-
-    ////////////
-    // Methods
-    ////////////
-
-  public: // With description
-
-    const G4String& GetName() const { return theName; }
-    // Returns the surface name.
-    void     SetName(const G4String& name) { theName = name; }
-    // Sets the surface name.
-
-    const G4SurfaceType& GetType() const { return theType; }
-    // Returns the surface type.
-    void     SetType(const G4SurfaceType& type) { theType = type; }
-    // Sets the surface type.        
-
-    static void CleanSurfacePropertyTable();
-    static const G4SurfacePropertyTable* GetSurfacePropertyTable();
-    static size_t GetNumberOfSurfaceProperties();
-    static void DumpTableInfo();
-    // To handle the table of surface properties.
-
-  protected:
-
-    // ------------------
-    // Basic data members ( To define surface property)
-    // ------------------
-
-    G4String theName;                // Surface name
-
-    G4SurfaceType theType;           // Surface type
-
-    static G4SurfacePropertyTable theSurfacePropertyTable;
-    // The static Table of SurfaceProperties.
+  static G4SurfacePropertyTable theSurfacePropertyTable;  // The static Table of SurfaceProperties.
 };
 
 #endif /* G4SurfaceProperty_h */

@@ -23,32 +23,24 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file F04ActionInitialization.cc
 /// \brief Implementation of the F04ActionInitialization class
 
 #include "F04ActionInitialization.hh"
+
+#include "F04DetectorConstruction.hh"
+#include "F04EventAction.hh"
 #include "F04PrimaryGeneratorAction.hh"
 #include "F04RunAction.hh"
-#include "F04EventAction.hh"
-#include "F04TrackingAction.hh"
 #include "F04StackingAction.hh"
 #include "F04SteppingAction.hh"
 #include "F04SteppingVerbose.hh"
-
-#include "F04DetectorConstruction.hh"
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-F04ActionInitialization::F04ActionInitialization
-                            (F04DetectorConstruction* detConstruction)
- : G4VUserActionInitialization(),
-   fDetConstruction(detConstruction)
-{}
+#include "F04TrackingAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-F04ActionInitialization::~F04ActionInitialization()
+F04ActionInitialization::F04ActionInitialization(F04DetectorConstruction* detConstruction)
+  : fDetConstruction(detConstruction)
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -64,9 +56,9 @@ void F04ActionInitialization::Build() const
 {
   SetUserAction(new F04PrimaryGeneratorAction(fDetConstruction));
 
-  F04RunAction* runAction = new F04RunAction();
+  auto runAction = new F04RunAction();
   SetUserAction(runAction);
-  F04EventAction* eventAction = new F04EventAction(runAction);
+  auto eventAction = new F04EventAction(runAction);
   SetUserAction(eventAction);
   SetUserAction(new F04TrackingAction());
   SetUserAction(new F04StackingAction());

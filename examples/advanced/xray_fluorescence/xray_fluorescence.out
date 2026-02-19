@@ -1,10 +1,17 @@
+Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Forcing G4RunManager type...
 
         ############################################
         !!! WARNING - FPE detection is activated !!!
         ############################################
 
+
+          ################################
+          !!! G4Backtrace is activated !!!
+          ################################
+
+
 **************************************************************
- Geant4 version Name: geant4-10-06-patch-01    (14-February-2020)
+ Geant4 version Name: geant4-11-04-ref-00    (5-December-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -12,30 +19,29 @@
                              WWW : http://geant4.org/
 **************************************************************
 
-Using the sequential Run Manager
 XrayFluoAnalysisManager created
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <MadaBasaltMain> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <MadaBasaltTraces> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <IceBasaltMain> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <IceBasaltTraces> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Dolorite> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <TracesOfDolorite> is not found out
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <MadaBasaltMain> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <MadaBasaltTraces> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <IceBasaltMain> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <IceBasaltTraces> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Dolorite> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <TracesOfDolorite> is not found.
 G4Material WARNING: duplicate name of material Dolorite
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Mars1 Main components> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <TracesOfMars1> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <HawaiianWD> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <HawaiianRF> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <IcelandicWD> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <IcelandicRF> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <GabbroWD> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <GabbroRF> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Anorthosite> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Gabbro> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <gallium arsenide> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Scintillator> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Basalt> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <SiLi> is not found out
-G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found out
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Mars1 Main components> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <TracesOfMars1> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <HawaiianWD> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <HawaiianRF> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <IcelandicWD> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <IcelandicRF> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <GabbroWD> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <GabbroRF> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Anorthosite> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Gabbro> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <gallium arsenide> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Scintillator> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Basalt> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <SiLi> is not found.
+G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found.
 
 ***** Table : Nb of materials = 26 *****
 
@@ -72,7 +78,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:   0.15 %  ElmAbundance   0.06 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   8.14 %  ElmAbundance   7.55 % 
@@ -302,7 +308,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:   0.15 %  ElmAbundance   0.06 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   8.06 %  ElmAbundance   7.53 % 
@@ -520,7 +526,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:   0.19 %  ElmAbundance   0.08 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   3.49 %  ElmAbundance   3.31 % 
@@ -728,7 +734,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:   0.19 %  ElmAbundance   0.08 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   3.48 %  ElmAbundance   3.31 % 
@@ -930,7 +936,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:   6.76 %  ElmAbundance   5.76 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   0.08 %  ElmAbundance   0.08 % 
@@ -1204,7 +1210,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:   6.74 %  ElmAbundance   5.75 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   0.08 %  ElmAbundance   0.08 % 
@@ -1272,7 +1278,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:  10.33 %  ElmAbundance   8.22 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   2.42 %  ElmAbundance   2.13 % 
@@ -1552,7 +1558,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:  10.28 %  ElmAbundance   8.21 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   2.41 %  ElmAbundance   2.13 % 
@@ -1620,7 +1626,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:  13.29 %  ElmAbundance  10.93 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   0.24 %  ElmAbundance   0.22 % 
@@ -1680,7 +1686,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:  10.38 %  ElmAbundance   8.51 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   1.93 %  ElmAbundance   1.76 % 
@@ -1739,7 +1745,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:  11.34 %  ElmAbundance   4.52 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   3.50 %  ElmAbundance   3.21 % 
@@ -1803,7 +1809,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:   0.23 %  ElmAbundance   0.09 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   2.35 %  ElmAbundance   2.17 % 
@@ -1863,7 +1869,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:  12.24 %  ElmAbundance   4.99 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   8.38 %  ElmAbundance   7.86 % 
@@ -1927,7 +1933,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:   0.15 %  ElmAbundance   0.06 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   8.37 %  ElmAbundance   7.92 % 
@@ -1994,7 +2000,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:   1.76 %  ElmAbundance   1.70 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   2.45 %  ElmAbundance   2.24 % 
@@ -2049,7 +2055,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
    --->  Element: Pd (Pd)   Z = 46.0   N =   106   A = 106.415 g/mole
          --->  Isotope: Pd102   Z = 46   N = 102   A = 101.91 g/mole   abundance:  1.020 %
          --->  Isotope: Pd104   Z = 46   N = 104   A = 103.90 g/mole   abundance: 11.140 %
-         --->  Isotope: Pd105   Z = 46   N = 105   A = 104.91 g/mole   abundance: 22.330 %
+         --->  Isotope: Pd105   Z = 46   N = 105   A = 104.90 g/mole   abundance: 22.330 %
          --->  Isotope: Pd106   Z = 46   N = 106   A = 105.90 g/mole   abundance: 27.330 %
          --->  Isotope: Pd108   Z = 46   N = 108   A = 107.90 g/mole   abundance: 26.460 %
          --->  Isotope: Pd110   Z = 46   N = 110   A = 109.91 g/mole   abundance: 11.720 %
@@ -2063,11 +2069,11 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
          --->  Isotope: Cd112   Z = 48   N = 112   A = 111.90 g/mole   abundance: 24.130 %
          --->  Isotope: Cd113   Z = 48   N = 113   A = 112.90 g/mole   abundance: 12.220 %
          --->  Isotope: Cd114   Z = 48   N = 114   A = 113.90 g/mole   abundance: 28.730 %
-         --->  Isotope: Cd116   Z = 48   N = 116   A = 115.90 g/mole   abundance:  7.490 %
+         --->  Isotope: Cd116   Z = 48   N = 116   A = 115.91 g/mole   abundance:  7.490 %
           ElmMassFraction:   0.02 %  ElmAbundance   0.00 % 
 
    --->  Element: Ag (Ag)   Z = 47.0   N =   108   A = 107.868 g/mole
-         --->  Isotope: Ag107   Z = 47   N = 107   A = 106.90 g/mole   abundance: 51.839 %
+         --->  Isotope: Ag107   Z = 47   N = 107   A = 106.91 g/mole   abundance: 51.839 %
          --->  Isotope: Ag109   Z = 47   N = 109   A = 108.91 g/mole   abundance: 48.161 %
           ElmMassFraction:   0.05 %  ElmAbundance   0.01 % 
 
@@ -2133,7 +2139,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:   0.13 %  ElmAbundance   0.06 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   8.35 %  ElmAbundance   7.89 % 
@@ -2195,7 +2201,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:   8.53 %  ElmAbundance  52.63 % 
 
 
- Material: Galactic    density:  0.000 kg/m3   RadL: 204310101.835 pc   Nucl.Int.Length: 113427275.267 pc 
+ Material: Galactic    density:  0.000 mg/cm3  RadL: 204310098.490 pc   Nucl.Int.Length: 3240.779 pc 
                        Imean:  19.200 eV   temperature:   2.73 K  pressure:   0.00 atm
 
    --->  Element: H (H)   Z =  1.0   N =     1   A =  1.008 g/mole
@@ -2242,7 +2248,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
           ElmMassFraction:   7.10 %  ElmAbundance   5.87 % 
 
    --->  Element: Mg (Mg)   Z = 12.0   N =    24   A = 24.305 g/mole
-         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.98 g/mole   abundance: 78.990 %
+         --->  Isotope:  Mg24   Z = 12   N =  24   A =  23.99 g/mole   abundance: 78.990 %
          --->  Isotope:  Mg25   Z = 12   N =  25   A =  24.99 g/mole   abundance: 10.000 %
          --->  Isotope:  Mg26   Z = 12   N =  26   A =  25.98 g/mole   abundance: 11.010 %
           ElmMassFraction:   5.90 %  ElmAbundance   5.42 % 
@@ -2261,13 +2267,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
          --->  Isotope:  Si28   Z = 14   N =  28   A =  27.98 g/mole   abundance: 92.230 %
          --->  Isotope:  Si29   Z = 14   N =  29   A =  28.98 g/mole   abundance:  4.683 %
          --->  Isotope:  Si30   Z = 14   N =  30   A =  29.97 g/mole   abundance:  3.087 %
-          ElmMassFraction:  50.00 %  ElmAbundance  50.00 % 
-
-   --->  Element: Si (Si)   Z = 14.0   N =    28   A = 28.085 g/mole
-         --->  Isotope:  Si28   Z = 14   N =  28   A =  27.98 g/mole   abundance: 92.230 %
-         --->  Isotope:  Si29   Z = 14   N =  29   A =  28.98 g/mole   abundance:  4.683 %
-         --->  Isotope:  Si30   Z = 14   N =  30   A =  29.97 g/mole   abundance:  3.087 %
-          ElmMassFraction:  50.00 %  ElmAbundance  50.00 % 
+          ElmMassFraction: 100.00 %  ElmAbundance 100.00 % 
 
 
  Material:       Cu    density:  8.920 g/cm3   RadL:   1.442 cm   Nucl.Int.Length:  15.658 cm 
@@ -2276,12 +2276,7 @@ G4NistMaterialBuilder::FindOrBuildMaterial WARNING: material <Cu> is not found o
    --->  Element: Cu (Cu)   Z = 29.0   N =    64   A = 63.546 g/mole
          --->  Isotope:  Cu63   Z = 29   N =  63   A =  62.93 g/mole   abundance: 69.170 %
          --->  Isotope:  Cu65   Z = 29   N =  65   A =  64.93 g/mole   abundance: 30.830 %
-          ElmMassFraction:  50.00 %  ElmAbundance  50.00 % 
-
-   --->  Element: Cu (Cu)   Z = 29.0   N =    64   A = 63.546 g/mole
-         --->  Isotope:  Cu63   Z = 29   N =  63   A =  62.93 g/mole   abundance: 69.170 %
-         --->  Isotope:  Cu65   Z = 29   N =  65   A =  64.93 g/mole   abundance: 30.830 %
-          ElmMassFraction:  50.00 %  ElmAbundance  50.00 % 
+          ElmMassFraction: 100.00 %  ElmAbundance 100.00 % 
 
 
 
@@ -2298,20 +2293,37 @@ Visualization Manager initialising...
 Registering graphics systems...
 
 You have successfully registered the following graphics systems.
-Current available graphics systems are:
-ASCIITree (ATree)
-DAWNFILE (DAWNFILE)
-G4HepRep (HepRepXML)
-G4HepRepFile (HepRepFile)
-RayTracer (RayTracer)
-VRML1FILE (VRML1FILE)
-VRML2FILE (VRML2FILE)
-gMocrenFile (gMocrenFile)
-OpenGLImmediateXm (OGLIXm, OGLI)
-OpenGLStoredXm (OGLSXm, OGL, OGLS)
-OpenGLImmediateX (OGLIX, OGLIXm_FALLBACK)
-OpenGLStoredX (OGLSX, OGLSXm_FALLBACK)
-RayTracerX (RayTracerX)
+Registered graphics systems are:
+  ASCIITree (ATree)
+  DAWNFILE (DAWNFILE)
+  RayTracer (RT)
+  VRML2FILE (VRML2FILE)
+  gMocrenFile (gMocrenFile)
+  TOOLSSG_OFFSCREEN (TSG_OFFSCREEN, TSG_FILE)
+  OpenGLImmediateQt (OGLIQt, OGLI)
+  OpenGLStoredQt (OGLSQt, OGLS)
+  OpenGLImmediateXm (OGLIXm, OGLIQt_FALLBACK)
+  OpenGLStoredXm (OGLSXm, OGLSQt_FALLBACK)
+  OpenGLImmediateX (OGLIX, OGLIQt_FALLBACK, OGLIXm_FALLBACK)
+  OpenGLStoredX (OGLSX, OGLSQt_FALLBACK, OGLSXm_FALLBACK)
+  RayTracerX (RTX)
+  RayTracerQt (RTQt)
+  TOOLSSG_X11_GLES (TSG_X11_GLES, TSGX11, TSG_XT_GLES_FALLBACK)
+  TOOLSSG_X11_ZB (TSG_X11_ZB, TSGX11ZB)
+  TOOLSSG_XT_GLES (TSG_XT_GLES, TSGXt, TSG_QT_GLES_FALLBACK)
+  TOOLSSG_XT_ZB (TSG_XT_ZB, TSGXtZB)
+  TOOLSSG_QT_GLES (TSG_QT_GLES, TSGQt, TSG, OGL)
+  TOOLSSG_QT_ZB (TSG_QT_ZB, TSGQtZB, TSGZB)
+You may choose a graphics system (driver) with a parameter of
+the command "/vis/open" or "/vis/sceneHandler/create",
+or you may omit the driver parameter and choose at run time:
+- by argument in the construction of G4VisExecutive
+- by environment variable "G4VIS_DEFAULT_DRIVER"
+- by entry in "~/.g4session"
+- by build flags.
+- Note: This feature is not allowed in batch mode.
+For further information see "examples/basic/B1/exampleB1.cc"
+and "vis.mac".
 
 Registering model factories...
 
@@ -2324,12 +2336,18 @@ Registered model factories:
   drawByParticleID
   drawByEncounteredVolume
 
+Registered models:
+  None
+
 Registered filter factories:
   attributeFilter
   chargeFilter
   originVolumeFilter
   particleFilter
   encounteredVolumeFilter
+
+Registered filters:
+  None
 
 You have successfully registered the following user vis actions.
 Run Duration User Vis Actions: none
@@ -2358,11 +2376,8 @@ The Anode is a slice 1e-05mm thick of G4_Ni
 World is registered to the default region.
 XrayFluoSD created
 physicsList->Construct() start.
-### WARNING: G4EmProcessOptions class is obsolete and will be removed in the next public release 
-    Please, try to use G4EmParameters class and/or UI interface to EM parameters
 physicsList->CheckParticleList() start.
 physicsList->setCut() start.
-PhysicsList::SetCuts:CutLength : 1 mm 
 #Setting fluorescence ON  and Auger ON
 /process/em/fluo true
 /run/physicsModified
@@ -2380,7 +2395,6 @@ PhysicsList::SetCuts:CutLength : 1 mm
 /phys/setGCut 1 nm
 /phys/setECut 1 nm
 /run/setCut 0.01 mm
-PhysicsList::SetCuts:CutLength : 10 um 
 #if we want to have an M-Flare Spectrum (default)
 #/gun/spectrum on
 #otherwise
@@ -2389,12 +2403,95 @@ PhysicsList::SetCuts:CutLength : 10 um
 /gun/energy 3 MeV
 #just one shot: put /tracking/verbose 0 for more particles
 /run/beamOn 10
+=======================================================================
+======                 Electromagnetic Physics Parameters      ========
+=======================================================================
+LPM effect enabled                                 1
+Enable creation and use of sampling tables         0
+Apply cuts on all EM processes                     0
+Use combined TransportationWithMsc                 Disabled
+Use general process                                0
+Enable linear polarisation for gamma               0
+Enable photoeffect sampling below K-shell          1
+Enable sampling of quantum entanglement            0
+X-section factor for integral approach             0.8
+Min kinetic energy for tables                      100 eV 
+Max kinetic energy for tables                      100 TeV
+Number of bins per decade of a table               20
+Verbose level                                      1
+Verbose level for worker thread                    0
+Bremsstrahlung energy threshold above which 
+  primary e+- is added to the list of secondary    100 TeV
+Bremsstrahlung energy threshold above which primary
+  muon/hadron is added to the list of secondary    100 TeV
+Positron annihilation at rest model                AllisonPositronium
+Enable 3 gamma annihilation on fly                 0
+Lowest triplet kinetic energy                      1 MeV
+Enable sampling of gamma linear polarisation       0
+5D gamma conversion model type                     0
+5D gamma conversion model on isolated ion          0
+Use RiGe 5D e+e- pair production model by muons    0
+Livermore data directory                           epics_2017
+=======================================================================
+======                 Ionisation Parameters                   ========
+=======================================================================
+Step function for e+-                              (0.2, 0.01 mm)
+Step function for muons/hadrons                    (0.1, 0.05 mm)
+Step function for light ions                       (0.1, 0.02 mm)
+Step function for general ions                     (0.1, 0.001 mm)
+Lowest e+e- kinetic energy                         100 eV 
+Lowest muon/hadron kinetic energy                  1 keV
+Use ICRU90 data                                    1
+Fluctuations of dE/dx are enabled                  1
+Type of fluctuation model for leptons and hadrons  Urban
+Use built-in Birks saturation                      0
+Build CSDA range enabled                           0
+Use cut as a final range enabled                   0
+Enable angular generator interface                 1
+Max kinetic energy for CSDA tables                 1 GeV
+Max kinetic energy for NIEL computation            1 MeV
+Linear loss limit                                  0.01
+Read data from file for e+e- pair production by mu 0
+=======================================================================
+======                 Multiple Scattering Parameters          ========
+=======================================================================
+Type of msc step limit algorithm for e+-           2
+Type of msc step limit algorithm for muons/hadrons 0
+Msc lateral displacement for e+- enabled           1
+Msc lateral displacement for muons and hadrons     1
+Urban msc model lateral displacement alg96         1
+Range factor for msc step limit for e+-            0.08
+Range factor for msc step limit for muons/hadrons  0.2
+Geometry factor for msc step limitation of e+-     2.5
+Safety factor for msc step limit for e+-           0.6
+Skin parameter for msc step limitation of e+-      3
+Lambda limit for msc step limit for e+-            1 mm
+Use Mott correction for e- scattering              1
+Factor used for dynamic computation of angular 
+  limit between single and multiple scattering     1
+Fixed angular limit between single 
+  and multiple scattering                          3.1416 rad
+Upper energy limit for e+- multiple scattering     100 MeV
+Type of electron single scattering model           0
+Type of nuclear form-factor                        1
+Screening factor                                   1
+=======================================================================
+======                 Atomic Deexcitation Parameters          ========
+=======================================================================
+Fluorescence enabled                               1
+Directory in G4LEDATA for fluorescence data files  fluor
+Auger electron cascade enabled                     1
+PIXE atomic de-excitation enabled                  1
+De-excitation module ignores cuts                  0
+Type of PIXE cross section for hadrons             ECPSSR_FormFactor
+Type of PIXE cross section for e+-                 Livermore
+=======================================================================
 
 ### ===  Deexcitation model UAtomDeexcitation is activated for 1 region:
           DefaultRegionForTheWorld  1  1  1
 
 ### === G4UAtomicDeexcitation::InitialiseForNewRun()
-### ===  Auger cascade flag: 1
+### ===  Auger flag: 1
 ### ===  Ignore cuts flag:   0
 ### ===  PIXE model for hadrons: ECPSSR_FormFactor
 ### ===  PIXE model for e+-:     Livermore
@@ -2414,30 +2511,30 @@ compt:  for gamma SubType=13 BuildTable=1
 conv:  for gamma SubType=14 BuildTable=1
       Lambda table from 1.022 MeV to 100 TeV, 20 bins/decade, spline: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-      BetheHeitler5D : Emin=    0 eV  Emax=  100 TeV  ModifiedTsai
+Livermore5DConversion : Emin=    0 eV  Emax=  100 TeV  ModifiedTsai
 
 Rayl:  for gamma SubType=11 BuildTable=1
-      Lambda table from 100 eV  to 100 keV, 20 bins/decade, spline: 0
-      LambdaPrime table from 100 keV to 100 TeV in 180 bins 
+      Lambda table from 100 eV  to 150 keV, 20 bins/decade, spline: 0
+      LambdaPrime table from 150 keV to 100 TeV in 176 bins 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
    LivermoreRayleigh : Emin=    0 eV  Emax=  100 TeV  CullenGenerator
 
 msc:  for e-  SubType= 10
-      RangeFactor= 0.08, stepLimType: 2, latDisp: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
   GoudsmitSaunderson : Emin=    0 eV  Emax=  100 MeV Nbins=120 100 eV  - 100 MeV
+          StepLim=SafetyPlus Rfact=0.08 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
         WentzelVIUni : Emin=  100 MeV Emax=  100 TeV Nbins=120 100 MeV - 100 TeV
+          StepLim=SafetyPlus Rfact=0.08 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
 
-eIoni:  for e-  SubType=2
+eIoni:  for e-  XStype:3  SubType=2
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      StepFunction=(0.2, 0.01 mm), integ: 1, fluct: 1, linLossLim= 0.01
+      StepFunction=(0.2, 0.01 mm), integ: 3, fluct: 1, linLossLim= 0.01
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
        LowEnergyIoni : Emin=    0 eV  Emax=  100 keV  deltaVI
         MollerBhabha : Emin=  100 keV Emax=  100 TeV  deltaVI
-      CSDA range table up to 1 GeV in 140 bins
 
-eBrem:  for e-  SubType=3
+eBrem:  for e-  XStype:4  SubType=3
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
       LPM flag: 1 for E > 1 GeV,  VertexHighEnergyTh(GeV)= 100000
@@ -2445,34 +2542,34 @@ eBrem:  for e-  SubType=3
              eBremSB : Emin=    0 eV  Emax=    1 GeV  AngularGen2BS
             eBremLPM : Emin=    1 GeV Emax=  100 TeV  AngularGen2BS
 
-ePairProd:  for e-  SubType=4
+ePairProd:  for e-  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
-      Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
+      Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 0
       Sampling table 25x1001 from 0.1 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-           ePairProd : Emin=    0 eV  Emax=  100 TeV
+           ePairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
-CoulombScat:  for e-, integral:1  SubType=1 BuildTable=1
-      Lambda table from 100 MeV to 100 TeV, 20 bins/decade, spline: 1
-      ThetaMin(p) < Theta(degree) < 180 pLimit(GeV^1)= 0.139531
+CoulombScat:  for e- XStype:1 SubType=1 BuildTable=1
+      Lambda table from 100 MeV to 100 TeV, 20 bins/decade, spline: 0
+      ThetaMin(p) < Theta(degree) < 180, pLimit(GeV^1)= 0.139531
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
   eCoulombScattering : Emin=  100 MeV Emax=  100 TeV
 
 msc:  for e+  SubType= 10
-      RangeFactor= 0.08, stepLimType: 2, latDisp: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
   GoudsmitSaunderson : Emin=    0 eV  Emax=  100 MeV Nbins=120 100 eV  - 100 MeV
+          StepLim=SafetyPlus Rfact=0.08 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
         WentzelVIUni : Emin=  100 MeV Emax=  100 TeV Nbins=120 100 MeV - 100 TeV
+          StepLim=SafetyPlus Rfact=0.08 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
 
-eIoni:  for e+  SubType=2
+eIoni:  for e+  XStype:3  SubType=2
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      StepFunction=(0.2, 0.01 mm), integ: 1, fluct: 1, linLossLim= 0.01
+      StepFunction=(0.2, 0.01 mm), integ: 3, fluct: 1, linLossLim= 0.01
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
         MollerBhabha : Emin=    0 eV  Emax=  100 TeV  deltaVI
-      CSDA range table up to 1 GeV in 140 bins
 
-eBrem:  for e+  SubType=3
+eBrem:  for e+  XStype:4  SubType=3
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
       LPM flag: 1 for E > 1 GeV,  VertexHighEnergyTh(GeV)= 100000
@@ -2480,339 +2577,321 @@ eBrem:  for e+  SubType=3
              eBremSB : Emin=    0 eV  Emax=    1 GeV  AngularGen2BS
             eBremLPM : Emin=    1 GeV Emax=  100 TeV  AngularGen2BS
 
-ePairProd:  for e+  SubType=4
+ePairProd:  for e+  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
-      Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
+      Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 0
       Sampling table 25x1001 from 0.1 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-           ePairProd : Emin=    0 eV  Emax=  100 TeV
+           ePairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
-annihil:  for e+, integral:1  SubType=5 BuildTable=0
+annihil:  for e+ XStype:2 SubType=5 AtRestModel:Allison BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
             eplus2gg : Emin=    0 eV  Emax=  100 TeV
 
-CoulombScat:  for e+, integral:1  SubType=1 BuildTable=1
-      Lambda table from 100 MeV to 100 TeV, 20 bins/decade, spline: 1
-      ThetaMin(p) < Theta(degree) < 180 pLimit(GeV^1)= 0.139531
+CoulombScat:  for e+ XStype:1 SubType=1 BuildTable=1
+      Lambda table from 100 MeV to 100 TeV, 20 bins/decade, spline: 0
+      ThetaMin(p) < Theta(degree) < 180, pLimit(GeV^1)= 0.139531
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
   eCoulombScattering : Emin=  100 MeV Emax=  100 TeV
 
 msc:  for proton  SubType= 10
-      RangeFactor= 0.2, stepLimType: 0, latDisp: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
         WentzelVIUni : Emin=    0 eV  Emax=  100 TeV Nbins=240 100 eV  - 100 TeV
+          StepLim=Minimal Rfact=0.2 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
 
-hIoni:  for proton  SubType=2
+hIoni:  for proton  XStype:3  SubType=2
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      StepFunction=(0.2, 0.05 mm), integ: 1, fluct: 1, linLossLim= 0.01
+      StepFunction=(0.1, 0.05 mm), integ: 3, fluct: 1, linLossLim= 0.01
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
                Bragg : Emin=    0 eV  Emax=    2 MeV  deltaVI
           BetheBloch : Emin=    2 MeV Emax=  100 TeV  deltaVI
-      ===== Limit on energy threshold has been applied 
-      CSDA range table up to 1 GeV in 140 bins
 
-hBrems:  for proton  SubType=3
+hBrems:  for proton  XStype:1  SubType=3
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-               hBrem : Emin=    0 eV  Emax=  100 TeV
+               hBrem : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
       ===== Limit on energy threshold has been applied 
 
-hPairProd:  for proton  SubType=4
+hPairProd:  for proton  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      Sampling table 17x1001 from 7.50618 GeV to 100 TeV 
+      Sampling table 17x1001, from 7.50618 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-           hPairProd : Emin=    0 eV  Emax=  100 TeV
+           hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
-CoulombScat:  for proton, integral:1  SubType=1 BuildTable=1
-      Lambda table from threshold  to 100 TeV, 20 bins/decade, spline: 1
-      ThetaMin(p) < Theta(degree) < 180 pLimit(GeV^1)= 0.139531
+CoulombScat:  for proton XStype:1 SubType=1 BuildTable=1
+      Lambda table from threshold  to 100 TeV, 20 bins/decade, spline: 0
+      ThetaMin(p) < Theta(degree) < 180, pLimit(GeV^1)= 0.139531
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
   eCoulombScattering : Emin=    0 eV  Emax=  100 TeV
 
+nuclearStopping:  for proton SubType=8 BuildTable=0
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+   ICRU49NucStopping : Emin=    0 eV  Emax=    1 MeV
+
 msc:  for GenericIon  SubType= 10
-      RangeFactor= 0.2, stepLimType: 0, latDisp: 0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
             UrbanMsc : Emin=    0 eV  Emax=  100 TeV
+          StepLim=Minimal Rfact=0.2 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
 
-ionIoni:  for GenericIon  SubType=2
+ionIoni:  for GenericIon  XStype:3  SubType=2
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      StepFunction=(0.1, 0.001 mm), integ: 1, fluct: 1, linLossLim= 0.02
+      StepFunction=(0.1, 0.001 mm), integ: 3, fluct: 1, linLossLim= 0.02
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-         ParamICRU73 : Emin=    0 eV  Emax=  100 TeV  deltaVI
-      ===== Limit on energy threshold has been applied 
-      CSDA range table up to 1 GeV in 140 bins
+    LindhardSorensen : Emin=    0 eV  Emax=  100 TeV  deltaVI
 
 nuclearStopping:  for GenericIon SubType=8 BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
    ICRU49NucStopping : Emin=    0 eV  Emax=    1 MeV
 
 msc:  for alpha  SubType= 10
-      RangeFactor= 0.2, stepLimType: 0, latDisp: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-            UrbanMsc : Emin=    0 eV  Emax=  100 TeV Nbins=240 100 eV  - 100 TeV
+            UrbanMsc : Emin=    0 eV  Emax=  100 TeV
+          StepLim=Minimal Rfact=0.2 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
 
-ionIoni:  for alpha  SubType=2
+ionIoni:  for alpha  XStype:3  SubType=2
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      StepFunction=(0.2, 0.05 mm), integ: 1, fluct: 1, linLossLim= 0.02
+      StepFunction=(0.1, 0.02 mm), integ: 3, fluct: 1, linLossLim= 0.02
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
             BraggIon : Emin=    0 eV  Emax=7.9452 MeV  deltaVI
           BetheBloch : Emin=7.9452 MeV Emax=  100 TeV  deltaVI
-      ===== Limit on energy threshold has been applied 
-      CSDA range table up to 1 GeV in 140 bins
 
 nuclearStopping:  for alpha SubType=8 BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
    ICRU49NucStopping : Emin=    0 eV  Emax=    1 MeV
 
 msc:  for anti_proton  SubType= 10
-      RangeFactor= 0.2, stepLimType: 0, latDisp: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
         WentzelVIUni : Emin=    0 eV  Emax=  100 TeV Nbins=240 100 eV  - 100 TeV
+          StepLim=Minimal Rfact=0.2 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
 
-hIoni:  for anti_proton  SubType=2
+hIoni:  for anti_proton  XStype:3  SubType=2
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      StepFunction=(0.2, 0.05 mm), integ: 1, fluct: 1, linLossLim= 0.01
+      StepFunction=(0.1, 0.05 mm), integ: 3, fluct: 1, linLossLim= 0.01
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
             ICRU73QO : Emin=    0 eV  Emax=    2 MeV  deltaVI
           BetheBloch : Emin=    2 MeV Emax=  100 TeV  deltaVI
-      ===== Limit on energy threshold has been applied 
-      CSDA range table up to 1 GeV in 140 bins
 
-hBrems:  for anti_proton  SubType=3
+hBrems:  for anti_proton  XStype:1  SubType=3
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-               hBrem : Emin=    0 eV  Emax=  100 TeV
+               hBrem : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
       ===== Limit on energy threshold has been applied 
 
-hPairProd:  for anti_proton  SubType=4
+hPairProd:  for anti_proton  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      Sampling table 17x1001 from 7.50618 GeV to 100 TeV 
+      Sampling table 17x1001, from 7.50618 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-           hPairProd : Emin=    0 eV  Emax=  100 TeV
+           hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
-CoulombScat:  for anti_proton, integral:1  SubType=1 BuildTable=1
-      Lambda table from threshold  to 100 TeV, 20 bins/decade, spline: 1
-      ThetaMin(p) < Theta(degree) < 180 pLimit(GeV^1)= 0.139531
+CoulombScat:  for anti_proton XStype:1 SubType=1 BuildTable=1
+      Lambda table from threshold  to 100 TeV, 20 bins/decade, spline: 0
+      ThetaMin(p) < Theta(degree) < 180, pLimit(GeV^1)= 0.139531
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
   eCoulombScattering : Emin=    0 eV  Emax=  100 TeV
 
 msc:  for kaon+  SubType= 10
-      RangeFactor= 0.2, stepLimType: 0, latDisp: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
         WentzelVIUni : Emin=    0 eV  Emax=  100 TeV Nbins=240 100 eV  - 100 TeV
+          StepLim=Minimal Rfact=0.2 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
 
-hIoni:  for kaon+  SubType=2
+hIoni:  for kaon+  XStype:3  SubType=2
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      StepFunction=(0.2, 0.05 mm), integ: 1, fluct: 1, linLossLim= 0.01
+      StepFunction=(0.1, 0.05 mm), integ: 3, fluct: 1, linLossLim= 0.01
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
                Bragg : Emin=    0 eV  Emax=1.05231 MeV  deltaVI
           BetheBloch : Emin=1.05231 MeV Emax=  100 TeV  deltaVI
-      ===== Limit on energy threshold has been applied 
-      CSDA range table up to 1 GeV in 140 bins
 
-hBrems:  for kaon+  SubType=3
+hBrems:  for kaon+  XStype:1  SubType=3
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-               hBrem : Emin=    0 eV  Emax=  100 TeV
+               hBrem : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
       ===== Limit on energy threshold has been applied 
 
-hPairProd:  for kaon+  SubType=4
+hPairProd:  for kaon+  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      Sampling table 18x1001 from 3.94942 GeV to 100 TeV 
+      Sampling table 18x1001, from 3.94942 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-           hPairProd : Emin=    0 eV  Emax=  100 TeV
+           hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
-CoulombScat:  for kaon+, integral:1  SubType=1 BuildTable=1
-      Lambda table from threshold  to 100 TeV, 20 bins/decade, spline: 1
-      ThetaMin(p) < Theta(degree) < 180 pLimit(GeV^1)= 0.139531
+CoulombScat:  for kaon+ XStype:1 SubType=1 BuildTable=1
+      Lambda table from threshold  to 100 TeV, 20 bins/decade, spline: 0
+      ThetaMin(p) < Theta(degree) < 180, pLimit(GeV^1)= 0.139531
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
   eCoulombScattering : Emin=    0 eV  Emax=  100 TeV
 
 msc:  for kaon-  SubType= 10
-      RangeFactor= 0.2, stepLimType: 0, latDisp: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
         WentzelVIUni : Emin=    0 eV  Emax=  100 TeV Nbins=240 100 eV  - 100 TeV
+          StepLim=Minimal Rfact=0.2 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
 
-hIoni:  for kaon-  SubType=2
+hIoni:  for kaon-  XStype:3  SubType=2
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      StepFunction=(0.2, 0.05 mm), integ: 1, fluct: 1, linLossLim= 0.01
+      StepFunction=(0.1, 0.05 mm), integ: 3, fluct: 1, linLossLim= 0.01
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
             ICRU73QO : Emin=    0 eV  Emax=1.05231 MeV  deltaVI
           BetheBloch : Emin=1.05231 MeV Emax=  100 TeV  deltaVI
-      ===== Limit on energy threshold has been applied 
-      CSDA range table up to 1 GeV in 140 bins
 
-hBrems:  for kaon-  SubType=3
+hBrems:  for kaon-  XStype:1  SubType=3
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-               hBrem : Emin=    0 eV  Emax=  100 TeV
+               hBrem : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
       ===== Limit on energy threshold has been applied 
 
-hPairProd:  for kaon-  SubType=4
+hPairProd:  for kaon-  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      Sampling table 18x1001 from 3.94942 GeV to 100 TeV 
+      Sampling table 18x1001, from 3.94942 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-           hPairProd : Emin=    0 eV  Emax=  100 TeV
+           hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
-CoulombScat:  for kaon-, integral:1  SubType=1 BuildTable=1
+CoulombScat:  for kaon- XStype:1 SubType=1 BuildTable=1
       Used Lambda table of kaon+
-      ThetaMin(p) < Theta(degree) < 180 pLimit(GeV^1)= 0.139531
+      ThetaMin(p) < Theta(degree) < 180, pLimit(GeV^1)= 0.139531
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
   eCoulombScattering : Emin=    0 eV  Emax=  100 TeV
 
 msc:  for mu+  SubType= 10
-      RangeFactor= 0.2, stepLimType: 0, latDisp: 1, polarAngLim(deg)= 180
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
         WentzelVIUni : Emin=    0 eV  Emax=  100 TeV Nbins=240 100 eV  - 100 TeV
+          StepLim=Minimal Rfact=0.2 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
 
-muIoni:  for mu+  SubType=2
+muIoni:  for mu+  XStype:3  SubType=2
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      StepFunction=(0.2, 0.05 mm), integ: 1, fluct: 1, linLossLim= 0.01
+      StepFunction=(0.1, 0.05 mm), integ: 3, fluct: 1, linLossLim= 0.01
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
                Bragg : Emin=    0 eV  Emax=  200 keV  deltaVI
-          BetheBloch : Emin=  200 keV Emax=    1 GeV  deltaVI
-        MuBetheBloch : Emin=    1 GeV Emax=  100 TeV
-      ===== Limit on energy threshold has been applied 
-      CSDA range table up to 1 GeV in 140 bins
+        MuBetheBloch : Emin=  200 keV Emax=  100 TeV  deltaVI
 
-muBrems:  for mu+  SubType=3
+muBrems:  for mu+  XStype:1  SubType=3
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-              MuBrem : Emin=    0 eV  Emax=  100 TeV
+              MuBrem : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
       ===== Limit on energy threshold has been applied 
 
-muPairProd:  for mu+  SubType=4
+muPairProd:  for mu+  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      Sampling table 21x1001 from 1 GeV to 100 TeV 
+      Sampling table 21x1001, from 0.85 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-          muPairProd : Emin=    0 eV  Emax=  100 TeV
+          muPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
-CoulombScat:  for mu+, integral:1  SubType=1 BuildTable=1
-      Lambda table from threshold  to 100 TeV, 20 bins/decade, spline: 1
-      ThetaMin(p) < Theta(degree) < 180 pLimit(GeV^1)= 0.139531
+CoulombScat:  for mu+ XStype:1 SubType=1 BuildTable=1
+      Lambda table from threshold  to 100 TeV, 20 bins/decade, spline: 0
+      ThetaMin(p) < Theta(degree) < 180, pLimit(GeV^1)= 0.139531
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
   eCoulombScattering : Emin=    0 eV  Emax=  100 TeV
 
 msc:  for mu-  SubType= 10
-      RangeFactor= 0.2, stepLimType: 0, latDisp: 1, polarAngLim(deg)= 180
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
         WentzelVIUni : Emin=    0 eV  Emax=  100 TeV Nbins=240 100 eV  - 100 TeV
+          StepLim=Minimal Rfact=0.2 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
 
-muIoni:  for mu-  SubType=2
+muIoni:  for mu-  XStype:3  SubType=2
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      StepFunction=(0.2, 0.05 mm), integ: 1, fluct: 1, linLossLim= 0.01
+      StepFunction=(0.1, 0.05 mm), integ: 3, fluct: 1, linLossLim= 0.01
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
             ICRU73QO : Emin=    0 eV  Emax=  200 keV  deltaVI
-          BetheBloch : Emin=  200 keV Emax=    1 GeV  deltaVI
-        MuBetheBloch : Emin=    1 GeV Emax=  100 TeV
-      ===== Limit on energy threshold has been applied 
-      CSDA range table up to 1 GeV in 140 bins
+        MuBetheBloch : Emin=  200 keV Emax=  100 TeV  deltaVI
 
-muBrems:  for mu-  SubType=3
+muBrems:  for mu-  XStype:1  SubType=3
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-              MuBrem : Emin=    0 eV  Emax=  100 TeV
+              MuBrem : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
       ===== Limit on energy threshold has been applied 
 
-muPairProd:  for mu-  SubType=4
+muPairProd:  for mu-  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      Sampling table 21x1001 from 1 GeV to 100 TeV 
+      Sampling table 21x1001, from 0.85 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-          muPairProd : Emin=    0 eV  Emax=  100 TeV
+          muPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
-CoulombScat:  for mu-, integral:1  SubType=1 BuildTable=1
+CoulombScat:  for mu- XStype:1 SubType=1 BuildTable=1
       Used Lambda table of mu+
-      ThetaMin(p) < Theta(degree) < 180 pLimit(GeV^1)= 0.139531
+      ThetaMin(p) < Theta(degree) < 180, pLimit(GeV^1)= 0.139531
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
   eCoulombScattering : Emin=    0 eV  Emax=  100 TeV
 
 msc:  for pi+  SubType= 10
-      RangeFactor= 0.2, stepLimType: 0, latDisp: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
         WentzelVIUni : Emin=    0 eV  Emax=  100 TeV Nbins=240 100 eV  - 100 TeV
+          StepLim=Minimal Rfact=0.2 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
 
-hIoni:  for pi+  SubType=2
+hIoni:  for pi+  XStype:3  SubType=2
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      StepFunction=(0.2, 0.05 mm), integ: 1, fluct: 1, linLossLim= 0.01
+      StepFunction=(0.1, 0.05 mm), integ: 3, fluct: 1, linLossLim= 0.01
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
                Bragg : Emin=    0 eV  Emax=297.505 keV  deltaVI
           BetheBloch : Emin=297.505 keV Emax=  100 TeV  deltaVI
-      ===== Limit on energy threshold has been applied 
-      CSDA range table up to 1 GeV in 140 bins
 
-hBrems:  for pi+  SubType=3
+hBrems:  for pi+  XStype:1  SubType=3
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-               hBrem : Emin=    0 eV  Emax=  100 TeV
+               hBrem : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
       ===== Limit on energy threshold has been applied 
 
-hPairProd:  for pi+  SubType=4
+hPairProd:  for pi+  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      Sampling table 20x1001 from 1.11656 GeV to 100 TeV 
+      Sampling table 20x1001, from 1.11656 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-           hPairProd : Emin=    0 eV  Emax=  100 TeV
+           hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
-CoulombScat:  for pi+, integral:1  SubType=1 BuildTable=1
-      Lambda table from threshold  to 100 TeV, 20 bins/decade, spline: 1
-      ThetaMin(p) < Theta(degree) < 180 pLimit(GeV^1)= 0.139531
+CoulombScat:  for pi+ XStype:1 SubType=1 BuildTable=1
+      Lambda table from threshold  to 100 TeV, 20 bins/decade, spline: 0
+      ThetaMin(p) < Theta(degree) < 180, pLimit(GeV^1)= 0.139531
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
   eCoulombScattering : Emin=    0 eV  Emax=  100 TeV
 
 msc:  for pi-  SubType= 10
-      RangeFactor= 0.2, stepLimType: 0, latDisp: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
         WentzelVIUni : Emin=    0 eV  Emax=  100 TeV Nbins=240 100 eV  - 100 TeV
+          StepLim=Minimal Rfact=0.2 Gfact=2.5 Sfact=0.6 DispFlag:1 Skin=3 Llim=1 mm
 
-hIoni:  for pi-  SubType=2
+hIoni:  for pi-  XStype:3  SubType=2
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      StepFunction=(0.2, 0.05 mm), integ: 1, fluct: 1, linLossLim= 0.01
+      StepFunction=(0.1, 0.05 mm), integ: 3, fluct: 1, linLossLim= 0.01
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
             ICRU73QO : Emin=    0 eV  Emax=297.505 keV  deltaVI
           BetheBloch : Emin=297.505 keV Emax=  100 TeV  deltaVI
-      ===== Limit on energy threshold has been applied 
-      CSDA range table up to 1 GeV in 140 bins
 
-hBrems:  for pi-  SubType=3
+hBrems:  for pi-  XStype:1  SubType=3
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-               hBrem : Emin=    0 eV  Emax=  100 TeV
+               hBrem : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
       ===== Limit on energy threshold has been applied 
 
-hPairProd:  for pi-  SubType=4
+hPairProd:  for pi-  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 240 bins
       Lambda tables from threshold to 100 TeV, 20 bins/decade, spline: 1
-      Sampling table 20x1001 from 1.11656 GeV to 100 TeV 
+      Sampling table 20x1001, from 1.11656 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-           hPairProd : Emin=    0 eV  Emax=  100 TeV
+           hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
-CoulombScat:  for pi-, integral:1  SubType=1 BuildTable=1
+CoulombScat:  for pi- XStype:1 SubType=1 BuildTable=1
       Used Lambda table of pi+
-      ThetaMin(p) < Theta(degree) < 180 pLimit(GeV^1)= 0.139531
+      ThetaMin(p) < Theta(degree) < 180, pLimit(GeV^1)= 0.139531
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
   eCoulombScattering : Emin=    0 eV  Emax=  100 TeV
 
@@ -2821,62 +2900,63 @@ Region <DefaultRegionForTheWorld> --  -- appears in <World> world volume
  Root logical volume(s) : World 
  Pointers : G4VUserRegionInformation[0], G4UserLimits[0], G4FastSimulationManager[0], G4UserSteppingAction[0]
  Materials : G4_Galactic SiLi G4_Pb G4_Ni G4_Be Dolorite 
- Production cuts :   gamma 1 nm      e- 1 nm      e+ 1 nm  proton 10 um 
+ Production cuts :   gamma 10 um      e- 10 um      e+ 10 um  proton 10 um 
 
 Region <DefaultRegionForParallelWorld> --  -- is not associated to any world.
  Root logical volume(s) : 
  Pointers : G4VUserRegionInformation[0], G4UserLimits[0], G4FastSimulationManager[0], G4UserSteppingAction[0]
  Materials : 
- Production cuts :   gamma 1 nm      e- 1 nm      e+ 1 nm  proton 10 um 
+ Production cuts :   gamma 10 um      e- 10 um      e+ 10 um  proton 10 um 
 
-========= Table of registered couples ==============================
+========= Table of registered couples ============================
 
 Index : 0     used in the geometry : Yes
  Material : G4_Galactic
- Range cuts        :  gamma  1 nm     e-  1 nm     e+  1 nm  proton 10 um 
+ Range cuts        :  gamma  10 um     e-  10 um     e+  10 um  proton 10 um 
  Energy thresholds :  gamma  250 eV     e-  250 eV     e+  250 eV  proton 1 keV
  Region(s) which use this couple : 
     DefaultRegionForTheWorld
 
 Index : 1     used in the geometry : Yes
  Material : SiLi
- Range cuts        :  gamma  1 nm     e-  1 nm     e+  1 nm  proton 10 um 
- Energy thresholds :  gamma  250 eV     e-  250 eV     e+  250 eV  proton 1 keV
+ Range cuts        :  gamma  10 um     e-  10 um     e+  10 um  proton 10 um 
+ Energy thresholds :  gamma  250 eV     e-  31.8486 keV    e+  31.4942 keV proton 1 keV
  Region(s) which use this couple : 
     DefaultRegionForTheWorld
 
 Index : 2     used in the geometry : Yes
  Material : G4_Pb
- Range cuts        :  gamma  1 nm     e-  1 nm     e+  1 nm  proton 10 um 
- Energy thresholds :  gamma  250 eV     e-  250 eV     e+  250 eV  proton 1 keV
+ Range cuts        :  gamma  10 um     e-  10 um     e+  10 um  proton 10 um 
+ Energy thresholds :  gamma  5.98443 keV    e-  58.0231 keV    e+  56.9554 keV proton 1 keV
  Region(s) which use this couple : 
     DefaultRegionForTheWorld
 
 Index : 3     used in the geometry : Yes
  Material : G4_Ni
- Range cuts        :  gamma  1 nm     e-  1 nm     e+  1 nm  proton 10 um 
- Energy thresholds :  gamma  250 eV     e-  250 eV     e+  250 eV  proton 1 keV
+ Range cuts        :  gamma  10 um     e-  10 um     e+  10 um  proton 10 um 
+ Energy thresholds :  gamma  2.15365 keV    e-  63.2448 keV    e+  62.2825 keV proton 1 keV
  Region(s) which use this couple : 
     DefaultRegionForTheWorld
 
 Index : 4     used in the geometry : Yes
  Material : G4_Be
- Range cuts        :  gamma  1 nm     e-  1 nm     e+  1 nm  proton 10 um 
- Energy thresholds :  gamma  250 eV     e-  250 eV     e+  250 eV  proton 1 keV
+ Range cuts        :  gamma  10 um     e-  10 um     e+  10 um  proton 10 um 
+ Energy thresholds :  gamma  250 eV     e-  27.9471 keV    e+  27.3913 keV proton 1 keV
  Region(s) which use this couple : 
     DefaultRegionForTheWorld
 
 Index : 5     used in the geometry : Yes
  Material : Dolorite
- Range cuts        :  gamma  1 nm     e-  1 nm     e+  1 nm  proton 10 um 
- Energy thresholds :  gamma  250 eV     e-  250 eV     e+  250 eV  proton 1 keV
+ Range cuts        :  gamma  10 um     e-  10 um     e+  10 um  proton 10 um 
+ Energy thresholds :  gamma  250 eV     e-  36.9996 keV    e+  36.5872 keV proton 1 keV
  Region(s) which use this couple : 
     DefaultRegionForTheWorld
 
-====================================================================
+==================================================================
 
 Start closing geometry.
-G4GeometryManager::ReportVoxelStats -- Voxel Statistics
+--------------------------------------------------------------------------------
+G4VoxelisationHelper::ReportVoxelStats -- Voxel Statistics
 
     Total memory consumed for geometry optimisation:   1 kByte
     Total CPU time elapsed for geometry optimisation: 0 seconds
@@ -2892,8 +2972,8 @@ G4GeometryManager::ReportVoxelStats -- Voxel Statistics
     -------   --------     ------   ------   --------   ----------    ----------
       69.08          0k         3        9         24         0.00    World
       30.92          0k         2        3         11         0.00    HPGeDetector
-G4VisManager: Using G4TrajectoryDrawByCharge as fallback trajectory model.
-See commands in /vis/modeling/trajectories/ for other options.
+--------------------------------------------------------------------------------
+
 ### Run 0 starts.
 ### Run 0 starts (master).
 Reading data... done
@@ -2908,20 +2988,23 @@ Created histos
  Run terminated.
 Run Summary
   Number of events processed : 10
-  User=0.680000s Real=0.678925s Sys=0.000000s
+  User=0.000000s Real=0.001473s Sys=0.000000s
 Going to save histograms
-... write Root file : xrayfluo.root - done
-... close Root file : xrayfluo.root - done
+... write file : xrayfluo.root - done
+... close file : xrayfluo.root - done
 /vis/viewer/update
 WARNING: command "/vis/viewer/update" could not be applied: no current viewer.
 Graphics systems deleted.
 Visualization Manager deleting...
 visManager deleted
 G4 kernel has come to Quit state.
+Deleting G4Run (id:0) 
+UserDetectorConstruction deleted 0x1015dd0
 XrayFluoDetectorConstruction deleted
-UserDetectorConstruction deleted.
-UserPhysicsList deleted.
-UserActionInitialization deleted.
+UserPhysicsList deleted 0x1097950
+UserActionInitialization deleted 0x10edf20
+UserWorkerInitialization deleted 0
+UserWorkerThreadInitialization deleted 0
 UserRunAction deleted.
 XrayFluoPrimaryGeneratorMessenger deleted
 UserPrimaryGenerator deleted.
@@ -2932,6 +3015,7 @@ EventManager deleted.
 Units table cleared.
 TransportationManager deleted.
 Total navigation history collections cleaned: 7
+G4RNGHelper object is deleted.
 ================== Deleting memory pools ===================
 Pool ID '20G4NavigationLevelRep', size : 0.00673 MB
 Pool ID '24G4ReferenceCountedHandleIvE', size : 0.000961 MB
@@ -2940,14 +3024,15 @@ Pool ID '15G4PrimaryVertex', size : 0.000961 MB
 Pool ID '17G4PrimaryParticle', size : 0.000961 MB
 Pool ID '15G4HCofThisEvent', size : 0.000961 MB
 Pool ID '16G4HitsCollection', size : 0.000961 MB
-Pool ID '17G4DynamicParticle', size : 0.318 MB
-Pool ID '7G4Track', size : 0.635 MB
+Pool ID '17G4DynamicParticle', size : 0.000961 MB
+Pool ID '7G4Track', size : 0.000961 MB
 Pool ID '18G4TouchableHistory', size : 0.000961 MB
 Pool ID '15G4CountedObjectIvE', size : 0.000961 MB
 Number of memory pools allocated: 11 of which, static: 0
-Dynamic pools deleted: 11 / Total memory freed: 0.97 MB
+Dynamic pools deleted: 11 / Total memory freed: 0.016 MB
 ============================================================
 G4Allocator objects are deleted.
 UImanager deleted.
 StateManager deleted.
 RunManagerKernel is deleted. Good bye :)
+RunManager is deleted.

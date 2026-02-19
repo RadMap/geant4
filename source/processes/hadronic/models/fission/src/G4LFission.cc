@@ -48,13 +48,15 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
+#include "G4PhysicsModelCatalog.hh"
 
 G4LFission::G4LFission(const G4String& name)
- : G4HadronicInteraction(name)
+  : G4HadronicInteraction(name), secID(-1)
 {
   init();
   SetMinEnergy(0.0*GeV);
   SetMaxEnergy(DBL_MAX);
+  G4PhysicsModelCatalog::GetModelID( "model_" + GetModelName() );
 }
 
 
@@ -183,7 +185,7 @@ G4HadFinalState* G4LFission::ApplyYourself(const G4HadProjectile& aTrack,
       aNeutron = new G4DynamicParticle(G4Neutron::NeutronDefinition(),
                                        G4ParticleMomentum(1.,0.,0.),
                                        ekin*MeV);
-      theParticleChange.AddSecondary(aNeutron);
+      theParticleChange.AddSecondary(aNeutron, secID);
    }
 
 // Make secondary gammas and distribute kinetic energy
@@ -195,7 +197,7 @@ G4HadFinalState* G4LFission::ApplyYourself(const G4HadProjectile& aTrack,
       aGamma = new G4DynamicParticle(G4Gamma::GammaDefinition(),
                                      G4ParticleMomentum(1.,0.,0.),
                                      ekin*MeV);
-      theParticleChange.AddSecondary(aGamma);
+      theParticleChange.AddSecondary(aGamma, secID);
    }
 
 // Distribute momentum vectors and do Lorentz transformation
@@ -282,5 +284,5 @@ G4double G4LFission::Atomas(const G4double A, const G4double Z)
 const std::pair<G4double, G4double> G4LFission::GetFatalEnergyCheckLevels() const
 {
   // max energy non-conservation is mass of heavy nucleus
-  return std::pair<G4double, G4double>(5*perCent,250*GeV);
+  return std::pair<G4double, G4double>(10.0*perCent, 350.0*CLHEP::GeV);
 }

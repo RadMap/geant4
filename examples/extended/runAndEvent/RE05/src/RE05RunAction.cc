@@ -23,13 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file RE05/src/RE05RunAction.cc
+/// \file RE05RunAction.cc
 /// \brief Implementation of the RE05RunAction class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "RE05RunAction.hh"
 
@@ -38,22 +33,19 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RE05RunAction::RE05RunAction()
-: G4UserRunAction()
-{}
+RE05RunAction::RE05RunAction() : G4UserRunAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RE05RunAction::~RE05RunAction()
-{}
+RE05RunAction::~RE05RunAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void RE05RunAction::BeginOfRunAction(const G4Run* aRun)
 {
   G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl;
-  
-//  G4RunManager::GetRunManager()->SetRandomNumberStore(true);
+
+  //  G4RunManager::GetRunManager()->SetRandomNumberStore(true);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

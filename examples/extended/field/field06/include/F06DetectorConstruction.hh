@@ -23,13 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field06/include/F06DetectorConstruction.hh
+/// \file F06DetectorConstruction.hh
 /// \brief Definition of the F06DetectorConstruction class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef F06DetectorConstruction_h
 #define F06DetectorConstruction_h 1
@@ -38,7 +33,7 @@
 #include "globals.hh"
 
 class G4Material;
- 
+
 class G4Box;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
@@ -51,28 +46,18 @@ class G4FieldManager;
 class F06DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
- 
     F06DetectorConstruction();
-    virtual ~F06DetectorConstruction();
+    ~F06DetectorConstruction() override;
 
-  public:
- 
-    virtual G4VPhysicalVolume* Construct();
-    virtual void ConstructSDandField();
+    G4VPhysicalVolume* Construct() override;
+    void ConstructSDandField() override;
 
   private:
- 
-     G4Material*        fVacuum;
+    void DefineMaterials();
 
-     G4Box*             fSolidWorld;    //pointer to the solid World
-     G4LogicalVolume*   fLogicWorld;    //pointer to the logical World
-     G4VPhysicalVolume* fPhysiWorld;    //pointer to the physical World
+    G4Material* fVacuum = nullptr;
 
-     static G4ThreadLocal G4UniformGravityField* fField;
-
-  private:
- 
-     void DefineMaterials();
+    static G4ThreadLocal G4UniformGravityField* fField;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

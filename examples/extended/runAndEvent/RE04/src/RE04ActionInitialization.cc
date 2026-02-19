@@ -23,24 +23,27 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file src/RE04ActionInitialization.cc
+/// \file RE04ActionInitialization.cc
 /// \brief Implementation of the RE04ActionInitialization class
-//
 
 #include "RE04ActionInitialization.hh"
-#include "RE04PrimaryGeneratorAction.hh"
+
 #include "RE04EventAction.hh"
-//#include "RE04TrackingAction.hh"
-//#include "RE04SteppingAction.hh"
+#include "RE04PrimaryGeneratorAction.hh"
+// #include "RE04TrackingAction.hh"
+// #include "RE04SteppingAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 RE04ActionInitialization::RE04ActionInitialization()
-{;}
+{
+  ;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 RE04ActionInitialization::~RE04ActionInitialization()
-{;}
+{
+  ;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void RE04ActionInitialization::Build() const
@@ -50,16 +53,14 @@ void RE04ActionInitialization::Build() const
   //
   SetUserAction(new RE04EventAction);
   //
-  //SetUserAction(new RE04TrackingAction);
-  //SetUserAction(new RE04SteppingAction);
-
+  // SetUserAction(new RE04TrackingAction);
+  // SetUserAction(new RE04SteppingAction);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void RE04ActionInitialization::BuildForMaster() const
 {
   //
-  //G4UserRunAction* run_action = new RE04RunAction;
-  //SetUserAction(run_action);
+  // G4UserRunAction* run_action = new RE04RunAction;
+  // SetUserAction(run_action);
 }
-

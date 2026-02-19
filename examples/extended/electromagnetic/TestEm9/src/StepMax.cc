@@ -23,32 +23,28 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm9/src/StepMax.cc
+/// \file StepMax.cc
 /// \brief Implementation of the StepMax class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "StepMax.hh"
+
 #include "StepMaxMessenger.hh"
+
 #include "G4VPhysicalVolume.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 StepMax::StepMax(const G4String& processName)
-  : G4VDiscreteProcess(processName),
-    fMaxChargedStep(DBL_MAX),
-    fMessenger(0)
+  : G4VDiscreteProcess(processName), fMaxChargedStep(DBL_MAX), fMessenger(0)
 {
   fMessenger = new StepMaxMessenger(this);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-StepMax::~StepMax() 
-{ 
-  delete fMessenger; 
+StepMax::~StepMax()
+{
+  delete fMessenger;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -60,17 +56,15 @@ G4bool StepMax::IsApplicable(const G4ParticleDefinition& particle)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void StepMax::SetMaxStep(G4double step) 
+void StepMax::SetMaxStep(G4double step)
 {
   fMaxChargedStep = step;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4double 
-StepMax::PostStepGetPhysicalInteractionLength(const G4Track&,
-                                              G4double,
-                                              G4ForceCondition* condition)
+G4double StepMax::PostStepGetPhysicalInteractionLength(const G4Track&, G4double,
+                                                       G4ForceCondition* condition)
 {
   // condition is set to "Not Forced"
   *condition = NotForced;

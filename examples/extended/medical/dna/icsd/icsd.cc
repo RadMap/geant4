@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file icsd.cc
+/// \brief Main program of the dna/icsd example
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,61 +34,47 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file icsd.cc
-/// \brief icsd example
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-#include "G4Types.hh"
-
-#ifdef G4MULTITHREADED
-  #include "G4MTRunManager.hh"
-#else
-  #include "G4RunManager.hh"
-#endif
-
-#include "G4UImanager.hh"
-#include "G4UIterminal.hh"
-#include "G4UItcsh.hh"
-#include "G4UIExecutive.hh"
-
-#include "G4VisExecutive.hh"
-
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
 
+#include "G4RunManagerFactory.hh"
+#include "G4Types.hh"
+#include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
+#include "G4UItcsh.hh"
+#include "G4UIterminal.hh"
+#include "G4VisExecutive.hh"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int main(int argc,char** argv)
+int main(int argc, char** argv)
 {
-    G4String macroName ("");
+  G4String macroName("");
 
-    // Detect if the user gave an argument (or not)
-    if(argc == 1) // Only the name of the program was used (no argument)
-    {
-        // We set the name of the macro to be used by default
-        macroName = "icsd.mac";
-    }
-    else if(argc == 2) // One argument was supplied
-    {
-        // The first argument is the name if the macro file to be used
-        macroName = argv[1];
-    }
-    else // More than one argument was supplied
-    {
-        G4Exception("main", "WRONG ARGUMENT NUMBER", FatalException,
-                    "To many argument were provided.");
-        return 0;
-    }
+  // Detect if the user gave an argument (or not)
+  if (argc == 1)  // Only the name of the program was used (no argument)
+  {
+    // We set the name of the macro to be used by default
+    macroName = "icsd.mac";
+  }
+  else if (argc == 2)  // One argument was supplied
+  {
+    // The first argument is the name if the macro file to be used
+    macroName = argv[1];
+  }
+  else  // More than one argument was supplied
+  {
+    G4Exception("main", "WRONG ARGUMENT NUMBER", FatalException, "To many argument were provided.");
+    return 0;
+  }
 
   // Construct the default run manager
 
-#ifdef G4MULTITHREADED
-  G4MTRunManager* runManager = new G4MTRunManager;
-  runManager->SetNumberOfThreads(2); // Is equal to 2 by default
-#else
-  G4RunManager* runManager = new G4RunManager;
-#endif
+  auto* runManager = G4RunManagerFactory::CreateRunManager();
+  runManager->SetNumberOfThreads(2);  // Is equal to 2 by default
 
   // Set mandatory user initialization classes
   DetectorConstruction* detector = new DetectorConstruction;
@@ -101,10 +90,9 @@ int main(int argc,char** argv)
   // Get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
   G4String command = "/control/execute ";
-  UImanager->ApplyCommand(command+macroName);
+  UImanager->ApplyCommand(command + macroName);
 
   delete runManager;
 
   return 0;
 }
-

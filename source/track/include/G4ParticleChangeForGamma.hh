@@ -23,30 +23,18 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4ParticleChangeForGamma
 //
+// Class description:
 //
-//
-// ------------------------------------------------------------
-//	GEANT 4 class header file
-//
-//
-// ------------------------------------------------------------
-// 15 April 2005 V.Ivanchenko for gamma EM processes
-//
-// Modified:
-// 30.05.05 : add   UpdateStepForAtRest (V.Ivanchenko)
-// 04.12.05 : apply UpdateStepForPostStep in any case (mma) 
-// 26.08.06 : Add->Set polarization; 
-//            add const method to access track; 
-//            add weight modification (V.Ivanchenko) 
-//
-// ------------------------------------------------------------
-//
-//  Class Description
-//  This class is a concrete class for ParticleChange for gamma processes
-//
-#ifndef G4ParticleChangeForGamma_h
-#define G4ParticleChangeForGamma_h 1
+// Concrete class for ParticleChange for gamma processes.
+
+// Author: Hisaya Kurashige, 23 March 1998  
+// Revision: Vladimir Ivantchenko, 15 April 2005
+//                                 24 August 2022
+// --------------------------------------------------------------------
+#ifndef G4ParticleChangeForGamma_hh
+#define G4ParticleChangeForGamma_hh 1
 
 #include "globals.hh"
 #include "G4ios.hh"
@@ -54,140 +42,118 @@
 
 class G4DynamicParticle;
 
-class G4ParticleChangeForGamma: public G4VParticleChange
+class G4ParticleChangeForGamma final : public G4VParticleChange
 {
 public:
-  // default constructor
+
   G4ParticleChangeForGamma();
 
-  // destructor
-  virtual ~G4ParticleChangeForGamma();
+  ~G4ParticleChangeForGamma() override = default;
 
-  // with description
-  // ----------------------------------------------------
+  G4ParticleChangeForGamma(const G4ParticleChangeForGamma& right) = delete;
+  G4ParticleChangeForGamma& operator=(const G4ParticleChangeForGamma& right) = delete;
+
   // --- the following methods are for updating G4Step -----
 
-  G4Step* UpdateStepForAtRest(G4Step* pStep);
-  G4Step* UpdateStepForPostStep(G4Step* Step);
-  // A physics process gives the final state of the particle
-  // based on information of G4Track
+  G4Step* UpdateStepForAtRest(G4Step* pStep) final;
+  G4Step* UpdateStepForPostStep(G4Step* Step) final;
+      // A physics process gives the final state of the particle
+      // based on information of G4Track
 
   inline void InitializeForPostStep(const G4Track&);
-  //Initialize all propoerties by using G4Track information
+      // Initialize all properties by using G4Track information
 
   void AddSecondary(G4DynamicParticle* aParticle);
-  // Add next secondary
+      // Add next secondary
 
   inline G4double GetProposedKineticEnergy() const;
   inline void SetProposedKineticEnergy(G4double proposedKinEnergy);
-  // Get/Set the final kinetic energy of the current particle.
+      // Get/Set the final kinetic energy of the current particle
 
   inline const G4ThreeVector& GetProposedMomentumDirection() const;
-  inline void ProposeMomentumDirection(G4double Px, G4double Py, G4double Pz);
   inline void ProposeMomentumDirection(const G4ThreeVector& Pfinal);
-  // Get/Propose the MomentumDirection vector: it is the final momentum direction.
+      // Get/Set the final momentum direction
 
   inline const G4ThreeVector& GetProposedPolarization() const;
   inline void ProposePolarization(const G4ThreeVector& dir);
   inline void ProposePolarization(G4double Px, G4double Py, G4double Pz);
 
-  inline const G4Track* GetCurrentTrack() const;
-
-  virtual void DumpInfo() const;
-
-  // for Debug
-  virtual G4bool CheckIt(const G4Track&);
-
-protected:
-  // hide copy constructor and assignment operaor as protected
-  G4ParticleChangeForGamma(const G4ParticleChangeForGamma &right);
-  G4ParticleChangeForGamma & operator=(const G4ParticleChangeForGamma &right);
+  void DumpInfo() const override;
 
 private:
 
-  const G4Track* currentTrack;
-  // The pointer to G4Track
-
-  G4double proposedKinEnergy;
-  //  The final kinetic energy of the current particle.
+  G4double proposedKinEnergy = 0.0;
+      // The final kinetic energy of the current particle
 
   G4ThreeVector proposedMomentumDirection;
-  //  The final momentum direction of the current particle.
+      // The final momentum direction of the current particle
 
   G4ThreeVector proposedPolarization;
-  //  The final polarization of the current particle.
+      // The final polarization of the current particle
 };
 
-// ------------------------------------------------------------
+// ----------------------
+// Inline methods
+// ----------------------
 
-inline G4double G4ParticleChangeForGamma::GetProposedKineticEnergy() const
+inline
+G4double G4ParticleChangeForGamma::GetProposedKineticEnergy() const
 {
   return proposedKinEnergy;
 }
 
-inline void G4ParticleChangeForGamma::SetProposedKineticEnergy(G4double energy)
+inline
+void G4ParticleChangeForGamma::SetProposedKineticEnergy(G4double energy)
 {
   proposedKinEnergy = energy;
 }
 
 inline
- const G4ThreeVector& G4ParticleChangeForGamma::GetProposedMomentumDirection() const
+const G4ThreeVector& G4ParticleChangeForGamma::
+GetProposedMomentumDirection() const
 {
   return proposedMomentumDirection;
 }
 
 inline
- void G4ParticleChangeForGamma::ProposeMomentumDirection(const G4ThreeVector& dir)
+void G4ParticleChangeForGamma::
+ProposeMomentumDirection(const G4ThreeVector& dir)
 {
   proposedMomentumDirection = dir;
 }
 
 inline
- void G4ParticleChangeForGamma::ProposeMomentumDirection(G4double Px, G4double Py, G4double Pz)
-{
-  proposedMomentumDirection.setX(Px);
-  proposedMomentumDirection.setY(Py);
-  proposedMomentumDirection.setZ(Pz);
-}
-
-inline const G4Track* G4ParticleChangeForGamma::GetCurrentTrack() const
-{
-  return currentTrack;
-}
-
-inline
- const G4ThreeVector& G4ParticleChangeForGamma::GetProposedPolarization() const
+const G4ThreeVector& G4ParticleChangeForGamma::GetProposedPolarization() const
 {
   return proposedPolarization;
 }
 
 inline
- void G4ParticleChangeForGamma::ProposePolarization(const G4ThreeVector& dir)
+void G4ParticleChangeForGamma::ProposePolarization(const G4ThreeVector& dir)
 {
   proposedPolarization = dir;
 }
 
 inline
- void G4ParticleChangeForGamma::ProposePolarization(G4double Px, G4double Py, G4double Pz)
+void G4ParticleChangeForGamma::ProposePolarization(G4double Px,
+                                                   G4double Py,
+                                                   G4double Pz)
 {
   proposedPolarization.setX(Px);
   proposedPolarization.setY(Py);
   proposedPolarization.setZ(Pz);
 }
 
-inline void G4ParticleChangeForGamma::InitializeForPostStep(const G4Track& track)
+inline
+void G4ParticleChangeForGamma::InitializeForPostStep(const G4Track& track)
 {
-  theStatusChange = track.GetTrackStatus();
-  theLocalEnergyDeposit = 0.0;
-  theNonIonizingEnergyDeposit = 0.0;
-  InitializeSecondaries(track);
-  theParentWeight = track.GetWeight();
-  isParentWeightProposed = false;
-  proposedKinEnergy = track.GetKineticEnergy();
+  InitializeSecondaries();
+  InitializeLocalEnergyDeposit();
+  InitializeParentWeight(track);
+  InitializeStatusChange(track);
+  proposedKinEnergy         = track.GetKineticEnergy();
   proposedMomentumDirection = track.GetMomentumDirection();
-  proposedPolarization = track.GetPolarization();
-  currentTrack = &track;
+  proposedPolarization      = track.GetPolarization();
 }
 
 #endif
-

@@ -23,42 +23,29 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm4/src/SteppingAction.cc
+/// \file SteppingAction.cc
 /// \brief Implementation of the SteppingAction class
-//
-//
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "SteppingAction.hh"
+
 #include "EventAction.hh"
-#include "G4SteppingManager.hh"
+
 #include "G4RunManager.hh"
+#include "G4SteppingManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SteppingAction::SteppingAction(EventAction* EvAct)
-:G4UserSteppingAction(),fEventAction(EvAct)
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-SteppingAction::~SteppingAction()
-{ }
+SteppingAction::SteppingAction(EventAction* EvAct) : fEventAction(EvAct) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void SteppingAction::UserSteppingAction(const G4Step* aStep)
 {
- G4double EdepStep = aStep->GetTotalEnergyDeposit();
- if (EdepStep > 0.) fEventAction->AddEdep(EdepStep);
-  
- //example of saving random number seed of this event, under condition
- //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent();  
+  G4double EdepStep = aStep->GetTotalEnergyDeposit();
+  if (EdepStep > 0.) fEventAction->AddEdep(EdepStep);
+
+  // example of saving random number seed of this event, under condition
+  //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

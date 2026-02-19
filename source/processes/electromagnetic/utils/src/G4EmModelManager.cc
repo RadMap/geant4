@@ -53,6 +53,19 @@
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicsTable.hh"
 #include "G4PhysicsVector.hh"
+#include "G4VMscModel.hh"
+
+#include "G4Step.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4PhysicsVector.hh"
+#include "G4MaterialCutsCouple.hh"
+#include "G4ProductionCutsTable.hh"
+#include "G4RegionStore.hh"
+#include "G4Gamma.hh"
+#include "G4Electron.hh"
+#include "G4Positron.hh"
+#include "G4UnitsTable.hh"
+#include "G4DataVector.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -79,40 +92,15 @@ G4RegionModels::~G4RegionModels()
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-#include "G4Step.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4PhysicsVector.hh"
-#include "G4MaterialCutsCouple.hh"
-#include "G4ProductionCutsTable.hh"
-#include "G4RegionStore.hh"
-#include "G4Gamma.hh"
-#include "G4Electron.hh"
-#include "G4Positron.hh"
-#include "G4UnitsTable.hh"
-#include "G4DataVector.hh"
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4EmModelManager::G4EmModelManager():
-  nEmModels(0),
-  nRegions(0),
-  particle(0),
-  verboseLevel(0)
+G4EmModelManager::G4EmModelManager()
 {
-  maxSubCutInRange = 0.7*mm;
   models.reserve(4);
   flucModels.reserve(4);
   regions.reserve(4);
   orderOfModels.reserve(4);
   isUsed.reserve(4);
-  severalModels = true;
-  fluoFlag = false;
-  currRegionModel = nullptr;
-  currModel  = nullptr;
-  theCuts    = nullptr;
-  theCutsNew = nullptr;
-  theSubCuts = nullptr;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -122,7 +110,6 @@ G4EmModelManager::~G4EmModelManager()
   verboseLevel = 0; // no verbosity at destruction
   Clear();
   delete theCutsNew; 
-  delete theSubCuts;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -132,12 +119,10 @@ void G4EmModelManager::Clear()
   if(1 < verboseLevel) {
     G4cout << "G4EmModelManager::Clear()" << G4endl;
   }
-  size_t n = setOfRegionModels.size();
-  if(n > 0) {
-    for(size_t i=0; i<n; ++i) {
-      delete setOfRegionModels[i];
-      setOfRegionModels[i] = nullptr;
-    }
+  std::size_t n = setOfRegionModels.size();
+  for(std::size_t i=0; i<n; ++i) {
+    delete setOfRegionModels[i];
+    setOfRegionModels[i] = nullptr;
   }
 }
 
@@ -146,7 +131,7 @@ void G4EmModelManager::Clear()
 void G4EmModelManager::AddEmModel(G4int num, G4VEmModel* p,
                                   G4VEmFluctuationModel* fm, const G4Region* r)
 {
-  if(!p) {
+  if(nullptr == p) {
     G4cout << "G4EmModelManager::AddEmModel WARNING: no model defined." 
            << G4endl;
     return;
@@ -162,34 +147,17 @@ void G4EmModelManager::AddEmModel(G4int num, G4VEmModel* p,
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void G4EmModelManager::UpdateEmModel(const G4String& nam, 
-                                     G4double emin, G4double emax)
-{
-  if (nEmModels > 0) {
-    for(G4int i=0; i<nEmModels; ++i) {
-      if(nam == models[i]->GetName()) {
-        models[i]->SetLowEnergyLimit(emin);
-        models[i]->SetHighEnergyLimit(emax);
-        break;
-      }
-    }
-  }
-  G4cout << "G4EmModelManager::UpdateEmModel WARNING: no model <"
-         << nam << "> is found out"
-         << G4endl;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-G4VEmModel* G4EmModelManager::GetModel(G4int i, G4bool ver)
+G4VEmModel* G4EmModelManager::GetModel(G4int idx, G4bool ver) const
 {
   G4VEmModel* model = nullptr;
-  if(i < nEmModels) { model = models[i]; }
+  if(idx >= 0 && idx < nEmModels) { model = models[idx]; }
   else if(verboseLevel > 0 && ver) { 
     G4cout << "G4EmModelManager::GetModel WARNING: "
-           << "index " << i << " is wrong Nmodels= "
+           << "index " << idx << " is wrong Nmodels= "
            << nEmModels;
-    if(particle) { G4cout << " for " << particle->GetParticleName(); } 
+    if(nullptr != particle) { 
+      G4cout << " for " << particle->GetParticleName(); 
+    }
     G4cout<< G4endl;
   }
   return model;
@@ -197,16 +165,15 @@ G4VEmModel* G4EmModelManager::GetModel(G4int i, G4bool ver)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4VEmModel* G4EmModelManager::GetRegionModel(G4int k, size_t idx)
+G4VEmModel* G4EmModelManager::GetRegionModel(G4int k, std::size_t idx)
 {
   G4RegionModels* rm = setOfRegionModels[idxOfRegionModels[idx]];
-  G4VEmModel* mod = models[rm->ModelIndex(k)];
-  return mod;
+  return (k < rm->NumberOfModels()) ? models[rm->ModelIndex(k)] : nullptr;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4int G4EmModelManager::NumberOfRegionModels(size_t idx) const
+G4int G4EmModelManager::NumberOfRegionModels(std::size_t idx) const
 {
   G4RegionModels* rm = setOfRegionModels[idxOfRegionModels[idx]];
   return rm->NumberOfModels();
@@ -217,14 +184,12 @@ G4int G4EmModelManager::NumberOfRegionModels(size_t idx) const
 const G4DataVector* 
 G4EmModelManager::Initialise(const G4ParticleDefinition* p,
                              const G4ParticleDefinition* secondaryParticle,
-                             G4double minSubRange,
-                             G4int val)
+                             G4int verb)
 {
-  verboseLevel = val;
-  G4String partname = p->GetParticleName();
+  verboseLevel = verb;
   if(1 < verboseLevel) {
     G4cout << "G4EmModelManager::Initialise() for "
-           << partname << "  Nmodels= " << nEmModels << G4endl;
+           << p->GetParticleName() << "  Nmodels= " << nEmModels << G4endl;
   }
   // Are models defined?
   if(nEmModels < 1) {
@@ -250,7 +215,7 @@ G4EmModelManager::Initialise(const G4ParticleDefinition* p,
 
   for (G4int ii=0; ii<nEmModels; ++ii) {
     const G4Region* r = regions[ii];
-    if ( r == 0 || r == world) {
+    if ( r == nullptr || r == world) {
       isWorld = true;
       regions[ii] = world;
     } else {
@@ -262,7 +227,7 @@ G4EmModelManager::Initialise(const G4ParticleDefinition* p,
       }
       if (newRegion) {
         setr.push_back(r);
-        nRegions++;
+        ++nRegions;
       }
     }
   }
@@ -277,16 +242,16 @@ G4EmModelManager::Initialise(const G4ParticleDefinition* p,
 
   G4ProductionCutsTable* theCoupleTable=
     G4ProductionCutsTable::GetProductionCutsTable();
-  size_t numOfCouples = theCoupleTable->GetTableSize();
+  std::size_t numOfCouples = theCoupleTable->GetTableSize();
 
   // prepare vectors, shortcut for the case of only 1 model
   // or only one region
   if(nRegions > 1 && nEmModels > 1) {
     idxOfRegionModels.resize(numOfCouples,0);
-    setOfRegionModels.resize((size_t)nRegions,0); 
+    setOfRegionModels.resize((std::size_t)nRegions,nullptr);
   } else {
     idxOfRegionModels.resize(1,0);
-    setOfRegionModels.resize(1,0); 
+    setOfRegionModels.resize(1,nullptr);
   }
 
   std::vector<G4int>    modelAtRegion(nEmModels);
@@ -485,7 +450,7 @@ G4EmModelManager::Initialise(const G4ParticleDefinition* p,
       for(G4int iii=0; iii<=n; ++iii) {G4cout << eLow[iii]/MeV << " ";}
       G4cout << G4endl;
     }
-    G4RegionModels* rm = new G4RegionModels(n, modelAtRegion, eLow, region);
+    auto rm = new G4RegionModels(n, modelAtRegion, eLow, region);
     setOfRegionModels[reg] = rm;
     // shortcut
     if(1 == nEmModels) { break; }
@@ -495,8 +460,8 @@ G4EmModelManager::Initialise(const G4ParticleDefinition* p,
   currModel = models[0];
 
   // Access to materials and build cuts
-  size_t idx = 1;
-  if(secondaryParticle) {
+  std::size_t idx = 1;
+  if(nullptr != secondaryParticle) {
     if( secondaryParticle == G4Gamma::Gamma() )           { idx = 0; }
     else if( secondaryParticle == G4Electron::Electron()) { idx = 1; }
     else if( secondaryParticle == G4Positron::Positron()) { idx = 2; }
@@ -507,19 +472,14 @@ G4EmModelManager::Initialise(const G4ParticleDefinition* p,
     static_cast<const G4DataVector*>(theCoupleTable->GetEnergyCutsVector(idx));
 
   // for the second run the check on cuts should be repeated
-  if(theCutsNew) { *theCutsNew = *theCuts; }
-
-  if(minSubRange < 1.0) {
-    if( !theSubCuts ) { theSubCuts = new G4DataVector(); }
-    theSubCuts->resize(numOfCouples,DBL_MAX);
-  }
+  if(nullptr != theCutsNew) { *theCutsNew = *theCuts; }
 
   //  G4cout << "========Start define cuts" << G4endl;
   // define cut values
-  for(size_t i=0; i<numOfCouples; ++i) {
+  for(std::size_t i=0; i<numOfCouples; ++i) {
 
     const G4MaterialCutsCouple* couple = 
-      theCoupleTable->GetMaterialCutsCouple(i);
+      theCoupleTable->GetMaterialCutsCouple((G4int)i);
     const G4Material* material = couple->GetMaterial();
     const G4ProductionCuts* pcuts = couple->GetProductionCuts();
  
@@ -539,19 +499,7 @@ G4EmModelManager::Initialise(const G4ParticleDefinition* p,
     }
 
     G4double cut = (*theCuts)[i]; 
-    if(secondaryParticle) {
-
-      // compute subcut 
-      if( cut < DBL_MAX && minSubRange < 1.0) {
-        G4double subcut = minSubRange*cut;
-        G4double rcut = std::min(minSubRange*pcuts->GetProductionCut(idx), 
-                                 maxSubCutInRange);
-        G4double tcutmax = 
-          theCoupleTable->ConvertRangeToEnergy(secondaryParticle,
-                                               material,rcut);
-        if(tcutmax < subcut) { subcut = tcutmax; }
-        (*theSubCuts)[i] = subcut;
-      }
+    if(nullptr != secondaryParticle) {
 
       // note that idxOfRegionModels[] not always filled
       G4int inn = 0;
@@ -572,7 +520,7 @@ G4EmModelManager::Initialise(const G4ParticleDefinition* p,
         currModel = models[currRegionModel->ModelIndex(jj)];
         G4double cutlim = currModel->MinEnergyCut(particle,couple);
         if(cutlim > cut) {
-          if(!theCutsNew) { theCutsNew = new G4DataVector(*theCuts); }
+          if(nullptr == theCutsNew) { theCutsNew = new G4DataVector(*theCuts); }
           (*theCutsNew)[i] = cutlim;
           /*
           G4cout << "### " << partname << " energy loss model in " 
@@ -585,7 +533,7 @@ G4EmModelManager::Initialise(const G4ParticleDefinition* p,
       } 
     }
   }
-  if(theCutsNew) { theCuts = theCutsNew; }
+  if(nullptr != theCutsNew) { theCuts = theCutsNew; }
 
   // initialize models
   G4int nn = 0;
@@ -595,18 +543,17 @@ G4EmModelManager::Initialise(const G4ParticleDefinition* p,
       ++nn;
       currModel = models[jj];
       currModel->Initialise(particle, *theCuts);
-      if(flucModels[jj]) { flucModels[jj]->InitialiseMe(particle); }
+      if(nullptr != flucModels[jj]) { flucModels[jj]->InitialiseMe(particle); }
     }
   }
   if(1 == nn) { severalModels = false; }
 
   if(1 < verboseLevel) {
-    G4cout << "G4EmModelManager for " << partname 
+    G4cout << "G4EmModelManager for " << particle->GetParticleName()
            << " is initialised; nRegions=  " << nRegions
            << " severalModels: " << severalModels 
            << G4endl;
   }
-
   return theCuts;
 }
 
@@ -616,21 +563,13 @@ void G4EmModelManager::FillDEDXVector(G4PhysicsVector* aVector,
                                       const G4MaterialCutsCouple* couple,
                                       G4EmTableType tType)
 {
-  size_t i = couple->GetIndex();
-  G4double cut  = (*theCuts)[i];
-  G4double emin = 0.0;
-
-  if(fTotal == tType) { cut = DBL_MAX; }
-  else if(fSubRestricted == tType) {
-    emin = cut;
-    if(theSubCuts) { emin = (*theSubCuts)[i]; }
-  }
+  std::size_t i = couple->GetIndex();
+  G4double cut  = (fTotal == tType) ? DBL_MAX : (*theCuts)[i];
 
   if(1 < verboseLevel) {
     G4cout << "G4EmModelManager::FillDEDXVector() for "
            << couple->GetMaterial()->GetName()
            << "  cut(MeV)= " << cut
-           << "  emin(MeV)= " << emin
            << "  Type " << tType
            << "  for " << particle->GetParticleName()
            << G4endl;
@@ -642,14 +581,11 @@ void G4EmModelManager::FillDEDXVector(G4PhysicsVector* aVector,
   G4int nmod = regModels->NumberOfModels();
 
   // Calculate energy losses vector
-
-  //G4cout << "nmod= " << nmod << G4endl;
-  size_t totBinsLoss = aVector->GetVectorLength();
+  std::size_t totBinsLoss = aVector->GetVectorLength();
   G4double del = 0.0;
   G4int    k0  = 0;
 
-  for(size_t j=0; j<totBinsLoss; ++j) {
-
+  for(std::size_t j=0; j<totBinsLoss; ++j) {
     G4double e = aVector->Energy(j);
 
     // Choose a model of energy losses
@@ -662,19 +598,17 @@ void G4EmModelManager::FillDEDXVector(G4PhysicsVector* aVector,
       if(k > 0 && k != k0) {
         k0 = k;
         G4double elow = regModels->LowEdgeEnergy(k);
-        G4double dedx1 = ComputeDEDX(models[regModels->ModelIndex(k-1)],
-                                     couple,elow,cut,emin);
-        G4double dedx2 = ComputeDEDX(models[regModels->ModelIndex(k)],
-                                     couple,elow,cut,emin);
-        del = 0.0;
-        if(dedx2 > 0.0) { del = (dedx1/dedx2 - 1.0)*elow; }
+	G4double dedx1 = 
+	  models[regModels->ModelIndex(k-1)]->ComputeDEDX(couple, particle, elow, cut);
+        G4double dedx2 = 
+	  models[regModels->ModelIndex(k)]->ComputeDEDX(couple, particle, elow, cut);
+        del = (dedx2 > 0.0) ? (dedx1/dedx2 - 1.0)*elow : 0.0;
         //G4cout << "elow= " << elow 
         //       << " dedx1= " << dedx1 << " dedx2= " << dedx2 << G4endl;
       }
     }
-    G4double dedx = 
-      ComputeDEDX(models[regModels->ModelIndex(k)],couple,e,cut,emin);
-    dedx *= (1.0 + del/e); 
+    G4double dedx = (1.0 + del/e)*
+	  models[regModels->ModelIndex(k)]->ComputeDEDX(couple, particle, e, cut);
 
     if(2 < verboseLevel) {
       G4cout << "Material= " << couple->GetMaterial()->GetName()
@@ -684,7 +618,7 @@ void G4EmModelManager::FillDEDXVector(G4PhysicsVector* aVector,
              << " modelIdx= " << regModels->ModelIndex(k)
              << G4endl;
     }
-    if(dedx < 0.0) { dedx = 0.0; }
+    dedx = std::max(dedx, 0.0);
     aVector->PutValue(j, dedx);
   }
 }
@@ -696,13 +630,9 @@ void G4EmModelManager::FillLambdaVector(G4PhysicsVector* aVector,
                                         G4bool startFromNull,
                                         G4EmTableType tType)
 {
-  size_t i = couple->GetIndex();
+  std::size_t i = couple->GetIndex();
   G4double cut  = (*theCuts)[i];
   G4double tmax = DBL_MAX;
-  if (fSubRestricted == tType) {
-    tmax = cut;
-    if(theSubCuts) { cut  = (*theSubCuts)[i]; }
-  }
 
   G4int reg  = 0;
   if(nRegions > 1 && nEmModels > 1) { reg  = idxOfRegionModels[i]; }
@@ -717,17 +647,16 @@ void G4EmModelManager::FillLambdaVector(G4PhysicsVector* aVector,
            << " cut= " << cut
            << " Type " << tType   
            << " nmod= " << nmod
-           << " theSubCuts " << theSubCuts
            << G4endl;
   }
 
   // Calculate lambda vector
-  size_t totBinsLambda = aVector->GetVectorLength();
+  std::size_t totBinsLambda = aVector->GetVectorLength();
   G4double del = 0.0;
   G4int    k0  = 0;
   G4int     k  = 0;
   G4VEmModel* mod = models[regModels->ModelIndex(0)]; 
-  for(size_t j=0; j<totBinsLambda; ++j) {
+  for(std::size_t j=0; j<totBinsLambda; ++j) {
 
     G4double e = aVector->Energy(j);
 
@@ -743,14 +672,12 @@ void G4EmModelManager::FillLambdaVector(G4PhysicsVector* aVector,
         G4double xs1  = mod1->CrossSection(couple,particle,elow,cut,tmax);
         mod = models[regModels->ModelIndex(k)]; 
         G4double xs2 = mod->CrossSection(couple,particle,elow,cut,tmax);
-        del = 0.0;
-        if(xs2 > 0.0) { del = (xs1/xs2 - 1.0)*elow; }
+        del = (xs2 > 0.0) ? (xs1/xs2 - 1.0)*elow : 0.0;
         //G4cout << "New model k=" << k << " E(MeV)= " << e/MeV 
         //       << " Elow(MeV)= " << elow/MeV << " del= " << del << G4endl;
       }
     }
-    G4double cross = mod->CrossSection(couple,particle,e,cut,tmax);
-    cross *= (1.0 + del/e); 
+    G4double cross = (1.0 + del/e)*mod->CrossSection(couple,particle,e,cut,tmax);
     if(fIsCrossSectionPrim == tType) { cross *= e; }
     
     if(j==0 && startFromNull) { cross = 0.0; }
@@ -793,11 +720,11 @@ void G4EmModelManager::DumpModelList(std::ostream& out, G4int verb)
 	      << std::setw(5) << G4BestUnit(emax,"Energy");
 	  G4PhysicsTable* table = model->GetCrossSectionTable();
 	  if(table) {
-	    size_t kk = table->size();
-	    for(size_t k=0; k<kk; ++k) {
-	      G4PhysicsVector* v = (*table)[k];
+	    std::size_t kk = table->size();
+	    for(std::size_t k=0; k<kk; ++k) {
+	      const G4PhysicsVector* v = (*table)[k];
 	      if(v) {
-		G4int nn = v->GetVectorLength() - 1;
+		G4int nn = G4int(v->GetVectorLength() - 1);
 		out << " Nbins=" << nn << " "
 		    << std::setw(3) << G4BestUnit(v->Energy(0),"Energy")
 		    << " - " 
@@ -812,6 +739,8 @@ void G4EmModelManager::DumpModelList(std::ostream& out, G4int verb)
 	    out << " Fluo"; 
 	  }
 	  out << G4endl;
+          auto msc = dynamic_cast<G4VMscModel*>(model);
+          if(msc != nullptr) msc->DumpParameters(out);
 	}
       }  
     }

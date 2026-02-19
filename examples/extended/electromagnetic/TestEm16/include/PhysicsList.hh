@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm16/include/PhysicsList.hh
+/// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysicsList_h
 #define PhysicsList_h 1
@@ -41,30 +37,29 @@
 class PhysicsListMessenger;
 class G4DecayPhysics;
 
-class PhysicsList: public G4VUserPhysicsList
+class PhysicsList : public G4VUserPhysicsList
 {
-public:
-  PhysicsList();
-  virtual ~PhysicsList();
+  public:
+    PhysicsList();
+    ~PhysicsList() override = default;
 
-  // Construct particles
-  virtual void ConstructParticle();
+    // Construct particles
+    void ConstructParticle() override;
 
-  // Construct processes and register them
-  virtual void ConstructProcess();
+    // Construct processes and register them
+    void ConstructProcess() override;
 
-  inline void SetAnalyticSR(G4bool val) {fSRType = val;};
+    inline void SetAnalyticSR(G4bool val) { fSRType = val; };
+    void SetXrayReflectionRoughness(G4double SurfaceRoughness);
 
-private:
+  private:
+    void ConstructEM();
 
-  void ConstructEM();
-
-  G4bool                  fSRType;
-  PhysicsListMessenger*   fMess;
-  G4DecayPhysics*         fDecayPhysics;
+    G4bool fSRType;
+    PhysicsListMessenger* fMess;
+    G4DecayPhysics* fDecayPhysics;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

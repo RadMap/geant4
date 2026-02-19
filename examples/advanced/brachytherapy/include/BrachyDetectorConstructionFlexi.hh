@@ -46,51 +46,48 @@ class G4LogicalVolume;
 class G4Tubs;
 class G4Cons;
 class G4VPhysicalVolume;
-class BrachyMaterial;
 class G4VisAttributes;
 
 class BrachyDetectorConstructionFlexi
 {
 public:
-   BrachyDetectorConstructionFlexi();
-  ~BrachyDetectorConstructionFlexi();
+   explicit BrachyDetectorConstructionFlexi();
+  ~BrachyDetectorConstructionFlexi()=default;
 
   void  ConstructFlexi(G4VPhysicalVolume*);
   // Model the Flexi iridium source
 
   void  CleanFlexi(); 
-  // Destroy the Iridium source in the experimental set-up
+  // Clean the Iridium source in the experimental set-up
 
 private:   
-  G4Tubs* steel_shell;
-  G4LogicalVolume* logical_steel_shell;    
-  G4VPhysicalVolume* physical_steel_shell;
+  G4Tubs* fSteelShell;
+  G4LogicalVolume* fLogicalSteelShell;    
+  G4VPhysicalVolume* fPhysicalSteelShell;
 
-  G4Tubs* air_gap;
-  G4LogicalVolume* logical_air_gap;
-  G4VPhysicalVolume* physical_air_gap;
+  G4Tubs* fAirGap;
+  G4LogicalVolume* fLogicalAirGap;
+  G4VPhysicalVolume* fPhysicalAirGap;
 
-  G4Tubs* End1_steel_shell;
-  G4LogicalVolume* logical_End1_steel_shell;
-  G4VPhysicalVolume* physical_End1_steel_shell;
+  G4Tubs* fEnd1SteelShell;
+  G4LogicalVolume* fLogicalEnd1SteelShell;
+  G4VPhysicalVolume* fPhysicalEnd1SteelShell;
 
-  G4Cons* End2_steel_shell;
-  G4LogicalVolume* logical_End2_steel_shell;
-  G4VPhysicalVolume* physical_End2_steel_shell;
+  G4Cons* fEnd2SteelShell;
+  G4LogicalVolume* fLogicalEnd2SteelShell;
+  G4VPhysicalVolume* fPhysicalEnd2SteelShell;
 
-  G4Tubs* cable;
-  G4LogicalVolume* logical_cable;
-  G4VPhysicalVolume* physical_cable;
+  G4Tubs* fCable;
+  G4LogicalVolume* fLogicalCable;
+  G4VPhysicalVolume* fPhysicalCable;
     
-  G4Tubs* iridium_core;
-  G4LogicalVolume* logical_iridium_core;
-  G4VPhysicalVolume* physical_iridium_core;
+  G4Tubs* fIridiumCore;
+  G4LogicalVolume* fLogicalIridiumCore;
+  G4VPhysicalVolume* fPhysicalIridiumCore;
 
-  G4VisAttributes* steelAttributes;
-  G4VisAttributes* endAttributes;
-  G4VisAttributes* simpleIridiumVisAtt;
- 
-  BrachyMaterial* pMat;    
+  G4VisAttributes* fSteelAttributes;
+  G4VisAttributes* fEndAttributes;
+  G4VisAttributes* fSimpleIridiumVisAtt;
 };
 #endif
 

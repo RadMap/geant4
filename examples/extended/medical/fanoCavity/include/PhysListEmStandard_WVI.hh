@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/fanoCavity/include/PhysListEmStandard_WVI.hh
+/// \file PhysListEmStandard_WVI.hh
 /// \brief Definition of the PhysListEmStandard_WVI class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysListEmStandard_WVI_h
 #define PhysListEmStandard_WVI_h 1
@@ -42,21 +38,21 @@ class DetectorConstruction;
 
 class PhysListEmStandard_WVI : public G4VPhysicsConstructor
 {
-public: 
-  PhysListEmStandard_WVI(const G4String& name, DetectorConstruction* det);
- ~PhysListEmStandard_WVI();
+  public:
+    PhysListEmStandard_WVI(const G4String& name, DetectorConstruction* det);
+    ~PhysListEmStandard_WVI();
 
-public: 
-  // This method is dummy for physics
-  virtual void ConstructParticle() {};
- 
-  // This method will be invoked in the Construct() method.
-  // each physics process will be instantiated and
-  // registered to the process manager of each particle type 
-  virtual void ConstructProcess();
-  
-private:
-  DetectorConstruction* fDetector;  
+  public:
+    // This method is dummy for physics
+    virtual void ConstructParticle() {};
+
+    // This method will be invoked in the Construct() method.
+    // each physics process will be instantiated and
+    // registered to the process manager of each particle type
+    virtual void ConstructProcess();
+
+  private:
+    DetectorConstruction* fDetector;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

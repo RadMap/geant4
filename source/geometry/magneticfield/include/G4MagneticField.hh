@@ -29,7 +29,7 @@
 //
 // Magnetic Field abstract class, implements inquiry function interface.
 
-// Created: J.Apostolakis, CERN - 13.01.1996
+// Author: John Apostolakis (CERN), 13.01.1996
 // --------------------------------------------------------------------
 #ifndef G4MAGNETIC_FIELD_HH
 #define G4MAGNETIC_FIELD_HH
@@ -39,21 +39,39 @@
 
 class G4MagneticField : public G4Field
 {
-  public:  // with description
+  public:
 
-     G4MagneticField();
-     virtual ~G4MagneticField();
-       // Constructor and destructor. No actions.
+    /**
+     * Default Constructor and Destructor.
+     */
+    G4MagneticField();
+    ~G4MagneticField() override = default;
 
-     G4MagneticField(const G4MagneticField& r);
-     G4MagneticField& operator= (const G4MagneticField& p);
-       // Copy constructor & assignment operator.
+    /**
+     * Copy constructor and assignment operator.
+     */
+    G4MagneticField(const G4MagneticField& r);
+    G4MagneticField& operator= (const G4MagneticField& p);
 
-     inline G4bool DoesFieldChangeEnergy() const { return false; }
-       // Since a pure magnetic field does not change track energy
+    /**
+     * Since a pure magnetic field does not change track energy, returns false.
+     */
+    inline G4bool DoesFieldChangeEnergy() const override { return false; }
 
-     virtual void GetFieldValue( const G4double Point[4],
-                                       G4double* Bfield ) const = 0;
+    /**
+     * Given the position time vector 'Point', returns the value of the
+     * field in the array 'Bfield'.
+     *  @param[in] Point The position time vector.
+     *  @param[out] Bfield The field array in output.
+     */
+    void GetFieldValue( const G4double Point[4],
+                              G4double* Bfield ) const override = 0;
+
+    /**
+     * Returns the field type-ID, "kMagnetic".
+     * This should be overriden in derived classes.
+     */
+    inline G4FieldType GetFieldType() const override { return kMagnetic; }
 };
 
 #endif

@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/src/CRMCPiKBuilder.cc
+/// \file CRMCKaonBuilder.cc
 /// \brief Implementation of the CRMCKaonBuilder class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName: CRMCKaonBuilder
@@ -34,63 +33,48 @@
 // Author:    2018 Alberto Ribon
 //
 // Modified:
+// -  18-May-2021 Alberto Ribon : Used the latest Geant4-CRMC interface.
 //
 //----------------------------------------------------------------------------
 //
 #ifdef G4_USE_CRMC
 
-#include "CRMCKaonBuilder.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4ParticleTable.hh"
-#include "G4ProcessManager.hh"
-#include "G4KaonPlusInelasticProcess.hh"
-#include "G4KaonMinusInelasticProcess.hh"
-#include "G4KaonZeroLInelasticProcess.hh"
-#include "G4KaonZeroSInelasticProcess.hh"
-#include "G4HadronicParameters.hh"
-#include "G4SystemOfUnits.hh"
+#  include "CRMCKaonBuilder.hh"
 
+#  include "HadronicInelasticModelCRMC.hh"
 
-CRMCKaonBuilder::CRMCKaonBuilder() {
-  fMin = 0.0*MeV;  // This value does not matter in practice because we are going
-                   // to use this model only at high energies.
+#  include "G4HadronInelasticProcess.hh"
+#  include "G4HadronicParameters.hh"
+#  include "G4ParticleDefinition.hh"
+#  include "G4ParticleTable.hh"
+#  include "G4ProcessManager.hh"
+#  include "G4SystemOfUnits.hh"
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+CRMCKaonBuilder::CRMCKaonBuilder(const G4int crmcModelId, const std::string& crmcModelName)
+{
+  fMin = 0.0 * MeV;  // This value does not matter in practice because we are going
+                     // to use this model only at high energies.
   fMax = G4HadronicParameters::Instance()->GetMaxEnergy();
-  fModel = new G4CRMCModel;
+  fModel = new HadronicInelasticModelCRMC(crmcModelId, crmcModelName);
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 CRMCKaonBuilder::~CRMCKaonBuilder() {}
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void CRMCKaonBuilder::Build( G4HadronElasticProcess* ) {}
+void CRMCKaonBuilder::Build(G4HadronElasticProcess*) {}
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void CRMCKaonBuilder::Build( G4KaonPlusInelasticProcess* aP ) {
-  fModel->SetMinEnergy( fMin );
-  fModel->SetMaxEnergy( fMax );
-  aP->RegisterMe( fModel );
+void CRMCKaonBuilder::Build(G4HadronInelasticProcess* aP)
+{
+  fModel->SetMinEnergy(fMin);
+  fModel->SetMaxEnergy(fMax);
+  aP->RegisterMe(fModel);
 }
 
-
-void CRMCKaonBuilder::Build( G4KaonMinusInelasticProcess* aP ) {
-  fModel->SetMinEnergy( fMin );
-  fModel->SetMaxEnergy( fMax );
-  aP->RegisterMe( fModel );
-}
-
-
-void CRMCKaonBuilder::Build( G4KaonZeroLInelasticProcess* aP ) {
-  fModel->SetMinEnergy( fMin );
-  fModel->SetMaxEnergy( fMax );
-  aP->RegisterMe( fModel );
-}
-
-
-void CRMCKaonBuilder::Build( G4KaonZeroSInelasticProcess* aP ) {
-  fModel->SetMinEnergy( fMin );
-  fModel->SetMaxEnergy( fMax );
-  aP->RegisterMe( fModel );
-}
-
-#endif //G4_USE_CRMC
-
+#endif  // G4_USE_CRMC

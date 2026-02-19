@@ -23,16 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field04/include/F04PhysicsListMessenger.hh
+/// \file F04PhysicsListMessenger.hh
 /// \brief Definition of the F04PhysicsListMessenger class
-//
 
 #ifndef F04PhysicsListMessenger_h
 #define F04PhysicsListMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class F04PhysicsList;
 
@@ -45,26 +43,24 @@ class G4UIcmdWithoutParameter;
 
 class F04PhysicsListMessenger : public G4UImessenger
 {
-public:
+  public:
+    F04PhysicsListMessenger(F04PhysicsList*);
+    ~F04PhysicsListMessenger() override;
 
-    F04PhysicsListMessenger(F04PhysicsList* );
-    virtual ~F04PhysicsListMessenger();
- 
-    virtual void SetNewValue(G4UIcommand*, G4String);
+    void SetNewValue(G4UIcommand*, G4String) override;
 
-private:
+  private:
+    F04PhysicsList* fPhysicsList = nullptr;
 
-    F04PhysicsList* fPhysicsList;
- 
-    G4UIdirectory* fDirectory;
-    G4UIdirectory* fDecayDirectory;
+    G4UIdirectory* fDirectory = nullptr;
+    G4UIdirectory* fDecayDirectory = nullptr;
 
-    G4UIcmdWithADoubleAndUnit* fStepMaxCMD;
-/*
-    G4UIcmdWithAString*        fRemovePhysicsCMD;
-    G4UIcmdWithoutParameter*   fClearPhysicsCMD;
-*/
-    G4UIcmdWithoutParameter* fPienuCMD;
-    G4UIcmdWithoutParameter* fPimunuCMD;
+    G4UIcmdWithADoubleAndUnit* fStepMaxCMD = nullptr;
+    /*
+        G4UIcmdWithAString*        fRemovePhysicsCMD = nullptr;
+        G4UIcmdWithoutParameter*   fClearPhysicsCMD = nullptr;
+    */
+    G4UIcmdWithoutParameter* fPienuCMD = nullptr;
+    G4UIcmdWithoutParameter* fPimunuCMD = nullptr;
 };
 #endif

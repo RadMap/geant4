@@ -48,11 +48,12 @@
 
 namespace G4INCL {
 
-  ParticleSampler::ParticleSampler(const G4int A, const G4int Z) :
+  ParticleSampler::ParticleSampler(const G4int A, const G4int Z, const G4int S) :
     sampleOneProton(&ParticleSampler::sampleOneParticleWithoutRPCorrelation),
     sampleOneNeutron(&ParticleSampler::sampleOneParticleWithoutRPCorrelation),
     theA(A),
     theZ(Z),
+    theS(S),
     theDensity(NULL),
     thePotential(NULL)
   {
@@ -61,6 +62,7 @@ namespace G4INCL {
     std::fill(rpCorrelationCoefficient, rpCorrelationCoefficient + UnknownParticle, 1.);
     rpCorrelationCoefficient[Proton] = ParticleTable::getRPCorrelationCoefficient(Proton);
     rpCorrelationCoefficient[Neutron] = ParticleTable::getRPCorrelationCoefficient(Neutron);
+    rpCorrelationCoefficient[Lambda] = ParticleTable::getRPCorrelationCoefficient(Lambda);
   }
 
   ParticleSampler::~ParticleSampler() {
@@ -108,22 +110,37 @@ namespace G4INCL {
       thePCDFTable[Proton] = NuclearDensityFactory::createPCDFTable(Proton, theA, theZ);
       theRCDFTable[Neutron] = NuclearDensityFactory::createRCDFTable(Neutron, theA, theZ);
       thePCDFTable[Neutron] = NuclearDensityFactory::createPCDFTable(Neutron, theA, theZ);
+      theRCDFTable[Lambda] = NuclearDensityFactory::createRCDFTable(Lambda, theA, theZ);
+      thePCDFTable[Lambda] = NuclearDensityFactory::createPCDFTable(Lambda, theA, theZ);
+      theRCDFTable[antiProton] = NuclearDensityFactory::createRCDFTable(antiProton, theA, theZ);
+      thePCDFTable[antiProton] = NuclearDensityFactory::createPCDFTable(antiProton, theA, theZ);
+      theRCDFTable[antiNeutron] = NuclearDensityFactory::createRCDFTable(antiNeutron, theA, theZ);
+      thePCDFTable[antiNeutron] = NuclearDensityFactory::createPCDFTable(antiNeutron, theA, theZ);
     }
 
-    theList.resize(theA);
     if(theA > 2) {
+      theList.resize(theA);
       ParticleType type = Proton;
       ParticleSamplerMethod sampleOneParticle = sampleOneProton;
       for(G4int i = 0; i < theA; ++i) {
         if(i == theZ) { // Nucleons [Z..A-1] are neutrons
-          type = Neutron;
-          sampleOneParticle = sampleOneNeutron;
+          type = Lambda;
+          sampleOneParticle = sampleOneNeutron; // hypothesis: Lambdas follow the same rules than neutrons
         }
+        if(i == theZ - theS) type = Neutron;
         Particle *p = (this->*sampleOneParticle)(type);
         p->setPosition(position + p->getPosition());
         theList[i] = p;
       }
-    } else {
+    }else if(theA == -2) {//antideuteron
+      theList.resize(-theA);
+      Particle *anantiProton = (this->*(this->sampleOneProton))(antiProton);
+      Particle *anantiNeutron = new Particle(antiNeutron, -anantiProton->getMomentum(), position - anantiProton->getPosition());
+      anantiProton->setPosition(position + anantiProton->getPosition());
+      theList[0] = anantiProton;
+      theList[1] = anantiNeutron;
+    }else { //deuteron
+      theList.resize(theA);
       // For deuterons, only sample the proton position and momentum. The
       // neutron position and momenta are determined by the conditions of
       // vanishing CM position and total momentum.

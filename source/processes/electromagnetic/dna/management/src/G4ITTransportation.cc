@@ -55,27 +55,31 @@
 // -------------------------------------------------------------------
 
 #include "G4ITTransportation.hh"
-#include "G4IT.hh"
-#include "G4TrackingInformation.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4TransportationManager.hh"
-#include "G4ITTransportationManager.hh"
-#include "G4ProductionCutsTable.hh"
-#include "G4ParticleTable.hh"
-#include "G4ITNavigator.hh"
-#include "G4PropagatorInField.hh"
-#include "G4FieldManager.hh"
-#include "G4ChordFinder.hh"
-#include "G4ITSafetyHelper.hh"
-#include "G4FieldManagerStore.hh"
 
-#include "G4UnitsTable.hh"
+#include "G4ChordFinder.hh"
+#include "G4FieldManager.hh"
+#include "G4FieldManagerStore.hh"
+#include "G4IT.hh"
+#include "G4ITNavigator.hh"
+#include "G4ITSafetyHelper.hh"
+#include "G4ITTransportationManager.hh"
+#include "G4LowEnergyEmProcessSubType.hh"
+#include "G4ParticleTable.hh"
+#include "G4ProductionCutsTable.hh"
+#include "G4PropagatorInField.hh"
 #include "G4ReferenceCast.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4TrackingInformation.hh"
+#include "G4TransportationManager.hh"
+#include "G4UnitsTable.hh"
+
+#include <memory>
 
 class G4VSensitiveDetector;
 
 #ifndef PrepareState
-#define PrepareState() G4ITTransportationState* __state = this->GetState<G4ITTransportationState>();
+#  define PrepareState()                                                       \
+    G4ITTransportationState* __state = this->GetState<G4ITTransportationState>()
 #endif
 
 #ifndef State
@@ -96,11 +100,8 @@ G4ITTransportation::G4ITTransportation(const G4String& aName, int verbose) :
     G4VITProcess(aName, fTransportation),
     fThreshold_Warning_Energy(100 * MeV),
     fThreshold_Important_Energy(250 * MeV),
-    fThresholdTrials(10),
-    fUnimportant_Energy(1 * MeV), // Not used
-    fSumEnergyKilled(0.0),
-    fMaxEnergyKilled(0.0),
-    fShortStepOptimisation(false), // Old default: true (=fast short steps)
+    
+    fUnimportant_Energy(1 * MeV),  // Old default: true (=fast short steps)
     fVerboseLevel(verbose)
 {
   pParticleChange = &fParticleChange;
@@ -120,12 +121,12 @@ G4ITTransportation::G4ITTransportation(const G4String& aName, int verbose) :
   enableAtRestDoIt = false;
   enableAlongStepDoIt = true;
   enablePostStepDoIt = true;
-  SetProcessSubType(60);
+  SetProcessSubType(fLowEnergyTransportation);
   SetInstantiateProcessState(true);
   G4VITProcess::SetInstantiateProcessState(false);
   fInstantiateProcessState = true;
 
-  G4VITProcess::fpState.reset(new G4ITTransportationState());
+  G4VITProcess::fpState = std::make_shared<G4ITTransportationState>();
   /*
    if(fTransportationState == 0)
    {
@@ -182,7 +183,7 @@ G4ITTransportation& G4ITTransportation::operator=(const G4ITTransportation& /*ri
 /// Process State
 //////////////////////////////////////////////////////////////////////////////
 G4ITTransportation::G4ITTransportationState::G4ITTransportationState() :
-    G4ProcessState(), fCurrentTouchableHandle(0)
+     fCurrentTouchableHandle(nullptr)
 {
   fTransportEndPosition = G4ThreeVector(0, 0, 0);
   fTransportEndMomentumDir = G4ThreeVector(0, 0, 0);
@@ -194,15 +195,15 @@ G4ITTransportation::G4ITTransportationState::G4ITTransportationState() :
   fCandidateEndGlobalTime = -1;
   fParticleIsLooping = false;
 
-  static G4ThreadLocal G4TouchableHandle *nullTouchableHandle = 0;
-  if (!nullTouchableHandle) nullTouchableHandle = new G4TouchableHandle;
+  static G4ThreadLocal G4TouchableHandle *nullTouchableHandle = nullptr;
+  if (nullTouchableHandle == nullptr) nullTouchableHandle = new G4TouchableHandle;
   // Points to (G4VTouchable*) 0
 
   fCurrentTouchableHandle = *nullTouchableHandle;
   fGeometryLimitedStep = false;
   fPreviousSftOrigin = G4ThreeVector(0, 0, 0);
   fPreviousSafety = 0.0;
-  fNoLooperTrials = false;
+  fNoLooperTrials = 0;
   fEndPointDistance = -1;
 }
 
@@ -255,7 +256,7 @@ AlongStepGetPhysicalInteractionLength(const G4Track& track,
                                       G4double& currentSafety,
                                       G4GPILSelection* selection)
 {
-  PrepareState()
+  PrepareState();
   G4double geometryStepLength(-1.0), newSafety(-1.0);
 
   State(fParticleIsLooping) = false;
@@ -307,12 +308,12 @@ AlongStepGetPhysicalInteractionLength(const G4Track& track,
 
   // Check whether the particle have an (EM) field force exerting upon it
   //
-  G4FieldManager* fieldMgr = 0;
+  G4FieldManager* fieldMgr = nullptr;
   G4bool fieldExertsForce = false;
   if ((particleCharge != 0.0))
   {
     fieldMgr = fFieldPropagator->FindAndSetFieldManager(track.GetVolume());
-    if (fieldMgr != 0)
+    if (fieldMgr != nullptr)
     {
       // Message the field Manager, to configure it for this track
       fieldMgr->ConfigureForTrack(&track);
@@ -321,7 +322,7 @@ AlongStepGetPhysicalInteractionLength(const G4Track& track,
       //   to a finite field  status
 
       // If the field manager has no field, there is no field !
-      fieldExertsForce = (fieldMgr->GetDetectorField() != 0);
+      fieldExertsForce = (fieldMgr->GetDetectorField() != nullptr);
     }
   }
 
@@ -649,7 +650,7 @@ void G4ITTransportation::ComputeStep(const G4Track& track,
                                      const double timeStep,
                                      double& oPhysicalStep)
 {
-  PrepareState()
+  PrepareState();
   const G4DynamicParticle* pParticle = track.GetDynamicParticle();
   G4ThreeVector startMomentumDir = pParticle->GetMomentumDirection();
   G4ThreeVector startPosition = track.GetPosition();
@@ -697,15 +698,15 @@ G4VParticleChange* G4ITTransportation::AlongStepDoIt(const G4Track& track,
   mem_first = MemoryUsage();
 #endif
 
-  PrepareState()
-  
+  PrepareState();
+
   // G4cout << "G4ITTransportation::AlongStepDoIt" << G4endl;
   // set  pdefOpticalPhoton
   // Andrea Dotti: the following statement should be in a single line:
   // G4-MT transformation tools get confused if statement spans two lines
   // If needed contact: adotti@slac.stanford.edu
-  static G4ThreadLocal G4ParticleDefinition* pdefOpticalPhoton = 0;
-  if (!pdefOpticalPhoton) pdefOpticalPhoton =
+  static G4ThreadLocal G4ParticleDefinition* pdefOpticalPhoton = nullptr;
+  if (pdefOpticalPhoton == nullptr) pdefOpticalPhoton =
       G4ParticleTable::GetParticleTable()->FindParticle("opticalphoton");
 
   static G4ThreadLocal G4int noCalls = 0;
@@ -732,7 +733,7 @@ G4VParticleChange* G4ITTransportation::AlongStepDoIt(const G4Track& track,
   ///___________________________________________________________________________
   /// !!!!!!!
   /// A REVOIR !!!!
-  if (State(fEndGlobalTimeComputed) == false)
+  if (State(fEndGlobalTimeComputed) == 0)
   {
     // The time was not integrated .. make the best estimate possible
     //
@@ -871,8 +872,8 @@ G4VParticleChange* G4ITTransportation::PostStepDoIt(const G4Track& track,
                                                     const G4Step&)
 {
   //    G4cout << "G4ITTransportation::PostStepDoIt" << G4endl;
- 
-  PrepareState()
+
+  PrepareState();
   G4TouchableHandle retCurrentTouchable; // The one to return
   G4bool isLastStep = false;
 
@@ -888,7 +889,7 @@ G4VParticleChange* G4ITTransportation::PostStepDoIt(const G4Track& track,
   if (State(fGeometryLimitedStep))
   {
 
-    if(fVerboseLevel)
+    if(fVerboseLevel != 0)
     {
      G4cout << "Step is limited by geometry "
             <<  "track ID : " << track.GetTrackID() << G4endl;
@@ -898,7 +899,7 @@ G4VParticleChange* G4ITTransportation::PostStepDoIt(const G4Track& track,
     // and what was the previous will be freed.
     // (Needed because the preStepPoint can point to the previous touchable)
 
-    if ( State(fCurrentTouchableHandle)->GetVolume() == 0)
+    if ( State(fCurrentTouchableHandle)->GetVolume() == nullptr)
     {
       G4ExceptionDescription exceptionDescription;
       exceptionDescription << "No current touchable found ";
@@ -913,7 +914,7 @@ G4VParticleChange* G4ITTransportation::PostStepDoIt(const G4Track& track,
     // Check whether the particle is out of the world volume
     // If so it has exited and must be killed.
     //
-    if ( State(fCurrentTouchableHandle)->GetVolume() == 0)
+    if ( State(fCurrentTouchableHandle)->GetVolume() == nullptr)
     {
     //  abort();
 #ifdef G4VERBOSE
@@ -942,7 +943,7 @@ G4VParticleChange* G4ITTransportation::PostStepDoIt(const G4Track& track,
 
     // Update the Step flag which identifies the Last Step in a volume
     isLastStep = fLinearNavigator->ExitedMotherVolume()
-        | fLinearNavigator->EnteredDaughterVolume();
+               || fLinearNavigator->EnteredDaughterVolume();
 
 #ifdef G4DEBUG_TRANSPORT
     //  Checking first implementation of flagging Last Step in Volume
@@ -988,30 +989,28 @@ G4VParticleChange* G4ITTransportation::PostStepDoIt(const G4Track& track,
   fParticleChange.ProposeLastStepInVolume(isLastStep);
 
   const G4VPhysicalVolume* pNewVol = retCurrentTouchable->GetVolume();
-  const G4Material* pNewMaterial = 0;
-  const G4VSensitiveDetector* pNewSensitiveDetector = 0;
+  const G4Material* pNewMaterial = nullptr;
+  G4VSensitiveDetector* pNewSensitiveDetector = nullptr;
 
-  if (pNewVol != 0)
+  if (pNewVol != nullptr)
   {
     pNewMaterial = pNewVol->GetLogicalVolume()->GetMaterial();
     pNewSensitiveDetector = pNewVol->GetLogicalVolume()->GetSensitiveDetector();
   }
 
   // ( <const_cast> pNewMaterial ) ;
-  // ( <const_cast> pNewSensitiveDetector) ;
 
   fParticleChange.SetMaterialInTouchable((G4Material *) pNewMaterial);
-  fParticleChange.SetSensitiveDetectorInTouchable(
-      (G4VSensitiveDetector *) pNewSensitiveDetector);
+  fParticleChange.SetSensitiveDetectorInTouchable(pNewSensitiveDetector);
 
-  const G4MaterialCutsCouple* pNewMaterialCutsCouple = 0;
-  if (pNewVol != 0)
+  const G4MaterialCutsCouple* pNewMaterialCutsCouple = nullptr;
+  if (pNewVol != nullptr)
   {
     pNewMaterialCutsCouple =
         pNewVol->GetLogicalVolume()->GetMaterialCutsCouple();
   }
 
-  if (pNewVol != 0 && pNewMaterialCutsCouple != 0
+  if (pNewVol != nullptr && pNewMaterialCutsCouple != nullptr
       && pNewMaterialCutsCouple->GetMaterial() != pNewMaterial)
   {
     // for parametrized volume
@@ -1043,7 +1042,7 @@ void G4ITTransportation::StartTracking(G4Track* track)
   if (fInstantiateProcessState)
   {
 //        G4VITProcess::fpState = new G4ITTransportationState();
-    G4VITProcess::fpState.reset(new G4ITTransportationState());
+    G4VITProcess::fpState = std::make_shared<G4ITTransportationState>();
     // Will set in the same time fTransportationState
   }
 
@@ -1078,13 +1077,13 @@ void G4ITTransportation::StartTracking(G4Track* track)
   }
 
   // Make sure to clear the chord finders of all fields (ie managers)
-  static G4ThreadLocal G4FieldManagerStore* fieldMgrStore = 0;
-  if (!fieldMgrStore) fieldMgrStore = G4FieldManagerStore::GetInstance();
+  static G4ThreadLocal G4FieldManagerStore* fieldMgrStore = nullptr;
+  if (fieldMgrStore == nullptr) fieldMgrStore = G4FieldManagerStore::GetInstance();
   fieldMgrStore->ClearAllChordFindersState();
 
   // Update the current touchable handle  (from the track's)
   //
-  PrepareState()
+  PrepareState();
   State(fCurrentTouchableHandle) = track->GetTouchableHandle();
 
   G4VITProcess::StartTracking(track);

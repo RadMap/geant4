@@ -90,7 +90,7 @@ inline
 std::vector<G4ITNavigator*>::iterator
 G4ITTransportationManager::GetActiveNavigatorsIterator()
 {
-   std::vector<G4ITNavigator*>::iterator iterator
+   auto iterator
      = std::vector<G4ITNavigator*>::iterator(fActiveNavigators.begin());
    return iterator;
 }
@@ -98,7 +98,7 @@ G4ITTransportationManager::GetActiveNavigatorsIterator()
 // ----------------------------------------------------------------------------
 // GetNoWorlds()
 //
-// Return the number of registerd worlds.
+// Return the number of registered worlds.
 //
 inline
 size_t G4ITTransportationManager::GetNoWorlds() const
@@ -115,7 +115,7 @@ inline
 std::vector<G4VPhysicalVolume*>::iterator
 G4ITTransportationManager::GetWorldsIterator()
 {
-   std::vector<G4VPhysicalVolume*>::iterator iterator
+   auto iterator
      = std::vector<G4VPhysicalVolume*>::iterator(fWorlds.begin());
    return iterator;
 }

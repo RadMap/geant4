@@ -23,20 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm6/include/PhysicsList.hh
+/// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysicsList_h
 #define PhysicsList_h 1
 
+#include "G4EmConfigurator.hh"
 #include "G4VModularPhysicsList.hh"
 #include "globals.hh"
-#include "G4EmConfigurator.hh"
-
 
 class G4VPhysicsConstructor;
 class StepMax;
@@ -47,7 +42,7 @@ class G4eeToHadrons;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
   public:
     PhysicsList();
@@ -69,18 +64,15 @@ class PhysicsList: public G4VModularPhysicsList
     void SetAnnihiToHadronFac(G4double);
 
   private:
- 
     G4VPhysicsConstructor* fEmPhysicsList;
     G4VPhysicsConstructor* fDecayPhysicsList;
     G4String fEmName;
 
     StepMax* fStepMaxProcess;
 
-    PhysicsListMessenger*  fMes;
-
+    PhysicsListMessenger* fMes;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

@@ -23,18 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm2/include/RunActionMessenger.hh
+/// \file RunActionMessenger.hh
 /// \brief Definition of the RunActionMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef RunActionMessenger_h
 #define RunActionMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class RunAction;
 class G4UIdirectory;
@@ -44,23 +40,20 @@ class G4UIcmdWithAnInteger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class RunActionMessenger: public G4UImessenger
+class RunActionMessenger : public G4UImessenger
 {
-public:
-  RunActionMessenger(RunAction*);
-  virtual ~RunActionMessenger();
-    
-  virtual void SetNewValue(G4UIcommand*, G4String);
-    
-private:
-  RunAction*            fRun;
-    
-  G4UIdirectory*        fRunDir;
-  G4UIcmdWith3Vector*   fAccCmd;
-  G4UIcmdWithAnInteger* fVerbCmd;
-            
-  G4UIdirectory*        fHistoDir;        
-  G4UIcmdWithAString*   fHFileCmd;
+  public:
+    RunActionMessenger(RunAction*);
+    ~RunActionMessenger() override;
+
+    void SetNewValue(G4UIcommand*, G4String) override;
+
+  private:
+    RunAction* fRun = nullptr;
+
+    G4UIdirectory* fRunDir = nullptr;
+    G4UIcmdWith3Vector* fAccCmd = nullptr;
+    G4UIcmdWithAnInteger* fVerbCmd = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

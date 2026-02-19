@@ -25,26 +25,21 @@
 // 
 // class G4MultiNavigator Implementation
 //
-// Author:  John Apostolakis, November 2006
+// Author: John Apostolakis (CERN), November 2006
 // --------------------------------------------------------------------
 
 #include <iomanip>
 
 #include "G4MultiNavigator.hh"
 
-class G4FieldManager;
-
 #include "G4SystemOfUnits.hh"
 #include "G4Navigator.hh"
 #include "G4PropagatorInField.hh"
 #include "G4TransportationManager.hh"
 
-// ********************************************************************
-// Constructor
-// ********************************************************************
-//
-G4MultiNavigator::G4MultiNavigator() 
-  : G4Navigator()
+// -----------------------------------------------------------------------
+
+G4MultiNavigator::G4MultiNavigator()
 {
   G4ThreeVector Big3Vector( kInfinity, kInfinity, kInfinity ); 
   fLastLocatedPosition = Big3Vector;
@@ -63,10 +58,10 @@ G4MultiNavigator::G4MultiNavigator()
   pTransportManager= G4TransportationManager::GetTransportationManager();
 
   G4Navigator* massNav= pTransportManager->GetNavigatorForTracking();
-  if( massNav )
+  if( massNav != nullptr )
   { 
     G4VPhysicalVolume* pWorld= massNav->GetWorldVolume(); 
-    if( pWorld )
+    if( pWorld != nullptr )
     { 
       SetWorldVolume( pWorld ); 
       fLastMassWorld = pWorld; 
@@ -74,9 +69,7 @@ G4MultiNavigator::G4MultiNavigator()
   }
 }
 
-G4MultiNavigator::~G4MultiNavigator() 
-{
-}
+// -----------------------------------------------------------------------
 
 G4double G4MultiNavigator::ComputeStep(const G4ThreeVector& pGlobalPoint,
                                        const G4ThreeVector& pDirection,
@@ -214,7 +207,7 @@ G4MultiNavigator::ObtainFinalStep( G4int     navigatorId,
 
 // ----------------------------------------------------------------------
 
-void G4MultiNavigator::PrepareNewTrack( const G4ThreeVector position, 
+void G4MultiNavigator::PrepareNewTrack( const G4ThreeVector& position, 
                                         const G4ThreeVector direction )
 {
 #ifdef G4DEBUG_NAVIGATION
@@ -250,8 +243,8 @@ void G4MultiNavigator::PrepareNavigators()
 
   // Message the transportation-manager to find active navigators
 
-  std::vector<G4Navigator*>::iterator pNavigatorIter; 
-  fNoActiveNavigators=  pTransportManager-> GetNoActiveNavigators();
+  std::vector<G4Navigator*>::const_iterator pNavigatorIter; 
+  fNoActiveNavigators = (G4int)pTransportManager-> GetNoActiveNavigators();
 
   if( fNoActiveNavigators > fMaxNav )
   {
@@ -281,7 +274,7 @@ void G4MultiNavigator::PrepareNavigators()
 
   G4VPhysicalVolume* massWorld = GetWorldVolume();
 
-  if( (massWorld != fLastMassWorld) && (massWorld!=0) )
+  if( (massWorld != fLastMassWorld) && (massWorld!=nullptr) )
   { 
      // Pass along change to Mass Navigator
      fpNavigator[0] -> SetWorldVolume( massWorld );
@@ -310,10 +303,9 @@ G4MultiNavigator::LocateGlobalPointAndSetup(const G4ThreeVector& position,
 
   G4ThreeVector direction(0.0, 0.0, 0.0);
   G4bool relative = pRelativeSearch; 
-  std::vector<G4Navigator*>::iterator pNavIter
-    = pTransportManager->GetActiveNavigatorsIterator(); 
+  auto pNavIter = pTransportManager->GetActiveNavigatorsIterator(); 
 
-  if( pDirection ) { direction = *pDirection; }
+  if( pDirection != nullptr ) { direction = *pDirection; }
 
 #ifdef G4DEBUG_NAVIGATION
   if( fVerbose > 2 )
@@ -383,8 +375,7 @@ G4MultiNavigator::LocateGlobalPointWithinVolume(const G4ThreeVector& position)
 {
   // Relocate the point in each geometry
 
-  std::vector<G4Navigator*>::iterator pNavIter
-    = pTransportManager->GetActiveNavigatorsIterator(); 
+  auto pNavIter = pTransportManager->GetActiveNavigatorsIterator(); 
 
 #ifdef G4DEBUG_NAVIGATION
   if( fVerbose > 2 )
@@ -445,8 +436,7 @@ G4double G4MultiNavigator::ComputeSafety( const G4ThreeVector& position,
 
 // -----------------------------------------------------------------------
 
-G4TouchableHistoryHandle 
-G4MultiNavigator::CreateTouchableHistoryHandle() const
+G4TouchableHandle G4MultiNavigator::CreateTouchableHistoryHandle() const
 {
   G4Exception( "G4MultiNavigator::CreateTouchableHistoryHandle()", 
                "GeomNav0001", FatalException,  
@@ -463,7 +453,7 @@ G4MultiNavigator::CreateTouchableHistoryHandle() const
     touchHist->UpdateYourself( locatedVolume, touchHist->GetHistory() );
   }
     
-  return G4TouchableHistoryHandle(touchHist); 
+  return {touchHist}; 
 }
 
 // -----------------------------------------------------------------------
@@ -560,7 +550,7 @@ G4MultiNavigator::PrintLimited()
     { 
       stepLen = fTrueMinStep;     // did not limit (went as far as asked)
     }
-    G4int oldPrec = G4cout.precision(9); 
+    G4long oldPrec = G4cout.precision(9); 
 
     G4cout << std::setw(5) << num  << " "
            << std::setw(12) << stepLen << " "
@@ -584,7 +574,7 @@ G4MultiNavigator::PrintLimited()
     if (pNav != nullptr)
     {
        G4VPhysicalVolume *pWorld = pNav->GetWorldVolume(); 
-       if( pWorld )
+       if( pWorld != nullptr )
        {
            WorldName = pWorld->GetName(); 
        }
@@ -662,8 +652,7 @@ G4MultiNavigator::ResetHierarchyAndLocate(const G4ThreeVector& point,
                   "Cannot reset hierarchy before navigators are initialised.");
    }
 
-   std::vector<G4Navigator*>::iterator pNavIter= 
-       pTransportManager->GetActiveNavigatorsIterator(); 
+   auto pNavIter= pTransportManager->GetActiveNavigatorsIterator(); 
 
    for ( auto num = 0; num < fNoActiveNavigators ; ++pNavIter,++num )
    {
@@ -700,8 +689,7 @@ G4MultiNavigator::GetGlobalExitNormal(const G4ThreeVector& argPoint,
   {
     if( fNoLimitingStep > 1 )
     { 
-      std::vector<G4Navigator*>::iterator pNavIter= 
-        pTransportManager->GetActiveNavigatorsIterator(); 
+      auto pNavIter= pTransportManager->GetActiveNavigatorsIterator(); 
 
       for ( auto num = 0; num < fNoActiveNavigators ; ++pNavIter, ++num )
       {

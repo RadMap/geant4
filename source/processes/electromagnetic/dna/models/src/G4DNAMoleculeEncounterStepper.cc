@@ -36,13 +36,16 @@
 // -------------------------------------------------------------------
 
 #include "G4DNAMoleculeEncounterStepper.hh"
-#include "G4VDNAReactionModel.hh"
+
 #include "G4DNAMolecularReactionTable.hh"
 #include "G4H2O.hh"
-#include "G4memory.hh"
-#include "G4UnitsTable.hh"
-#include "G4MoleculeFinder.hh"
 #include "G4MolecularConfiguration.hh"
+#include "G4MoleculeFinder.hh"
+#include "G4UnitsTable.hh"
+#include "G4VDNAReactionModel.hh"
+#include "G4memory.hh"
+
+#include <memory>
 
 using namespace std;
 using namespace CLHEP;
@@ -66,12 +69,11 @@ G4DNAMoleculeEncounterStepper::Utils::Utils(const G4Track& tA,
 }
 
 G4DNAMoleculeEncounterStepper::G4DNAMoleculeEncounterStepper()
-    : G4VITTimeStepComputer()
-    , fHasAlreadyReachedNullTime(false)
-    , fMolecularReactionTable(reference_cast<const G4DNAMolecularReactionTable*>(fpReactionTable))
-    , fReactionModel(nullptr)
-    , fVerbose(0)
+    : 
+     fMolecularReactionTable(reference_cast<const G4DNAMolecularReactionTable*>(fpReactionTable))
 {
+    fpTrackContainer = G4ITTrackHolder::Instance();
+    fReactionSet = G4ITReactionSet::Instance();
 }
 
 G4DNAMoleculeEncounterStepper::~G4DNAMoleculeEncounterStepper() = default;
@@ -124,7 +126,7 @@ G4DNAMoleculeEncounterStepper::CalculateStep(const G4Track& trackA,
     fUserMinTimeStep = userMinTimeStep;
 
 #ifdef G4VERBOSE
-    if (fVerbose)
+    if (fVerbose != 0)
     {
         G4cout
             << "_______________________________________________________________________"
@@ -142,7 +144,7 @@ G4DNAMoleculeEncounterStepper::CalculateStep(const G4Track& trackA,
 
     const auto pReactantList = fMolecularReactionTable->CanReactWith(pMolConfA);
 
-    if (!pReactantList)
+    if (pReactantList == nullptr)
     {
 #ifdef G4VERBOSE
         //    DEBUG
@@ -161,13 +163,13 @@ G4DNAMoleculeEncounterStepper::CalculateStep(const G4Track& trackA,
         return DBL_MAX;
     }
 
-    G4int nbReactives = pReactantList->size();
+    auto  nbReactives = (G4int)pReactantList->size();
 
     if (nbReactives == 0)
     {
 #ifdef G4VERBOSE
         //    DEBUG
-        if (fVerbose)
+        if (fVerbose != 0)
         {
             // TODO replace with the warning mode of G4Exception
             G4cout << "!!!!!!!!!!!!!!!!!!!!" << G4endl;
@@ -184,7 +186,7 @@ G4DNAMoleculeEncounterStepper::CalculateStep(const G4Track& trackA,
         return DBL_MAX;
     }
 
-    fReactants.reset(new vector<G4Track*>());
+    fReactants = std::make_shared<vector<G4Track*>>();
     fReactionModel->Initialise(pMolConfA, trackA);
 
     //__________________________________________________________________
@@ -203,7 +205,7 @@ G4DNAMoleculeEncounterStepper::CalculateStep(const G4Track& trackA,
             G4MoleculeFinder::Instance()->FindNearest(pMoleculeA,
                                                       pMoleculeB->GetMoleculeID()));
 
-        if (resultsNearest == 0) continue;
+        if (static_cast<int>(resultsNearest) == 0) continue;
 
         G4double r2 = resultsNearest->GetDistanceSqr();
         Utils utils(trackA, pMoleculeB);
@@ -215,7 +217,7 @@ G4DNAMoleculeEncounterStepper::CalculateStep(const G4Track& trackA,
             // Therefore, if we only take the nearby reactant into account, it might have already
             // reacted. Instead, we will take all possible reactants that satisfy the condition r<R
 
-            if (fHasAlreadyReachedNullTime == false)
+            if (!fHasAlreadyReachedNullTime)
             {
                 fReactants->clear();
                 fHasAlreadyReachedNullTime = true;
@@ -284,7 +286,7 @@ G4DNAMoleculeEncounterStepper::CalculateStep(const G4Track& trackA,
     }
 
 #ifdef G4VERBOSE
-    if (fVerbose)
+    if (fVerbose != 0)
     {
         G4cout << "G4MoleculeEncounterStepper::CalculateStep will finally return :"
             << G4BestUnit(fSampledMinTimeStep, "Time") << G4endl;
@@ -314,7 +316,7 @@ void G4DNAMoleculeEncounterStepper::CheckAndRecordResults(const Utils& utils,
 #endif
                                                           G4KDTreeResultHandle& results)
 {
-    if (results == 0)
+    if (static_cast<int>(results) == 0)
     {
 #ifdef G4VERBOSE
         if (fVerbose > 1)
@@ -329,16 +331,16 @@ void G4DNAMoleculeEncounterStepper::CheckAndRecordResults(const Utils& utils,
 
     for (results->Rewind(); !results->End(); results->Next())
     {
-        G4IT* reactiveB = results->GetItem<G4IT>();
+        auto  reactiveB = results->GetItem<G4IT>();
 
-        if (reactiveB == 0)
+        if (reactiveB == nullptr)
         {
             continue;
         }
 
         G4Track *trackB = reactiveB->GetTrack();
 
-        if (trackB == 0)
+        if (trackB == nullptr)
         {
             G4ExceptionDescription exceptionDescription;
             exceptionDescription
@@ -401,6 +403,7 @@ void G4DNAMoleculeEncounterStepper::CheckAndRecordResults(const Utils& utils,
 #ifdef G4VERBOSE
         if (fVerbose > 1)
         {
+
             G4double r2 = results->GetDistanceSqr();
             G4cout << "\t ************************************************** " << G4endl;
             G4cout << "\t Reaction between "
@@ -412,6 +415,7 @@ void G4DNAMoleculeEncounterStepper::CheckAndRecordResults(const Utils& utils,
                 << G4BestUnit((utils.fpTrackA.GetPosition() - trackB->GetPosition()).mag(), "Length") << G4endl;
             G4cout << "\t Distance between reactants calculated by nearest neighbor algorithm = "
                 << G4BestUnit(sqrt(r2), "Length") << G4endl;
+
         }
 #endif
 
@@ -432,4 +436,56 @@ G4VDNAReactionModel* G4DNAMoleculeEncounterStepper::GetReactionModel()
 void G4DNAMoleculeEncounterStepper::SetVerbose(int flag)
 {
     fVerbose = flag;
+}
+
+G4double G4DNAMoleculeEncounterStepper::CalculateMinTimeStep(G4double /*currentGlobalTime*/, G4double definedMinTimeStep){
+
+    G4double fTSTimeStep = DBL_MAX;
+
+    for (auto pTrack : *fpTrackContainer->GetMainList())
+    {
+        if (pTrack == nullptr)
+        {
+            G4ExceptionDescription exceptionDescription;
+            exceptionDescription << "No track found.";
+            G4Exception("G4Scheduler::CalculateMinStep", "ITScheduler006",
+                        FatalErrorInArgument, exceptionDescription);
+            continue;
+        }
+
+        G4TrackStatus trackStatus = pTrack->GetTrackStatus();
+        if (trackStatus == fStopAndKill || trackStatus == fStopButAlive)
+        {
+            continue;
+        }
+
+        G4double sampledMinTimeStep = CalculateStep(*pTrack, definedMinTimeStep);
+        G4TrackVectorHandle reactants = GetReactants();
+
+        if (sampledMinTimeStep < fTSTimeStep)
+        {
+            fTSTimeStep = sampledMinTimeStep;
+            fReactionSet->CleanAllReaction();
+            if (reactants)
+            {
+                fReactionSet->AddReactions(fTSTimeStep,
+                                           const_cast<G4Track*>(pTrack),
+                                           std::move(reactants));
+                ResetReactants();
+            }
+         }
+         else if (fTSTimeStep == sampledMinTimeStep && bool(reactants))
+         {
+             fReactionSet->AddReactions(fTSTimeStep,
+                                        const_cast<G4Track*>(pTrack),
+                                        std::move(reactants));
+             ResetReactants();
+         }
+         else if (reactants)
+         {
+             ResetReactants();
+         }
+    }
+
+    return fTSTimeStep;
 }

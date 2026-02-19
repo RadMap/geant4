@@ -1,19 +1,50 @@
+# Category persistency History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                      Category History file
-                      ---------------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all category-tags.
-It DOES NOT substitute the  CVS log-message one should put at every
-committal in the CVS repository !
+-------------------------------------------------------------------------------
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2022-05-10 Ben Morgan (persistency-V11-01-01) 
+- Split build of G4persistency into G4mctruth, G4geomtext and (optional) G4gdml
+  libraries.
+
+## 2022-12-12 Ben Morgan (persistency-V11-01-00)
+- Remove obsolete GNUmakefile scripts
+
+## 2022-11-11 Gabriele Cosmo (persistency-V11-00-03)
+- Fixed compilation warnings for implicit type conversions on macOS/XCode 14.1.
+
+## 2022-03-24 Ben Morgan (persistency-V11-00-02)
+- Use geant4_category_modules to optionaly add G4gdml module to category
+
+## 2022-01-28 Ben Morgan (persistency-V11-00-01)
+- Replace `geant4_global_library_target` with direct file inclusion and
+  call to `geant4_add_category` to define library build from source modules.
+  
+## 2021-12-10 Ben Morgan (persistency-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+25 October, 21 B.Morgan (persistency-V10-07-01)
+- Use G4StrUtil functions replacing deprecated G4String member functions
+
+1 April, 21 B. Morgan (persistency-V10-07-00)
+- Migrate build to modular CMake API
+
+16 November, 20 G.Cosmo (persistency-V10-06-02)
+- Fixed typos in printed-out text. Addressing problem report #2285.
+
+7 October, 20 G.Cosmo (persistency-V10-06-01)
+- Minor c++11 review. Code cleanup and formatting.
+
+11 December, 19 B.Morgan (persistency-V10-06-00)
+- Cleanup CMake build, removing obsolete granular library options and
+  explicit include_directories.
 
 5 July, 12  G.Cosmo (persistency-V09-05-02)
 - Explicitly use inclusion of headers for system of units and physical
@@ -109,7 +140,7 @@ committal in the CVS repository !
 - added more SRM descriptions
 
 4 July, 01    Y.Morita (persistency-V03-02-00)
-- STL migration: 
+- STL migration:
    modified: G4Pglobals.hh, G4PGeometryObjectMap.ddl, G4PGeometryObjectMap.cc
    removed: G4VPhysVolRefArray.hh, G4LogVolRefArray.hh G4VSolidRefArray.hh
 
@@ -239,7 +270,7 @@ November 4, 99  Y.Morita
   persistency/geometry/management to avoid circular dependency
 - G4PersistencyManager: Allow constructor with the name of Boot file
 
-October 27, 99  J.Allison 
+October 27, 99  J.Allison
 - Created persistency/global/include.
 - Moved management/include/G4PersistentTypes.hh to global/include.
 - Modified GNUmakefiles to add persistency/global/include to -I path.
@@ -263,12 +294,12 @@ November 10, 98  Y.Morita (persistency-00-03-02)
 - G4PersistentGeomMan now handle Replica geometry
 
 November 10, 98  Y.Morita (persistency-00-03-01)
-- G4PersistencyManager splitted into G4PersistentEventMan, 
+- G4PersistencyManager splitted into G4PersistentEventMan,
   G4PersistentGeomMan, G4PersistentRunMan
 - G4Run is now persistent
 
 July 23, 98   Y.Morita (persistency-00-01-09)
-- G4PVPhysicalVolume: protect declare of d_Double with 
+- G4PVPhysicalVolume: protect declare of d_Double with
   OO_VARRAY_D_DOUBLE for different version of HepODBMS
 - G4PVPhysicalVolume: added G4Exception for restoring rotation matrix
   (for now)
@@ -296,7 +327,7 @@ July 10, 98   Y.Morita (persistency-00-01-03)
 - moved GNUmakefile targes 'headers' and 'd_files' to common.gmk and
   globlib.gmk.
 - a few bug fix in G4PPVPlacement.cc, G4PVSolid.cc,
-  G4PGeometryObjectMap.ddl, G4PersistencyManager.hh, 
+  G4PGeometryObjectMap.ddl, G4PersistencyManager.hh,
   G4PGeometryObjectMap.cc, G4PersistencyManager.cc
 
 July  9, 98   Y.Morita

@@ -39,24 +39,11 @@
 //
 //
 #include "G4Types.hh"
-
-#ifdef G4MULTITHREADED
-  #include "G4MTRunManager.hh"
-#else
-  #include "G4RunManager.hh"
-#endif
-
+#include "G4RunManagerFactory.hh"
 #include "G4UImanager.hh"
 #include "G4UIExecutive.hh"
-
 #include "BrachyActionInitialization.hh"
-
-#ifdef ANALYSIS_USE
-#include "BrachyAnalysisManager.hh"
-#endif
-
 #include "G4VisExecutive.hh"
-
 #include "BrachyDetectorConstruction.hh"
 #include "BrachyPhysicsList.hh"
 #include "BrachyPrimaryGeneratorAction.hh"
@@ -76,17 +63,17 @@
 int main(int argc ,char ** argv)
 
 {
-#ifdef G4MULTITHREADED
-  G4MTRunManager* pRunManager = new G4MTRunManager;
-  pRunManager->SetNumberOfThreads(4); // Is equal to 2 by default
-#else
- G4RunManager* pRunManager = new G4RunManager;
-#endif
-
+ // Construct the default run manager
+ //
+  auto* pRunManager = G4RunManagerFactory::CreateRunManager();
+  G4int nThreads = 4;
+  pRunManager->SetNumberOfThreads(nThreads);
+ 
   G4cout << "***********************" << G4endl;
   G4cout << "*** Seed: " << G4Random::getTheSeed() << " ***" << G4endl;
   G4cout << "***********************" << G4endl;
- // Access to the Scoring Manager pointer
+ 
+  // Access to the Scoring Manager pointer
 
   G4ScoringManager* scoringManager = G4ScoringManager::GetScoringManager();
 
@@ -97,18 +84,12 @@ int main(int argc ,char ** argv)
   pRunManager -> SetUserInitialization(new BrachyPhysicsList);
 
   // Initialize the detector component
-  BrachyDetectorConstruction  *pDetectorConstruction = new  BrachyDetectorConstruction();
+  auto pDetectorConstruction = new  BrachyDetectorConstruction();
   pRunManager -> SetUserInitialization(pDetectorConstruction);
-
-//  Analysis Manager
-#ifdef ANALYSIS_USE
-  BrachyAnalysisManager* analysis = BrachyAnalysisManager::GetInstance();
-  analysis -> book();
-#endif
 
   // User action initialization
 
-  BrachyActionInitialization* actions = new BrachyActionInitialization();
+ auto actions = new BrachyActionInitialization();
   pRunManager->SetUserInitialization(actions);
 
   //Initialize G4 kernel
@@ -122,7 +103,7 @@ int main(int argc ,char ** argv)
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
   if (argc == 1)   // Define UI session for interactive mode.
     {
-      G4UIExecutive* ui = new G4UIExecutive(argc, argv);
+      auto ui = new G4UIExecutive(argc, argv);
       G4cout << " UI session starts ..." << G4endl;
       UImanager -> ApplyCommand("/control/execute VisualisationMacro.mac");
       ui -> SessionStart();
@@ -136,16 +117,9 @@ int main(int argc ,char ** argv)
     }
 
   // Job termination
+ // Close the root file
 
   delete visManager;
-
-
-#ifdef ANALYSIS_USE
-// Close the output ROOT file with the results
-   analysis -> save();
-  delete analysis;
-#endif
-
   delete pRunManager;
 
   return 0;

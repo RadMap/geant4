@@ -23,14 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm4/include/DetectorConstruction.hh
+/// \file DetectorConstruction.hh
 /// \brief Definition of the DetectorConstruction class
-//
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
@@ -43,14 +37,12 @@
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-  
-    DetectorConstruction();
-   ~DetectorConstruction();
-     
-    virtual G4VPhysicalVolume* Construct();
+    DetectorConstruction() = default;
+    ~DetectorConstruction() override = default;
+
+    G4VPhysicalVolume* Construct() override;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

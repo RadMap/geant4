@@ -23,13 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P02/include/ExP02PrimaryGeneratorAction.hh
+/// \file ExP02PrimaryGeneratorAction.hh
 /// \brief Definition of the ExP02PrimaryGeneratorAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
- 
+
 #ifndef ExP02PrimaryGeneratorAction_h
 #define ExP02PrimaryGeneratorAction_h 1
 
@@ -41,13 +37,13 @@ class G4Event;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-/// Primary generator action 
+/// Primary generator action
 
 class ExP02PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-    ExP02PrimaryGeneratorAction();    
-   ~ExP02PrimaryGeneratorAction();
+    ExP02PrimaryGeneratorAction();
+    ~ExP02PrimaryGeneratorAction();
 
     virtual void GeneratePrimaries(G4Event*);
 
@@ -58,5 +54,3 @@ class ExP02PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-

@@ -27,8 +27,6 @@
 //
 //Text field class. Inherits from G4OpenGLXmVWidgetComponent
 
-#ifdef G4VIS_BUILD_OPENGLXM_DRIVER
-
 #include "G4OpenGLXmViewer.hh"
 #include "G4OpenGLXmVWidgetComponent.hh"
 #include "G4OpenGLXmVWidgetContainer.hh"
@@ -48,7 +46,7 @@ G4OpenGLXmTextField::G4OpenGLXmTextField (const char* n,
 {
   name = n;
   initial = new char[50];
-  sprintf (initial, "%6.2f", *val);
+  snprintf (initial, 50, "%6.2f", *val);
   value = (void*)val;
   text=false;
 }
@@ -61,7 +59,7 @@ G4OpenGLXmTextField::G4OpenGLXmTextField (const char* n,
 {
   name = n;
   initial = new char[50];
-  sprintf (initial, "%s", val);
+  snprintf (initial, 50, "%s", val);
   value = (void*)val;
   text=true;
   //  strcpy (initial, val);
@@ -89,7 +87,7 @@ const char* G4OpenGLXmTextField::GetName ()
 
 void G4OpenGLXmTextField::SetValue (G4double val)
 {
-  sprintf (initial, "%6.2f", val);
+  snprintf (initial, 50, "%6.2f", val);
   
   XtVaSetValues (text_field,
 		 XmNvalue, (String)initial,
@@ -99,7 +97,7 @@ void G4OpenGLXmTextField::SetValue (G4double val)
 
 void G4OpenGLXmTextField::SetValue (const char* val)
 {
-  sprintf (initial, "%s", val);
+  snprintf (initial, 50, "%s", val);
   //  strcpy (initial, val);
 
   XtVaSetValues (text_field,
@@ -183,5 +181,3 @@ Widget* G4OpenGLXmTextField::GetPointerToWidget ()
 {
   return &text_field;
 }
-
-#endif

@@ -23,75 +23,68 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// This example is provided by the Geant4-DNA collaboration
-// Any report or published results obtained using the Geant4-DNA software 
-// shall cite the following Geant4-DNA collaboration publications:
-// Phys. Med. 31 (2015) 861-874
-// Med. Phys. 37 (2010) 4692-4708
-// The Geant4-DNA web site is available at http://geant4-dna.org
-//
 /// \file TrackerHit.hh
 /// \brief Definition of the TrackerHit class
+
+// This example is provided by the Geant4-DNA collaboration
+// Any report or published results obtained using the Geant4-DNA software
+// shall cite the following Geant4-DNA collaboration publications:
+// Med. Phys. 45 (2018) e722-e739
+// Phys. Med. 31 (2015) 861-874
+// Med. Phys. 37 (2010) 4692-4708
+// Int. J. Model. Simul. Sci. Comput. 1 (2010) 157–178
+// The Geant4-DNA web site is available at http://geant4-dna.org
+//
 
 #ifndef TrackerHit_h
 #define TrackerHit_h 1
 
-#include "G4VHit.hh"
 #include "G4THitsCollection.hh"
 #include "G4ThreeVector.hh"
-
-/// Tracker hit class
-///
-/// It defines data members to store the trackID, energy deposit,
-/// and position of charged particles in a selected volume:
-/// - fTrackID, fEdep, fPos
+#include "G4VHit.hh"
 
 class TrackerHit : public G4VHit
 {
   public:
     TrackerHit();
     TrackerHit(const TrackerHit&);
-    virtual ~TrackerHit();
+    ~TrackerHit() override;
 
-    // operators
+    // Operators
     const TrackerHit& operator=(const TrackerHit&);
     G4bool operator==(const TrackerHit&) const;
 
     inline void* operator new(size_t);
-    inline void  operator delete(void*);
+    inline void operator delete(void*);
 
-    // methods from base class
-    virtual void Draw();
-    virtual void Print();
+    // Methods from base class
+    void Draw() override;
+    void Print() override;
 
     // Set methods
-    void SetTrackID  (G4int track)      { fTrackID = track; };
-    void SetEdep     (G4double de)      { fEdep = de; };
-    void SetPos      (G4ThreeVector xyz){ fPos = xyz; };
-//NEW
-    void SetIncidentEnergy (G4double e)      { fIncidentEnergy = e; };
-//
+    inline void SetTrackID(const G4int& track) { fTrackID = track; };
+    inline void SetEdep(const G4double& de) { fEdep = de; };
+    inline void SetPos(const G4ThreeVector& xyz) { fPos = xyz; };
+    inline void SetIncidentEnergy(const G4double& e) { fIncidentEnergy = e; };
+
     // Get methods
-    G4int GetTrackID() const     { return fTrackID; };
-    G4double GetEdep() const     { return fEdep; };
-    G4ThreeVector GetPos() const { return fPos; };
-//NEW
-    G4double GetIncidentEnergy() const { return fIncidentEnergy; };
-//
+    inline G4int GetTrackID() const { return fTrackID; };
+    inline G4double GetEdep() const { return fEdep; };
+    inline G4ThreeVector GetPos() const { return fPos; };
+    inline G4double GetIncidentEnergy() const { return fIncidentEnergy; };
 
   private:
-
-    G4int         fTrackID;
-    G4double      fEdep;
-    G4ThreeVector fPos;
-//NEW
-    G4double      fIncidentEnergy;
-//
+    G4int fTrackID = -1;
+    G4double fEdep = 0;
+    G4ThreeVector fPos = G4ThreeVector();
+    G4double fIncidentEnergy = 0.;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-typedef G4THitsCollection<TrackerHit> TrackerHitsCollection;
+using TrackerHitsCollection = G4THitsCollection<TrackerHit>;
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 extern G4ThreadLocal G4Allocator<TrackerHit>* TrackerHitAllocator;
 
@@ -99,16 +92,17 @@ extern G4ThreadLocal G4Allocator<TrackerHit>* TrackerHitAllocator;
 
 inline void* TrackerHit::operator new(size_t)
 {
-  if(!TrackerHitAllocator)
-      TrackerHitAllocator = new G4Allocator<TrackerHit>;
-  return (void *) TrackerHitAllocator->MallocSingle();
+  if (!TrackerHitAllocator) {
+    TrackerHitAllocator = new G4Allocator<TrackerHit>;
+  }
+  return (void*)TrackerHitAllocator->MallocSingle();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-inline void TrackerHit::operator delete(void *hit)
+inline void TrackerHit::operator delete(void* hit)
 {
-  TrackerHitAllocator->FreeSingle((TrackerHit*) hit);
+  TrackerHitAllocator->FreeSingle((TrackerHit*)hit);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

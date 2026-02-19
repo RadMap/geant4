@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file SBPoint.cc
+/// \brief Implementation of the SBPoint class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -32,8 +35,6 @@
 // Authors: Henri Payno and Yann Perrot
 //
 //
-/// \file SBPoint.cc
-/// \brief Implementation of the SBPoint class
 
 #include "SBPoint.hh"
 
@@ -41,11 +42,8 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-SBPoint::SBPoint(unsigned int pId, G4ThreeVector pPos, G4double pEdep ):
-fId(pId),
-fPosition(pPos),
-fEdep(pEdep),
-fpCluster(0)
+SBPoint::SBPoint(unsigned int pId, G4ThreeVector pPos, G4double pEdep)
+  : fId(pId), fPosition(pPos), fEdep(pEdep), fpCluster(0)
 {
   // pick randomly one strand
   fStrand = (G4UniformRand() < 0.5) ? 0 : 1;
@@ -53,34 +51,32 @@ fpCluster(0)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SBPoint::~SBPoint()
-{
-}
+SBPoint::~SBPoint() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-bool SBPoint::operator != (const SBPoint& pPt) const
+bool SBPoint::operator!=(const SBPoint& pPt) const
 {
   return pPt.fId != fId;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-bool SBPoint::operator == (const SBPoint& pPt) const
+bool SBPoint::operator==(const SBPoint& pPt) const
 {
   return pPt.fId == fId;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-bool SBPoint::operator < (const SBPoint& pPt) const
+bool SBPoint::operator<(const SBPoint& pPt) const
 {
   return pPt.fId < fId;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-bool SBPoint::operator > (const SBPoint& pPt) const
+bool SBPoint::operator>(const SBPoint& pPt) const
 {
   return pPt.fId > fId;
 }

@@ -25,38 +25,46 @@
 //
 /// \file TrackingAction.cc
 /// \brief Implementation of the TrackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "TrackingAction.hh"
 
-#include "Run.hh"
+#include "EventAction.hh"
 #include "HistoManager.hh"
+#include "Run.hh"
+#include "TrackingMessenger.hh"
 
-#include "G4Track.hh"
-#include "G4StepStatus.hh"
 #include "G4RunManager.hh"
+#include "G4StepStatus.hh"
+#include "G4Track.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TrackingAction::TrackingAction()
-:G4UserTrackingAction()
-{ }
+TrackingAction::TrackingAction(EventAction* evt) : fTrackMessenger(nullptr), fEventAct(evt)
+{
+  fTrackMessenger = new TrackingMessenger(this);
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+TrackingAction::~TrackingAction()
+{
+  delete fTrackMessenger;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void TrackingAction::PreUserTrackingAction(const G4Track* track)
-{  
-  //count secondary particles
+{
+  // count secondary particles
   if (track->GetTrackID() == 1) return;
+
+  Run* run = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+
   G4int iabs = track->GetTouchableHandle()->GetCopyNumber();
-  G4String name   = track->GetDefinition()->GetParticleName();
+  G4String name = track->GetDefinition()->GetParticleName();
+  G4double meanLife = track->GetDefinition()->GetPDGLifeTime();
   G4double energy = track->GetKineticEnergy();
-  Run* run = static_cast<Run*>(
-        G4RunManager::GetRunManager()->GetNonConstCurrentRun());    
-  if(iabs > 0) run->ParticleCount(iabs,name,energy);
+  if (fParticleCount && (iabs > 0)) run->ParticleCount(iabs, name, energy, meanLife);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -64,34 +72,35 @@ void TrackingAction::PreUserTrackingAction(const G4Track* track)
 void TrackingAction::PostUserTrackingAction(const G4Track* track)
 {
   // get Run
-  Run* run 
-    = static_cast<Run*>(
-        G4RunManager::GetRunManager()->GetNonConstCurrentRun());
-  
+  Run* run = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+
   // where are we ?
   G4StepStatus status = track->GetStep()->GetPostStepPoint()->GetStepStatus();
-  
-  //status of primary particle : absorbed, transmited, reflected ?
+
+  // status of primary particle : absorbed, transmited, reflected ?
   if (track->GetTrackID() == 1) {
     G4int flag = 0;
     if (status == fWorldBoundary) {
-      if (track->GetMomentumDirection().x() > 0.) flag = 1;
-      else                                        flag = 2;
+      if (track->GetMomentumDirection().x() > 0.)
+        flag = 1;
+      else
+        flag = 2;
     }
     run->AddTrackStatus(flag);
   }
-  
+
   // keep only emerging particles
   if (status != fWorldBoundary) return;
 
   // count particles
   const G4ParticleDefinition* particle = track->GetParticleDefinition();
-  G4String name   = particle->GetParticleName();
+  G4String name = particle->GetParticleName();
+  G4double meanLife = particle->GetPDGLifeTime();
   G4double energy = track->GetKineticEnergy();
-  run->ParticleCount(0,name,energy);
+  run->ParticleCount(0, name, energy, meanLife);
+  fEventAct->AddEleak(energy);
 
- ////G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();  
+  ////G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

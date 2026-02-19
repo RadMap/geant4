@@ -37,28 +37,24 @@
 //
 // Created: 2007-08-20  Tsukasa ASO
 // 2010-07-22   Introduce Unit specification.
-// 
+//
 ///////////////////////////////////////////////////////////////////////////////
-
 
 class G4PSCellCharge3D : public G4PSCellCharge
 {
-   public: // with description
-      G4PSCellCharge3D(G4String name, 
-		     G4int ni=1,G4int nj=1, G4int nk=1,
-		     G4int depi=2, G4int depj=1, G4int depk=0);
-      G4PSCellCharge3D(G4String name, const G4String& unit,
-		     G4int ni=1,G4int nj=1, G4int nk=1,
-		     G4int depi=2, G4int depj=1, G4int depk=0);
+ public:
+  G4PSCellCharge3D(const G4String& name, G4int ni=1, G4int nj=1, G4int nk=1,
+                   G4int depi=2, G4int depj=1, G4int depk=0);
+  G4PSCellCharge3D(const G4String& name, const G4String& unit, G4int ni=1,
+                   G4int nj=1, G4int nk=1, G4int depi=2, G4int depj=1,
+                   G4int depk=0);
 
-      virtual ~G4PSCellCharge3D();
+  ~G4PSCellCharge3D() override = default;
 
-  protected: // with description
-      virtual G4int GetIndex(G4Step*);
+ protected:
+  G4int GetIndex(G4Step*) override;
 
-  private:
-      G4int fDepthi, fDepthj, fDepthk;
-
+ private:
+  G4int fDepthi, fDepthj, fDepthk;
 };
 #endif
-

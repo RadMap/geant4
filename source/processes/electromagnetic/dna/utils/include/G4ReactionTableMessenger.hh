@@ -35,19 +35,23 @@
 
 #include <G4UImessenger.hh>
 
+#include <memory>
+
 class G4UIcmdWithAString;
 class G4DNAMolecularReactionTable;
 class G4UIcmdWithoutParameter;
+class G4UIcmdWithABool;
 
 class G4ReactionTableMessenger : public G4UImessenger
 {
 public:
   G4ReactionTableMessenger(G4DNAMolecularReactionTable*);
-  virtual ~G4ReactionTableMessenger();
-  virtual void SetNewValue(G4UIcommand * command,G4String newValue);
+  ~G4ReactionTableMessenger() override;
+  void SetNewValue(G4UIcommand * command,G4String newValue) override;
 
 protected:
   G4DNAMolecularReactionTable* fpTable;
+  std::unique_ptr<G4UIcmdWithoutParameter> fpActivateReactionUI;
   G4UIcmdWithAString* fpAddReaction;
   G4UIcmdWithAString* fpNewDiffContReaction;
 //  G4UIcmdWithAString* fpNewPartDiffContReactionByRadius;

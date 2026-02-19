@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file GB03DetectorConstruction.hh
 /// \brief Definition of the GB03DetectorConstruction class
 
@@ -38,28 +37,28 @@ class G4VPhysicalVolume;
 class G4PVReplica;
 class G4Material;
 class G4Box;
-class GB03DetectorMessenger;
+class G4GenericMessenger;
 
 class GB03DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    GB03DetectorConstruction();
-    virtual ~GB03DetectorConstruction();
+    GB03DetectorConstruction(G4bool bf);
+    ~GB03DetectorConstruction() override;
 
-    virtual G4VPhysicalVolume* Construct();
-    virtual void ConstructSDandField();
-  
+    G4VPhysicalVolume* Construct() override;
+    void ConstructSDandField() override;
+
     void PrintCalorParameters() const;
-    void SetAbsorberMaterial(G4String materialChoice);     
+    void SetAbsorberMaterial(G4String materialChoice);
     G4String GetAbsorberMaterial() const;
-    void SetGapMaterial(G4String materialChoice);     
+    void SetGapMaterial(G4String materialChoice);
     G4String GetGapMaterial() const;
     void SetNumberOfLayers(G4int nl);
     static G4int GetNumberOfLayers() { return fNumberOfLayers; }
 
-    G4int GetVerboseLevel() const { return  fVerboseLevel; }
+    G4int GetVerboseLevel() const { return fVerboseLevel; }
     void SetVerboseLevel(G4int val) { fVerboseLevel = val; }
-     
+
   private:
     void DefineMaterials();
     void SetupGeometry();
@@ -67,38 +66,37 @@ class GB03DetectorConstruction : public G4VUserDetectorConstruction
     void SetupBiasing();
 
     // data members
-    static G4int       fNumberOfLayers;
+    static G4int fNumberOfLayers;
 
-    G4double           fTotalThickness; /// total thinkness of one calorimeter
-    G4double           fLayerThickness; /// = fTotalThickness / fNumberOfLayers
+    G4double fTotalThickness;  /// total thinkness of one calorimeter
+    G4double fLayerThickness;  /// = fTotalThickness / fNumberOfLayers
 
-    G4bool             fConstructed;
+    G4bool fConstructed;
     static G4ThreadLocal G4bool fConstructedSDandField;
-  
-    G4String           fCalName;
 
-    G4Material*        fWorldMaterial;
-    G4Material*        fAbsorberMaterial;
-    G4Material*        fGapMaterial;
+    G4String fCalName;
 
-    G4Box*             fLayerSolid;
-    G4Box*             fGapSolid;
+    G4Material* fWorldMaterial;
+    G4Material* fAbsorberMaterial;
+    G4Material* fGapMaterial;
+    G4Material* fHodoMaterial;
 
-    G4LogicalVolume*   fWorldLogical;
-    G4LogicalVolume*   fCalorLogical;
-    G4LogicalVolume*   fLayerLogical;
-    G4LogicalVolume*   fGapLogical;
+    G4Box* fLayerSolid;
+    G4Box* fGapSolid;
+
+    G4LogicalVolume* fCalorLogical;
+    G4LogicalVolume* fLayerLogical;
+    G4LogicalVolume* fGapLogical;
+    G4LogicalVolume* fHodoLogical;
 
     G4VPhysicalVolume* fWorldPhysical;
-    G4VPhysicalVolume* fCalorPhysical;
-    G4PVReplica*       fLayerPhysical;
+    G4PVReplica* fLayerPhysical;
     G4VPhysicalVolume* fGapPhysical;
 
-    GB03DetectorMessenger* fDetectorMessenger; 
-    
-    G4int              fVerboseLevel;
-      
+    G4GenericMessenger* fDetectorMessenger;
+
+    G4int fVerboseLevel;
+    G4bool fBiasingFlag;
 };
 
 #endif
-

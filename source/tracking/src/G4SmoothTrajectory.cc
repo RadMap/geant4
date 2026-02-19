@@ -23,67 +23,66 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-//
-// ---------------------------------------------------------------
-//
-// G4SmoothTrajectory.cc
+// G4SmoothTrajectory class implementation
 //
 // Contact:
 //   Questions and comments to this code should be sent to
 //     Katsuya Amako  (e-mail: Katsuya.Amako@kek.jp)
-//     Makoto  Asai   (e-mail: asai@kekvax.kek.jp)
+//     Makoto  Asai   (e-mail: asai@slac.stanford.edu)
 //     Takashi Sasaki (e-mail: Takashi.Sasaki@kek.jp)
-//
-// ---------------------------------------------------------------
+// --------------------------------------------------------------------
 
 #include "G4SmoothTrajectory.hh"
-#include "G4SmoothTrajectoryPoint.hh"
-#include "G4ParticleTable.hh"
-#include "G4AttDefStore.hh"
+#include "G4ClonedSmoothTrajectory.hh"
+
 #include "G4AttDef.hh"
+#include "G4AttDefStore.hh"
 #include "G4AttValue.hh"
+#include "G4ParticleTable.hh"
+#include "G4SmoothTrajectoryPoint.hh"
 #include "G4UIcommand.hh"
 #include "G4UnitsTable.hh"
+#include "G4AutoLock.hh"
 
-//#define G4ATTDEBUG
+namespace {
+ G4Mutex CloneSmoothTrajectoryMutex = G4MUTEX_INITIALIZER;
+}
+
+// #define G4ATTDEBUG
 #ifdef G4ATTDEBUG
-#include "G4AttCheck.hh"
+#  include "G4AttCheck.hh"
 #endif
 
 G4Allocator<G4SmoothTrajectory>*& aSmoothTrajectoryAllocator()
 {
-    G4ThreadLocalStatic G4Allocator<G4SmoothTrajectory>* _instance = nullptr;
-    return _instance;
+  G4ThreadLocalStatic G4Allocator<G4SmoothTrajectory>* _instance = nullptr;
+  return _instance;
 }
-
-G4SmoothTrajectory::G4SmoothTrajectory()
-:  positionRecord(0), fTrackID(0), fParentID(0),
-   PDGEncoding( 0 ), PDGCharge(0.0), ParticleName(""),
-   initialKineticEnergy( 0. ), initialMomentum( G4ThreeVector() )
-{;}
 
 G4SmoothTrajectory::G4SmoothTrajectory(const G4Track* aTrack)
 {
-   G4ParticleDefinition * fpParticleDefinition = aTrack->GetDefinition();
-   ParticleName = fpParticleDefinition->GetParticleName();
-   PDGCharge = fpParticleDefinition->GetPDGCharge();
-   PDGEncoding = fpParticleDefinition->GetPDGEncoding();
-   fTrackID = aTrack->GetTrackID();
-   fParentID = aTrack->GetParentID();
-   initialKineticEnergy = aTrack->GetKineticEnergy();
-   initialMomentum = aTrack->GetMomentum();
-   positionRecord = new TrajectoryPointContainer();
-   // Following is for the first trajectory point
-   positionRecord->push_back(new G4SmoothTrajectoryPoint(aTrack->GetPosition()));
+  G4ParticleDefinition* fpParticleDefinition = aTrack->GetDefinition();
+  ParticleName = fpParticleDefinition->GetParticleName();
+  PDGCharge = fpParticleDefinition->GetPDGCharge();
+  PDGEncoding = fpParticleDefinition->GetPDGEncoding();
+  fTrackID = aTrack->GetTrackID();
+  fParentID = aTrack->GetParentID();
+  initialKineticEnergy = aTrack->GetKineticEnergy();
+  initialMomentum = aTrack->GetMomentum();
+  positionRecord = new G4TrajectoryPointContainer();
 
-   // The first point has no auxiliary points, so set the auxiliary
-   // points vector to NULL
-   positionRecord->push_back(new G4SmoothTrajectoryPoint(aTrack->GetPosition(), 0));
+  // Following is for the first trajectory point
+  //
+  positionRecord->push_back(new G4SmoothTrajectoryPoint(aTrack->GetPosition()));
+
+  // The first point has no auxiliary points, so set the auxiliary
+  // points vector to NULL
+  //
+  positionRecord->push_back(new G4SmoothTrajectoryPoint(aTrack->GetPosition(), nullptr));
 }
 
-G4SmoothTrajectory::G4SmoothTrajectory(G4SmoothTrajectory & right):G4VTrajectory()
+G4SmoothTrajectory::G4SmoothTrajectory(G4SmoothTrajectory& right)
+: G4VTrajectory()
 {
   ParticleName = right.ParticleName;
   PDGCharge = right.PDGCharge;
@@ -92,23 +91,26 @@ G4SmoothTrajectory::G4SmoothTrajectory(G4SmoothTrajectory & right):G4VTrajectory
   fParentID = right.fParentID;
   initialKineticEnergy = right.initialKineticEnergy;
   initialMomentum = right.initialMomentum;
-  positionRecord = new TrajectoryPointContainer();
+  positionRecord = new G4TrajectoryPointContainer();
 
-  for(size_t i=0;i<right.positionRecord->size();i++)
-  {
-    G4SmoothTrajectoryPoint* rightPoint = (G4SmoothTrajectoryPoint*)((*(right.positionRecord))[i]);
+  for (auto& i : *right.positionRecord) {
+    auto rightPoint = (G4SmoothTrajectoryPoint*)i;
     positionRecord->push_back(new G4SmoothTrajectoryPoint(*rightPoint));
   }
 }
 
+G4VTrajectory* G4SmoothTrajectory::CloneForMaster() const
+{
+  G4AutoLock lock(&CloneSmoothTrajectoryMutex);
+  auto* cloned = new G4ClonedSmoothTrajectory(*this);
+  return cloned;
+}
+
 G4SmoothTrajectory::~G4SmoothTrajectory()
 {
-  if (positionRecord)
-  {
-    size_t i;
-    for(i=0;i<positionRecord->size();i++)
-    {
-      delete  (*positionRecord)[i];
+  if (positionRecord != nullptr) {
+    for (auto& i : *positionRecord) {
+      delete i;
     }
     positionRecord->clear();
     delete positionRecord;
@@ -118,93 +120,81 @@ G4SmoothTrajectory::~G4SmoothTrajectory()
 void G4SmoothTrajectory::ShowTrajectory(std::ostream& os) const
 {
   // Invoke the default implementation in G4VTrajectory...
+  //
   G4VTrajectory::ShowTrajectory(os);
+
   // ... or override with your own code here.
 }
 
 void G4SmoothTrajectory::DrawTrajectory() const
 {
   // Invoke the default implementation in G4VTrajectory...
+  //
   G4VTrajectory::DrawTrajectory();
+
   // ... or override with your own code here.
 }
 
-const std::map<G4String,G4AttDef>* G4SmoothTrajectory::GetAttDefs() const
+const std::map<G4String, G4AttDef>* G4SmoothTrajectory::GetAttDefs() const
 {
   G4bool isNew;
-  std::map<G4String,G4AttDef>* store
-    = G4AttDefStore::GetInstance("G4SmoothTrajectory",isNew);
+  std::map<G4String, G4AttDef>* store = G4AttDefStore::GetInstance("G4SmoothTrajectory", isNew);
   if (isNew) {
-
     G4String ID("ID");
-    (*store)[ID] = G4AttDef(ID,"Track ID","Physics","","G4int");
+    (*store)[ID] = G4AttDef(ID, "Track ID", "Physics", "", "G4int");
 
     G4String PID("PID");
-    (*store)[PID] = G4AttDef(PID,"Parent ID","Physics","","G4int");
+    (*store)[PID] = G4AttDef(PID, "Parent ID", "Physics", "", "G4int");
 
     G4String PN("PN");
-    (*store)[PN] = G4AttDef(PN,"Particle Name","Physics","","G4String");
+    (*store)[PN] = G4AttDef(PN, "Particle Name", "Physics", "", "G4String");
 
     G4String Ch("Ch");
-    (*store)[Ch] = G4AttDef(Ch,"Charge","Physics","e+","G4double");
+    (*store)[Ch] = G4AttDef(Ch, "Charge", "Physics", "e+", "G4double");
 
     G4String PDG("PDG");
-    (*store)[PDG] = G4AttDef(PDG,"PDG Encoding","Physics","","G4int");
+    (*store)[PDG] = G4AttDef(PDG, "PDG Encoding", "Physics", "", "G4int");
 
     G4String IKE("IKE");
-    (*store)[IKE] = 
-      G4AttDef(IKE, "Initial kinetic energy",
-	       "Physics","G4BestUnit","G4double");
+    (*store)[IKE] = G4AttDef(IKE, "Initial kinetic energy", "Physics", "G4BestUnit", "G4double");
 
     G4String IMom("IMom");
-    (*store)[IMom] = G4AttDef(IMom, "Initial momentum",
-			      "Physics","G4BestUnit","G4ThreeVector");
+    (*store)[IMom] = G4AttDef(IMom, "Initial momentum", "Physics", "G4BestUnit", "G4ThreeVector");
 
     G4String IMag("IMag");
-    (*store)[IMag] = G4AttDef
-      (IMag, "Initial momentum magnitude",
-       "Physics","G4BestUnit","G4double");
+    (*store)[IMag] =
+      G4AttDef(IMag, "Initial momentum magnitude", "Physics", "G4BestUnit", "G4double");
 
     G4String NTP("NTP");
-    (*store)[NTP] = G4AttDef(NTP,"No. of points","Physics","","G4int");
-
+    (*store)[NTP] = G4AttDef(NTP, "No. of points", "Physics", "", "G4int");
   }
   return store;
 }
 
-
 std::vector<G4AttValue>* G4SmoothTrajectory::CreateAttValues() const
 {
-  std::vector<G4AttValue>* values = new std::vector<G4AttValue>;
+  auto values = new std::vector<G4AttValue>;
 
-  values->push_back
-    (G4AttValue("ID",G4UIcommand::ConvertToString(fTrackID),""));
+  values->push_back(G4AttValue("ID", G4UIcommand::ConvertToString(fTrackID), ""));
 
-  values->push_back
-    (G4AttValue("PID",G4UIcommand::ConvertToString(fParentID),""));
+  values->push_back(G4AttValue("PID", G4UIcommand::ConvertToString(fParentID), ""));
 
-  values->push_back(G4AttValue("PN",ParticleName,""));
+  values->push_back(G4AttValue("PN", ParticleName, ""));
 
-  values->push_back
-    (G4AttValue("Ch",G4UIcommand::ConvertToString(PDGCharge),""));
+  values->push_back(G4AttValue("Ch", G4UIcommand::ConvertToString(PDGCharge), ""));
 
-  values->push_back
-    (G4AttValue("PDG",G4UIcommand::ConvertToString(PDGEncoding),""));
+  values->push_back(G4AttValue("PDG", G4UIcommand::ConvertToString(PDGEncoding), ""));
 
-  values->push_back
-    (G4AttValue("IKE",G4BestUnit(initialKineticEnergy,"Energy"),""));
+  values->push_back(G4AttValue("IKE", G4BestUnit(initialKineticEnergy, "Energy"), ""));
 
-  values->push_back
-    (G4AttValue("IMom",G4BestUnit(initialMomentum,"Energy"),""));
+  values->push_back(G4AttValue("IMom", G4BestUnit(initialMomentum, "Energy"), ""));
 
-  values->push_back
-    (G4AttValue("IMag",G4BestUnit(initialMomentum.mag(),"Energy"),""));
+  values->push_back(G4AttValue("IMag", G4BestUnit(initialMomentum.mag(), "Energy"), ""));
 
-  values->push_back
-    (G4AttValue("NTP",G4UIcommand::ConvertToString(GetPointEntries()),""));
+  values->push_back(G4AttValue("NTP", G4UIcommand::ConvertToString(GetPointEntries()), ""));
 
 #ifdef G4ATTDEBUG
-   G4cout << G4AttCheck(values,GetAttDefs());
+  G4cout << G4AttCheck(values, GetAttDefs());
 #endif
 
   return values;
@@ -212,24 +202,25 @@ std::vector<G4AttValue>* G4SmoothTrajectory::CreateAttValues() const
 
 void G4SmoothTrajectory::AppendStep(const G4Step* aStep)
 {
-  positionRecord->push_back(
-      new G4SmoothTrajectoryPoint(aStep->GetPostStepPoint()->GetPosition(),
-				  aStep->GetPointerToVectorOfAuxiliaryPoints()));
+  positionRecord->push_back(new G4SmoothTrajectoryPoint(
+    aStep->GetPostStepPoint()->GetPosition(), aStep->GetPointerToVectorOfAuxiliaryPoints()));
 }
-  
+
 G4ParticleDefinition* G4SmoothTrajectory::GetParticleDefinition()
 {
-   return (G4ParticleTable::GetParticleTable()->FindParticle(ParticleName));
+  return (G4ParticleTable::GetParticleTable()->FindParticle(ParticleName));
 }
 
 void G4SmoothTrajectory::MergeTrajectory(G4VTrajectory* secondTrajectory)
 {
-  if(!secondTrajectory) return;
+  if (secondTrajectory == nullptr) return;
 
-  G4SmoothTrajectory* seco = (G4SmoothTrajectory*)secondTrajectory;
+  auto seco = (G4SmoothTrajectory*)secondTrajectory;
   G4int ent = seco->GetPointEntries();
-  for(G4int i=1;i<ent;i++) // initial point of the second trajectory should not be merged
-  { 
+
+  // initial point of the second trajectory should not be merged
+  //
+  for (G4int i = 1; i < ent; ++i) {
     positionRecord->push_back((*(seco->positionRecord))[i]);
   }
   delete (*seco->positionRecord)[0];

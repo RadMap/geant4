@@ -23,26 +23,23 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/wls/src/WLSEventActionMessenger.cc
+/// \file WLSEventActionMessenger.cc
 /// \brief Implementation of the WLSEventActionMessenger class
-//
-//
-#include "globals.hh"
 
-#include "G4UIcmdWithAnInteger.hh"
+#include "WLSEventActionMessenger.hh"
 
 #include "WLSEventAction.hh"
-#include "WLSEventActionMessenger.hh"
+
+#include "G4UIcmdWithAnInteger.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 WLSEventActionMessenger::WLSEventActionMessenger(WLSEventAction* eventaction)
   : fEventAction(eventaction)
 {
-  fSetVerboseCmd = new G4UIcmdWithAnInteger("/event/setverbose",this);
-  fSetVerboseCmd->SetGuidance("Set verbose level ." );
-  fSetVerboseCmd->SetParameterName("level",true);
+  fSetVerboseCmd = new G4UIcmdWithAnInteger("/WLS/eventVerbose", this);
+  fSetVerboseCmd->SetGuidance("Set verbose level .");
+  fSetVerboseCmd->SetParameterName("level", true);
   fSetVerboseCmd->SetDefaultValue(0);
 }
 
@@ -55,8 +52,7 @@ WLSEventActionMessenger::~WLSEventActionMessenger()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void WLSEventActionMessenger::SetNewValue(G4UIcommand* command,
-                                          G4String newValue)
+void WLSEventActionMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
 {
   if (command == fSetVerboseCmd)
     fEventAction->SetEventVerbose(fSetVerboseCmd->GetNewIntValue(newValue));

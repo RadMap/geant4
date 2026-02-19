@@ -23,15 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm4/include/PhysicsList.hh
+/// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
-//
-//
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysicsList_h
 #define PhysicsList_h 1
@@ -41,32 +34,17 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VUserPhysicsList
+class PhysicsList : public G4VUserPhysicsList
 {
   public:
     PhysicsList();
-   ~PhysicsList();
+    ~PhysicsList() override = default;
 
-  protected:
     // Construct particle and physics
-    virtual void ConstructParticle();
-    virtual void ConstructProcess();
- 
-    virtual void SetCuts();
-    
-  protected:
-    // these methods Construct particles 
-    void ConstructBosons();
-    void ConstructLeptons();
-
-  protected:
-  // these methods Construct physics processes and register them
-    void ConstructGeneral();
-    void ConstructEM();
-    
+    void ConstructParticle() override;
+    void ConstructProcess() override;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

@@ -23,14 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file field/field02/include/F02DetectorMessenger.hh
+/// \file F02DetectorMessenger.hh
 /// \brief Definition of the F02DetectorMessenger class
-//
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef F02DetectorMessenger_h
 #define F02DetectorMessenger_h 1
@@ -43,33 +37,37 @@ class G4UIdirectory;
 class G4UIcmdWithAString;
 class G4UIcmdWithAnInteger;
 class G4UIcmdWithADoubleAndUnit;
+class G4UIcmdWith3VectorAndUnit;
 class G4UIcmdWithoutParameter;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class F02DetectorMessenger: public G4UImessenger
+class F02DetectorMessenger : public G4UImessenger
 {
   public:
-    F02DetectorMessenger(F02DetectorConstruction* );
-    virtual ~F02DetectorMessenger();
+    F02DetectorMessenger(F02DetectorConstruction*);
+    ~F02DetectorMessenger() override;
 
-    virtual void SetNewValue(G4UIcommand*, G4String);
+    void SetNewValue(G4UIcommand*, G4String) override;
 
   private:
+    F02DetectorConstruction* fDetector = nullptr;
 
-    F02DetectorConstruction*   fDetector;
+    G4UIdirectory* fDetDir = nullptr;
+    G4UIdirectory* fFieldDir = nullptr;
 
-    G4UIdirectory*             fDetDir;
+    G4UIcmdWithAString* fAbsMaterCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fAbsThickCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fAbsRadCmd = nullptr;
 
-    G4UIcmdWithAString*        fAbsMaterCmd;
-    G4UIcmdWithADoubleAndUnit* fAbsThickCmd;
-    G4UIcmdWithADoubleAndUnit* fAbsRadCmd;
+    G4UIcmdWithADoubleAndUnit* fAbsZposCmd = nullptr;
 
-    G4UIcmdWithADoubleAndUnit* fAbsZposCmd;
+    G4UIcmdWithAString* fWorldMaterCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fWorldZCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fWorldRCmd = nullptr;
 
-    G4UIcmdWithAString*        fWorldMaterCmd;
-    G4UIcmdWithADoubleAndUnit* fWorldZCmd;
-    G4UIcmdWithADoubleAndUnit* fWorldRCmd;
+    // moved from FieldSetup (depends on the user field)
+    G4UIcmdWith3VectorAndUnit* fElFieldCmd = nullptr;
 };
 
 #endif

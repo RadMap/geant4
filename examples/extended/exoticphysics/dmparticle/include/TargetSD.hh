@@ -23,15 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/dmparticle/include/TargetSD.hh
+/// \file TargetSD.hh
 /// \brief Definition of the TargetSD class
-//
-//
+
 /////////////////////////////////////////////////
 //
 // ClassName:  TargetSD
 //
-// Authors:  01.06.17 V.Ivanchenko 
+// Authors:  01.06.17 V.Ivanchenko
 //
 //
 ///////////////////////////////////////////
@@ -53,24 +52,20 @@ class Run;
 
 class TargetSD : public G4VSensitiveDetector
 {
-public: // Without description
+  public:  // Without description
+    TargetSD(const G4String&);
+    virtual ~TargetSD();
 
-  TargetSD(const G4String&);
-  virtual ~TargetSD();
+    virtual void Initialize(G4HCofThisEvent*);
+    virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*);
+    virtual void EndOfEvent(G4HCofThisEvent*);
+    virtual void clear();
+    virtual void PrintAll();
 
-  virtual void Initialize(G4HCofThisEvent*);
-  virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
-  virtual void EndOfEvent(G4HCofThisEvent*);
-  virtual void clear();
-  virtual void PrintAll();
-
-private:
-
-  Run* fRun;
-
+  private:
+    Run* fRun;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

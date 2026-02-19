@@ -58,15 +58,14 @@
 #include "G4TrackVector.hh"           // Include from 'track'
 #include "G4TrackStatus.hh"           // Include from 'track'
 #include "G4StepStatus.hh"            // Include from 'track'
-//#include "G4UserSteppingAction.hh"    // Include from 'tracking'
-//#include "G4UserTrackingAction.hh"    // Include from 'tracking'
 #include "G4Step.hh"                  // Include from 'track'
 #include "G4StepPoint.hh"             // Include from 'track'
-#include "G4TouchableHandle.hh"             // Include from 'geometry'
-#include "G4TouchableHistoryHandle.hh"      // Include from 'geometry'
+#include "G4TouchableHandle.hh"       // Include from 'geometry'
 
 #include "G4ITStepProcessorState_Lock.hh"
 #include "G4ITLeadingTracks.hh"
+
+#include <vector>
 
 class G4ITNavigator;
 class G4ParticleDefinition;
@@ -77,9 +76,9 @@ class G4ITTransportation;
 class G4VITProcess;
 class G4VITSteppingVerbose;
 class G4ITTrackHolder;
-typedef class std::vector<int, std::allocator<int> > G4SelectedAtRestDoItVector;
-typedef class std::vector<int, std::allocator<int> > G4SelectedAlongStepDoItVector;
-typedef class std::vector<int, std::allocator<int> > G4SelectedPostStepDoItVector;
+using G4SelectedAtRestDoItVector = std::vector<int, std::allocator<int>>;
+using G4SelectedAlongStepDoItVector = std::vector<int, std::allocator<int>>;
+using G4SelectedPostStepDoItVector = std::vector<int, std::allocator<int>>;
 
 //________________________________________________
 //
@@ -100,9 +99,9 @@ struct ProcessGeneralInfo
   //       and SelectedPostStepDoItVector.
   //
   // * Max number of processes
-  size_t MAXofAtRestLoops;
-  size_t MAXofAlongStepLoops;
-  size_t MAXofPostStepLoops;
+  std::size_t MAXofAtRestLoops;
+  std::size_t MAXofAlongStepLoops;
+  std::size_t MAXofPostStepLoops;
   // Maximum number of processes for each type of process
   // These depend on the G4ParticleDefinition, so on the track
 
@@ -118,7 +117,7 @@ class G4ITStepProcessorState : public G4ITStepProcessorState_Lock
 {
 public:
   G4ITStepProcessorState();
-  virtual ~G4ITStepProcessorState();
+  ~G4ITStepProcessorState() override;
 
   G4ITStepProcessorState(const G4ITStepProcessorState&);
   G4ITStepProcessorState& operator=(const G4ITStepProcessorState&);
@@ -217,7 +216,7 @@ public:
   inline const G4Track* GetTrack() const;
   inline void CleanProcessor();
 
-  size_t GetAtRestDoItProcTriggered() const
+  std::size_t GetAtRestDoItProcTriggered() const
   {
     return fAtRestDoItProcTriggered;
   }
@@ -252,12 +251,12 @@ public:
     return fPhysIntLength;
   }
 
-  size_t GetPostStepAtTimeDoItProcTriggered() const
+  std::size_t GetPostStepAtTimeDoItProcTriggered() const
   {
     return fPostStepAtTimeDoItProcTriggered;
   }
 
-  size_t GetPostStepDoItProcTriggered() const
+  std::size_t GetPostStepDoItProcTriggered() const
   {
     return fPostStepDoItProcTriggered;
   }
@@ -319,7 +318,7 @@ protected:
   void InvokeAtRestDoItProcs();
   void InvokeAlongStepDoItProcs();
   void InvokePostStepDoItProcs();
-  void InvokePSDIP(size_t); //
+  void InvokePSDIP(std::size_t); //
   void InvokeTransportationProc();
   void SetNavigator(G4ITNavigator *value);
   G4double CalculateSafety();
@@ -374,9 +373,9 @@ private:
   // just executed.
 
   // * Process selection
-  size_t fAtRestDoItProcTriggered;
-  size_t fPostStepDoItProcTriggered;
-  size_t fPostStepAtTimeDoItProcTriggered;
+  std::size_t fAtRestDoItProcTriggered;
+  std::size_t fPostStepDoItProcTriggered;
+  std::size_t fPostStepAtTimeDoItProcTriggered;
   // Record the selected process
 
   G4ForceCondition fCondition;
@@ -459,25 +458,25 @@ inline void G4ITStepProcessor::CleanProcessor()
   fTimeStep = DBL_MAX;
   fPhysIntLength = DBL_MAX;
 
-  fpState = 0;
-  fpTrack = 0;
-  fpTrackingInfo = 0;
-  fpITrack = 0;
-  fpStep = 0;
-  fpPreStepPoint = 0;
-  fpPostStepPoint = 0;
+  fpState = nullptr;
+  fpTrack = nullptr;
+  fpTrackingInfo = nullptr;
+  fpITrack = nullptr;
+  fpStep = nullptr;
+  fpPreStepPoint = nullptr;
+  fpPostStepPoint = nullptr;
 
-  fpParticleChange = 0;
+  fpParticleChange = nullptr;
 
-  fpCurrentVolume = 0;
+  fpCurrentVolume = nullptr;
   //    fpSensitive = 0;
 
-  fpSecondary = 0;
+  fpSecondary = nullptr;
 
-  fpTransportation = 0;
+  fpTransportation = nullptr;
 
-  fpCurrentProcess= 0;
-  fpProcessInfo = 0;
+  fpCurrentProcess= nullptr;
+  fpProcessInfo = nullptr;
 
   fAtRestDoItProcTriggered = INT_MAX;
   fPostStepDoItProcTriggered = INT_MAX;

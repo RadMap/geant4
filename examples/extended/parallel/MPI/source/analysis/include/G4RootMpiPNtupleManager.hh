@@ -25,7 +25,7 @@
 //
 
 // Class for Root MPI pntuple management.
-// The class handles ntuples on the processing MPI ranks when MPI ntuple merging 
+// The class handles ntuples on the processing MPI ranks when MPI ntuple merging
 // is activated.
 // This class is temporarily provided with g4mpi,
 // it will be integrated in Geant4 analysis category in future.
@@ -35,288 +35,217 @@
 #ifndef G4RootMpiPNtupleManager_h
 #define G4RootMpiPNtupleManager_h 1
 
-#include "G4BaseNtupleManager.hh"
-#include "G4RootMpiPNtupleDescription.hh"
-#include "G4AnalysisManagerState.hh"
-#include "G4AnalysisUtilities.hh"
-#include "globals.hh"
-
 #include "tools/wroot/base_pntuple"
 
+#include "G4AnalysisManagerState.hh"
+#include "G4AnalysisUtilities.hh"
+#include "G4BaseNtupleManager.hh"
+#include "G4RootMpiPNtupleDescription.hh"
+#include "globals.hh"
+
+#include <string_view>
 #include <vector>
+
+using std::to_string;
 
 class G4RootFileManager;
 
-namespace tools {
-namespace wroot {
+namespace tools
+{
+namespace wroot
+{
 class file;
 class directory;
 class impi_ntuple;
-}
-}
+}  // namespace wroot
+}  // namespace tools
 
-class G4RootMpiPNtupleManager : public G4BaseNtupleManager 
+class G4RootMpiPNtupleManager : public G4BaseNtupleManager
 {
-  friend class G4RootMpiAnalysisManager;
-  friend class G4RootAnalysisManager;
-  friend class G4RootNtupleManager;
+    friend class G4RootMpiNtupleFileManager;
 
   public:
-    explicit G4RootMpiPNtupleManager(const G4AnalysisManagerState& state, 
-                                     tools::impi* impi, G4int mpiRank, G4int destinationRank);
+    G4RootMpiPNtupleManager(const G4AnalysisManagerState& state, tools::impi* impi, G4int mpiRank,
+                            G4int destinationRank);
     ~G4RootMpiPNtupleManager();
 
   private:
-    enum class G4PNtupleCreateMode {
-      kSlaveBeforeOpen,
-      kSlaveAfterOpen,
-      kUndefined
-    };
-
     // Functions specific to the output type
-    void SetNtupleDirectory(tools::wroot::directory* directory);
+    // void SetNtupleDirectory(tools::wroot::directory* directory);
     void SetFileManager(std::shared_ptr<G4RootFileManager> fileManager);
 
     // Methods to manipulate ntuples
     void CreateNtuple(G4RootMpiPNtupleDescription* ntupleDescription);
-    void CreateNtuplesFromBooking();
+    void CreateNtuplesFromBooking(const std::vector<G4NtupleBooking*>& ntupleBookings);
 
     // Methods to create ntuples
     //
-    virtual G4int CreateNtuple(const G4String& name, const G4String& title) final;
-    // Create columns in the ntuple with given id
-    virtual G4int CreateNtupleIColumn(G4int ntupleId, 
-                    const G4String& name, std::vector<int>* vector) final;
-    virtual G4int CreateNtupleFColumn(G4int ntupleId, 
-                    const G4String& name, std::vector<float>* vector) final;
-    virtual G4int CreateNtupleDColumn(G4int ntupleId, 
-                    const G4String& name, std::vector<double>* vector) final;
-    virtual G4int CreateNtupleSColumn(G4int ntupleId, const G4String& name) final;
-    virtual void  FinishNtuple(G4int ntupleId) final;   
+    virtual G4int CreateNtuple(G4NtupleBooking* booking) final;
 
     // Methods to fill ntuples
-    // Methods for ntuple with id > FirstNtupleId (when more ntuples exist)                      
+    // Methods for ntuple with id = FirstNtupleId (from base class)
+    using G4BaseNtupleManager::AddNtupleRow;
+    using G4BaseNtupleManager::FillNtupleDColumn;
+    using G4BaseNtupleManager::FillNtupleFColumn;
+    using G4BaseNtupleManager::FillNtupleIColumn;
+    using G4BaseNtupleManager::FillNtupleSColumn;
+    // Methods for ntuple with id > FirstNtupleId (when more ntuples exist)
     virtual G4bool FillNtupleIColumn(G4int ntupleId, G4int columnId, G4int value) final;
     virtual G4bool FillNtupleFColumn(G4int ntupleId, G4int columnId, G4float value) final;
     virtual G4bool FillNtupleDColumn(G4int ntupleId, G4int columnId, G4double value) final;
-    virtual G4bool FillNtupleSColumn(G4int ntupleId, G4int columnId, 
-                                     const G4String& value) final;
+    virtual G4bool FillNtupleSColumn(G4int ntupleId, G4int columnId, const G4String& value) final;
     virtual G4bool AddNtupleRow(G4int ntupleId) final;
     virtual G4bool Merge() final;
 
-    // Reset
-    virtual G4bool Reset(G4bool deleteNtuple) final;
+    // Clear all data
+    virtual G4bool Reset() final;
+    virtual void Clear() final;
+
+    // Method to delete selected ntuple
+    G4bool Delete(G4int id) final;
 
     // Activation option
     //
-    virtual void  SetActivation(G4bool activation) final;
-    virtual void  SetActivation(G4int ntupleId, G4bool activation) final;
-    virtual G4bool  GetActivation(G4int ntupleId) const final;
-    virtual G4bool  IsEmpty() const final;
+    virtual void SetActivation(G4bool activation) final;
+    virtual void SetActivation(G4int ntupleId, G4bool activation) final;
+    virtual G4bool GetActivation(G4int ntupleId) const final;
+
+    // New cycle option
+    void SetNewCycle(G4bool value) final;
+    G4bool GetNewCycle() const final;
 
     // Access methods
     virtual G4int GetNofNtuples() const final;
-    virtual G4int GetNofNtupleBookings() const final;
-    const std::vector<G4RootMpiPNtupleDescription*>& GetNtupleDescriptionVector() const;
-    unsigned int GetBasketSize() const;
 
   private:
-    G4RootMpiPNtupleDescription*  
-      GetNtupleDescriptionInFunction(G4int id, G4String function, G4bool warn = true) const;
-    tools::wroot::base_pntuple*  
-      GetNtupleInFunction(G4int id, G4String function, G4bool warn = true) const;
+    G4RootMpiPNtupleDescription* GetNtupleDescriptionInFunction(G4int id, G4String function,
+                                                                G4bool warn = true) const;
+    tools::wroot::base_pntuple* GetNtupleInFunction(G4int id, G4String function,
+                                                    G4bool warn = true) const;
 
-    template <typename T> 
-    G4int CreateNtupleTColumn(G4int ntupleId, 
-                    const G4String& name, std::vector<T>* vector);
-
-    template <typename T> 
-    G4int CreateNtupleTColumn(
-                    const G4String& name, std::vector<T>* vector);
-
-    template <typename T> 
+    template<typename T>
     G4bool FillNtupleTColumn(G4int ntupleId, G4int columnId, const T& value);
+
+    // Static data members
+    static constexpr std::string_view fkClass{"G4RootMpiPNtupleManager"};
 
     // Data members
     // G4RootMpiMainNtupleManager* fMpiMainNtupleManager;
     std::shared_ptr<G4RootFileManager> fFileManager;
-    tools::wroot::directory*  fNtupleDirectory;
     std::vector<G4RootMpiPNtupleDescription*> fNtupleDescriptionVector;
     std::vector<tools::wroot::impi_ntuple*> fNtupleVector;
-    tools::impi*  fImpi;
-    G4int  fMpiRank;
-    G4int  fDestinationRank;
+    tools::impi* fImpi;
+    G4int fMpiRank;
+    G4int fDestinationRank;
+    G4bool fNewCycle{false};
 };
 
 // inline functions
 
-inline void 
-G4RootMpiPNtupleManager::SetNtupleDirectory(tools::wroot::directory* directory) 
-{ fNtupleDirectory = directory; }
-
-inline void 
-G4RootMpiPNtupleManager::SetFileManager(std::shared_ptr<G4RootFileManager> fileManager)
-{ fFileManager = fileManager; }
-
-inline const std::vector<G4RootMpiPNtupleDescription*>& 
-G4RootMpiPNtupleManager::GetNtupleDescriptionVector() const
-{ return fNtupleDescriptionVector; }
-
-
-//_____________________________________________________________________________
-template <typename T>
-G4int G4RootMpiPNtupleManager::CreateNtupleTColumn(
-  G4int ntupleId, const G4String& name, std::vector<T>* vector)
+inline void G4RootMpiPNtupleManager::SetFileManager(std::shared_ptr<G4RootFileManager> fileManager)
 {
-#ifdef G4VERBOSE
-  if ( fState.GetVerboseL4() ) {
-    G4ExceptionDescription description;
-    description << name << " ntupleId " << ntupleId; 
-    fState.GetVerboseL4()->Message("create", "pntuple T column", description);
-  }  
-#endif
-  
-  auto ntupleDescription = GetNtupleDescriptionInFunction(ntupleId, "CreateNtupleTColumn");
-  if ( ! ntupleDescription )  return G4Analysis::kInvalidId;   
-    
-  // Save column info in booking
-  auto& ntupleBooking = ntupleDescription->fNtupleBooking;
-  auto index = ntupleBooking.columns().size();
-  if ( ! vector )
-    ntupleBooking.template add_column<T>(name);
-  else
-    ntupleBooking.template add_column<T>(name, *vector);
- 
-  fLockFirstNtupleColumnId = true;
-
-#ifdef G4VERBOSE
-  if ( fState.GetVerboseL2() ) {
-    G4ExceptionDescription description;
-    description << name << " ntupleId " << ntupleId; 
-    fState.GetVerboseL2()->Message("create", "pntuple T column", description);
-  }  
-#endif
-
-  return index + fFirstNtupleColumnId;       
-
+  fFileManager = fileManager;
 }
 
 //_____________________________________________________________________________
-template <>
-inline G4bool G4RootMpiPNtupleManager::FillNtupleTColumn(
-  G4int ntupleId, G4int columnId, const std::string& value)
+template<>
+inline G4bool G4RootMpiPNtupleManager::FillNtupleTColumn(G4int ntupleId, G4int columnId,
+                                                         const std::string& value)
 {
-  if ( fState.GetIsActivation() && ( ! GetActivation(ntupleId) ) ) {
-    G4cout << "Skipping FillNtupleIColumn for " << ntupleId << G4endl; 
-    return false; 
-  } 
-
-#ifdef G4VERBOSE
-  if ( fState.GetVerboseL4() ) {
-    G4ExceptionDescription description;
-    description << " ntupleId " << ntupleId  
-                << " columnId " << columnId << " value " << value;
-    fState.GetVerboseL4()->Message("fill", "pntuple T column", description);
-  }  
-#endif
-
-  auto ntuple = GetNtupleInFunction(ntupleId, "FillNtupleTColumn");
-  if ( ! ntuple ) return false;
-
-  auto index = columnId - fFirstNtupleColumnId;
-  if ( index < 0 || index >= G4int(ntuple->columns().size()) ) {
-    G4ExceptionDescription description;
-    description << "      "  << "ntupleId " << ntupleId
-                << " columnId " << columnId << " does not exist.";
-    G4Exception("G4RootNtupleManager::FillNtupleTColumn()",
-                "Analysis_W011", JustWarning, description);
+  if (fState.GetIsActivation() && (!GetActivation(ntupleId))) {
+    G4cout << "Skipping FillNtupleIColumn for " << ntupleId << G4endl;
     return false;
   }
 
-  auto icolumn =  ntuple->columns()[index];
-  auto column = dynamic_cast<tools::wroot::base_pntuple::column_string* >(icolumn);
-  if ( ! column ) {
+  if (IsVerbose(G4Analysis::kVL4)) {
+    Message(G4Analysis::kVL4, "fill", "pntuple T column",
+            " ntupleId " + to_string(ntupleId) + " columnId " + to_string(columnId) + " value "
+              + G4Analysis::ToString(value));
+  }
+
+  auto ntuple = GetNtupleInFunction(ntupleId, "FillNtupleTColumn");
+  if (!ntuple) return false;
+
+  auto index = columnId - fFirstNtupleColumnId;
+  if (index < 0 || index >= G4int(ntuple->columns().size())) {
+    G4ExceptionDescription description;
+    description << "      "
+                << "ntupleId " << ntupleId << " columnId " << columnId << " does not exist.";
+    G4Exception("G4RootNtupleManager::FillNtupleTColumn()", "Analysis_W011", JustWarning,
+                description);
+    return false;
+  }
+
+  auto icolumn = ntuple->columns()[index];
+  auto column = dynamic_cast<tools::wroot::base_pntuple::column_string*>(icolumn);
+  if (!column) {
     G4ExceptionDescription description;
     description << " Column type does not match: "
-                << " ntupleId " << ntupleId  
-                << " columnId " << columnId << " value " << value;
-    G4Exception("G4RootNtupleManager:FillNtupleColumn",
-                "Analysis_W011", JustWarning, description);
+                << " ntupleId " << ntupleId << " columnId " << columnId << " value " << value;
+    G4Exception("G4RootNtupleManager:FillNtupleColumn", "Analysis_W011", JustWarning, description);
     return false;
-  } 
+  }
 
   column->fill(value);
 
-#ifdef G4VERBOSE
-  if ( fState.GetVerboseL4() ) {
-    G4ExceptionDescription description;
-    description << " ntupleId " << ntupleId  
-                << " columnId " << columnId << " value " << value;
-    fState.GetVerboseL4()->Message("done fill", "pntuple T column", description);
-  }  
-#endif
-  return true;  
+  if (IsVerbose(G4Analysis::kVL4)) {
+    Message(G4Analysis::kVL4, "done fill", "pntuple T column",
+            " ntupleId " + to_string(ntupleId) + " columnId " + to_string(columnId) + " value "
+              + value);
+  }
+
+  return true;
 }
 
 //_____________________________________________________________________________
-template <typename T>
-G4bool G4RootMpiPNtupleManager::FillNtupleTColumn(
-  G4int ntupleId, G4int columnId, const T& value)
+template<typename T>
+G4bool G4RootMpiPNtupleManager::FillNtupleTColumn(G4int ntupleId, G4int columnId, const T& value)
 {
-  if ( fState.GetIsActivation() && ( ! GetActivation(ntupleId) ) ) {
-    G4cout << "Skipping FillNtupleIColumn for " << ntupleId << G4endl; 
-    return false; 
-  }  
+  if (fState.GetIsActivation() && (!GetActivation(ntupleId))) {
+    G4cout << "Skipping FillNtupleIColumn for " << ntupleId << G4endl;
+    return false;
+  }
 
-#ifdef G4VERBOSE
-  if ( fState.GetVerboseL4() ) {
-    G4ExceptionDescription description;
-    description << " ntupleId " << ntupleId  
-                << " columnId " << columnId << " value " << value;
-    fState.GetVerboseL4()->Message("fill", "pntuple T column", description);
-  }  
-#endif
+  if (IsVerbose(G4Analysis::kVL4)) {
+    Message(G4Analysis::kVL4, "fill", "pntuple T column",
+            " ntupleId " + to_string(ntupleId) + " columnId " + to_string(columnId) + " value "
+              + G4Analysis::ToString(value));
+  }
 
   // get ntuple
   auto ntuple = GetNtupleInFunction(ntupleId, "FillNtupleTColumn");
-  if ( ! ntuple ) return false;
+  if (!ntuple) return false;
 
   // get generic column
   auto index = columnId - fFirstNtupleColumnId;
-  if ( index < 0 || index >= G4int(ntuple->columns().size()) ) {
+  if (index < 0 || index >= G4int(ntuple->columns().size())) {
     G4ExceptionDescription description;
-    description << "      "  << "ntupleId " << ntupleId
-                << " columnId " << columnId << " does not exist.";
-    G4Exception("G4TNtupleManager::FillNtupleTColumn()",
-                "Analysis_W011", JustWarning, description);
+    description << "      "
+                << "ntupleId " << ntupleId << " columnId " << columnId << " does not exist.";
+    G4Exception("G4TNtupleManager::FillNtupleTColumn()", "Analysis_W011", JustWarning, description);
     return false;
   }
-  auto icolumn =  ntuple->columns()[index];
+  auto icolumn = ntuple->columns()[index];
 
   // get column and check its type
-  auto column = dynamic_cast<tools::wroot::base_pntuple::column<T>* >(icolumn);
-  if ( ! column ) {
+  auto column = dynamic_cast<tools::wroot::base_pntuple::column<T>*>(icolumn);
+  if (!column) {
     G4ExceptionDescription description;
     description << " Column type does not match: "
-                << " ntupleId " << ntupleId  
-                << " columnId " << columnId << " value " << value;
-    G4Exception("G4TNtupleManager:FillNtupleTColumn",
-                "Analysis_W011", JustWarning, description);
+                << " ntupleId " << ntupleId << " columnId " << columnId << " value " << value;
+    G4Exception("G4TNtupleManager:FillNtupleTColumn", "Analysis_W011", JustWarning, description);
     return false;
-  } 
+  }
 
   column->fill(value);
 
-#ifdef G4VERBOSE
-  if ( fState.GetVerboseL4() ) {
-    G4ExceptionDescription description;
-    description << " ntupleId " << ntupleId  
-                << " columnId " << columnId << " value " << value;
-    fState.GetVerboseL4()->Message("done fill", "pntuple T column", description);
-  }  
-#endif
-  return true;  
+  if (IsVerbose(G4Analysis::kVL4)) {
+    Message(G4Analysis::kVL4, "done fill", "pntuple T column",
+            " ntupleId " + to_string(ntupleId) + " columnId " + to_string(columnId) + " value "
+              + G4Analysis::ToString(value));
+  }
+
+  return true;
 }
 
 #endif
-

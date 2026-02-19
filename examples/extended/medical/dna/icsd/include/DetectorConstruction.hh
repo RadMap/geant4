@@ -23,55 +23,61 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file DetectorConstruction.hh
+/// \brief Definition of the DetectorConstruction class
+
 // This example is provided by the Geant4-DNA collaboration
-// Any report or published results obtained using the Geant4-DNA software 
+// Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
 // Med. Phys. 37 (2010) 4692-4708
 // J. Comput. Phys. 274 (2014) 841-882
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file DetectorConstruction.hh
-/// \brief Definition of the DetectorConstruction class
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
 
-#include "G4VUserDetectorConstruction.hh"
-#include "G4VPhysicalVolume.hh"
-#include "G4LogicalVolume.hh"
+#include "DetectorMessenger.hh"
+
 #include "G4Box.hh"
-#include "G4Sphere.hh"
-#include "G4Tubs.hh"
+#include "G4LogicalVolume.hh"
+#include "G4LogicalVolumeStore.hh"
 #include "G4Material.hh"
 #include "G4NistManager.hh"
 #include "G4PVPlacement.hh"
-#include "G4UserLimits.hh"
-#include "G4VisAttributes.hh"
 #include "G4PhysicalVolumeStore.hh"
-#include "G4LogicalVolumeStore.hh"
 #include "G4SolidStore.hh"
+#include "G4Sphere.hh"
+#include "G4Tubs.hh"
+#include "G4UserLimits.hh"
+#include "G4VPhysicalVolume.hh"
+#include "G4VUserDetectorConstruction.hh"
+#include "G4VisAttributes.hh"
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
-  DetectorConstruction();
-  ~DetectorConstruction();
+  public:
+    DetectorConstruction();
+    ~DetectorConstruction();
 
-  virtual G4VPhysicalVolume* Construct();
+    virtual G4VPhysicalVolume* Construct();
+    void SetGeometry(const G4String&);
 
-private:  
-  G4double           fWorldSizeX;
-  G4double           fWorldSizeY;
-  G4double           fWorldSizeZ;
-  G4VPhysicalVolume* fpPhysiWorld;
-  G4LogicalVolume*   fpLogicWorld;
-  G4Box*             fpSolidWorld;
-  G4Tubs*            fpSolidTarget;
-  G4Material*        fpWaterMaterial;
-  G4Material*        fpTHFMaterial;
+  private:
+    G4double fWorldSize = 0;
+    G4VPhysicalVolume* fpPhysiWorld = nullptr;
+    G4LogicalVolume* fpLogicWorld = nullptr;
+    G4Box* fpSolidWorld = nullptr;
+    G4Material* fpWaterMaterial = nullptr;
+    G4Material* fpTHFMaterial = nullptr;
+    G4Material* fpN2Material = nullptr;
 
-  void DefineMaterials();
-  G4VPhysicalVolume* ConstructDetector();     
+    G4String fGeomType = "dna";
+
+    void DefineMaterials();
+    G4VPhysicalVolume* ConstructDetector();
+
+    DetectorMessenger* fDetectorMessenger;
 };
 #endif

@@ -64,9 +64,6 @@ G4PreCompoundTransitions::G4PreCompoundTransitions()
   r0 = param->GetTransitionsR0();
 }
 
-G4PreCompoundTransitions::~G4PreCompoundTransitions() 
-{}
-
 // Calculates transition probabilities with 
 // DeltaN = +2 (Trans1) -2 (Trans2) and 0 (Trans3)
 G4double G4PreCompoundTransitions::
@@ -84,11 +81,11 @@ CalculateProbability(const G4Fragment & aFragment)
   G4double U = aFragment.GetExcitationEnergy();
   TransitionProb2 = 0.0;
   TransitionProb3 = 0.0;
-  /*
-  G4cout << "G4PreCompoundTransitions::CalculateProbability H/P/N/Z/A= " 
-	 << H << " " << P << " " << N << " " << Z << " " << A <<G4endl;
-  G4cout << aFragment << G4endl;
-  */
+  if (2 < fVerbose) {  
+    G4cout << "G4PreCompoundTransitions::CalculateProbability H/P/N/Z/A= " 
+	   << H << " " << P << " " << N << " " << Z << " " << A << " U=" << U<<G4endl;
+  }
+  
   if(U < 10*eV || 0==N) { return 0.0; }
   
   //J. M. Quesada (Feb. 08) new physics
@@ -104,7 +101,7 @@ CalculateProbability(const G4Fragment & aFragment)
     
     // Sample kind of nucleon-projectile 
     G4bool ChargedNucleon(false);
-    if(G4int(P*G4UniformRand()) <= aFragment.GetNumberOfCharged()) {
+    if(G4lrint(P*G4UniformRand()) <= aFragment.GetNumberOfCharged()) {
       ChargedNucleon = true; 
     }
     
@@ -185,7 +182,7 @@ CalculateProbability(const G4Fragment & aFragment)
         
 	  // Transition probability for \Delta n = 0 (at F(p,h) = 0)
 	  TransitionProb3 = std::max(0.0,((N+1)*(P*(P-1) + 4*P*H + H*(H-1)))*x1
-				     /G4double(N));
+				     /static_cast<G4double>(N));
 	}
       }
     }
@@ -200,10 +197,6 @@ CalculateProbability(const G4Fragment & aFragment)
       TransitionProb2 = ((N-1)*(N-2)*P*H)*TransitionProb1/(GE*GE);  
     }
   }
-  //  G4cout<<"U = "<<U<<G4endl;
-  //  G4cout<<"N="<<N<<"  P="<<P<<"  H="<<H<<G4endl;
-  //  G4cout<<"l+ ="<<TransitionProb1<<"  l- ="<< TransitionProb2
-  //   <<"  l0 ="<< TransitionProb3<<G4endl; 
   return TransitionProb1 + TransitionProb2 + TransitionProb3;
 }
 
@@ -231,7 +224,10 @@ void G4PreCompoundTransitions::PerformTransition(G4Fragment & result)
   // PROVIDED that there are charged particles
   deltaN /= 2;
 
-  //G4cout << "deltaN= " << deltaN << G4endl;
+  if (2 < fVerbose) {  
+    G4cout << "G4PreCompoundTransitions::PerformTransition: deltaN="
+	   << deltaN << G4endl;
+  }
 
   // JMQ the following lines have to be before SetNumberOfCharged, 
   //     otherwise the check on number of charged vs. number of particles fails
@@ -249,9 +245,10 @@ void G4PreCompoundTransitions::PerformTransition(G4Fragment & result)
     // With weight Z/A, number of charged particles is increased with +1
     G4int A = result.GetA_asInt() - Npart;
     G4int Z = result.GetZ_asInt() - Ncharged;
-    if((Z == A) ||  (Z > 0 && G4int(A*G4UniformRand()) <= Z)) 
+    if((Z == A) ||  (Z > 0 && G4lrint(A*G4UniformRand()) <= Z))
       {
-	result.SetNumberOfCharged(Ncharged+deltaN);
+	Ncharged += deltaN;
+	result.SetNumberOfCharged(Ncharged);
       }
   }
   
@@ -260,7 +257,9 @@ void G4PreCompoundTransitions::PerformTransition(G4Fragment & result)
     {
       result.SetNumberOfCharged(Npart);
     }
-  //G4cout << "### After transition" << G4endl;
-  //G4cout << result << G4endl;
+  if (2 < fVerbose) {  
+    G4cout << "### After transition" << G4endl;
+    G4cout << result << G4endl;
+  }
 }
 

@@ -23,63 +23,58 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
-// ------------------------------------------------------------
-//      GEANT 4 class header file 
-//
-//
-//      ---------------- G4ExceptionHandler ----------------
-//
-// Authors: M.Asai - August 2002
-//
-// ------------------------------------------------------------
+// G4ExceptionHandler
 //
 // Class description:
 //
-// Abstract base class which need to be notified when G4Exception occurs.
-// The concrete class object derived from this base class will be automatically 
-// registered to G4StateManager and the virtual method Notify() will be invoked 
-// when G4Exception occurs.
+// Abstract base class which needs to be notified when G4Exception occurs.
+// The concrete class object derived from this class will be automatically
+// registered to G4StateManager and the virtual method Notify() will be
+// invoked when G4Exception occurs.
 
-// ------------------------------------------------------------
+// Author: M.Asai - August 2002
+// --------------------------------------------------------------------
+#ifndef G4ExceptionHandler_hh
+#define G4ExceptionHandler_hh 1
 
-#ifndef G4ExceptionHandler_h
-#define G4ExceptionHandler_h 1
-
-#include "globals.hh"
-#include "G4VExceptionHandler.hh"
 #include "G4ExceptionSeverity.hh"
+#include "G4VExceptionHandler.hh"
+#include "globals.hh"
+#include <unordered_map>
+
+class G4ExceptionHandlerMessenger;
 
 class G4ExceptionHandler : public G4VExceptionHandler
 {
+  public:
+    G4ExceptionHandler();
+    ~G4ExceptionHandler() override;
+    G4bool operator==(const G4ExceptionHandler& right) const;
+    G4bool operator!=(const G4ExceptionHandler& right) const;
 
-public:
+    G4ExceptionHandler(const G4ExceptionHandler&) = delete;
+    G4ExceptionHandler& operator=(const G4ExceptionHandler&) = delete;
 
-  G4ExceptionHandler();
-  virtual ~G4ExceptionHandler();
-  G4bool operator==(const G4ExceptionHandler &right) const;
-  G4bool operator!=(const G4ExceptionHandler &right) const;
+    // Will be invoked by G4StateManager when G4Exception occurs.
+    // If TRUE returned, core dump is generated, while if FALSE,
+    // the program execution continues.
+    G4bool Notify(const char* originOfException, const char* exceptionCode,
+                  G4ExceptionSeverity severity, const char* description) override;
 
-public: // with description
+    // Set methods for maximum number of warning messages
+    void SetMaxTotalWarning(G4int mx)
+    { fTotalWarnCount = mx; }
+    void SetMaxWarning(const char* errCode,G4int mx)
+    { fWarnCount[errCode] = mx; }
 
-  virtual G4bool Notify(const char* originOfException,
-                        const char* exceptionCode,
-                        G4ExceptionSeverity severity,
-                        const char* description);
-    // Virtual method which will be invoked by G4StateManager when
-    // G4Exception occurs.
-    // If TRUE returned, core dump will be generated, while FALSE returned,
-    // program execution continues.
+  private:
+    void DumpTrackInfo();
+    G4bool IfPrint(const char* errCode);
 
-private:
-
-  G4ExceptionHandler(const G4ExceptionHandler &right);
-  G4ExceptionHandler& operator=(const G4ExceptionHandler &right);
-
-private:
-  void DumpTrackInfo();
+  private:
+    G4ExceptionHandlerMessenger* messenger;
+    G4int fTotalWarnCount = INT_MAX;
+    std::unordered_map<std::string,G4int> fWarnCount;
 };
 
 #endif

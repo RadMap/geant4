@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file RunAction.hh
+/// \brief Definition of the RunAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,8 +34,6 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file RunAction.hh
-/// \brief Definition of the RunAction class
 
 #ifndef CHEM4_RunAction_h
 #define CHEM4_RunAction_h 1
@@ -55,7 +56,7 @@ class RunAction : public G4UserRunAction
 
     virtual G4Run* GenerateRun();
     virtual void BeginOfRunAction(const G4Run*);
-    virtual void   EndOfRunAction(const G4Run*);
+    virtual void EndOfRunAction(const G4Run*);
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

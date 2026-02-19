@@ -35,8 +35,6 @@
 //
 // Intended for inheritance by classes that need to hold them.
 //
-// For further details, see the HepRep home page at http://heprep.freehep.org
-//  
 // @author J.Allison
 // @author J.Perl
 // Class Description - End:
@@ -53,8 +51,10 @@ class G4AttHolder {
 
 public:
 
-  G4AttHolder() {}
+  G4AttHolder() = default;
   ~G4AttHolder();  // Note: G4AttValues are deleted here.
+  G4AttHolder(const G4AttHolder&) = delete;  // Copy construction not allowed.
+  G4AttHolder& operator=(const G4AttHolder&) = delete;  // Assignment not allowed.
 
   const std::vector<const std::vector<G4AttValue>*>& GetAttValues() const
   {return fValues;}
@@ -69,8 +69,6 @@ public:
   // life.
 
 private:
-  G4AttHolder(const G4AttHolder&);  // Copy construction not allowed.
-  G4AttHolder& operator=(const G4AttHolder&);  // Assignment not allowed.
   std::vector<const std::vector<G4AttValue>*> fValues;
   std::vector<const std::map<G4String,G4AttDef>*> fDefs;
 };

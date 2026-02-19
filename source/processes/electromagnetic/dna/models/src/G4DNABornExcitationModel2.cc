@@ -42,12 +42,12 @@ using namespace std;
 
 G4DNABornExcitationModel2::G4DNABornExcitationModel2(const G4ParticleDefinition*,
                                                      const G4String& nam) :
-G4VEmModel(nam), isInitialised(false), fTableData(0)
+G4VEmModel(nam)  
 {
-  fpMolWaterDensity = 0;
+  fpMolWaterDensity = nullptr;
   fHighEnergy = 0;
   fLowEnergy = 0;
-  fParticleDefinition = 0;
+  fParticleDefinition = nullptr;
 
   verboseLevel = 0;
   // Verbosity scale:
@@ -61,10 +61,10 @@ G4VEmModel(nam), isInitialised(false), fTableData(0)
   {
     G4cout << "Born excitation model is constructed " << G4endl;
   }
-  fParticleChangeForGamma = 0;
+  fParticleChangeForGamma = nullptr;
   fLastBinCallForFinalXS = 0;
-  fTotalXS = 0;
-  fTableData = 0;
+  fTotalXS = nullptr;
+  fTableData = nullptr;
 
   // Selection of stationary mode
 
@@ -76,7 +76,7 @@ G4VEmModel(nam), isInitialised(false), fTableData(0)
 G4DNABornExcitationModel2::~G4DNABornExcitationModel2()
 {
   // Cross section
-  if (fTableData)
+  
     delete fTableData;
 }
 
@@ -91,7 +91,7 @@ void G4DNABornExcitationModel2::Initialise(const G4ParticleDefinition* particle,
     G4cout << "Calling G4DNABornExcitationModel2::Initialise()" << G4endl;
   }
 
-  if(fParticleDefinition != 0 && fParticleDefinition != particle)
+  if(fParticleDefinition != nullptr && fParticleDefinition != particle)
   {
     G4Exception("G4DNABornExcitationModel2::Initialise","em0001",
         FatalException,"Model already initialized for another particle type.");
@@ -100,9 +100,9 @@ void G4DNABornExcitationModel2::Initialise(const G4ParticleDefinition* particle,
   fParticleDefinition = particle;
 
   std::ostringstream fullFileName;
-  char *path = getenv("G4LEDATA");
+  const char* path = G4FindDataDir("G4LEDATA");
 
-  if(G4String(path) == "")
+  if(G4String(path).empty())
   {
     G4Exception("G4DNABornExcitationModel2::Initialise","G4LEDATA-CHECK",
         FatalException, "G4LEDATA not defined in environment variables");
@@ -130,26 +130,25 @@ void G4DNABornExcitationModel2::Initialise(const G4ParticleDefinition* particle,
 
   fTableData = new G4PhysicsTable();
   fTableData->RetrievePhysicsTable(fullFileName.str().c_str(), true);
-  for(size_t level = 0; level<fTableData->size(); ++level)
+  /*
+  for(std::size_t level = 0; level<fTableData->size(); ++level)
   {
     //(*fTableData)(level)->ScaleVector(1,scaleFactor);
-    (*fTableData)(level)->SetSpline(true);
   }
-
-  size_t finalBin_i = 2000;
+  */
+  std::size_t finalBin_i = 2000;
   G4double E_min = fLowEnergy;
   G4double E_max = fHighEnergy;
-  fTotalXS = new G4PhysicsLogVector(E_min, E_max, finalBin_i);
-  fTotalXS->SetSpline(true);
+  fTotalXS = new G4PhysicsLogVector(E_min, E_max, finalBin_i, true);
   G4double energy;
   G4double finalXS;
 
-  for(size_t energy_i = 0; energy_i < finalBin_i; ++energy_i)
+  for(std::size_t energy_i = 0; energy_i < finalBin_i; ++energy_i)
   {
     energy = fTotalXS->Energy(energy_i);
     finalXS = 0;
 
-    for(size_t level = 0; level<fTableData->size(); ++level)
+    for(std::size_t level = 0; level<fTableData->size(); ++level)
     {
       finalXS += (*fTableData)(level)->Value(energy);
     }
@@ -208,7 +207,7 @@ G4double G4DNABornExcitationModel2::CrossSectionPerVolume(const G4Material* mate
   {
     sigma = fTotalXS->Value(ekin, fLastBinCallForFinalXS);
 
-    // for(size_t i = 0; i < 5; ++i)
+    // for(std::size_t i = 0; i < 5; ++i)
     // sigma += (*fTableData)[i]->Value(ekin);
 
     if(sigma == 0)
@@ -289,8 +288,8 @@ G4double G4DNABornExcitationModel2::GetPartialCrossSection(const G4Material*,
 
 G4int G4DNABornExcitationModel2::RandomSelect(G4double k)
 {
-  const size_t n(fTableData->size());
-  size_t i(n);
+  const std::size_t n(fTableData->size());
+  std::size_t i(n);
 
   G4double value = fTotalXS->Value(k, fLastBinCallForFinalXS);
 
@@ -306,7 +305,7 @@ G4int G4DNABornExcitationModel2::RandomSelect(G4double k)
     partialXS = (*fTableData)(i)->Value(k);
     if (partialXS > value)
     {
-      return i;
+      return (G4int)i;
     }
     value -= partialXS;
   }

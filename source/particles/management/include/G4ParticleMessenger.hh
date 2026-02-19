@@ -23,31 +23,26 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-//
-//---------------------------------------------------------------
-//
-//  G4ParticleMessenger.hh
-//
-//  Class Description:
-//    This is a messenger class to interface to exchange information
-//    between Particle related classes and UI.
-//
-// ------------------------------------------------------
-//  the List of Directory and Commands
-// ------------------------------------------------------
 // G4ParticleMessenger
-//  /particle/   Paricle control commands.
-//   Commands : 
-//    select * Select particle 
+//
+// Class description:
+//
+// This is a messenger class to exchange information between particle
+// related classes and UI.
+//
+// List of Directory and Commands:
+//
+// G4ParticleMessenger
+//  /particle/   Particle control commands.
+//   Commands :
+//    select * Select particle
 //    list * List name of particles.
 //    find * find particle by PDG encoding.
 //    verbose * Set Verbose level of Particle Table
 //
 // G4ParticlePropertyMessenger
-//  /particle/property/   Paricle Table control commands.
-//   Commands : 
+//  /particle/property/   Particle Table control commands.
+//   Commands :
 //     dump * dump particle properties.
 //     stable * Set stable flag.
 //     lifetime * Set life time.
@@ -55,76 +50,52 @@
 //
 // G4DecayTableMessenger
 //  /particle/property/decay/   Decay Table control commands.
-//   Commands : 
+//   Commands :
 //     select * Enter index of decay mode.
 //     dump * Dump decay mode information.
 //     br * Set branching ratio. [0< BR <1.0]
-//
-//
-//  History:
-//    13 June 1997, H. Kurashige   : The 1st version created.
-//    10 Nov 1997,  H.Kurashige    : add /particle/property/Verbose 
-//    08 Jan. 1998, H. Kurashige   : new UIcommand
-//    08 June 1998, H. Kurashige   : remove fProcessManagerMessenger
-//    25 Nov. 1998, H. Kurashige   : add /particle/find
-//    08 Jun. 2008, H. Kurashige   : add /particle/verbose
-//    30 Jul. 2009, H. Kurashige   : add /particle/createAllIon
-//    1  May. 2013, H. Kurashige   : add /particle/createAllIsomer
-//---------------------------------------------------------------
 
-#ifndef G4ParticleMessenger_h
-#define G4ParticleMessenger_h 1
+// Author: H. Kurashige, 13 June 1997 - 1st version created
+// --------------------------------------------------------------------
+#ifndef G4ParticleMessenger_hh
+#define G4ParticleMessenger_hh 1
+
+#include "G4UImessenger.hh"
+#include "globals.hh"
 
 class G4ParticleDefinition;
 class G4ParticleTable;
 class G4ParticlePropertyMessenger;
 
-
 class G4UIdirectory;
-class G4UIcmdWithAString; 
-class G4UIcmdWithAnInteger; 
-class G4UIcmdWithoutParameter; 
+class G4UIcmdWithAString;
+class G4UIcmdWithAnInteger;
+class G4UIcmdWithoutParameter;
 
-#include "G4UImessenger.hh"
-#include "globals.hh"
-
-
-class G4ParticleMessenger: public G4UImessenger
+class G4ParticleMessenger : public G4UImessenger
 {
-  public: 
-    G4ParticleMessenger(G4ParticleTable* pTable = 0);
-    virtual ~G4ParticleMessenger();
+  public:
+    G4ParticleMessenger(G4ParticleTable* pTable = nullptr);
+    ~G4ParticleMessenger() override;
 
-  public: // With Description
-    void SetNewValue(G4UIcommand * command,G4String newValues);
-    G4String GetCurrentValue(G4UIcommand * command);
+    G4ParticleMessenger(const G4ParticleMessenger&) = delete;
+    G4ParticleMessenger& operator=(const G4ParticleMessenger&) = delete;
 
-  private:
-  //  !!!  can not use "copy constructor" !!!!
-    G4ParticleMessenger(const G4ParticleMessenger&):G4UImessenger(){};
+    void SetNewValue(G4UIcommand* command, G4String newValues) override;
+    G4String GetCurrentValue(G4UIcommand* command) override;
 
   private:
-    G4UIdirectory *             thisDirectory;
-    G4UIcmdWithAString *        listCmd;
-    G4UIcmdWithAString *        selectCmd;
-    G4UIcmdWithAnInteger *      findCmd;
-    G4UIcmdWithoutParameter *   createAllIonCmd;
-    G4UIcmdWithoutParameter *   createAllIsomerCmd;
-    G4UIcmdWithAnInteger *      verboseCmd;
+    G4UIdirectory* thisDirectory = nullptr;
+    G4UIcmdWithAString* listCmd = nullptr;
+    G4UIcmdWithAString* selectCmd = nullptr;
+    G4UIcmdWithAnInteger* findCmd = nullptr;
+    G4UIcmdWithoutParameter* createAllIonCmd = nullptr;
+    G4UIcmdWithoutParameter* createAllIsomerCmd = nullptr;
+    G4UIcmdWithAnInteger* verboseCmd = nullptr;
 
-    G4ParticleTable* theParticleTable;
-    G4ParticleDefinition* currentParticle;
+    G4ParticleTable* theParticleTable = nullptr;
 
-    G4ParticlePropertyMessenger* fParticlePropertyMessenger;
+    G4ParticlePropertyMessenger* fParticlePropertyMessenger = nullptr;
 };
 
 #endif
-
-
-
-
-
-
-
-
-

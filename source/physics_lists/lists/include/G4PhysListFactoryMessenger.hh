@@ -28,11 +28,7 @@
 //
 // ClassName:   G4PhysListFactoryMessenger
 //
-// Author: 2002 J.P. Wellisch
-//
-// Modified:
-// 09.11.2005 V.Ivanchenko edit to provide a standard
-// 19.06.2006 V.Ivanchenko add mu-nuclear process
+// Author: 2017 V.Ivanchenko
 //
 //----------------------------------------------------------------------------
 //
@@ -51,14 +47,17 @@ class G4PhysListFactoryMessenger: public G4UImessenger
 {
 public:
   G4PhysListFactoryMessenger(G4VModularPhysicsList* pl);
-  virtual ~G4PhysListFactoryMessenger();
+  ~G4PhysListFactoryMessenger() override;
 
-  void SetNewValue(G4UIcommand* aComm, G4String aS);
+  void SetNewValue(G4UIcommand* aComm, G4String aS) override;
 
 private:
   G4VModularPhysicsList*   thePhysList;
   G4UIcommand*             theRadDecay;
   G4UIcommand*             theOptical;
+  G4UIcommand*             theThermal;
+  G4UIcommand*             theNeutrino;
+  G4UIcommand*             theChargeEx;
   G4UIdirectory*           theDir;
 };
 

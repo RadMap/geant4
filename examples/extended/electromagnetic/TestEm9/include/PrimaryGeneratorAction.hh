@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm9/include/PrimaryGeneratorAction.hh
+/// \file PrimaryGeneratorAction.hh
 /// \brief Definition of the PrimaryGeneratorAction class
-//
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // TestEm9: Crystal calorimeter
@@ -45,8 +43,8 @@
 #ifndef PrimaryGeneratorAction_h
 #define PrimaryGeneratorAction_h 1
 
-#include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4ParticleGun.hh"
+#include "G4VUserPrimaryGeneratorAction.hh"
 #include "globals.hh"
 
 class G4Event;
@@ -56,23 +54,20 @@ class DetectorConstruction;
 
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
-  PrimaryGeneratorAction(DetectorConstruction*);    
-  virtual ~PrimaryGeneratorAction();
+  public:
+    PrimaryGeneratorAction(DetectorConstruction*);
+    virtual ~PrimaryGeneratorAction();
 
-  virtual void GeneratePrimaries(G4Event*);
-    
-private:
+    virtual void GeneratePrimaries(G4Event*);
 
-  PrimaryGeneratorAction & operator=(const PrimaryGeneratorAction &right);
-  PrimaryGeneratorAction(const PrimaryGeneratorAction&);
+  private:
+    PrimaryGeneratorAction& operator=(const PrimaryGeneratorAction& right);
+    PrimaryGeneratorAction(const PrimaryGeneratorAction&);
 
-  G4ParticleGun*         fParticleGun;
-  DetectorConstruction*  fDetector; 
+    G4ParticleGun* fParticleGun;
+    DetectorConstruction* fDetector;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-

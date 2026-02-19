@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/src/TargetSD.cc
+/// \file TargetSD.cc
 /// \brief Implementation of the TargetSD class
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // TargetSD
@@ -37,30 +36,28 @@
 // 04.06.2006 Adoptation of hadr01 (V.Ivanchenko)
 //
 ////////////////////////////////////////////////////////////////////////
-// 
+//
 
 #include "TargetSD.hh"
+
 #include "HistoManager.hh"
+
 #include "G4Step.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TargetSD::TargetSD(const G4String& name)
- : G4VSensitiveDetector(name),
-   fHisto(0)
+TargetSD::TargetSD(const G4String& name) : G4VSensitiveDetector(name), fHisto(0)
 {
   fHisto = HistoManager::GetPointer();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TargetSD::~TargetSD()
-{}
+TargetSD::~TargetSD() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TargetSD::Initialize(G4HCofThisEvent*)
-{}
+void TargetSD::Initialize(G4HCofThisEvent*) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -72,8 +69,6 @@ G4bool TargetSD::ProcessHits(G4Step* step, G4TouchableHistory*)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TargetSD::EndOfEvent(G4HCofThisEvent*)
-{}
+void TargetSD::EndOfEvent(G4HCofThisEvent*) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

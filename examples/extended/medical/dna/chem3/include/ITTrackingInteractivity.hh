@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file ITTrackingInteractivity.hh
+/// \brief Definition of the ITTrackingInteractivity class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,13 +34,12 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file ITTrackingInteractivity.hh
-/// \brief Definition of the ITTrackingInteractivity class
 
 #ifndef ITTRACKINGINTERACTIVITY_HH
 #define ITTRACKINGINTERACTIVITY_HH
 
 #include "G4ITTrackingInteractivity.hh"
+
 #include <vector>
 
 class G4VTrajectory;
@@ -47,50 +49,46 @@ class G4VTrajectory;
  */
 class ITTrackingInteractivity : public G4ITTrackingInteractivity
 {
-  G4UserTrackingAction* fpUserTrackingAction;
-  G4UserSteppingAction* fpUserSteppingAction;
-  int fStoreTrajectory;
-  std::vector<G4VTrajectory*> fTrajectories;
+    G4UserTrackingAction* fpUserTrackingAction;
+    G4UserSteppingAction* fpUserSteppingAction;
+    int fStoreTrajectory;
+    std::vector<G4VTrajectory*> fTrajectories;
 
-public:
-  ITTrackingInteractivity();
-  virtual ~ITTrackingInteractivity();
+  public:
+    ITTrackingInteractivity();
+    virtual ~ITTrackingInteractivity();
 
-  virtual void Initialize();
-  virtual void StartTracking(G4Track*);
-  virtual void AppendStep(G4Track* track, G4Step* step);
-  virtual void EndTracking(G4Track*);
-  virtual void Finalize();
+    virtual void Initialize();
+    virtual void StartTracking(G4Track*);
+    virtual void AppendStep(G4Track* track, G4Step* step);
+    virtual void EndTracking(G4Track*);
+    virtual void Finalize();
 
-  void SetUserAction(G4UserTrackingAction*);
-  inline G4UserTrackingAction* GetUserTrackingAction();
+    void SetUserAction(G4UserTrackingAction*);
+    inline G4UserTrackingAction* GetUserTrackingAction();
 
-  void SetUserAction(G4UserSteppingAction*);
-  inline G4UserSteppingAction* GetUserSteppingAction();
+    void SetUserAction(G4UserSteppingAction*);
+    inline G4UserSteppingAction* GetUserSteppingAction();
 };
 
-inline
-void ITTrackingInteractivity::SetUserAction(G4UserTrackingAction* trackAct)
+inline void ITTrackingInteractivity::SetUserAction(G4UserTrackingAction* trackAct)
 {
   fpUserTrackingAction = trackAct;
 }
 
-inline
-void ITTrackingInteractivity::SetUserAction(G4UserSteppingAction* stepAct)
+inline void ITTrackingInteractivity::SetUserAction(G4UserSteppingAction* stepAct)
 {
   fpUserSteppingAction = stepAct;
 }
 
-inline G4UserSteppingAction*
-ITTrackingInteractivity::GetUserSteppingAction()
+inline G4UserSteppingAction* ITTrackingInteractivity::GetUserSteppingAction()
 {
   return fpUserSteppingAction;
 }
 
-inline G4UserTrackingAction*
-ITTrackingInteractivity::GetUserTrackingAction()
+inline G4UserTrackingAction* ITTrackingInteractivity::GetUserTrackingAction()
 {
   return fpUserTrackingAction;
 }
 
-#endif // ITTRACKINGINTERACTIVITY_HH
+#endif  // ITTRACKINGINTERACTIVITY_HH

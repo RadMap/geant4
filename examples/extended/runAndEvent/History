@@ -1,19 +1,42 @@
--------------------------------------------------------------------
+# Example runAndEvent History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top). It must **not**
+be used as a substitute for writing good git commit messages!
 
-            examples/extended/runAndEvent History file
-            ------------------------------------------
 
-This file should be used by the G4 example coordinator to briefly
-summarize all major modifications introduced in the code and keep
-track of all tags.
+## 2025-07-30 I. Hrivnacova (exRunAndEvent-V11-03-00)
+- Migration of README pages to Markdown:
+  - .README.txt replaced with README.md and removed README
+- Reviewed and fixed references to code, removed references
+  to non existing clases or files
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2023-11-15 I. Hrivnacova (exRunAndEvent-V11-01-00)
+- Updated vis.mac and run*.mac macros:
+  - Changed "/vis/open XYZ [600x600-0+0]" to "/vis/open" to allow run-time choices
+    and simplified comments.
+
+## 2021-12-10 Ben Morgan (exRunAndEvent-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+Dec. 06th, 2021, I. Hrivnacova  (exRunAndEvent-V10-07-01)
+- Added RE07 in Doxygen documentation
+
+May 24th, 2021,  B. Morgan (exRunAndEvent-V10-07-00)
+- Bump required CMake version range to 3.12...3.20, matching core Geant4
+
+Nov. 11, 2020 M. Asai (exRunAndEvent-V10-06-02)
+- RE05 and RE06 : Migration to G4RunManagerFactory.
+
+Nov. 03, 2020 B. Morgan (exRunAndEvent-V10-06-01)
+- Support same CMake version range as core Geant4
+
+Oct. 29, 2020 M. Asai (exRunAndEvent-V10-06-00)
+- RE01, RE02, RE03 and RE04 : Migration to G4RunManagerFactory.
 
 Jan. 31, 2019 I. Hrivnacova  (exRunAndEvent-V10-05-00)
 - Merged GitHub PR #4: all Boolean operators now return G4bool.
@@ -32,7 +55,7 @@ Dec. 19, 2012 I.Hrivnacova (exRunAndEvent-V09-06-00)
 - Added RE05, RE06 which (moved from /novice/N04 and /novice/N07)
 
 Oct. 15, 2012 M.Asai (exRunAndEvent-V09-05-01)
-- Update of RE01, RE03 by T.Aso (see RE01,RE03/History) to be compliant to 
+- Update of RE01, RE03 by T.Aso (see RE01,RE03/History) to be compliant to
 the example coding rule.
 
 Oct. 08, 2012 I.Hrivnacova (exRunAndEvent-V09-05-00)

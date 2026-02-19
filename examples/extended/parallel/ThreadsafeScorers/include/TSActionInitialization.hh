@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file parallel/ThreadsafeScorers/include/TSActionInitialization.hh
+/// \file TSActionInitialization.hh
 /// \brief Definition of the TSActionInitialization class
-//
-//
-//
-//
+///
 /// Standard ActionInitialization class creating a RunAction instance for the
 ///     master thread and RunAction and PrimaryGeneratorAction instances for
 ///     the worker threads
@@ -37,35 +34,30 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-
-
-
 #ifndef tsactioninitialization_hh_
 #define tsactioninitialization_hh_
 
-#include "globals.hh"
-#include "G4VUserActionInitialization.hh"
-
 #include "G4AutoLock.hh"
 #include "G4Threading.hh"
+#include "G4VUserActionInitialization.hh"
+#include "globals.hh"
 
 class TSActionInitialization : public G4VUserActionInitialization
 {
-public:
+  public:
     // Constructor and Destructors
     TSActionInitialization();
     virtual ~TSActionInitialization();
 
     static TSActionInitialization* Instance();
 
-public:
+  public:
     virtual void BuildForMaster() const;
     virtual void Build() const;
 
-private:
+  private:
     // Private functions
     static TSActionInitialization* fgInstance;
-
 };
 
 #endif

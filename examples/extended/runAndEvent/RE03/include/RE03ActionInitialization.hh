@@ -23,11 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE03/include/RE03ActionInitialization.hh
+/// \file RE03ActionInitialization.hh
 /// \brief Definition of the RE03ActionInitialization class
-//
-//
-//
 
 #ifndef RE03ActionInitialization_h
 #define RE03ActionInitialization_h 1
@@ -37,14 +34,12 @@
 class RE03ActionInitialization : public G4VUserActionInitialization
 {
   public:
-    RE03ActionInitialization();    
-    virtual ~RE03ActionInitialization();
+    RE03ActionInitialization();
+    ~RE03ActionInitialization() override;
 
   public:
-    virtual void Build() const;
- 
+    void BuildForMaster() const override;
+    void Build() const override;
 };
 
 #endif
-
-

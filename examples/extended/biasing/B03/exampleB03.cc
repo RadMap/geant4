@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file biasing/B03/exampleB03.cc
+/// \file exampleB03.cc
 /// \brief Main program of the biasing/B03 example
-//
-//
-//
-//
+
 // --------------------------------------------------------------
 //      GEANT 4 - exampleB03
 //
@@ -53,24 +50,17 @@
 //
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include <iostream>
-
-#include "G4Types.hh"
-
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
-
-#include "G4VPhysicalVolume.hh"
-#include "G4UImanager.hh"
-#include "G4SystemOfUnits.hh"
-
+#include "B03ActionInitialization.hh"
 #include "B03DetectorConstruction.hh"
 #include "B03PhysicsList.hh"
 
-#include "B03ActionInitialization.hh"
+#include "G4RunManagerFactory.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4Types.hh"
+#include "G4UImanager.hh"
+#include "G4VPhysicalVolume.hh"
+
+#include <iostream>
 // #include "B03PrimaryGeneratorAction.hh"
 // #include "B03RunAction.hh"
 
@@ -78,39 +68,31 @@
 #include "B03ImportanceDetectorConstruction.hh"
 
 // Files specific for biasing and scoring
-//#include "G4Scorer.hh"
+// #include "G4Scorer.hh"
 // #include "G4GeometrySampler.hh"
 #include "G4IStore.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-int main(int , char **)
+int main(int, char**)
 {
   G4int numberOfEvents = 100;
 
   G4long myseed = 345354;
 
-#ifdef G4MULTITHREADED
-  G4MTRunManager * runManager = new G4MTRunManager;
-  G4cout << " Number of cores: " << G4Threading::G4GetNumberOfCores() << G4endl;
-  G4cout << " but using only two! " << G4endl;
+  auto* runManager = G4RunManagerFactory::CreateRunManager();
   runManager->SetNumberOfThreads(2);
-  //  runManager->SetNumberOfThreads(G4Threading::G4GetNumberOfCores());
-#else
-  G4RunManager * runManager = new G4RunManager;
-#endif
 
   G4Random::setTheSeed(myseed);
 
   // create the detector      ---------------------------
-  B03DetectorConstruction *detector = new B03DetectorConstruction();
+  B03DetectorConstruction* detector = new B03DetectorConstruction();
   runManager->SetUserInitialization(detector);
   //  ---------------------------------------------------
 
   // create a parallel detector
   G4String parallelName("ParallelBiasingWorld");
-  B03ImportanceDetectorConstruction *pdet =
-    new B03ImportanceDetectorConstruction(parallelName);
+  B03ImportanceDetectorConstruction* pdet = new B03ImportanceDetectorConstruction(parallelName);
   detector->RegisterParallelWorld(pdet);
 
   // G4GeometrySampler pgs(pdet->GetWorldVolume(),"neutron");
@@ -120,19 +102,19 @@ int main(int , char **)
   // push parallel world to store in case of multiple worlds:
   physlist->AddParallelWorldName(parallelName);
   // physlist->AddParallelWorldName(parallelName);
-  //physlist->AddParallelWorldName(sparallelName);
+  // physlist->AddParallelWorldName(sparallelName);
   // physlist->AddBiasing(&pgs,parallelName);
 
   runManager->SetUserInitialization(physlist);
 
- // Set user action classes through Worker Initialization
- //
+  // Set user action classes through Worker Initialization
+  //
   B03ActionInitialization* actions = new B03ActionInitialization;
   runManager->SetUserInitialization(actions);
 
-//   runManager->SetUserAction(new B03PrimaryGeneratorAction);
-//   //  runManager->SetUserAction(new B03PrimaryGeneratorAction(ifElectron));
-//   runManager->SetUserAction(new B03RunAction);
+  //   runManager->SetUserAction(new B03PrimaryGeneratorAction);
+  //   //  runManager->SetUserAction(new B03PrimaryGeneratorAction(ifElectron));
+  //   runManager->SetUserAction(new B03RunAction);
 
   runManager->Initialize();
 
@@ -140,7 +122,7 @@ int main(int , char **)
   G4cout << " ghost world: " << pdet->GetName() << G4endl;
 
   // create an importance
-  G4IStore *aIstore = G4IStore::GetInstance(pdet->GetName());
+  G4IStore* aIstore = G4IStore::GetInstance(pdet->GetName());
 
   // create a geometry cell for the world volume replpicanumber is 0!
   G4GeometryCell gWorldVolumeCell(aghostWorld, 0);
@@ -149,13 +131,12 @@ int main(int , char **)
 
   // set importance values and create scorers
   G4int cell(1);
-  for (cell=1; cell<=18; cell++) {
+  for (cell = 1; cell <= 18; cell++) {
     G4GeometryCell gCell = pdet->GetGeometryCell(cell);
-    G4cout << " adding cell: " << cell
-           << " replica: " << gCell.GetReplicaNumber()
+    G4cout << " adding cell: " << cell << " replica: " << gCell.GetReplicaNumber()
            << " name: " << gCell.GetPhysicalVolume().GetName() << G4endl;
-    G4double imp = std::pow(2.0,cell-1);
-    //x    aIstore.AddImportanceGeometryCell(imp, gCell);
+    G4double imp = std::pow(2.0, cell - 1);
+    // x    aIstore.AddImportanceGeometryCell(imp, gCell);
     aIstore->AddImportanceGeometryCell(imp, gCell.GetPhysicalVolume(), cell);
   }
 
@@ -166,16 +147,16 @@ int main(int , char **)
   // with the same importance as the last concrete cell
   G4GeometryCell gCell = pdet->GetGeometryCell(19);
   //  G4double imp = std::pow(2.0,18);
-  G4double imp = std::pow(2.0,17);
+  G4double imp = std::pow(2.0, 17);
   aIstore->AddImportanceGeometryCell(imp, gCell.GetPhysicalVolume(), 19);
 
-  //temporary fix before runManager->BeamOn works...
+  // temporary fix before runManager->BeamOn works...
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
   G4String command1 = "/control/cout/setCoutFile fileName";
   UImanager->ApplyCommand(command1);
 
-  G4String command2 = "/run/beamOn "
-                    + G4UIcommand::ConvertToString(numberOfEvents);;
+  G4String command2 = "/run/beamOn " + G4UIcommand::ConvertToString(numberOfEvents);
+  ;
   UImanager->ApplyCommand(command2);
 
   //  runManager->BeamOn(numberOfEvents);

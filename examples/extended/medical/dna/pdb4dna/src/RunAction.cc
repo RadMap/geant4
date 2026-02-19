@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file RunAction.cc
+/// \brief Implementation of the RunAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -33,13 +36,12 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file RunAction.cc
-/// \brief Implementation of the RunAction class
 
 #include "RunAction.hh"
+
 #include "RunInitObserver.hh"
 
-#include "Analysis.hh"
+#include "G4AnalysisManager.hh"
 #include "G4Run.hh"
 #include "G4UnitsTable.hh"
 
@@ -48,19 +50,14 @@
 RunAction::RunAction() : G4UserRunAction()
 {
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+  analysisManager->SetDefaultFileType("root");
   analysisManager->SetFirstHistoId(1);
 
   // Creating histograms
   //
-  analysisManager->CreateH1("1",
-                            "Energy deposit in the target (eV)",
-                            1000,0.,1000.);
-  analysisManager->CreateH1("2",
-                            "Number of SSB",
-                            10,0.,10.);
-  analysisManager->CreateH1("3",
-                            "Number of DSB",
-                            10,0.,10.);
+  analysisManager->CreateH1("1", "Energy deposit in the target (eV)", 1000, 0., 1000.);
+  analysisManager->CreateH1("2", "Number of SSB", 10, 0., 10.);
+  analysisManager->CreateH1("3", "Number of DSB", 10, 0., 10.);
 
   // Open an output file
   //
@@ -78,8 +75,6 @@ RunAction::~RunAction()
 {
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
   analysisManager->CloseFile();
-
-  delete G4AnalysisManager::Instance();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -94,8 +89,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
 void RunAction::EndOfRunAction(const G4Run*)
 {
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-  // save histograms 
+  // save histograms
   //
   analysisManager->Write();
 }
-

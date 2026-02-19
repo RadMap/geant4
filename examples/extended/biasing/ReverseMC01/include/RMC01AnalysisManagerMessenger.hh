@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file biasing/ReverseMC01/include/RMC01AnalysisManagerMessenger.hh
+/// \file RMC01AnalysisManagerMessenger.hh
 /// \brief Definition of the RMC01AnalysisManagerMessenger class
-//
-//
-//////////////////////////////////////////////////////////////
+
 //  Class Name:           RMC01AnalysisManagerMessenger
 //        Author:               L. Desorgher
 //        Organisation:         SpaceIT GmbH
@@ -73,6 +71,7 @@ class RMC01AnalysisManagerMessenger: public G4UImessenger
     G4UIcmdWithADouble* fSetPrecisionForConvergenceTestCmd;
     G4UIcommand* fSetExpSpectrumToNormaliseAdjResCmd;
     G4UIcommand* fSetPowerLawSpectrumToNormaliseAdjResCmd;
+    G4UIcommand* fSetUserDefinedSpectrumToNormaliseAdjResCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

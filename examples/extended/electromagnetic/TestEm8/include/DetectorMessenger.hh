@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm8/include/DetectorMessenger.hh
+/// \file DetectorMessenger.hh
 /// \brief Definition of the DetectorMessenger class
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // TestEm8: Gaseous detector
@@ -36,7 +35,7 @@
 // Modified:
 //
 ////////////////////////////////////////////////////////////////////////
-// 
+//
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -44,8 +43,8 @@
 #ifndef DetectorMessenger_h
 #define DetectorMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class DetectorConstruction;
 class G4UIdirectory;
@@ -55,33 +54,33 @@ class G4UIcmdWithoutParameter;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-class DetectorMessenger: public G4UImessenger
+class DetectorMessenger : public G4UImessenger
 {
-public:
+  public:
+    explicit DetectorMessenger(DetectorConstruction*);
+    ~DetectorMessenger() override;
 
-  DetectorMessenger(DetectorConstruction* );
-  virtual ~DetectorMessenger();
-    
-  virtual void SetNewValue(G4UIcommand*, G4String);
-    
-private:
+    void SetNewValue(G4UIcommand*, G4String) override;
 
-  DetectorConstruction*      fDetector;
-    
-  G4UIdirectory*             fDetDir;
+    DetectorMessenger& operator=(const DetectorMessenger& right) = delete;
+    DetectorMessenger(const DetectorMessenger&) = delete;
 
-  G4UIcmdWithAString*        fGasMaterCmd;
-  G4UIcmdWithADoubleAndUnit* fGasThickCmd;
-  G4UIcmdWithADoubleAndUnit* fGasRadCmd;
+  private:
+    DetectorConstruction* fDetector;
 
-  G4UIcmdWithADoubleAndUnit* fWinThickCmd;
-  G4UIcmdWithAString*        fWindowMaterCmd;
+    G4UIdirectory* fDetDir;
 
-  G4UIcmdWithAString*        fWorldMaterCmd;
+    G4UIcmdWithAString* fGasMaterCmd;
+    G4UIcmdWithADoubleAndUnit* fGasThickCmd;
+    G4UIcmdWithADoubleAndUnit* fGasRadCmd;
 
-  G4UIcmdWithADoubleAndUnit* fIonCmd;
-  G4UIcmdWithADoubleAndUnit* fStepMaxCmd;
+    G4UIcmdWithADoubleAndUnit* fWinThickCmd;
+    G4UIcmdWithAString* fWindowMaterCmd;
+
+    G4UIcmdWithAString* fWorldMaterCmd;
+
+    G4UIcmdWithADoubleAndUnit* fIonCmd;
+    G4UIcmdWithADoubleAndUnit* fStepMaxCmd;
 };
 
 #endif
-

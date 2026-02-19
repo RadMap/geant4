@@ -33,13 +33,7 @@
 // Rad. Prot. Dos. 133 (2009) 2-11
 
 #include "G4Types.hh"
-
-#ifdef G4MULTITHREADED
-  #include "G4MTRunManager.hh"
-#else
-  #include "G4RunManager.hh"
-#endif
-
+#include "G4RunManagerFactory.hh"
 #include "G4UImanager.hh"
 #include "G4UIExecutive.hh"
 #include "G4VisExecutive.hh"
@@ -59,12 +53,7 @@ int main(int argc,char** argv) {
 
   // Construct the default run manager
 
-#ifdef G4MULTITHREADED
-  G4MTRunManager* runManager = new G4MTRunManager;
-  //runManager->SetNumberOfThreads(1);
-#else
-  G4RunManager* runManager = new G4RunManager;
-#endif
+  auto* runManager = G4RunManagerFactory::CreateRunManager();
 
   // Set mandatory user initialization classes
 
@@ -77,14 +66,9 @@ int main(int argc,char** argv) {
 
   runManager->SetUserInitialization(new ActionInitialization(detector));
 
-  // Initialize G4 kernel
-
-  runManager->Initialize();
-
   // Visualization
 
-  G4VisManager* visManager = new G4VisExecutive;
-  visManager->Initialize();
+  G4VisManager* visManager = nullptr;
 
   // Get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
@@ -99,6 +83,8 @@ int main(int argc,char** argv) {
   }
   else {
     // interactive mode
+    visManager = new G4VisExecutive;
+    visManager->Initialize();
     UImanager->ApplyCommand("/control/execute vis.mac");
     ui->SessionStart();
     delete ui;

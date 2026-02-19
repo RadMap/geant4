@@ -1,20 +1,378 @@
--------------------------------------------------------------------
+# Category run History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                      Category History file
-                      ---------------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all category-tags.
-It DOES NOT substitute the  CVS log-message one should put at every
-committal in the CVS repository !
+-------------------------------------------------------------------------------
+## 2025-11-06 Laurent Desorgher (run-V11-03-06)
+- G4AdjointPrimaryGeneratorAction : 
+    Remove pointer attribute on G4AdjointPrimaryGenerator and call it by G4AdjointPrimaryGenerator::GetInstance() 
+    to solve a bug in Reverse MC  simulation in MT mode.  Works with event-V11-03-03.
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2025-10-31 Vladimir Ivantchenko (run-V11-03-05)
+- G4VModularPhysicsList - do not print line if the same physics type is
+    substituted, which may confuse users
+- G4PhysicsListHelper - Changed ordering of processes: for X-Ray production
+    use ordering parameter 100 for post step instead of 1000; fixed ordering
+    for muon capture at rest.
+
+## 2025-10-29 Makoto Asai (run-V11-03-04)
+- G4WorkerSubEvtRunManager.cc
+  - Enabling worker threads to receive next sub-event before completing the
+    current sub-event
+  - Code clean up
+
+## 2025-08-04 Makoto Asai (run-V11-03-03)
+- Introducing UI commands to limit number of warning messages to be printed out.
+
+## 2025-08-01 Makoto Asai (run-V11-03-02)
+- Add some verbose level checks to G4TaskRunManager and G4SubEvtRunManager
+  to reduce printouts.
+
+## 2025-06-10 Seth R Johnson (run-V11-03-01)
+- Clear surfaces in G4RunManager::ReinitializeGeometry
+
+## 2025-02-25 John Apostolakis (run-V11-03-00)
+- Correct when G4WorkerRunManager's InitializeGeometry calls G4GeometryManager's 
+  UndertakeOptimisation to contribute to parallel voxelisation.
+
+## 2024-11-08 Laurent Desorgher (run-V11-02-26)
+- Change of G4AdjointSimManager G4AdjointSimMessenger to allow AdjointSimulation 
+in MT mode.
+
+## 2024-11-04 Philippe Canal (run-V11-02-25)
+- Static initialization for masterWorlds in G4MTRunManager.
+  Adapted G4SubEvtRunManager and G4TaskRunManager accordingly.
+
+## 2024-11-05 Makoto Asai (run-V11-02-24)
+- Changing verbose levels to reduce printouts during event loop.
+
+## 2024-10-25 Makoto Asai (run-V11-02-23)
+- Setting UI alias that represents the run mode (sequential, eventParallel,
+  subEventParallel). This alias can be used in macro file.
+
+## 2024-10-21 Makoto Asai (run-V11-02-22)
+- G4RunManagerFactory: Adding sub-event parallel mode as an option.
+- G4RunMessenger: Adding a command for trajectory merging in sub-event parallel
+  mode.
+
+## 2024-10-14 Makoto Asai (run-V11-02-21)
+- G4SubEvtRunManager, G4WorkerRunManager, G4WorkerSubEvtRunManager
+  - Adding an option to merge trajectories created by worker threads in
+    sub-event parallel mode.
+  - co-working with tracking-V11-02-04
+
+## 2024-10-10 Jonas Hahnfeld (run-V11-02-20)
+- Fix leak of process and tracking managers in worker threads
+
+## 2024-10-08 Jonas Hahnfeld (run-V11-02-19)
+- G4WorkerTaskRunManager: Process only NumberOfEventsPerTask
+
+## 2024-09-30 Makoto Asai (run-V11-02-18)
+- G4RunManagerKernel, G4RunManager, G4SubEvtRunManager
+  - Cleanly deleting G4Event objects at the end of each run as long as these
+    events are not requested to be kept for redrawing during the following
+    Idle state.
+  - The kept events are deleted at the beginning of next run or at the
+    termination of the program
+ - G4Run 
+  - Add GetNumberOfKeptEvents() method
+ - G4SubEvtRunManager
+  - Properly start the timer.
+ - Co-working with event-V11-02-08 and visman-V11-02-24
+
+## 2024-09-09 Makoto Asai (run-V11-02-17)
+- G4WorkerSubEvtRunManager:
+  - Fix double-counting of the scores of command-based scorers.
+  - Print number of sub-events rather than number of events at the end of run.
+
+## 2024-09-04 Makoto Asai (run-V11-02-16)
+- G4RunManagerKernel: Remove invoking ResetNavigator() during the initialization.
+  ResetNavigator() is now invoked only at the beginning of BeamOn().
+
+## 2024-08-07 Gabriele Cosmo, Ben Morgan (run-V11-02-15)
+- Access G4GeometryManager singleton through its GetInstance() call
+  in G4RunManagerKernel and G4WorkerRunManager.
+
+## 2024-07-22 Makoto Asai (run-V11-02-14)
+- Fix number of random numbers generated as the seeds of workers for sub-event
+  parallel mode.
+
+## 2024-07-19 Ben Morgan (run-V11-02-13)
+- Fixed Coverity defects missed in -12 in Task/SubEvt RunManagers.
+
+## 2024-07-16 Gabriele Cosmo, Ben Morgan (run-V11-02-12)
+- Fixed reported Coverity defects: in G4MSSteppingAction for restoring original
+  stream format state; in G4RunManager and others, for use of std::move() and
+  restructured conditionals.
+
+## 2024-07-13 Laurie Nevay (run-V11-02-11)
+- Add XrayReflection (fGammaReflection) to G4PhysicsListHelper.
+
+## 2024-07-06 Makoto Asai (run-V11-02-10)
+- Clean up G4SubEvtRunManager when to delete events of previous run.
+
+## 2024-06-14 Ben Morgan (run-V11-02-09)
+- Update G4TaskRunManager for changes to underlying PTL API.
+  - No changes to behaviour expected.
+
+## 2024-06-14 I. Hrivnacova (run-V11-02-08)
+- G4RunManager::ReinitializeGeometry: added call to G4FieldBuilder::Reinitialize
+
+## 2024-06-04 John Apostolakis (run-V11-02-07)
+- Add call in G4WorkerRunManager to use parallel initialisation of voxels
+  (Requires geommng-V11-02-02.)
+
+## 2024-06-01 Makoto Asaim (run-V11-02-06)
+- Initial implementation of creation/processing of SubEvents
+  - Co-working with event-V11-02-04, track-V11-02-03
+
+## 2024-05-09 Ben Morgan (run-V11-02-05)
+- Remove use of no longer supported TiMemory.
+
+## 2024-05-07 Makoto Asai (run-V11-02-04)
+- G4RunManager : add SetDefaultClassification methods to enable to set the
+  default classification for the track newly arriving to a stack.
+
+## 2024-04-11 Gabriele Cosmo (run-V11-02-03)
+- Fixed compilation warnings for implicit type conversions on macOS/XCode
+  on G4MSSteppingAction. Use consistently G4 types.
+
+## 2024-04-04 Shogo Okada (run-V11-02-02)
+- G4PhysicsListHelper: added `DNATripleIoni` and `DNAQuadrupleIoni` for the
+  implementation of multiple-ionisation processes in Geant4-DNA.
+
+## 2024-04-03 Alvaro Tolosa-Delgado (run-V11-02-01)
+- Material Scan output extended.
+
+## 2023-12-13 Ben Morgan (run-V11-02-00)
+- Fix Issue #86: report number of threads from G4TaskRunManager correctly.
+
+## 2023-11-17 I. Hrivnacova (run-V11-01-10)
+- Do not call G4ParticleTable::WorkerG4ParticleTable() in
+  G4WorkerRunManager constructor as this function
+  is called already from G4ParticleTable::GetParticleTable()
+  which is called beforehand by other Geant4 classes.
+  Duplicate call is causing memory leak at exit.
+
+## 2023-10-20 Makoto Asai (run-V11-01-08, -09)
+- Reverting G4RunManager and G4Run back to run-V11-01-05.
+
+## 2023-08-28 Makoto Asai (run-V11-01-06, -07)
+- Introducing sub-event in Event category. Co-working with event-V11-01-02, -03
+  and global-V11-02-16.
+
+## 2023-07-12 Alberto Ribon (run-V11-01-05)
+- G4PhysicsListHelper : removed the unused code related to reading from the
+  file OrderingParameterTable (which has been deleted).
+
+## 2023-06-02 Ben Morgan (run-V11-01-04)
+- Apply core and optional clang-tidy fixes, plus clang-format and tidying:
+  - Removal of obsolete comments/dead blocks
+  - Normal order access specifiers and make docstrings Doxygen/IDE compatible
+- Refactor random state file copying to use std::filesystem for portability
+
+## 2023-05-04 Gabriele Cosmo (run-V11-01-03)
+- Removed mistyped method declaration GetMasterTheadId() in G4MTRunManager.
+
+## 2023-02-03 Gabriele Cosmo (run-V11-01-02)
+- Reduced printout in destruction of run-manager (master and workers), to be
+  coherent with verbose level greater than 1.
+
+## 2022-12-30 Vladimir Ivanchenko (run-V11-01-01)
+- G4PhysicsListHelper - added forgotten process of muon pair production by muons
+    (problem #2523); added general processes
+
+## 2022-12-12 Ben Morgan (run-V11-01-00)
+- Remove obsolete GNUmakefile scripts
+
+## 2022-11-18 Gabriele Cosmo (run-V11-00-11)
+- More compilation warnings fixes for implicit type conversions.
+
+## 2022-11-17 Gabriele Cosmo (run-V11-00-10)
+- Fixed compilation warnings for implicit type conversions on macOS/XCode 14.1.
+
+## 2022-09-02 Ben Morgan (run-V11-00-09)
+- Explicitly check for nullptr before derefencing possible null pointers
+  - Fixes Coverity 104621, 104660, 104662.
+
+## 2022-05-17 Ben Morgan (run-V11-00-08)
+- Apply patches from Seth Johnson:
+  - Check for correct state in default exception handler before trying to access
+    manager classes that may be nullptr in other states
+  - Don't create a default exception manager in run manager kernel if one exists
+    already.
+
+## 2022-04-13 Ben Morgan (run-V11-00-07)
+- Add missing dependency on G4decay, remove unneeded dependency on G4hadronic_util
+
+## 2022-03-29 Hoang Tran (run-V11-00-06)
+- Added new DNAScavenger in PhysicsListHelper for DNA processes
+
+## 2022-03-25 Ben Morgan (run-V11-00-05)
+- Move implementations of task-based Run interfaces/implementations into Run
+  category from tasking category.
+  - See `History.tasking` file for History of tasking prior this tag of `run`.
+
+## 2022-02-24 Makoto Asai (run-V11-00-04)
+- Adding verbosity control to some G4cout. Addressing to bug report #2397.
+
+## 2022-01-28 Ben Morgan (run-V11-00-03)
+- Replace `geant4_global_library_target` with direct file inclusion and
+  call to `geant4_add_category` to define library build from source modules.
+- Make DLL export symbol a CMake module-level compile definition to aid
+  future modularization
+
+## 2022-01-18 Jonas Hahnfeld (run-V11-00-02)
+- Prefer pointer to `const G4Material` if possible
+
+## 2021-12-11 Laurie Nevay (run-V11-00-01)
+- Fix missing AnnihToTauTau entry from default physics list ordering that
+  would cause a fatal exception if EmExtra is used with PositronToMuMu=True.
+
+## 2021-12-10 Ben Morgan (run-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+October 25, 2021 B.Morgan (run-V10-07-13)
+- Use G4StrUtil functions replacing deprecated G4String member functions
+
+October 21, 2021 Jonas Hahnfeld (run-V10-07-12)
+- G4VUserPhysicsList - use custom tracking manager if registered
+
+October 18, 2021 Ben Morgan (run-V10-07-11)
+- Use std::string member functions from G4String in place of synonyms
+
+October 6, 2021 Alberto Ribon (run-V10-07-10)
+- G4PhysicsListHelper : replaced hardwired numerical process types and
+  sub-types with corresponding enum values
+
+September 10, 2021 Gabriele Cosmo (run-V10-07-09)
+- Added new Ranlux++ engine to the list of supported random engines in
+  G4UserWorkerThreadInitialization. Requires CLHEP-2.4.5.1.
+
+August 04, 2021 Alberto Ribon (run-V10-07-08)
+- G4VUserPhysicsList : invoke the new static initialization of
+  G4PhysicsModelCatalog in the method G4VUserPhysicsList::Construct
+
+July 01, 2021 Vladimir Ivanchenko (run-V10-07-07)
+- G4VModularPhysicsList - fixed destruction of the vector of G4VPhysicsConstructor
+    for the case, when physics list is created but physics is not build (CMS report)
+
+May 20, 2021 Vladimir Ivanchenko (run-V10-07-06)
+- G4VPhysicsConstructor - fix initialisation of hadronic parameters
+    avoiding uncontrolled override of the verbosityLevel
+
+May 17, 2021 Jonathan Madsen (run-V10-07-05)
+- Removed calling physicsList->TerminateWorker() in G4WorkerRunManager
+  as this appears to cause errors at termination
+
+April 25, 2021 Hoang Tran (run-V10-07-04)
+- Added new G4DNAStaticMoleculeReactionProcess in PhysicsListHelper for DNA processs
+
+April 14, 2021 Ben Morgan (run-V10-07-03)
+- Migrate to modular CMake build
+
+April 13, 2021 Alberto Ribon (run-V10-07-02)
+- GNUmakefile : removed deleted directories (hadronic/models/util/
+  and hadronic/models/management/).
+
+April 09, 2021 Gabriele Cosmo (run-V10-07-01)
+- Optimised access to volumes and regions stores.
+- Minor c++11 review in use of iterators, initialisers, etc...
+- Removed obsolete ResetCuts() method in G4VUserPhysicsList.
+- General code cleanup and formatting.
+
+December 07, 2020 Vladimir Ivanchenko (run-V10-07-00)
+- G4PhysicsListHelper - added forgotten processes (general positron
+    and surface reflection)
+
+November 21, 2020 Gabriele Cosmo (run-V10-06-19)
+- Fixed compilation warnings in G4RunManager.
+
+November 18, 2020 Jonathan Madsen (run-V10-06-18)
+- Added G4Profiler support.
+- Removed TIMEMORY_AUTO_TIMER.
+
+November 17, 2020 G.Cosmo (run-V10-06-17)
+- Protect activation of G4BackTrace within G4BT_DEBUG flag in
+  G4RunManagerKernel.
+
+November 16, 2020 G.Cosmo (run-V10-06-16)
+- Fixed typos in printed-out text. Addressing problem report #2285.
+
+October 20th, 2020 Jonathan Madsen (run-V10-06-15)
+- Run-managers are friends of G4RunManagerFactory.
+
+October 20th, 2020  Jonathan Madsen (run-V10-06-14)
+- Added activation of G4Backtrace to G4RunManagerKernel.
+
+October 9th, 2020  Makoto Asai (run-V10-06-13)
+- Added protection for Windows on G4RunManager::GetRunManager()->rndmSaveThisEvent().
+
+October 5th, 2020  Makoto Asai (run-V10-06-12)
+- Fix the issue of G4RunManager::GetRunManager()->rndmSaveThisEvent() not working
+  in multithreaded mode. Addresses to Bug Report #2278.
+
+September 29th, 2020 Anna Zaborowska (run-V10-06-11)
+- Bug fix for bug #2276: /random/setSeeds parses arguments to int instead of long
+
+September 27th Vladimir Ivanchenko (run-V10-06-10)
+- G4VModularPhysicsList - fixed typos in printouts
+
+September 21st Jonathan Madsen (run-V10-06-09)
+- Added checks for currentRun before calling routines with currentRun
+- G4MTRunManager:
+    - added banner similar to G4TaskRunManager at CreateAndStartWorkers
+    - moved master scoring-manager, master worlds, fMasterRM from private to protected
+
+June 30th Gabriele Cosmo (run-V10-06-08)
+- Added dummy virtual methods Get/SetNumberOfThreads() in G4RunManager to
+  allow dispatching to inheriting MT/Tasking classes.
+
+June 17th Gunter Folger (run-V10-06-07)
+- Fixes for Windows DLLs. In G4MTRunManager: split inline static functions into
+  declaration and definition: GetMasterThreadId(), GetMasterScoringManager(),
+  GetMasterWorlds(), addWorld(), SetSeedOncePerCommunication(),
+  SetSeedOncePerCommunication(); added  GetMasterTheadId().
+  In G4RunManager: import/export static 'fGeometryHasBeenDestroyed' using
+  G4RUN_DLL, and include for rundefs.hh
+
+June 4th, 2020  J.Madsen
+- Minor class access changes in G4MTRunManager to enable inheritance
+  for G4TaskRunManager
+  June 17th Gunter Folger,   included in the above tag
+
+May 26th, 2020  A.Howard (run-V10-06-06)
+- Added second wavelength shifter process to G4PhysicsListHelper.cc
+
+May 20th, 2020  G.Cosmo (run-V10-06-05)
+- Re-applied clang-format after minor rules adaptations.
+
+May 12th, 2020  A.Ribon (run-V10-06-04)
+- G4VPhysicsConstructor.cc : added in the constructors an harmless call
+  to G4HadronicParameters (setting a default parameter), needed to create
+  the instance of the G4HadronicParameters singleton before run
+  initialization.
+
+May 8th, 2020 J. Madsen (run-V10-06-03)
+- Applied clang-format
+
+April 9th, 2020  M.Asai (run-V10-06-02)
+- G4RunManager.cc, G4WorkerRunManager.cc: Adding layered mass geometry
+  option for the new "probe" scoring mesh.
+
+February 18th, 2020  V.Ivanchenko (run-V10-06-01)
+- G4RunManager - does not call G4ParticleTable for Messenger
+    deletion
+
+December 9th, 2019  B. Morgan (run-V10-06-00)
+- Cleanup CMake build, removing obsolete granular library option and
+  explicit include_directories.
 
 November 22nd, 2019 J. Madsen (run-V10-05-11)
 - Updated sources.cmake to use ${timemory_LIBRARIES} instead of

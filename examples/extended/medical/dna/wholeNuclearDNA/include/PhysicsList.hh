@@ -23,16 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PhysicsList.hh
+/// \brief Definition of the PhysicsList class
+
 // This example is provided by the Geant4-DNA collaboration
-// Any report or published results obtained using the Geant4-DNA software 
-// and the DNA geometry given in the Geom_DNA example 
+// Any report or published results obtained using the Geant4-DNA software
+// and the DNA geometry given in the Geom_DNA example
 // shall cite the following Geant4-DNA collaboration publications:
 // [1] NIM B 298 (2013) 47-54
 // [2] Med. Phys. 37 (2010) 4692-4708
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
-/// \file PhysicsList.hh
-/// \brief Definition of the PhysicsList class
 
 #ifndef PhysicsList_h
 #define PhysicsList_h 1
@@ -43,12 +44,11 @@
 
 class PhysicsList : public G4VModularPhysicsList
 {
-public:
-  PhysicsList();
-  virtual ~PhysicsList();
+  public:
+    PhysicsList();
+    virtual ~PhysicsList();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

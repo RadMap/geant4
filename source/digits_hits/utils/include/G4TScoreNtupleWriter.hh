@@ -23,9 +23,22 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4TScoreNtupleWriter
 //
-// Author: Ivana Hrivnacova, 30/10/2018  (ivana@ipno.in2p3.fr)
-
+// Class description:
+//
+// This class implements storing hits collections of G4THitsMap<G4double>
+// type vith Geant4 analysis tools.
+// In order to avoid introducing dependency on the analysis category,
+// the analysis manager type is defined via template.
+//
+// An n-tuple with three columns is created for each primitive scorer:
+//   G4int column - eventNumber
+//   G4int column - copyNumber
+//   G4double column - scored value
+//
+// Author: Ivana Hrivnacova, 30/10/2018
+// --------------------------------------------------------------------
 #ifndef G4TScoreNtupleWriter_h
 #define G4TScoreNtupleWriter_h 1
 
@@ -38,62 +51,56 @@
 
 class G4HCofThisEvent;
 
-template  <typename T>
+template <typename T>
 class G4TScoreNtupleWriterMessenger;
 class G4HCofThisEvent;
-
-// class description:
-//
-// This class implements storing hits collections of G4THitsMap<G4double>
-// type vith Geant4 analysis tools.
-// In order to avoid introducing dependency on the analysis category,
-// the analysis manager type is defined via template.
-//
-// An ntuple with three columns is created for each primitive scorer:
-// int column - eventNumber 
-// int column - copyNumber
-// double column - scored value
 
 template <typename T>
 class G4TScoreNtupleWriter : public G4VScoreNtupleWriter
 {
-  public: 
-    G4TScoreNtupleWriter();
-    virtual ~G4TScoreNtupleWriter();
-    
-    // methods
-    virtual G4bool Book(G4HCofThisEvent* hce);
-    virtual void OpenFile();
-    virtual void Fill(G4HCofThisEvent* hce, G4int eventNumber);
-    virtual void Write();
+ public:
 
-    // set methods
-    void SetFileName(const G4String& fileName);
-    void SetVerboseLevel(G4int value);
+  G4TScoreNtupleWriter();
+  virtual ~G4TScoreNtupleWriter();
 
-    // get methods
-    G4String GetFileName() const   { return fFileName; }
-    G4int GetVerboseLevel() const  { return fVerboseLevel; }
+  // methods
+  virtual G4bool Book(G4HCofThisEvent* hce);
+  virtual void OpenFile();
+  virtual void Fill(G4HCofThisEvent* hce, G4int eventNumber);
+  virtual void Write();
 
-  protected:
-    // methods
-    virtual G4VScoreNtupleWriter* CreateInstance() const;
+  // set methods
+  void SetDefaultFileType(const G4String& value);
+  void SetFileName(const G4String& fileName);
+  void SetVerboseLevel(G4int value);
+  void SetNtupleMerging(G4bool value);
 
-  private:
-    // methods
-    void CreateAnalysisManager();
+  // get methods
+  const G4String& GetFileName() const { return fFileName; }
+  G4int GetVerboseLevel() const { return fVerboseLevel; }
 
-    // data members
-    G4TScoreNtupleWriterMessenger<T>* fMessenger;
-    std::vector<G4int>  fHCIds;
-    T*       fAnalysisManager;
-    G4String fFileName;
-    G4int    fVerboseLevel;
-    G4bool   fHasAnalysisManager;
-    G4bool   fHasAnalysisFile;
-    G4bool   fIsBooked;
-    G4bool   fIsInitialized;
-    G4int    fFirstNtupleId;
+ protected:
+
+  // methods
+  virtual G4VScoreNtupleWriter* CreateInstance() const;
+
+ private:
+
+  // methods
+  void CreateAnalysisManager();
+
+  // data members
+  G4TScoreNtupleWriterMessenger<T>* fMessenger;
+  std::vector<G4int> fHCIds;
+  T* fAnalysisManager;
+  G4String fDefaultFileType;
+  G4String fFileName;
+  G4int fVerboseLevel;
+  G4bool fMergeNtuples;
+  G4bool fHasAnalysisFile;
+  G4bool fIsBooked;
+  G4bool fIsInitialized;
+  G4int fFirstNtupleId;
 };
 
 #include "G4TScoreNtupleWriter.icc"

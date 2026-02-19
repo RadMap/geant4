@@ -23,67 +23,57 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file exampleB1.cc
-/// \brief Main program of the B1 example
+/// \file exampleB1Con.cc
+/// \brief Main program of the analysis/B1Con example
 
-#include "B1DetectorConstruction.hh"
-#include "B1ConActionInitialization.hh"
-
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
-
-#include "G4UImanager.hh"
+#include "ActionInitialization.hh"
+#include "DetectorConstruction.hh"
 #include "QBBC.hh"
 
-#include "G4VisExecutive.hh"
+#include "G4RunManagerFactory.hh"
+#include "G4SteppingVerbose.hh"
 #include "G4UIExecutive.hh"
-
+#include "G4UImanager.hh"
+#include "G4VisExecutive.hh"
 #include "Randomize.hh"
+
+using namespace B1;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-int main(int argc,char** argv)
+int main(int argc, char** argv)
 {
   // Instantiate G4UIExecutive if there are no arguments (interactive mode)
-  G4UIExecutive* ui = 0;
-  if ( argc == 1 ) {
+  G4UIExecutive* ui = nullptr;
+  if (argc == 1) {
     ui = new G4UIExecutive(argc, argv);
   }
 
-  // Choose the Random engine
-  //
-  G4Random::setTheEngine(new CLHEP::RanecuEngine);
-  
+  // Optionally: choose a different Random engine...
+  // G4Random::setTheEngine(new CLHEP::MTwistEngine);
+
+  // use G4SteppingVerboseWithUnits
+  G4int precision = 4;
+  G4SteppingVerbose::UseBestUnit(precision);
+
   // Construct the default run manager
   //
-#ifdef G4MULTITHREADED
-  G4MTRunManager* runManager = new G4MTRunManager;
+  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default);
   runManager->SetNumberOfThreads(8);
-#else
-  G4RunManager* runManager = new G4RunManager;
-#endif
 
   // Set mandatory initialization classes
   //
   // Detector construction
-  runManager->SetUserInitialization(new B1DetectorConstruction());
+  runManager->SetUserInitialization(new DetectorConstruction());
 
   // Physics list
   G4VModularPhysicsList* physicsList = new QBBC;
   physicsList->SetVerboseLevel(1);
   runManager->SetUserInitialization(physicsList);
-    
-  // User action initialization
-  runManager->SetUserInitialization(new B1ConActionInitialization());
 
-  // Initialize G4 kernel
-  //
-  runManager->Initialize();
-  
+  // User action initialization
+  runManager->SetUserInitialization(new B1Con::ActionInitialization());
+
   // Initialize visualization
   G4VisManager* visManager = new G4VisExecutive;
   // G4VisExecutive can take a verbosity argument - see /vis/verbose guidance.
@@ -97,7 +87,7 @@ int main(int argc,char** argv)
     // batch mode
     G4String command = "/control/execute ";
     G4String fileName = argv[1];
-    UImanager->ApplyCommand(command+fileName);
+    UImanager->ApplyCommand(command + fileName);
   }
   else {
     // interactive mode : define UI session
@@ -108,13 +98,11 @@ int main(int argc,char** argv)
 
   // Job termination
   // Free the store: user actions, physics_list and detector_description are
-  // owned and deleted by the run manager, so they should not be deleted 
+  // owned and deleted by the run manager, so they should not be deleted
   // in the main() program !
-  
+
   delete visManager;
   delete runManager;
-
-  return 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....

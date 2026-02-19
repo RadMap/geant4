@@ -23,86 +23,98 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
 
+#include "AnalysisManager.hh"
 #include "eRositaTrackerHit.hh"
-#include "G4UnitsTable.hh"
-#include "G4VVisManager.hh"
+
 #include "G4Circle.hh"
 #include "G4Colour.hh"
-#include "G4VisAttributes.hh"
 #include "G4ios.hh"
-#include "AnalysisManager.hh"
+#include "G4UnitsTable.hh"
+#include "G4VisAttributes.hh"
+#include "G4VVisManager.hh"
 
-G4Allocator<eRositaTrackerHit> eRositaTrackerHitAllocator;
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+G4ThreadLocal G4Allocator<eRositaTrackerHit> *trackerHitAllocator{nullptr};
 
-eRositaTrackerHit::eRositaTrackerHit() {}
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-
-eRositaTrackerHit::~eRositaTrackerHit() {}
-
-
-eRositaTrackerHit::eRositaTrackerHit(const eRositaTrackerHit& right)
-  : G4VHit()
+eRositaTrackerHit::eRositaTrackerHit()
 {
-  trackID   = right.trackID;
-  chamberNb = right.chamberNb;
-  edep      = right.edep;
-  pos       = right.pos;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-const eRositaTrackerHit& eRositaTrackerHit::operator=(const eRositaTrackerHit& right)
+eRositaTrackerHit::~eRositaTrackerHit()
 {
-  trackID   = right.trackID;
-  chamberNb = right.chamberNb;
-  edep      = right.edep;
-  pos       = right.pos;
-  return *this;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4bool eRositaTrackerHit::operator==(const eRositaTrackerHit& right) const
+eRositaTrackerHit::eRositaTrackerHit(const eRositaTrackerHit& right) :
+    trackIdentifier(right.trackIdentifier),
+    chamberNumber(right.chamberNumber),
+    depositedEnergy(right.depositedEnergy),
+    position(right.position)
 {
-  return (this==&right) ? true : false;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+auto eRositaTrackerHit::operator=(const eRositaTrackerHit& right) -> const eRositaTrackerHit&
+{
+    trackIdentifier = right.trackIdentifier;
+    chamberNumber = right.chamberNumber;
+    depositedEnergy = right.depositedEnergy;
+    position = right.position;
+
+    return *this;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+auto eRositaTrackerHit::operator==(const eRositaTrackerHit& right) const -> G4bool
+{
+    return this == &right;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void eRositaTrackerHit::Draw()
 {
-  G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
-  if(pVVisManager)
-  {
-    G4Circle circle(pos);
-    circle.SetScreenSize(2.);
-    circle.SetFillStyle(G4Circle::filled);
-    G4Colour colour(1.,0.,0.);
-    G4VisAttributes attribs(colour);
-    circle.SetVisAttributes(attribs);
-    pVVisManager->Draw(circle);
-  }
+    auto *visualizationManager = G4VVisManager::GetConcreteInstance();
+    if (visualizationManager != nullptr) {
+        constexpr auto CIRCLE_SCREEN_SIZE = 2.;
+
+        G4Circle circle(position);
+        circle.SetScreenSize(CIRCLE_SCREEN_SIZE);
+        circle.SetFillStyle(G4Circle::filled);
+        G4Colour colour(1., 0., 0.);
+        G4VisAttributes attributes(colour);
+        circle.SetVisAttributes(attributes);
+        visualizationManager->Draw(circle);
+    }
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void eRositaTrackerHit::Print()
 {
-  G4cout << "  trackID: " << trackID
-         << "  energy deposit: " << G4BestUnit(edep,"Energy")
-	 << "  position: " << G4BestUnit(pos,"Length") << G4endl;
+    G4cout << "  track identifier: " << trackIdentifier
+           << "  deposited energy: " << G4BestUnit(depositedEnergy, "Energy")
+           << "  position: " << G4BestUnit(position, "Length") << G4endl;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void eRositaTrackerHit::PrintToFile()
+void eRositaTrackerHit::PrintToFile() const
 {
-  //out << trackID 
-  //    << " " << edep 
-  //    << " " << pos.x() 
-  //    << " " << pos.y() 
-  //    << " " << pos.z() 
-  //   << std::endl; 
-  AnalysisManager::Instance()->Score(edep);
-
+    // dataFile << trackIdentifier
+        // << " " << depositedEnergy
+        // << " " << position.x()
+        // << " " << position.y()
+        // << " " << position.z()
+        // << std::endl;
+    AnalysisManager::Instance()->Score(depositedEnergy);
 }
-

@@ -23,30 +23,26 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file medical/GammaTherapy/src/StepLimiter.cc
+/// \file StepLimiter.cc
 /// \brief Implementation of the StepLimiter class
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "StepLimiter.hh"
+
 #include "StepLimiterMessenger.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 StepLimiter::StepLimiter(const G4String& processName)
- : G4VDiscreteProcess(processName),
-   fMaxChargedStep(DBL_MAX)
+  : G4VDiscreteProcess(processName), fMaxChargedStep(DBL_MAX)
 {
   fMessenger = new StepLimiterMessenger(this);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-StepLimiter::~StepLimiter() 
-{ 
-  delete fMessenger; 
+StepLimiter::~StepLimiter()
+{
+  delete fMessenger;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -58,10 +54,8 @@ G4bool StepLimiter::IsApplicable(const G4ParticleDefinition& particle)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4double StepLimiter::PostStepGetPhysicalInteractionLength(
-                                              const G4Track&,
-                                                    G4double,
-                                                    G4ForceCondition* condition )
+G4double StepLimiter::PostStepGetPhysicalInteractionLength(const G4Track&, G4double,
+                                                           G4ForceCondition* condition)
 {
   *condition = NotForced;
   return fMaxChargedStep;
@@ -69,8 +63,7 @@ G4double StepLimiter::PostStepGetPhysicalInteractionLength(
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4VParticleChange* 
-StepLimiter::PostStepDoIt(const G4Track& aTrack, const G4Step&)
+G4VParticleChange* StepLimiter::PostStepDoIt(const G4Track& aTrack, const G4Step&)
 {
   aParticleChange.Initialize(aTrack);
   return &aParticleChange;
@@ -78,8 +71,7 @@ StepLimiter::PostStepDoIt(const G4Track& aTrack, const G4Step&)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4double 
-StepLimiter::GetMeanFreePath(const G4Track&, G4double, G4ForceCondition*)
+G4double StepLimiter::GetMeanFreePath(const G4Track&, G4double, G4ForceCondition*)
 {
   return DBL_MAX;
 }

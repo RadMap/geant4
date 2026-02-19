@@ -42,8 +42,11 @@
 
 namespace
 {
-  G4Mutex polyhedronMutex = G4MUTEX_INITIALIZER;
+  G4RecursiveMutex polyhedronMutex = G4MUTEX_INITIALIZER;
+  G4Mutex boolMutex = G4MUTEX_INITIALIZER;
 }
+
+G4VBooleanProcessor* G4BooleanSolid::fExternalBoolProcessor = nullptr;
 
 //////////////////////////////////////////////////////////////////
 //
@@ -114,10 +117,12 @@ G4BooleanSolid::~G4BooleanSolid()
 
 G4BooleanSolid::G4BooleanSolid(const G4BooleanSolid& rhs)
   : G4VSolid (rhs), fPtrSolidA(rhs.fPtrSolidA), fPtrSolidB(rhs.fPtrSolidB),
-    fStatistics(rhs.fStatistics), fCubVolEpsilon(rhs.fCubVolEpsilon),
-    fAreaAccuracy(rhs.fAreaAccuracy), fCubicVolume(rhs.fCubicVolume),
-    fSurfaceArea(rhs.fSurfaceArea), fRebuildPolyhedron(false),
-    fpPolyhedron(nullptr), createdDisplacedSolid(rhs.createdDisplacedSolid)
+    fCubicVolume(rhs.fCubicVolume), fSurfaceArea(rhs.fSurfaceArea),
+    fCubVolStatistics(rhs.fCubVolStatistics),
+    fAreaStatistics(rhs.fAreaStatistics),
+    fCubVolEpsilon(rhs.fCubVolEpsilon),
+    fAreaAccuracy(rhs.fAreaAccuracy),
+    createdDisplacedSolid(rhs.createdDisplacedSolid)
 {
   fPrimitives.resize(0); fPrimitivesSurfaceArea = 0.;
 }
@@ -139,10 +144,11 @@ G4BooleanSolid& G4BooleanSolid::operator = (const G4BooleanSolid& rhs)
   // Copy data
   //
   fPtrSolidA= rhs.fPtrSolidA; fPtrSolidB= rhs.fPtrSolidB;
-  fStatistics= rhs.fStatistics; fCubVolEpsilon= rhs.fCubVolEpsilon;
-  fAreaAccuracy= rhs.fAreaAccuracy; fCubicVolume= rhs.fCubicVolume;
-  fSurfaceArea= rhs.fSurfaceArea;
+  fCubicVolume= rhs.fCubicVolume; fSurfaceArea= rhs.fSurfaceArea;
+  fCubVolStatistics = rhs.fCubVolStatistics; fCubVolEpsilon = rhs.fCubVolEpsilon;
+  fAreaStatistics = rhs.fAreaStatistics; fAreaAccuracy = rhs.fAreaAccuracy;
   createdDisplacedSolid= rhs.createdDisplacedSolid;
+
   fRebuildPolyhedron = false;
   delete fpPolyhedron; fpPolyhedron = nullptr;
   fPrimitives.resize(0); fPrimitivesSurfaceArea = 0.;
@@ -159,10 +165,14 @@ G4BooleanSolid& G4BooleanSolid::operator = (const G4BooleanSolid& rhs)
 const G4VSolid* G4BooleanSolid::GetConstituentSolid(G4int no) const
 {
   const G4VSolid* subSolid = nullptr;
-  if( no == 0 )  
+  if( no == 0 )
+  {  
     subSolid = fPtrSolidA;
-  else if( no == 1 ) 
+  }
+  else if( no == 1 )
+  { 
     subSolid = fPtrSolidB;
+  }
   else
   {
     DumpInfo();
@@ -181,10 +191,14 @@ const G4VSolid* G4BooleanSolid::GetConstituentSolid(G4int no) const
 G4VSolid* G4BooleanSolid::GetConstituentSolid(G4int no)
 {
   G4VSolid* subSolid = nullptr;
-  if( no == 0 )  
+  if( no == 0 )
+  {  
     subSolid = fPtrSolidA;
-  else if( no == 1 ) 
+  }
+  else if( no == 1 )
+  { 
     subSolid = fPtrSolidB;
+  }
   else
   {
     DumpInfo();
@@ -200,7 +214,147 @@ G4VSolid* G4BooleanSolid::GetConstituentSolid(G4int no)
 
 G4GeometryType G4BooleanSolid::GetEntityType() const 
 {
-  return G4String("G4BooleanSolid");
+  return {"G4BooleanSolid"};
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Set number of random points to be used for computing cubic volume
+
+void G4BooleanSolid::SetCubVolStatistics(G4int st)
+{
+  if (st != fCubVolStatistics) { fCubicVolume = -1.; }
+  fCubVolStatistics = st;
+
+  // Propagate st to all components of the 1st solid
+  if (fPtrSolidA->GetNumOfConstituents() > 1)
+  {
+    G4VSolid* ptr = fPtrSolidA;
+    while(true)
+    {
+      G4String type = ptr->GetEntityType();
+      if (type == "G4DisplacedSolid")
+      {
+        ptr = ((G4DisplacedSolid*)ptr)->GetConstituentMovedSolid();
+        continue;
+      }
+      if (type == "G4ReflectedSolid")
+      {
+        ptr = ((G4ReflectedSolid*)ptr)->GetConstituentMovedSolid();
+        continue;
+      }
+      if (type == "G4ScaledSolid")
+      {
+        ptr = ((G4ScaledSolid*)ptr)->GetUnscaledSolid();
+        continue;
+      }
+      if (type != "G4MultiUnion") // G4MultiUnion doesn't have SetCubVolStatistics()
+      {
+	((G4BooleanSolid*)ptr)->SetCubVolStatistics(st);
+      }
+      break;
+    }
+  }
+
+  // Propagate st to all components of the 2nd solid
+  if (fPtrSolidB->GetNumOfConstituents() > 1)
+  {
+    G4VSolid* ptr = fPtrSolidB;
+    while(true)
+    {
+      G4String type = ptr->GetEntityType();
+      if (type == "G4DisplacedSolid")
+      {
+        ptr = ((G4DisplacedSolid*)ptr)->GetConstituentMovedSolid();
+        continue;
+      }
+      if (type == "G4ReflectedSolid")
+      {
+        ptr = ((G4ReflectedSolid*)ptr)->GetConstituentMovedSolid();
+        continue;
+      }
+      if (type == "G4ScaledSolid")
+      {
+        ptr = ((G4ScaledSolid*)ptr)->GetUnscaledSolid();
+        continue;
+      }
+      if (type != "G4MultiUnion") // G4MultiUnion doesn't have SetCubVolStatistics()
+      {
+	((G4BooleanSolid*)ptr)->SetCubVolStatistics(st);
+      }
+      break;
+    }
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Set epsilon for computing cubic volume
+
+void G4BooleanSolid::SetCubVolEpsilon(G4double ep)
+{
+  if (ep != fCubVolEpsilon) { fCubicVolume = -1.; }
+  fCubVolEpsilon = ep;
+
+  // Propagate ep to all components of the 1st solid
+  if (fPtrSolidA->GetNumOfConstituents() > 1)
+  {
+    G4VSolid* ptr = fPtrSolidA;
+    while(true)
+    {
+      G4String type = ptr->GetEntityType();
+      if (type == "G4DisplacedSolid")
+      {
+        ptr = ((G4DisplacedSolid*)ptr)->GetConstituentMovedSolid();
+        continue;
+      }
+      if (type == "G4ReflectedSolid")
+      {
+        ptr = ((G4ReflectedSolid*)ptr)->GetConstituentMovedSolid();
+        continue;
+      }
+      if (type == "G4ScaledSolid")
+      {
+        ptr = ((G4ScaledSolid*)ptr)->GetUnscaledSolid();
+        continue;
+      }
+      if (type != "G4MultiUnion") // G4MultiUnion doesn't have SetCubVolEpsilon()
+      {
+	((G4BooleanSolid*)ptr)->SetCubVolEpsilon(ep);
+      }
+      break;
+    }
+  }
+
+  // Propagate ep to all components of the 2nd solid
+  if (fPtrSolidB->GetNumOfConstituents() > 1)
+  {
+    G4VSolid* ptr = fPtrSolidB;
+    while(true)
+    {
+      G4String type = ptr->GetEntityType();
+      if (type == "G4DisplacedSolid")
+      {
+        ptr = ((G4DisplacedSolid*)ptr)->GetConstituentMovedSolid();
+        continue;
+      }
+      if (type == "G4ReflectedSolid")
+      {
+        ptr = ((G4ReflectedSolid*)ptr)->GetConstituentMovedSolid();
+        continue;
+      }
+      if (type == "G4ScaledSolid")
+      {
+        ptr = ((G4ScaledSolid*)ptr)->GetUnscaledSolid();
+        continue;
+      }
+      if (type != "G4MultiUnion") // G4MultiUnion doesn't have SetCubVolEpsilon()
+      {
+	((G4BooleanSolid*)ptr)->SetCubVolEpsilon(ep);
+      }
+      break;
+    }
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -280,7 +434,7 @@ void G4BooleanSolid::GetListOfPrimitives(
     }
     else
     {
-      primitives.push_back(std::pair<G4VSolid*,G4Transform3D>(solid,transform));
+      primitives.emplace_back(solid,transform);
     }
   }
 }
@@ -292,7 +446,7 @@ void G4BooleanSolid::GetListOfPrimitives(
 
 G4ThreeVector G4BooleanSolid::GetPointOnSurface() const
 {
-  size_t nprims = fPrimitives.size();
+  std::size_t nprims = fPrimitives.size();
   std::pair<G4VSolid *, G4Transform3D> prim;
 
   // Get list of primitives and find the total area of their surfaces
@@ -302,7 +456,7 @@ G4ThreeVector G4BooleanSolid::GetPointOnSurface() const
     GetListOfPrimitives(fPrimitives, G4Transform3D());
     nprims = fPrimitives.size();
     fPrimitivesSurfaceArea = 0.;
-    for (size_t i=0; i<nprims; ++i)
+    for (std::size_t i=0; i<nprims; ++i)
     {
       fPrimitivesSurfaceArea += fPrimitives[i].first->GetSurfaceArea();
     }
@@ -312,19 +466,19 @@ G4ThreeVector G4BooleanSolid::GetPointOnSurface() const
   // check that the point belongs to the surface of the solid
   //
   G4ThreeVector p;
-  for (size_t k=0; k<100000; ++k) // try 100k times
+  for (std::size_t k=0; k<100000; ++k) // try 100k times
   {
      G4double rand = fPrimitivesSurfaceArea * G4QuickRand();
      G4double area = 0.;
-     for (size_t i=0; i<nprims; ++i)
+     for (std::size_t i=0; i<nprims; ++i)
      {
        prim  = fPrimitives[i];
        area += prim.first->GetSurfaceArea();
-       if (rand < area) break;
+       if (rand < area) { break; }
      }
      p = prim.first->GetPointOnSurface();
      p = prim.second * G4Point3D(p);
-     if (Inside(p) == kSurface) return p;
+     if (Inside(p) == kSurface) { return p; }
   }
   std::ostringstream message;
   message << "Solid - " << GetName() << "\n"
@@ -333,6 +487,24 @@ G4ThreeVector G4BooleanSolid::GetPointOnSurface() const
   G4Exception("G4BooleanSolid::GetPointOnSurface()",
               "GeomSolids1001", JustWarning, message);
   return p;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Return total number of constituents used for construction of the solid
+
+G4int G4BooleanSolid::GetNumOfConstituents() const
+{
+  return (fPtrSolidA->GetNumOfConstituents() + fPtrSolidB->GetNumOfConstituents());
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Return true if the resulting solid has only planar faces
+
+G4bool G4BooleanSolid::IsFaceted() const
+{
+  return (fPtrSolidA->IsFaceted() && fPtrSolidB->IsFaceted());  
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -346,7 +518,7 @@ G4Polyhedron* G4BooleanSolid::GetPolyhedron () const
       fpPolyhedron->GetNumberOfRotationStepsAtTimeOfCreation() !=
       fpPolyhedron->GetNumberOfRotationSteps())
     {
-      G4AutoLock l(&polyhedronMutex);
+      G4RecursiveAutoLock l(&polyhedronMutex);
       delete fpPolyhedron;
       fpPolyhedron = CreatePolyhedron();
       fRebuildPolyhedron = false;
@@ -408,4 +580,54 @@ G4BooleanSolid::StackPolyhedron(HepPolyhedronProcessor& processor,
   }
 
   return top;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Estimate Cubic Volume (capacity) and cache it for reuse.
+
+G4double G4BooleanSolid::GetCubicVolume()
+{
+  if(fCubicVolume < 0.)
+  {
+    G4AutoLock l(&boolMutex);
+    fCubicVolume = EstimateCubicVolume(fCubVolStatistics, fCubVolEpsilon);
+    l.unlock();
+  }
+  return fCubicVolume;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Estimate Surface Area and cache it for reuse.
+
+G4double G4BooleanSolid::GetSurfaceArea()
+{
+  if(fSurfaceArea < 0.)
+  {
+    G4AutoLock l(&boolMutex);
+    fSurfaceArea = EstimateSurfaceArea(fAreaStatistics, fAreaAccuracy);
+    l.unlock();
+  }
+  return fSurfaceArea;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Set external Boolean processor.
+
+void
+G4BooleanSolid::SetExternalBooleanProcessor(G4VBooleanProcessor* extProcessor)
+{
+  fExternalBoolProcessor = extProcessor;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Get external Boolean processor.
+
+G4VBooleanProcessor* G4BooleanSolid::GetExternalBooleanProcessor()
+{
+  return fExternalBoolProcessor;
 }

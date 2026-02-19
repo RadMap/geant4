@@ -29,7 +29,7 @@
 //
 // Wrapper class for G4GenericPolycone to make use of VecGeom GenericPolycone.
 
-// 30.10.13 G.Cosmo, CERN
+// Author: Gabriele Cosmo (CERN), 30.10.2013
 // --------------------------------------------------------------------
 #ifndef G4UGENERICPOLYCONE_HH
 #define G4UGENERICPOLYCONE_HH
@@ -38,18 +38,32 @@
 
 #if ( defined(G4GEOM_USE_USOLIDS) || defined(G4GEOM_USE_PARTIAL_USOLIDS) )
 
-#include <volumes/UnplacedGenericPolycone.h>
+#include <VecGeom/volumes/UnplacedGenericPolycone.h>
 
 #include "G4TwoVector.hh"
 #include "G4PolyconeSide.hh"
+
+/**
+ * @brief G4UGenericPolycone is a wrapper class for G4GenericPolycone
+ * to make use of VecGeom GenericPolycone.
+ */
 
 class G4UGenericPolycone : public G4UAdapter<vecgeom::UnplacedGenericPolycone>
 {
   using Shape_t = vecgeom::UnplacedGenericPolycone;
   using Base_t  = G4UAdapter<vecgeom::UnplacedGenericPolycone>;
 
-  public:  // with description
+  public:
 
+    /**
+     * Constructs a generic polycone shape, given its parameters.
+     *  @param[in] name The solid name.
+     *  @param[in] phiStart The initial Phi starting angle.
+     *  @param[in] phiTotal The total Phi angle.
+     *  @param[in] numRZ Number of corners in r,Z space.
+     *  @param[in] r Vector of r coordinate of corners.
+     *  @param[in] z Vector of Z coordinate of corners.
+     */
     G4UGenericPolycone(const G4String& name, 
                        G4double phiStart,    // initial phi starting angle
                        G4double phiTotal,    // total phi angle
@@ -57,8 +71,14 @@ class G4UGenericPolycone : public G4UAdapter<vecgeom::UnplacedGenericPolycone>
                  const G4double r[],         // r coordinate of these corners
                  const G4double z[]       ); // z coordinate of these corners
 
-   ~G4UGenericPolycone();
+    /**
+     * Default destructor.
+     */
+    ~G4UGenericPolycone() override = default;
 
+    /**
+     * Accessors.
+     */
     G4double GetStartPhi()    const;
     G4double GetEndPhi()      const;
     G4double GetSinStartPhi() const;
@@ -69,29 +89,49 @@ class G4UGenericPolycone : public G4UAdapter<vecgeom::UnplacedGenericPolycone>
     G4int  GetNumRZCorner()   const;
     G4PolyconeSideRZ GetCorner(G4int index) const;
   
-    inline G4GeometryType GetEntityType() const;
+    /**
+     * Returns the type ID, "G4GenericPolycone" of the solid.
+     */
+    inline G4GeometryType GetEntityType() const override;
 
-    G4VSolid* Clone() const;
+    /**
+     * Makes a clone of the object for use in multi-treading.
+     *  @returns A pointer to the new cloned allocated solid.
+     */
+    G4VSolid* Clone() const override;
 
-  public:  // without description
+    /**
+     * Computes the bounding limits of the solid.
+     *  @param[out] pMin The minimum bounding limit point.
+     *  @param[out] pMax The maximum bounding limit point.
+     */
+    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const override;
 
-    G4UGenericPolycone(__void__&);
-      // Fake default constructor for usage restricted to direct object
-      // persistency for clients requiring preallocation of memory for
-      // persistifiable objects.
-
-    G4UGenericPolycone( const G4UGenericPolycone& source );
-    G4UGenericPolycone& operator=(const G4UGenericPolycone& source);
-      // Copy constructor and assignment operator.
-
-    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const;
-
+    /**
+     * Calculates the minimum and maximum extent of the solid, when under the
+     * specified transform, and within the specified limits.
+     *  @param[in] pAxis The axis along which compute the extent.
+     *  @param[in] pVoxelLimit The limiting space dictated by voxels.
+     *  @param[in] pTransform The internal transformation applied to the solid.
+     *  @param[out] pMin The minimum extent value.
+     *  @param[out] pMax The maximum extent value.
+     *  @returns True if the solid is intersected by the extent region.
+     */
     G4bool CalculateExtent(const EAxis pAxis,
                            const G4VoxelLimits& pVoxelLimit,
                            const G4AffineTransform& pTransform,
-                           G4double& pMin, G4double& pMax) const;
+                           G4double& pMin, G4double& pMax) const override;
 
-    G4Polyhedron* CreatePolyhedron() const;
+    /**
+     * Returns a generated polyhedron as graphical representations.
+     */
+    G4Polyhedron* CreatePolyhedron() const override;
+
+    /**
+     * Copy constructor and assignment operator.
+     */
+    G4UGenericPolycone( const G4UGenericPolycone& source );
+    G4UGenericPolycone& operator=(const G4UGenericPolycone& source);
 
   private:
 

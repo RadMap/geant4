@@ -53,21 +53,6 @@ G4UEllipticalTube::G4UEllipticalTube(const G4String& pName,
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Fake default constructor - sets only member data and allocates memory
-//                            for usage restricted to object persistency.
-
-G4UEllipticalTube::G4UEllipticalTube( __void__& a )
-  : Base_t(a)
-{ }
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Destructor
-
-G4UEllipticalTube::~G4UEllipticalTube() { }
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Copy constructor
 
 G4UEllipticalTube::G4UEllipticalTube(const G4UEllipticalTube& rhs)
@@ -175,7 +160,7 @@ G4UEllipticalTube::CalculateExtent(const EAxis pAxis,
 #endif
   if (bbox.BoundingBoxVsVoxelLimits(pAxis, pVoxelLimit, pTransform, pMin, pMax))
   {
-    return exist = (pMin < pMax) ? true : false;
+    return exist = pMin < pMax;
   }
 
   G4double dx = GetDx();

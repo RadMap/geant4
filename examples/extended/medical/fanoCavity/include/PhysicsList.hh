@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/fanoCavity/include/PhysicsList.hh
+/// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysicsList_h
 #define PhysicsList_h 1
@@ -43,30 +39,28 @@ class PhysicsListMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
-public:
-  PhysicsList(DetectorConstruction*);
- ~PhysicsList();
+  public:
+    PhysicsList(DetectorConstruction*);
+    ~PhysicsList();
 
-  virtual void ConstructParticle();
-        
-  void AddPhysicsList(const G4String& name);    
-  virtual void ConstructProcess();    
-  void AddStepMax(); 
-  
-  virtual void SetCuts();      
-    
-private:
+    virtual void ConstructParticle();
 
-  DetectorConstruction*  fDetector;
-  PhysicsListMessenger*  fMessenger; 
+    void AddPhysicsList(const G4String& name);
+    virtual void ConstructProcess();
+    void AddStepMax();
 
-  G4String               fEmName;
-  G4VPhysicsConstructor* fEmPhysicsList;
+    virtual void SetCuts();
+
+  private:
+    DetectorConstruction* fDetector;
+    PhysicsListMessenger* fMessenger;
+
+    G4String fEmName;
+    G4VPhysicsConstructor* fEmPhysicsList;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

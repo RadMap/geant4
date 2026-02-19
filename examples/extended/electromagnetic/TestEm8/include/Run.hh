@@ -23,21 +23,16 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm8/include/Run.hh
+/// \file Run.hh
 /// \brief Definition of the Run class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef Run_h
 #define Run_h 1
 
-#include "G4Run.hh"
+#include "G4AnalysisManager.hh"
 #include "G4DataVector.hh"
+#include "G4Run.hh"
 #include "G4StatDouble.hh"
-
-#include "g4root.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -49,54 +44,55 @@ class TestParameters;
 
 class Run : public G4Run
 {
-public:
+  public:
+    Run();
+    ~Run() override = default;
 
-  Run();
-  virtual ~Run();
+    void Merge(const G4Run*) override;
 
-  virtual void Merge(const G4Run*);
+    void BeginOfRun();
+    void EndOfRun();
 
-  void BeginOfRun();
-  void EndOfRun();
+    void BeginOfEvent();
+    void EndOfEvent();
 
-  void BeginOfEvent();
-  void EndOfEvent();
+    void AddEnergy(G4double edep, const G4Step*);
 
-  void AddEnergy(G4double edep, const G4Step*);
+    Run& operator=(const Run& right) = delete;
+    Run(const Run&) = delete;
 
-  inline void SetVerbose(G4int value);
+    inline void SetVerbose(G4int value);
 
-  inline G4int GetVerbose() const;
+    inline G4int GetVerbose() const;
 
-  inline G4double GetTotStepGas() const;
+    inline G4double GetTotStepGas() const;
 
-  inline G4double GetTotCluster() const;
+    inline G4double GetTotCluster() const;
 
-  inline G4double GetMeanCluster() const;
+    inline G4double GetMeanCluster() const;
 
-  inline const G4StatDouble* GetStat() const;
+    inline const G4StatDouble* GetStat() const;
 
-private:
+  private:
+    G4int fVerbose = 1;
+    G4int fNbins = 0;
+    G4double fStepGas = 0.0;
+    G4double fMaxEnergy = 0.0;
+    G4double fCluster = 0.0;
+    G4double fTotStepGas = 0.0;
+    G4double fTotCluster = 0.0;
+    G4double fMeanCluster = 0.0;
+    G4double fFactorALICE;
+    G4double fWidthALICE;
+    G4double fEvt = 0.0;
+    G4double fTotEdep = 0.0;
+    G4double fOverflow = 0.0;
 
-  G4int fVerbose;
-  G4int fNbins;
-  G4double fStepGas;
-  G4double fMaxEnergy;
-  G4double fCluster;
-  G4double fTotStepGas;
-  G4double fTotCluster;
-  G4double fMeanCluster;
-  G4double fFactorALICE;
-  G4double fWidthALICE;
-  G4double fEvt;
+    G4StatDouble fEdep = 325;
+    G4DataVector fEgas;
 
-  G4double fTotEdep;
-  G4StatDouble fEdep;
-  G4double fOverflow;
-  G4DataVector fEgas;
-
-  G4ElectronIonPair* fElIonPair;
-  TestParameters* fParam;
+    G4ElectronIonPair* fElIonPair;
+    TestParameters* fParam;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -119,7 +115,7 @@ inline G4double Run::GetTotStepGas() const
 inline G4double Run::GetTotCluster() const
 {
   return fTotCluster;
-} 
+}
 
 inline G4double Run::GetMeanCluster() const
 {
@@ -132,5 +128,3 @@ inline const G4StatDouble* Run::GetStat() const
 }
 
 #endif
-
-

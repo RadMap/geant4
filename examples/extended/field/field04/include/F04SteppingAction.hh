@@ -23,17 +23,13 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field04/include/F04SteppingAction.hh
+/// \file F04SteppingAction.hh
 /// \brief Definition of the F04SteppingAction class
-//
 
 #ifndef F04SteppingAction_h
 #define F04SteppingAction_h 1
 
 #include "G4UserSteppingAction.hh"
-
-class F04SteppingActionMessenger;
 
 class G4LogicalVolume;
 
@@ -42,17 +38,14 @@ class G4LogicalVolume;
 class F04SteppingAction : public G4UserSteppingAction
 {
   public:
+    F04SteppingAction() = default;
+    ~F04SteppingAction() override = default;
 
-    F04SteppingAction();
-    virtual ~F04SteppingAction();
-
-    virtual void UserSteppingAction(const G4Step*);
+    void UserSteppingAction(const G4Step*) override;
 
   private:
-
-    F04SteppingActionMessenger*    fSteppingMessenger;
-    G4LogicalVolume* fTargetVolume;
-    G4LogicalVolume* fTestPlaneVolume;
+    G4LogicalVolume* fTargetVolume = nullptr;
+    G4LogicalVolume* fTestPlaneVolume = nullptr;
 };
 
 #endif

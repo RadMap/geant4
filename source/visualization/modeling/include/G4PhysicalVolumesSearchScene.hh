@@ -26,13 +26,14 @@
 //
 //
 // 
-// John Allison  5th September 2018, based on G4PhysicalVolumeSearchScene
-// An artificial scene to find physical volumes. Instead of returning the
-// first occurrence (G4PhysicalVolumeSearchScene) this class (note the extra
-// 's' in the name of this class) returns a vector of all occurrences.
-// It can match a physical volume name with the required match. The latter can
-// be of the form "/regexp/", where regexp is a regular expression (see C++
-// regex), or a plain string, in which case there must be an exact match.
+// John Allison  5th September 2018
+// Originally G4PhysicalVolumeSearchScene, 10th August 1998, which only
+// found the first occurrence of a volume.
+// This class (note the extra 's' in the name) produces a vector of all
+// occurrences. It can match a physical volume name with the required
+// match. The latter can be of the form "/regexp/", where regexp is a
+// regular expression (see C++ regex), or a plain string, in which case
+// there must be an exact match.
 
 #ifndef G4PHYSICALVOLUMESSEARCHSCENE_HH
 #define G4PHYSICALVOLUMESSEARCHSCENE_HH
@@ -49,7 +50,7 @@ public:
   G4PhysicalVolumesSearchScene
   (G4PhysicalVolumeModel* pSearchVolumeModel,    // usually a world
    const G4String&        requiredPhysicalVolumeName,
-   G4int                  requiredCopyNo = -1);  // -1 means any copy no
+   G4int                  requiredCopyNo = -1); // -1 means any copy no
 
   virtual ~G4PhysicalVolumesSearchScene () {}
 
@@ -60,15 +61,17 @@ public:
      G4VPhysicalVolume* pFoundPV,
      G4int foundPVCopyNo = 0,
      G4int foundDepth = 0,
-     std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>
-     foundBasePVPath =
-     std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>(),
-     G4Transform3D foundObjectTransformation = G4Transform3D())
+     const std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>&
+       foundBasePVPath = std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>(),
+     const std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>&
+       foundFullPVPath = std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>(),
+     const G4Transform3D& foundObjectTransformation = G4Transform3D())
     : fpSearchPV(pSearchPV)
     , fpFoundPV(pFoundPV)
     , fFoundPVCopyNo(foundPVCopyNo)
     , fFoundDepth(foundDepth)
     , fFoundBasePVPath(foundBasePVPath)
+    , fFoundFullPVPath(foundFullPVPath)
     , fFoundObjectTransformation(foundObjectTransformation) {}
     Findings(const G4PhysicalVolumeModel::TouchableProperties& tp)
     : fpSearchPV(nullptr)
@@ -76,6 +79,7 @@ public:
     , fFoundPVCopyNo(tp.fCopyNo)
     , fFoundDepth(0)
     , fFoundBasePVPath(tp.fTouchableBaseFullPVPath)
+    , fFoundFullPVPath(tp.fTouchableFullPVPath)
     , fFoundObjectTransformation(tp.fTouchableGlobalTransform) {}
     G4VPhysicalVolume*   fpSearchPV;   // Searched physical volume.
     G4VPhysicalVolume*   fpFoundPV;    // Found physical volume.
@@ -83,6 +87,8 @@ public:
     G4int                fFoundDepth;  // Found depth.
     std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>
     fFoundBasePVPath;    // Base path (e.g., empty for world volume)
+    std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>
+    fFoundFullPVPath;    // Full path of found volume
     G4Transform3D        fFoundObjectTransformation;  // Found transformation.
   };
 

@@ -23,36 +23,35 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/HepMCEx01/include/ExN04TrackerSD.hh
+/// \file ExN04TrackerSD.hh
 /// \brief Definition of the ExN04TrackerSD class
-//
-//
 
 #ifndef ExN04TrackerSD_h
 #define ExN04TrackerSD_h 1
 
-#include "G4VSensitiveDetector.hh"
 #include "ExN04TrackerHit.hh"
+
+#include "G4VSensitiveDetector.hh"
 
 class G4Step;
 class G4HCofThisEvent;
 class G4TouchableHistory;
 
-class ExN04TrackerSD : public G4VSensitiveDetector {
-public:
-  ExN04TrackerSD(G4String name);
-  ~ExN04TrackerSD();
+class ExN04TrackerSD : public G4VSensitiveDetector
+{
+  public:
+    ExN04TrackerSD(G4String name);
+    ~ExN04TrackerSD();
 
-  virtual void Initialize(G4HCofThisEvent*HCE);
-  virtual G4bool ProcessHits(G4Step*aStep,G4TouchableHistory*ROhist);
-  virtual void EndOfEvent(G4HCofThisEvent*HCE);
-  virtual void clear();
-  virtual void DrawAll();
-  virtual void PrintAll();
+    virtual void Initialize(G4HCofThisEvent* HCE);
+    virtual G4bool ProcessHits(G4Step* aStep, G4TouchableHistory* ROhist);
+    virtual void EndOfEvent(G4HCofThisEvent* HCE);
+    virtual void clear();
+    virtual void DrawAll();
+    virtual void PrintAll();
 
-private:
-  ExN04TrackerHitsCollection* fTrackerCollection;
-
+  private:
+    ExN04TrackerHitsCollection* fTrackerCollection;
 };
 
 #endif

@@ -23,34 +23,29 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file chem5.cc
+/// \brief Main program of the dna/chem5 example
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
 // Med. Phys. 37 (2010) 4692-4708
 // J. Comput. Phys. 274 (2014) 841-882
-// Phys. Med. Biol. 63(10) (2018) 105014-12pp 
+// Phys. Med. Biol. 63(10) (2018) 105014-12pp
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file chem5.cc
-/// \brief Chem5 example
 
+#include "ActionInitialization.hh"
+#include "CommandLineParser.hh"
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
-#include "ActionInitialization.hh"
-
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
 
 #include "G4DNAChemistryManager.hh"
-#include "G4UImanager.hh"
+#include "G4RunManagerFactory.hh"
 #include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
-
-#include "CommandLineParser.hh"
 
 /*
  * WARNING : Geant4 was initially not intended for this kind of application
@@ -64,7 +59,7 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 using namespace G4DNAPARSER;
-CommandLineParser* parser(0);
+CommandLineParser* parser(nullptr);
 long seed = 0;
 
 unsigned int noise();
@@ -78,48 +73,40 @@ int main(int argc, char** argv)
 {
   // Parse options given in commandLine
   Parse(argc, argv);
-  Command* commandLine(0);
+  Command* commandLine(nullptr);
   SetSeed();
-  
+
   // Construct the run manager according to whether MT is activated or not
   //
-#ifdef G4MULTITHREADED
-  G4MTRunManager* runManager= new G4MTRunManager();
-  
-  if((commandLine = parser->GetCommandIfActive("-mt")))
-  {
-    int nThreads = 2;
-    if(commandLine->GetOption() == "NMAX")
-    {
+  auto* runManager = G4RunManagerFactory::CreateRunManager();
+
+  if ((commandLine = parser->GetCommandIfActive("-mt"))) {
+    G4int nThreads;
+    if (commandLine->GetOption() == "NMAX") {
       nThreads = G4Threading::G4GetNumberOfCores();
+      G4cout<<"nThreads : "<<nThreads<<G4endl;
     }
-    else
-    {
+    else {
       nThreads = G4UIcommand::ConvertToInt(commandLine->GetOption());
     }
-    
+
     runManager->SetNumberOfThreads(nThreads);
   }
-  
+
   G4cout << "**************************************************************"
-         << "******\n===== Chem5 is started with "
-         << runManager->GetNumberOfThreads() << " of "
+         << "******\n===== Chem5 is started with " << runManager->GetNumberOfThreads() << " of "
          << G4Threading::G4GetNumberOfCores()
          << " available threads =====\n\n*************************************"
-         <<"*******************************" 
-         << G4endl;
-#else
-  G4RunManager* runManager = new G4RunManager();
-#endif
-  
+         << "*******************************" << G4endl;
+
   // Set mandatory initialization classes
   runManager->SetUserInitialization(new PhysicsList());
   runManager->SetUserInitialization(new DetectorConstruction());
   runManager->SetUserInitialization(new ActionInitialization());
-  
+
   // Initialize G4 kernel
   runManager->Initialize();
-  
+
   // Initialize visualization
   G4VisManager* visManager = new G4VisExecutive();
   // G4VisExecutive can take a verbosity argument - see /vis/verbose guidance.
@@ -128,61 +115,50 @@ int main(int argc, char** argv)
 
   // Get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
-  G4UIExecutive* ui(0);
-  
+  G4UIExecutive* ui = nullptr;
+
   // interactive mode : define UI session
-  if((commandLine = parser->GetCommandIfActive("-gui")))
-  {
+  if ((commandLine = parser->GetCommandIfActive("-gui"))) {
     ui = new G4UIExecutive(argc, argv, commandLine->GetOption());
-    
+
     if (ui->IsGUI()) UImanager->ApplyCommand("/control/execute gui.mac");
-    
-    if (parser->GetCommandIfActive("-novis") == 0)
-    {
+
+    if (parser->GetCommandIfActive("-novis") == nullptr) {
       // visualization is used by default
-      if ((commandLine = parser->GetCommandIfActive("-vis")))
-      {
+      if ((commandLine = parser->GetCommandIfActive("-vis"))) {
         // select a visualization driver if needed (e.g. HepFile)
-        UImanager->ApplyCommand
-        (G4String("/vis/open ") + commandLine->GetOption());
+        UImanager->ApplyCommand(G4String("/vis/open ") + commandLine->GetOption());
       }
-      else
-      {
+      else {
         // by default OGL is used
         UImanager->ApplyCommand("/vis/open OGL 800x600-0+0");
       }
       UImanager->ApplyCommand("/control/execute vis.mac");
     }
   }
-  else
-  {
+  else {
     // to be use visualization file (= store the visualization into
     // an external file:
     // ASCIITree ;  DAWNFILE ; HepRepFile ; VRML(1,2)FILE ; gMocrenFile ...
-    if((commandLine = parser->GetCommandIfActive("-vis")))
-    {
-      UImanager->ApplyCommand(G4String("/vis/open ")
-                              + commandLine->GetOption());
+    if ((commandLine = parser->GetCommandIfActive("-vis"))) {
+      UImanager->ApplyCommand(G4String("/vis/open ") + commandLine->GetOption());
       UImanager->ApplyCommand("/control/execute vis.mac");
     }
   }
-  
-  if((commandLine = parser->GetCommandIfActive("-mac")))
-  {
+
+  if ((commandLine = parser->GetCommandIfActive("-mac"))) {
     G4String command = "/control/execute ";
     UImanager->ApplyCommand(command + commandLine->GetOption());
   }
-  else
-  {
+  else {
     UImanager->ApplyCommand("/control/execute beam.in");
   }
 
-  if((commandLine = parser->GetCommandIfActive("-gui")))
-  {
+  if ((commandLine = parser->GetCommandIfActive("-gui"))) {
     ui->SessionStart();
     delete ui;
   }
-  
+
   // Job termination
   // Free the store: user actions, physics_list and detector_description are
   // owned and deleted by the run manager, so they should not be deleted
@@ -197,8 +173,7 @@ int main(int argc, char** argv)
 
 bool IsBracket(char c)
 {
-  switch(c)
-  {
+  switch (c) {
     case '[':
     case ']':
       return true;
@@ -210,48 +185,42 @@ bool IsBracket(char c)
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void SetSeed()
-{  
-  Command* commandLine(0);
-  
-  if((commandLine = parser->GetCommandIfActive("-seed")))
-  {
+{
+  Command* commandLine(nullptr);
+
+  if ((commandLine = parser->GetCommandIfActive("-seed"))) {
     seed = atoi(commandLine->GetOption().c_str());
   }
-  
-  if(seed == 0) // If no seed given in argument, setup the seed
+
+  if (seed == 0)  // If no seed given in argument, setup the seed
   {
     long jobID_int = 0;
     long noice = 0;
-    
+
     //____________________________________
     // In case on cluster
-    if((commandLine = parser->GetCommandIfActive("-cluster")))
-    {
-      noice = labs((long) noise());
-      
-      const char * env = std::getenv("PBS_JOBID");
+    if ((commandLine = parser->GetCommandIfActive("-cluster"))) {
+      noice = labs((long)noise());
 
-      if(env)
-      {
+      const char* env = std::getenv("PBS_JOBID");
+
+      if (env) {
         G4String buffer(env);
-        G4String jobID_string = buffer.substr(0,  buffer.find("."));
-        jobID_string.erase(std::remove_if(jobID_string.begin(),
-                                          jobID_string.end(),
-                                          &IsBracket),
-                                          jobID_string.end());
+        G4String jobID_string = buffer.substr(0, buffer.find("."));
+        jobID_string.erase(std::remove_if(jobID_string.begin(), jobID_string.end(), &IsBracket),
+                           jobID_string.end());
         jobID_int = atoi(jobID_string.c_str());
       }
-      else
-      {
+      else {
         env = std::getenv("SGE_TASK_ID");
-        if(env) jobID_int = atoi(env);
+        if (env) jobID_int = atoi(env);
       }
-    } // end cluster
-    
+    }  // end cluster
+
     //____________________________________
-    seed = ((long) time(NULL)) + jobID_int + noice;
+    seed = ((long)time(NULL)) + jobID_int + noice;
   }
-  
+
   G4cout << "Seed used : " << seed << G4endl;
   G4Random::setTheEngine(new CLHEP::MixMaxRng());
   G4Random::setTheSeed(seed);
@@ -264,27 +233,25 @@ void SetSeed()
 
 unsigned int noise()
 {
-#if defined(WIN32)|| defined(_WIN32)|| defined(__WIN32)&&!defined(__CYGWIN__)
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
   // TODO: MS Win
   return std::time(0);
 #else
   unsigned int random_seed, random_seed_a, random_seed_b;
-  std::ifstream file ("/dev/urandom", std::ios::binary);
-  if (file.is_open())
-  {
-    char * memblock;
+  std::ifstream file("/dev/urandom", std::ios::binary);
+  if (file.is_open()) {
+    char* memblock;
     int size = sizeof(int);
-    memblock = new char [size];
-    file.read (memblock, size);
+    memblock = new char[size];
+    file.read(memblock, size);
     file.close();
     random_seed_a = *reinterpret_cast<int*>(memblock);
     delete[] memblock;
-  }// end if
-  else
-  {
+  }  // end if
+  else {
     random_seed_a = 0;
   }
-  random_seed_b = std::time(0);
+  random_seed_b = std::time(nullptr);
   random_seed = random_seed_a xor random_seed_b;
   return random_seed;
 #endif
@@ -298,53 +265,47 @@ void Parse(int& argc, char** argv)
   // Parse options given in commandLine
   //
   parser = CommandLineParser::GetParser();
-  
+
   parser->AddCommand("-gui", Command::OptionNotCompulsory,
                      "Select geant4 UI or just launch a geant4 terminal"
                      "session",
                      "qt");
-                     
-  parser->AddCommand("-mac", Command::WithOption, "Give a mac file to execute",
-                     "macFile.mac");
 
-  parser->AddCommand("-seed",
-                     Command::WithOption,
-                     "Give a seed value in argument to be tested", "seed");
-  
-#ifdef G4MULTITHREADED
-  parser->AddCommand("-mt",Command::WithOption,
+  parser->AddCommand("-mac", Command::WithOption, "Give a mac file to execute", "macFile.mac");
+
+  parser->AddCommand("-seed", Command::WithOption, "Give a seed value in argument to be tested",
+                     "seed");
+
+  parser->AddCommand("-mt", Command::WithOption,
                      "Launch in MT mode (events computed in parallel,"
-                     " NOT RECOMMANDED WITH CHEMISTRY)", "2");
-#endif
-  
-  parser->AddCommand("-chemOFF", Command::WithoutOption,
-                     "Deactivate chemistry");
-                     
-  parser->AddCommand("-vis", Command::WithOption,
-                     "Select a visualization driver", "OGL 600x600-0+0");
-                     
-  parser->AddCommand("-novis", Command::WithoutOption,
-                     "Deactivate visualization when using GUI");
-  
+                     " NOT RECOMMANDED WITH CHEMISTRY)",
+                     "2");
+
+  parser->AddCommand("-chemOFF", Command::WithoutOption, "Deactivate chemistry");
+
+  parser->AddCommand("-vis", Command::WithOption, "Select a visualization driver",
+                     "OGL 600x600-0+0");
+
+  parser->AddCommand("-novis", Command::WithoutOption, "Deactivate visualization when using GUI");
+
   parser->AddCommand("-cluster", Command::WithoutOption,
                      "Launch the code on a cluster, avoid dupplicated seeds");
-  
+
   //////////
   // If -h or --help is given in option : print help and exit
   //
-  if (parser->Parse(argc, argv) != 0) // help is being printed
+  if (parser->Parse(argc, argv) != 0)  // help is being printed
   {
     // if you are using ROOT, create a TApplication in this condition in order
     // to print the help from ROOT as well
     CommandLineParser::DeleteInstance();
     std::exit(0);
   }
-  
+
   ///////////
   // Kill application if wrong argument in command line
   //
-  if(parser->CheckIfNotHandledOptionsExists(argc, argv))
-  {
+  if (parser->CheckIfNotHandledOptionsExists(argc, argv)) {
     // if you are using ROOT, you should initialise your TApplication
     // before this condition
     std::exit(0);

@@ -44,25 +44,21 @@
 
 #include "G4VCrossSectionDataSet.hh"
 #include "globals.hh"
-#include "G4Threading.hh"
-#include <vector>
-
-const G4int MAXZEL = 93;
+#include "G4ElementData.hh"
+#include "G4PhysicsVector.hh"
 
 class G4DynamicParticle;
 class G4ParticleDefinition;
 class G4Element;
-class G4PhysicsVector;
-class G4ComponentGGHadronNucleusXsc;
-class G4NistManager;
+class G4VComponentCrossSection;
 
-class G4NeutronElasticXS : public G4VCrossSectionDataSet
+class G4NeutronElasticXS final : public G4VCrossSectionDataSet
 {
 public: 
 
-  explicit G4NeutronElasticXS();
+  G4NeutronElasticXS();
 
-  ~G4NeutronElasticXS() final;
+  ~G4NeutronElasticXS() override = default;
     
   static const char* Default_Name() {return "G4NeutronElasticXS";}
 
@@ -80,6 +76,18 @@ public:
                               const G4Element* elm,
                               const G4Material* mat) final;
 
+  G4double ComputeCrossSectionPerElement(G4double kinEnergy, G4double loge,
+                                         const G4ParticleDefinition*,
+                                         const G4Element*,
+                                         const G4Material*) final;
+  
+  G4double ComputeIsoCrossSection(G4double kinEnergy, G4double loge,
+                                  const G4ParticleDefinition*,
+                                  G4int Z, G4int A,
+                                  const G4Isotope* iso,
+                                  const G4Element* elm,
+                                  const G4Material* mat) final;
+
   const G4Isotope* SelectIsotope(const G4Element*, 
                                  G4double kinEnergy, G4double logE) final;
 
@@ -87,8 +95,11 @@ public:
 
   void CrossSectionDescription(std::ostream&) const final;
 
-  G4double IsoCrossSection(G4double ekin, G4double logE, G4int Z, G4int A);
+  G4double ElementCrossSection(G4double kinEnergy, G4double loge, G4int Z);
 
+  G4NeutronElasticXS& operator=(const G4NeutronElasticXS &right) = delete;
+  G4NeutronElasticXS(const G4NeutronElasticXS&) = delete;
+  
 private: 
 
   void Initialise(G4int Z);
@@ -97,27 +108,45 @@ private:
 
   const G4String& FindDirectoryPath();
 
-  G4PhysicsVector* GetPhysicsVector(G4int Z);
+  inline const G4PhysicsVector* GetPhysicsVector(G4int Z);
 
-  G4NeutronElasticXS & operator=(const G4NeutronElasticXS &right);
-  G4NeutronElasticXS(const G4NeutronElasticXS&);
-  
-  G4NistManager* nist;
-  G4ComponentGGHadronNucleusXsc* ggXsection;
+  inline const G4PhysicsVector* GetPhysicsVectorR(G4int Z);
+
+  G4PhysicsVector* RetrieveVector(std::ostringstream& in, G4bool warn);
+
+  G4VComponentCrossSection* ggXsection{nullptr};
   const G4ParticleDefinition* neutron;
 
-  std::vector<G4double> temp;
+  G4bool isInitializer{false};
+  G4bool fRfilesEnabled{false};
 
-  static G4PhysicsVector* data[MAXZEL];
+  static const G4int MAXZEL = 93;
+  static G4ElementData* data;
+  static G4ElementData* dataR;
   static G4double coeff[MAXZEL];
-  static G4double aeff[MAXZEL];
   static G4String gDataDirectory;
-
-  G4bool  isMaster;
-
-#ifdef G4MULTITHREADED
-  static G4Mutex neutronElasticXSMutex;
-#endif
 };
+
+inline const
+G4PhysicsVector* G4NeutronElasticXS::GetPhysicsVector(G4int Z)
+{
+  const G4PhysicsVector* pv = data->GetElementData(Z);
+  if (pv == nullptr) { 
+    InitialiseOnFly(Z);
+    pv = data->GetElementData(Z);
+  }
+  return pv;
+}
+
+inline
+const G4PhysicsVector* G4NeutronElasticXS::GetPhysicsVectorR(G4int Z)
+{
+  const G4PhysicsVector* pv = dataR->GetElementData(Z);
+  if (pv == nullptr) { 
+    InitialiseOnFly(Z);
+    pv = dataR->GetElementData(Z);
+  }
+  return pv;
+}
 
 #endif

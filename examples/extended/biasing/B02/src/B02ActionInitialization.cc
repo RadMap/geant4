@@ -23,25 +23,27 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file biasing/B02/src/B02ActionInitialization.cc
+/// \file B02ActionInitialization.cc
 /// \brief Implementation of the B02ActionInitialization class
-//
-//
-//
 
 #include "B02ActionInitialization.hh"
+
 #include "B02PrimaryGeneratorAction.hh"
 #include "B02RunAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B02ActionInitialization::B02ActionInitialization()
-{;} 
+{
+  ;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B02ActionInitialization::~B02ActionInitialization()
-{;}
+{
+  ;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -54,10 +56,8 @@ void B02ActionInitialization::BuildForMaster() const
 
 void B02ActionInitialization::Build() const
 {
-
   SetUserAction(new B02PrimaryGeneratorAction);
   SetUserAction(new B02RunAction);
-
 }
- 
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -23,58 +23,58 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file RE06/include/RE06SteppingVerbose.hh
+/// \file RE06SteppingVerbose.hh
 /// \brief Definition of the RE06SteppingVerbose class
-//
-//
 
 class RE06SteppingVerbose;
 
 #ifndef RE06SteppingVerbose_h
 #define RE06SteppingVerbose_h 1
 
-#include <vector>
-#include "G4VSteppingVerbose.hh"
 #include "G4SliceTimer.hh"
+#include "G4VSteppingVerbose.hh"
+
+#include <vector>
 
 class G4Region;
 
 class RE06SteppingVerbose : public G4VSteppingVerbose
 {
- public:   
-  RE06SteppingVerbose();
-  virtual ~RE06SteppingVerbose();
+  public:
+    RE06SteppingVerbose();
+    virtual ~RE06SteppingVerbose();
 
-  void InitializeTimers();
-  void Report();
+    virtual G4VSteppingVerbose* Clone() { return new RE06SteppingVerbose; }
 
-  virtual void NewStep();
-  virtual void StepInfo();
+    void InitializeTimers();
+    void Report();
 
-  // Following methods are not used
-  virtual void TrackBanner() {}
-  virtual void AtRestDoItInvoked() {}
-  virtual void AlongStepDoItAllDone() {}
-  virtual void PostStepDoItAllDone() {}
-  virtual void AlongStepDoItOneByOne() {}
-  virtual void PostStepDoItOneByOne() {}
-  virtual void TrackingStarted() {}
-  virtual void DPSLStarted() {}
-  virtual void DPSLUserLimit() {}
-  virtual void DPSLPostStep() {}
-  virtual void DPSLAlongStep() {}
-  virtual void VerboseTrack() {}
-  virtual void VerboseParticleChange() {}
+    virtual void NewStep();
+    virtual void StepInfo();
 
- private:
-  G4int FindRegion(G4Region*);
+    // Following methods are not used
+    virtual void TrackBanner() {}
+    virtual void AtRestDoItInvoked() {}
+    virtual void AlongStepDoItAllDone() {}
+    virtual void PostStepDoItAllDone() {}
+    virtual void AlongStepDoItOneByOne() {}
+    virtual void PostStepDoItOneByOne() {}
+    virtual void TrackingStarted() {}
+    virtual void DPSLStarted() {}
+    virtual void DPSLUserLimit() {}
+    virtual void DPSLPostStep() {}
+    virtual void DPSLAlongStep() {}
+    virtual void VerboseTrack() {}
+    virtual void VerboseParticleChange() {}
 
-  std::vector<G4SliceTimer*> fTimers;
-  G4int fNofRegions;
-  G4int fNofTimers;
-  G4int fRegIdx;
-  G4bool fEp;
+  private:
+    G4int FindRegion(G4Region*);
+
+    std::vector<G4SliceTimer*> fTimers;
+    G4int fNofRegions;
+    G4int fNofTimers;
+    G4int fRegIdx;
+    G4bool fEp;
 };
-
 
 #endif

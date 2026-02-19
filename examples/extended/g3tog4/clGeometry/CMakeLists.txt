@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------------
 # Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.27)
 project(clGeometry)
 
 #----------------------------------------------------------------------------
@@ -24,22 +24,15 @@ include(${Geant4_USE_FILE})
 # Locate sources and headers for this project
 #
 include_directories(${PROJECT_SOURCE_DIR}/include 
-                    ${PROJECT_SOURCE_DIR}/common/include 
                     ${Geant4_INCLUDE_DIR})
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
 #----------------------------------------------------------------------------
-# Add common subdirectory
-#
-set (common_prefix clGeometry_)
-add_subdirectory(common) 
-
-#----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(clGeometry clGeometry.cc ${sources} ${headers})
-target_link_libraries(clGeometry ${common_prefix}common ${Geant4_LIBRARIES})
+target_link_libraries(clGeometry ${Geant4_LIBRARIES})
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

@@ -23,14 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// class G4VPhysicalVolume inline implementation
+// G4VPhysicalVolume inline implementations
 //
+// Author: Paul Kent (CERN), 24.07.1995 - First non-stub version
 // --------------------------------------------------------------------
 
 inline
 G4bool G4VPhysicalVolume::operator == (const G4VPhysicalVolume& right) const
 {
-  return (this==&right) ? true : false;
+  return this==&right;
 }
 
 inline
@@ -67,12 +68,6 @@ inline
 const G4String& G4VPhysicalVolume::GetName() const
 {
   return fname;
-}
-
-inline
-void G4VPhysicalVolume::SetName(const G4String& pName)
-{
-  fname = pName;
 }
 
 inline

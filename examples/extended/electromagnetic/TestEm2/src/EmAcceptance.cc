@@ -23,25 +23,10 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm2/src/EmAcceptance.cc
-/// \brief Implementation of the Emeptance class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+/// \file EmAcceptance.cc
+/// \brief Implementation of the EmAcceptance class
 
 #include "EmAcceptance.hh"
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-EmAcceptance::EmAcceptance()
- : fIsAccepted(false)
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-EmAcceptance::~EmAcceptance()
-{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -57,24 +42,22 @@ void EmAcceptance::BeginOfAcceptance(const G4String& title, G4int stat)
 void EmAcceptance::EndOfAcceptance()
 {
   G4String resume = "IS ACCEPTED";
-  if(!fIsAccepted) resume = "IS NOT ACCEPTED";
+  if (!fIsAccepted) resume = "IS NOT ACCEPTED";
   G4cout << "<<<<END>>>>   " << resume << G4endl;
   G4cout << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void EmAcceptance::EmAcceptanceGauss(const G4String& title, G4int stat,
-                                     G4double avr, G4double avr0,
+void EmAcceptance::EmAcceptanceGauss(const G4String& title, G4int stat, G4double avr, G4double avr0,
                                      G4double rms, G4double limit)
 {
   G4double x = std::sqrt((G4double)stat);
   G4double dde = avr - avr0;
-  G4double de = dde*x/rms;
-  if(std::fabs(de) > limit) fIsAccepted = false;
-  
-  G4cout << title << ": " << avr << "  del" << title << "= " << dde 
-         << " nrms= " << de << G4endl;
+  G4double de = dde * x / rms;
+  if (std::fabs(de) > limit) fIsAccepted = false;
+
+  G4cout << title << ": " << avr << "  del" << title << "= " << dde << " nrms= " << de << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

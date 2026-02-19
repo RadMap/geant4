@@ -77,7 +77,6 @@
 class G4Polyline;
 class G4Text;
 class G4Circle;
-class G4Scale;
 class G4Square;
 class G4Polymarker;
 class G4Polyhedron;
@@ -88,6 +87,7 @@ class G4VTrajectory;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VisAttributes;
+class G4Event;
 
 class G4VVisManager {
 
@@ -118,9 +118,6 @@ public: // With description
     const G4Transform3D& objectTransformation = G4Transform3D()) = 0;
 
   virtual void Draw (const G4Polymarker&,
-    const G4Transform3D& objectTransformation = G4Transform3D()) = 0;
-
-  virtual void Draw (const G4Scale&,
     const G4Transform3D& objectTransformation = G4Transform3D()) = 0;
 
   virtual void Draw (const G4Square&,
@@ -173,6 +170,10 @@ public: // With description
   virtual void Draw (const G4VSolid&, const G4VisAttributes&,
     const G4Transform3D& objectTransformation = G4Transform3D()) = 0;
 
+  virtual void DrawGeometry
+  (G4VPhysicalVolume*, const G4Transform3D& t = G4Transform3D());
+  // Draws a geometry tree starting at the specified physical volume.
+
   //////////////////////////////////////////////////////////////////////
   // Optional methods that you may use to bracket a series of Draw
   // messages that have identical objectTransformation to improve
@@ -221,12 +222,11 @@ public: // With description
   virtual G4bool FilterDigi(const G4VDigi&) = 0;
   // Digi filter
 
-#ifdef G4MULTITHREADED
-
-  virtual void SetUpForAThread() = 0;
+  virtual void SetUpForAThread() {}
   // This method is invoked by G4WorkerRunManager
 
-#endif
+  virtual void EventReadyForVis(const G4Event*) {}
+  // This is invoked by G4SubEvtRunManager
 
 protected:
 

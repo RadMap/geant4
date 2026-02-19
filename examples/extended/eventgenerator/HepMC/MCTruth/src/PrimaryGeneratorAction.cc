@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/MCTruth/src/PrimaryGeneratorAction.cc
+/// \file PrimaryGeneratorAction.cc
 /// \brief Implementation of the PrimaryGeneratorAction class
-//
-//
-//
-//
+
 // --------------------------------------------------------------
 //      GEANT 4 - PrimaryGeneratorAction class
 // --------------------------------------------------------------
@@ -42,16 +39,15 @@
 #include "PrimaryGeneratorAction.hh"
 
 #include "G4Event.hh"
+#include "G4ParticleDefinition.hh"
 #include "G4ParticleGun.hh"
 #include "G4ParticleTable.hh"
-#include "G4ParticleDefinition.hh"
-#include "globals.hh"
 #include "G4SystemOfUnits.hh"
+#include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-PrimaryGeneratorAction::PrimaryGeneratorAction() :
-  G4VUserPrimaryGeneratorAction()
+PrimaryGeneratorAction::PrimaryGeneratorAction() : G4VUserPrimaryGeneratorAction()
 {
   G4int n_particle = 1;
   fParticleGun = new G4ParticleGun(n_particle);
@@ -60,10 +56,10 @@ PrimaryGeneratorAction::PrimaryGeneratorAction() :
 
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* particle = particleTable->FindParticle("kaon0S");
-  
+
   fParticleGun->SetParticleDefinition(particle);
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
-  fParticleGun->SetParticleEnergy(3.0*GeV);
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
+  fParticleGun->SetParticleEnergy(3.0 * GeV);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -76,10 +72,10 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
-{ 
+{
   G4double position = 0.0;
-  fParticleGun->SetParticlePosition(G4ThreeVector(0.*cm,0.*cm,position));
-  
+  fParticleGun->SetParticlePosition(G4ThreeVector(0. * cm, 0. * cm, position));
+
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }
 

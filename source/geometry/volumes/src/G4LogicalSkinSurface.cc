@@ -23,23 +23,20 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// G4LogicalSkinSurface Implementation
+// Class G4LogicalSkinSurface Implementation
 //
-// A Logical Surface class for the surface surrounding a single
-// logical volume.
-//
-// Author: John Apostolakis (John.Apostolakis@cern.ch), 26-06-1997
-// ----------------------------------------------------------------------
+// Author: John Apostolakis (CERN), 16 June 1997
+// --------------------------------------------------------------------
 
 #include "G4LogicalSkinSurface.hh"
 #include "G4LogicalVolume.hh"
+#include "G4GeometryManager.hh"
 
 G4LogicalSkinSurfaceTable *G4LogicalSkinSurface::theSkinSurfaceTable = nullptr;
 
+// --------------------------------------------------------------------
+// Constructor
 //
-// Constructors & destructor
-//
-
 G4LogicalSkinSurface::G4LogicalSkinSurface(const G4String&  name,
                                            G4LogicalVolume* logicalVolume,
                                            G4SurfaceProperty* surfaceProperty)
@@ -52,33 +49,24 @@ G4LogicalSkinSurface::G4LogicalSkinSurface(const G4String&  name,
   }
   // Store in the table of Surfaces
   //
-  theSkinSurfaceTable->push_back(this);
+  theSkinSurfaceTable->insert(std::make_pair(logicalVolume, this));
 }
 
-G4LogicalSkinSurface::~G4LogicalSkinSurface()
-{
-}
-
-//
-// Operators
-//
-
+// --------------------------------------------------------------------
 G4bool
 G4LogicalSkinSurface::operator==(const G4LogicalSkinSurface& right) const
 {
   return (this == (G4LogicalSkinSurface *) &right);
 }
 
+// --------------------------------------------------------------------
 G4bool
 G4LogicalSkinSurface::operator!=(const G4LogicalSkinSurface& right) const
 {
   return (this != (G4LogicalSkinSurface *) &right);
 }
 
-//
-// Methods
-//
-
+// --------------------------------------------------------------------
 const G4LogicalSkinSurfaceTable* G4LogicalSkinSurface::GetSurfaceTable()
 {
   if (theSkinSurfaceTable == nullptr)
@@ -88,6 +76,7 @@ const G4LogicalSkinSurfaceTable* G4LogicalSkinSurface::GetSurfaceTable()
   return theSkinSurfaceTable;
 }
 
+// --------------------------------------------------------------------
 size_t G4LogicalSkinSurface::GetNumberOfSkinSurfaces()
 {
   if (theSkinSurfaceTable != nullptr)
@@ -97,20 +86,19 @@ size_t G4LogicalSkinSurface::GetNumberOfSkinSurfaces()
   return 0;
 }
 
+// --------------------------------------------------------------------
 G4LogicalSkinSurface*
 G4LogicalSkinSurface::GetSurface(const G4LogicalVolume* vol)
 {
   if (theSkinSurfaceTable != nullptr)
   {
-    for(auto pos = theSkinSurfaceTable->cbegin();
-        pos != theSkinSurfaceTable->cend(); ++pos)
-    {
-      if ((*pos)->GetLogicalVolume() == vol)  { return *pos; }
-    }
+    auto pos = theSkinSurfaceTable->find(vol);
+    if(pos != theSkinSurfaceTable->cend()) { return pos->second; }
   }
   return nullptr;
 }
 
+// --------------------------------------------------------------------
 // Dump info for known surfaces
 //
 void G4LogicalSkinSurface::DumpInfo() 
@@ -120,28 +108,34 @@ void G4LogicalSkinSurface::DumpInfo()
 
   if (theSkinSurfaceTable != nullptr)
   {
-    for(auto pos = theSkinSurfaceTable->cbegin();
-        pos != theSkinSurfaceTable->cend(); ++pos)
+    for(const auto & pos : *theSkinSurfaceTable)
     {
-      G4cout << (*pos)->GetName() << " : " << G4endl
+      G4LogicalSkinSurface* pSurf = pos.second;
+      G4cout << pSurf->GetName() << " : " << G4endl
              << " Skin of logical volume "
-             << (*pos)->GetLogicalVolume()->GetName()
+             << pSurf->GetLogicalVolume()->GetName()
              << G4endl;
     }
   }
   G4cout << G4endl;
 }
 
+// --------------------------------------------------------------------
 void G4LogicalSkinSurface::CleanSurfaceTable()
 {
-  if (theSkinSurfaceTable)
+  if (theSkinSurfaceTable == nullptr) { return; }
+
+  // Do nothing if geometry is closed
+  if (G4GeometryManager::GetInstance()->IsGeometryClosed())
   {
-    for(auto pos = theSkinSurfaceTable->cbegin();
-        pos != theSkinSurfaceTable->cend(); ++pos)
-    {
-      if (*pos) { delete *pos; }
-    }
-    theSkinSurfaceTable->clear();
+    G4cout << "WARNING - Attempt to clear the skin surface store"
+           << " while geometry closed !" << G4endl;
+    return;
   }
-  return;
+
+  for (const auto& pos : *theSkinSurfaceTable)
+  {
+    delete pos.second;
+  }
+  theSkinSurfaceTable->clear();
 }

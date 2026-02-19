@@ -23,17 +23,18 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE04/src/RE04TrackingAction.cc
+/// \file RE04TrackingAction.cc
 /// \brief Implementation of the RE04TrackingAction class
-//
-//
+
 #include "RE04TrackingAction.hh"
-#include "G4TrackingManager.hh"
-#include "G4Track.hh"
+
 #include "RE04Trajectory.hh"
 
+#include "G4Track.hh"
+#include "G4TrackingManager.hh"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void RE04TrackingAction::PreUserTrackingAction(const G4Track* aTrack) 
+void RE04TrackingAction::PreUserTrackingAction(const G4Track* aTrack)
 {
   fpTrackingManager->SetStoreTrajectory(true);
   fpTrackingManager->SetTrajectory(new RE04Trajectory(aTrack));
@@ -41,6 +42,6 @@ void RE04TrackingAction::PreUserTrackingAction(const G4Track* aTrack)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void RE04TrackingAction::PostUserTrackingAction(const G4Track* /*aTrack*/)
-{;}
-
-
+{
+  ;
+}

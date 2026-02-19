@@ -1,22 +1,15 @@
 #
-# ------ GNU/LINUX ------         Intel icc 15.x.x and higher
+# ------ GNU/LINUX ------         Intel icc 19.x.x and higher
 #
 ifeq ($(G4SYSTEM),Linux-icc)
   CXX       := icc
-  CXXFLAGS  := -ansi -fp-model precise -w1
-  G4USE_STD11 := 1
-  ifdef G4USE_STD14
-    CPPFLAGS  += -std=c++14
-    CXXFLAGS  += -std=c++14
-  else
-    ifdef G4USE_STD17
-      CPPFLAGS  += -std=c++17
-      CXXFLAGS  += -std=c++17
-    else
-      CXXFLAGS  += -std=c++11
-      CPPFLAGS  += -std=c++11
-    endif
-  endif
+  CXXFLAGS  := -W -Wall -ansi -pedantic -Wno-non-virtual-dtor -Wno-long-long
+  CXXFLAGS  += -Wwrite-strings -Wpointer-arith -Woverloaded-virtual
+  CXXFLAGS  += -Wno-variadic-macros -Wshadow -pipe
+  CXXFLAGS  += -fp-model precise -diag-disable=10441
+  CPPFLAGS  += -std=c++17
+  CXXFLAGS  += -std=c++17
+  G4USE_STD17 := 1
   ifdef G4MULTITHREADED
     CXXFLAGS += -ftls-model=initial-exec -pthread
   endif
@@ -51,12 +44,12 @@ ifeq ($(G4SYSTEM),Linux-icc)
   AR := ar r
   ECHO    := /bin/echo -e
   SHEXT   := so
-#  LOADLIBS += -lstdc++
+  LOADLIBS += -limf
   ifndef X11FLAGS
     X11FLAGS  := -I/usr/include/X11/extensions -I/usr/include/X11
   endif
   ifndef X11LIBS
-    X11LIBS   := -L/usr/lib  -lXmu -lXt -lXext -lX11 -lXi -lSM -lICE
+    X11LIBS   := -L/usr/lib  -lXmu -lXt -lXext -lX11 -lSM -lICE
   endif
   ifndef XMFLAGS
     XMFLAGS   := -I/usr/include
@@ -78,17 +71,66 @@ ifeq ($(G4SYSTEM),Linux-icc)
     OGLHOME     := /usr
   endif
   ifndef OGLLIBS
-    OGLLIBS   := -L$(OGLHOME)/lib -lGLU -lGL
+    OGLLIBS   := -L$(OGLHOME)/lib -lGL
   endif
+
+# ---- QT Setup block -------------------------------------------------------
+
+  ifndef QTHOME
+    QTHOME     := /usr
+  endif
+  ifndef QTMOC
+    QTMOC      := $(QTHOME)/bin/moc
+  endif
+
+  ifndef QT_VERSION
+    QT_VERSION := 6
+  endif
+
+  ifndef QTFLAGS
+    QTFLAGS   := -I $(QTHOME)/include -I$(QTHOME)/include/Qt
+    QTFLAGS   += -I $(QTHOME)/include/QtCore
+    QTFLAGS   += -I $(QTHOME)/include/QtGui
+    QTFLAGS   += -I $(QTHOME)/include/QtWidgets
+    QTFLAGS   += -I $(QTHOME)/include/QtOpenGL
+    ifeq ($(QT_VERSION),6)
+      QTFLAGS   += -I $(QTHOME)/include/QtOpenGLWidgets
+    endif
+  endif
+  ifndef QTLIBPATH
+    QTLIBPATH := $(QTHOME)/lib
+    QT_SEARCH_LIB := $(shell ls  $(QTLIBPATH)/qt$(QT_VERSION)/libq* 2>/dev/null | wc -l )
+    ifneq ($(QT_SEARCH_LIB),0)
+      QTLIBPATH := $(QTHOME)/lib/qt$(QT_VERSION)
+    endif
+  endif
+  ifeq ($(QT_VERSION),5)       # Qt5
+    ifndef QTLIBS
+      QTLIBS   := -L$(QTLIBPATH) -lQt5Core -lQt5Gui -lQt5Widgets
+    endif
+    ifndef GLQTLIBS
+      GLQTLIBS := -L$(QTLIBPATH) -lQt5Core -lQt5Gui -lQt5Widgets -lQt5OpenGL
+    endif
+  else                         # Qt6
+    ifndef QTLIBS
+      QTLIBS   := -L$(QTLIBPATH) -lQt6Core -lQt6Gui -lQt6Widgets
+    endif
+    ifndef GLQTLIBS
+      GLQTLIBS := -L$(QTLIBPATH) -lQt6Core -lQt6Gui -lQt6Widgets -lQt6OpenGL -lQt6OpenGLWidgets
+    endif
+  endif
+
+#----------------------------------------------------------------------------
+
   define build-granular-shared-lib
     @libdir=`(cd $(@D);/bin/pwd)`; \
      cd $(G4TMPDIR); \
-     $(CXX) -Wl,-soname,$(@F) -shared -o $$libdir/$(@F) $(INTYLIBS) *.o
+     $(CXX) -diag-disable=10441 -Wl,-soname,$(@F) -shared -o $$libdir/$(@F) $(INTYLIBS) *.o
   endef
   define build-global-shared-lib
     @libdir=`(cd $(@D);/bin/pwd)`; \
      cd $(G4TMP)/$(G4SYSTEM); \
-     $(CXX) -Wl,-soname,$(@F) -shared -o $$libdir/$(@F) $(INTYLIBS) \
+     $(CXX) -diag-disable=10441 -Wl,-soname,$(@F) -shared -o $$libdir/$(@F) $(INTYLIBS) \
                     $(foreach dir,$(SUBLIBS),$(dir)/*.o);
   endef
 

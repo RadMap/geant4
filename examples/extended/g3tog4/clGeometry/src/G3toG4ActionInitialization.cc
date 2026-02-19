@@ -23,38 +23,33 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file G3toG4ActionInitialization.cc
-/// \brief Implementation of the G3toG4ActionInitialization class
+/// \brief Implementation of the Common::G3toG4ActionInitialization class
 
 #include "G3toG4ActionInitialization.hh"
 
 // common package includes
-// #include "ExG4EventAction01.hh"
-// #include "ExG4RunAction01.hh"
 #include "GunPrimaryGeneratorAction.hh"
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-G3toG4ActionInitialization::G3toG4ActionInitialization()
- : G4VUserActionInitialization()
-{}
+using namespace Common;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G3toG4ActionInitialization::~G3toG4ActionInitialization()
-{}
+G3toG4ActionInitialization::G3toG4ActionInitialization() : G4VUserActionInitialization() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void G3toG4ActionInitialization::BuildForMaster() const
-{}
+G3toG4ActionInitialization::~G3toG4ActionInitialization() {}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void G3toG4ActionInitialization::BuildForMaster() const {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void G3toG4ActionInitialization::Build() const
 {
   SetUserAction(new GunPrimaryGeneratorAction);
-}  
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

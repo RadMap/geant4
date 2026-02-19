@@ -23,18 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm11/include/DetectorMessenger.hh
+/// \file DetectorMessenger.hh
 /// \brief Definition of the DetectorMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef DetectorMessenger_h
 #define DetectorMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class DetectorConstruction;
 class G4UIdirectory;
@@ -45,28 +41,25 @@ class G4UIcmdWithoutParameter;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class DetectorMessenger: public G4UImessenger
+class DetectorMessenger : public G4UImessenger
 {
   public:
-  
-    DetectorMessenger(DetectorConstruction* );
-   ~DetectorMessenger();
-    
-    virtual void SetNewValue(G4UIcommand*, G4String);
-    
+    DetectorMessenger(DetectorConstruction*);
+    ~DetectorMessenger() override;
+
+    void SetNewValue(G4UIcommand*, G4String) override;
+
   private:
-  
-    DetectorConstruction*      fDetector;
-      
-    G4UIdirectory*             fTestemDir;
-    G4UIdirectory*             fDetDir; 
-    G4UIcmdWithAnInteger*      fNbAbsorCmd;           
-    G4UIcommand*               fAbsorCmd;
-    G4UIcommand*               fNdivCmd;    
-    G4UIcmdWithADoubleAndUnit* fSizeYZCmd;    
+    DetectorConstruction* fDetector = nullptr;
+
+    G4UIdirectory* fTestemDir = nullptr;
+    G4UIdirectory* fDetDir = nullptr;
+    G4UIcmdWithAnInteger* fNbAbsorCmd = nullptr;
+    G4UIcommand* fAbsorCmd = nullptr;
+    G4UIcommand* fNdivCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fSizeYZCmd = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

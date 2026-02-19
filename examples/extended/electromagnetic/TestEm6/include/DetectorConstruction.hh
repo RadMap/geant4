@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm6/include/DetectorConstruction.hh
+/// \file DetectorConstruction.hh
 /// \brief Definition of the DetectorConstruction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
@@ -47,51 +43,43 @@ class DetectorMessenger;
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-  
     DetectorConstruction();
-   ~DetectorConstruction();
+    ~DetectorConstruction();
 
   public:
-  
-     virtual G4VPhysicalVolume* Construct();
-     
-     void SetSize        (G4double);              
-     void SetMaterial    (const G4String&);            
-     void SetMagField    (G4double);
-     void SetMaxStepSize (G4double);     
+    virtual G4VPhysicalVolume* Construct();
 
-     void UpdateGeometry();
-     
+    void SetSize(G4double);
+    void SetMaterial(const G4String&);
+    void SetMagField(G4double);
+    void SetMaxStepSize(G4double);
+
+    void UpdateGeometry();
+
   public:
-  
-     const
-     G4VPhysicalVolume* GetWorld()      {return fP_Box;};           
-                    
-     G4double           GetSize()       {return fBoxSize;};      
-     G4Material*        GetMaterial()   {return fMaterial;};
-     
-     void               PrintParameters();
-                       
-  private:
-  
-     G4VPhysicalVolume*    fP_Box;
-     G4LogicalVolume*      fL_Box;
-     
-     G4double              fBoxSize;
-     G4Material*           fMaterial;     
-     G4UniformMagField*    fMagField;
-     G4UserLimits*         fUserLimits;
-     
-     DetectorMessenger* fDetectorMessenger;
+    const G4VPhysicalVolume* GetWorld() { return fP_Box; };
+
+    G4double GetSize() { return fBoxSize; };
+    G4Material* GetMaterial() { return fMaterial; };
+
+    void PrintParameters();
 
   private:
-    
-     void               DefineMaterials();
-     G4VPhysicalVolume* ConstructVolumes();     
+    G4VPhysicalVolume* fP_Box;
+    G4LogicalVolume* fL_Box;
+
+    G4double fBoxSize;
+    G4Material* fMaterial;
+    G4UniformMagField* fMagField;
+    G4UserLimits* fUserLimits;
+
+    DetectorMessenger* fDetectorMessenger;
+
+  private:
+    void DefineMaterials();
+    G4VPhysicalVolume* ConstructVolumes();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-
 #endif
-

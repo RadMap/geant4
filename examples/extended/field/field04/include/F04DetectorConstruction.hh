@@ -23,19 +23,18 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field04/include/F04DetectorConstruction.hh
+/// \file F04DetectorConstruction.hh
 /// \brief Definition of the F04DetectorConstruction class
-//
 
 #ifndef F04DetectorConstruction_h
 #define F04DetectorConstruction_h 1
 
-#include "globals.hh"
-#include "G4Cache.hh"
+#include "CLHEP/Units/SystemOfUnits.h"
 
+#include "G4Cache.hh"
 #include "G4LogicalVolume.hh"
 #include "G4RotationMatrix.hh"
+#include "globals.hh"
 
 class G4Tubs;
 
@@ -53,14 +52,13 @@ class F04DetectorMessenger;
 class F04DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-
     F04DetectorConstruction();
-    virtual ~F04DetectorConstruction();
+    ~F04DetectorConstruction() override;
 
-    virtual G4VPhysicalVolume* Construct();
+    G4VPhysicalVolume* Construct() override;
     G4VPhysicalVolume* ConstructDetector();
 
-    virtual void ConstructSDandField();
+    void ConstructSDandField() override;
 
     // StringToRotationMatrix() converts a string "X90,Y45" into a
     // G4RotationMatrix.
@@ -74,123 +72,118 @@ class F04DetectorConstruction : public G4VUserDetectorConstruction
     static G4RotationMatrix StringToRotationMatrix(G4String rotation);
 
   public:
+    void SetWorldMaterial(G4String);
+    void SetWorldSizeZ(G4double);
+    void SetWorldSizeR(G4double);
 
-     void SetWorldMaterial(G4String);
-     void SetWorldSizeZ(G4double);
-     void SetWorldSizeR(G4double);
+    void SetCaptureMgntRadius(G4double);
+    void SetCaptureMgntLength(G4double);
+    void SetCaptureMgntB1(G4double);
+    void SetCaptureMgntB2(G4double);
 
-     void SetCaptureMgntRadius(G4double);
-     void SetCaptureMgntLength(G4double);
-     void SetCaptureMgntB1(G4double);
-     void SetCaptureMgntB2(G4double);
+    void SetTransferMgntRadius(G4double);
+    void SetTransferMgntLength(G4double);
+    void SetTransferMgntB(G4double);
+    void SetTransferMgntPos(G4double);
 
-     void SetTransferMgntRadius(G4double);
-     void SetTransferMgntLength(G4double);
-     void SetTransferMgntB(G4double);
-     void SetTransferMgntPos(G4double);
+    void SetTargetMaterial(G4String);
+    void SetTargetThickness(G4double);
+    void SetTargetRadius(G4double);
+    void SetTargetPos(G4double);
+    void SetTargetAngle(G4int);
 
-     void SetTargetMaterial (G4String);
-     void SetTargetThickness(G4double);
-     void SetTargetRadius(G4double);
-     void SetTargetPos(G4double);
-     void SetTargetAngle(G4int);
- 
-     void SetDegraderMaterial (G4String);
-     void SetDegraderThickness(G4double);
-     void SetDegraderRadius(G4double);
-     void SetDegraderPos(G4double);
- 
+    void SetDegraderMaterial(G4String);
+    void SetDegraderThickness(G4double);
+    void SetDegraderRadius(G4double);
+    void SetDegraderPos(G4double);
+
   public:
- 
-     G4Material* GetWorldMaterial()    {return fWorldMaterial;}
-     G4double GetWorldSizeZ()          {return fWorldSizeZ;}
-     G4double GetWorldSizeR()          {return fWorldSizeR;}
+    G4Material* GetWorldMaterial() { return fWorldMaterial; }
+    G4double GetWorldSizeZ() { return fWorldSizeZ; }
+    G4double GetWorldSizeR() { return fWorldSizeR; }
 
-     G4LogicalVolume* GetCaptureMgnt()     {return fLogicCaptureMgnt;}
-     G4double GetCaptureMgntRadius()       {return fCaptureMgntRadius;}
-     G4double GetCaptureMgntLength()       {return fCaptureMgntLength;}
-     G4double GetCaptureMgntB1()           {return fCaptureMgntB1;}
-     G4double GetCaptureMgntB2()           {return fCaptureMgntB2;}
-     G4ThreeVector GetCaptureMgntCenter()  {return fCaptureMgntCenter;}
+    G4LogicalVolume* GetCaptureMgnt() { return fLogicCaptureMgnt; }
+    G4double GetCaptureMgntRadius() { return fCaptureMgntRadius; }
+    G4double GetCaptureMgntLength() { return fCaptureMgntLength; }
+    G4double GetCaptureMgntB1() { return fCaptureMgntB1; }
+    G4double GetCaptureMgntB2() { return fCaptureMgntB2; }
+    G4ThreeVector GetCaptureMgntCenter() { return fCaptureMgntCenter; }
 
-     G4LogicalVolume* GetTransferMgnt()    {return fLogicTransferMgnt;}
-     G4double GetTransferMgntRadius()      {return fTransferMgntRadius;}
-     G4double GetTransferMgntLength()      {return fTransferMgntLength;}
-     G4double GetTransferMgntB()           {return fTransferMgntB;}
-     G4double GetTransferMgntPos()         {return fTransferMgntPos;}
-     G4ThreeVector GetTransferMgntCenter() {return fTransferMgntCenter;}
+    G4LogicalVolume* GetTransferMgnt() { return fLogicTransferMgnt; }
+    G4double GetTransferMgntRadius() { return fTransferMgntRadius; }
+    G4double GetTransferMgntLength() { return fTransferMgntLength; }
+    G4double GetTransferMgntB() { return fTransferMgntB; }
+    G4double GetTransferMgntPos() { return fTransferMgntPos; }
+    G4ThreeVector GetTransferMgntCenter() { return fTransferMgntCenter; }
 
-     G4Material* GetTargetMaterial()  {return fTargetMaterial;}
-     G4double    GetTargetRadius()    {return fTargetRadius;}
-     G4double    GetTargetThickness() {return fTargetThickness;}
-     G4double    GetTargetPos()       {return fTargetPos;}
-     G4int       GetTargetAngle()     {return fTargetAngle;}
+    G4Material* GetTargetMaterial() { return fTargetMaterial; }
+    G4double GetTargetRadius() { return fTargetRadius; }
+    G4double GetTargetThickness() { return fTargetThickness; }
+    G4double GetTargetPos() { return fTargetPos; }
+    G4int GetTargetAngle() { return fTargetAngle; }
 
-     G4Material* GetDegraderMaterial()  {return fDegraderMaterial;}
-     G4double    GetDegraderRadius()    {return fDegraderRadius;}
-     G4double    GetDegraderThickness() {return fDegraderThickness;}
-     G4double    GetDegraderPos()       {return fDegraderPos;}
-
-  private:
-
-     F04DetectorMessenger* fDetectorMessenger;  // pointer to the Messenger
-     G4Cache<F04GlobalField*> fFieldSetUp;
-
-     F04Materials* fMaterials;
-
-     G4Material* fVacuum;
- 
-     G4Tubs*            fSolidWorld;
-     G4LogicalVolume*   fLogicWorld;
-     G4VPhysicalVolume* fPhysiWorld;
-
-     G4Tubs*            fSolidTarget;
-     G4LogicalVolume*   fLogicTarget;
-     G4VPhysicalVolume* fPhysiTarget;
-
-     G4Tubs*            fSolidDegrader;
-     G4LogicalVolume*   fLogicDegrader;
-     G4VPhysicalVolume* fPhysiDegrader;
-
-     G4Tubs*            fSolidCaptureMgnt;
-     G4LogicalVolume*   fLogicCaptureMgnt;
-     G4VPhysicalVolume* fPhysiCaptureMgnt;
-
-     G4Tubs*            fSolidTransferMgnt;
-     G4LogicalVolume*   fLogicTransferMgnt;
-     G4VPhysicalVolume* fPhysiTransferMgnt;
-
-     G4Material*        fWorldMaterial;
-     G4double           fWorldSizeR;
-     G4double           fWorldSizeZ;
-
-     G4double           fCaptureMgntLength;
-     G4double           fCaptureMgntRadius;
-     G4double           fCaptureMgntB1;
-     G4double           fCaptureMgntB2;
-
-     G4double           fTransferMgntLength;
-     G4double           fTransferMgntRadius;
-     G4double           fTransferMgntB;
-     G4double           fTransferMgntPos;
-
-     G4Material*        fTargetMaterial;
-     G4double           fTargetThickness;
-     G4double           fTargetRadius;
-     G4double           fTargetPos;
-     G4int              fTargetAngle;
-
-     G4Material*        fDegraderMaterial;
-     G4double           fDegraderThickness;
-     G4double           fDegraderRadius;
-     G4double           fDegraderPos;
-
-     G4ThreeVector fCaptureMgntCenter, fTransferMgntCenter;
+    G4Material* GetDegraderMaterial() { return fDegraderMaterial; }
+    G4double GetDegraderRadius() { return fDegraderRadius; }
+    G4double GetDegraderThickness() { return fDegraderThickness; }
+    G4double GetDegraderPos() { return fDegraderPos; }
 
   private:
+    F04DetectorMessenger* fDetectorMessenger = nullptr;  // pointer to the Messenger
+    G4Cache<F04GlobalField*> fFieldSetUp = nullptr;
 
-     void DefineMaterials();
+    F04Materials* fMaterials = nullptr;
 
+    G4Material* fVacuum = nullptr;
+
+    G4Tubs* fSolidWorld = nullptr;
+    G4LogicalVolume* fLogicWorld = nullptr;
+    G4VPhysicalVolume* fPhysiWorld = nullptr;
+
+    G4Tubs* fSolidTarget = nullptr;
+    G4LogicalVolume* fLogicTarget = nullptr;
+    G4VPhysicalVolume* fPhysiTarget = nullptr;
+
+    G4Tubs* fSolidDegrader = nullptr;
+    G4LogicalVolume* fLogicDegrader = nullptr;
+    G4VPhysicalVolume* fPhysiDegrader = nullptr;
+
+    G4Tubs* fSolidCaptureMgnt = nullptr;
+    G4LogicalVolume* fLogicCaptureMgnt = nullptr;
+    G4VPhysicalVolume* fPhysiCaptureMgnt = nullptr;
+
+    G4Tubs* fSolidTransferMgnt = nullptr;
+    G4LogicalVolume* fLogicTransferMgnt = nullptr;
+    G4VPhysicalVolume* fPhysiTransferMgnt = nullptr;
+
+    G4Material* fWorldMaterial = nullptr;
+    G4double fWorldSizeR = 5. * CLHEP::m;
+    G4double fWorldSizeZ = 50. * CLHEP::m;
+
+    G4double fCaptureMgntLength = 4.0 * CLHEP::m;
+    G4double fCaptureMgntRadius = 0.6 * CLHEP::m;
+    G4double fCaptureMgntB1 = 0.;
+    G4double fCaptureMgntB2 = 0.;
+
+    G4double fTransferMgntLength = 15.0 * CLHEP::m;
+    G4double fTransferMgntRadius = 0.3 * CLHEP::m;
+    G4double fTransferMgntB = 0.;
+    G4double fTransferMgntPos = 0.;
+
+    G4Material* fTargetMaterial = nullptr;
+    G4double fTargetThickness = 16.0 * CLHEP::cm;
+    G4double fTargetRadius = 0.4 * CLHEP::cm;
+    G4double fTargetPos = 0.;
+    G4int fTargetAngle = 0.;
+
+    G4Material* fDegraderMaterial = nullptr;
+    G4double fDegraderThickness = 0.1 * CLHEP::cm;
+    G4double fDegraderRadius = 30.0 * CLHEP::cm;
+    G4double fDegraderPos = 0.;
+
+    G4ThreeVector fCaptureMgntCenter, fTransferMgntCenter;
+
+  private:
+    void DefineMaterials();
 };
 
 #endif

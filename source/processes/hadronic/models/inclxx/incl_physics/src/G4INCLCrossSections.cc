@@ -44,6 +44,7 @@
 #include "G4INCLCrossSectionsTruncatedMultiPions.hh"
 #include "G4INCLCrossSectionsMultiPionsAndResonances.hh"
 #include "G4INCLCrossSectionsStrangeness.hh"
+#include "G4INCLCrossSectionsAntiparticles.hh"
 // #include <cassert>
 
 namespace G4INCL {
@@ -100,6 +101,14 @@ namespace G4INCL {
 	G4double etaNToPiPiN(Particle const * const p1, Particle const * const p2) {
 		  return theCrossSections->etaNToPiPiN(p1,p2);
 	}
+    
+  G4double etaNToLK(Particle const * const p1, Particle const * const p2) {
+      return theCrossSections->etaNToLK(p1,p2);
+  }
+    
+  G4double etaNToSK(Particle const * const p1, Particle const * const p2) {
+      return theCrossSections->etaNToSK(p1,p2);
+  }
 	  
 	G4double omegaNToPiN(Particle const * const p1, Particle const * const p2) {
 		  return theCrossSections->omegaNToPiN(p1,p2);
@@ -108,6 +117,14 @@ namespace G4INCL {
 	G4double omegaNToPiPiN(Particle const * const p1, Particle const * const p2) {
 		  return theCrossSections->omegaNToPiPiN(p1,p2);
 	}
+    
+  G4double omegaNToLK(Particle const * const p1, Particle const * const p2) {
+      return theCrossSections->omegaNToLK(p1,p2);
+  }
+    
+  G4double omegaNToSK(Particle const * const p1, Particle const * const p2) {
+      return theCrossSections->omegaNToSK(p1,p2);
+  }
 	  
 	G4double etaPrimeNToPiN(Particle const * const p1, Particle const * const p2) {
 		  return theCrossSections->etaPrimeNToPiN(p1,p2);
@@ -224,7 +241,7 @@ namespace G4INCL {
       return theCrossSections->p_pimToSzKz(p1,p2);
     }
     
-	G4double p_pizToSzKp(Particle const * const p1, Particle const * const p2) {
+	  G4double p_pizToSzKp(Particle const * const p1, Particle const * const p2) {
       return theCrossSections->p_pizToSzKp(p1,p2);
     }
 	
@@ -287,7 +304,31 @@ namespace G4INCL {
     G4double NKbToLpi(Particle const * const p1, Particle const * const p2) {
       return theCrossSections->NKbToLpi(p1,p2);
     }
-
+       
+    G4double NNbarElastic(Particle const* const p1, Particle const* const p2){
+      return theCrossSections->NNbarElastic(p1,p2);
+    }
+    G4double NNbarCEX(Particle const* const p1, Particle const* const p2){
+      return theCrossSections->NNbarCEX(p1,p2);
+    }
+    G4double NNbarToLLbar(Particle const* const p1, Particle const* const p2){
+      return theCrossSections->NNbarToLLbar(p1,p2);
+    }
+      
+    G4double NNbarToNNbarpi(Particle const* const p1, Particle const* const p2){
+      return theCrossSections->NNbarToNNbarpi(p1,p2);
+    }
+    G4double NNbarToNNbar2pi(Particle const* const p1, Particle const* const p2){
+      return theCrossSections->NNbarToNNbar2pi(p1,p2);
+    }
+    G4double NNbarToNNbar3pi(Particle const* const p1, Particle const* const p2){
+      return theCrossSections->NNbarToNNbar3pi(p1,p2);
+    }
+     
+    G4double NNbarToAnnihilation(Particle const* const p1, Particle const* const p2){
+      return theCrossSections->NNbarToAnnihilation(p1,p2);
+    }
+    
     G4double NKbToS2pi(Particle const * const p1, Particle const * const p2) {
       return theCrossSections->NKbToS2pi(p1,p2);
     }
@@ -368,6 +409,64 @@ namespace G4INCL {
        * cross section.
        */
       const G4double largestSigma = std::max(sigmapp, std::max(sigmapn, sigmann));
+      const G4double interactionDistance = std::sqrt(largestSigma/Math::tenPi);
+
+      return interactionDistance;
+    }
+    G4double interactionDistanceNbarN(const ParticleSpecies &aSpecies, const G4double kineticEnergy) {
+//      assert(aSpecies.theType==antiComposite);
+//      assert(aSpecies.theA<0);
+      ThreeVector nullVector;
+      ThreeVector unitVector(0.,0.,1.);
+
+      const G4double kineticEnergyPerNucleon = kineticEnergy / (-aSpecies.theA);
+
+      Particle antiprotonProjectile(antiProton, unitVector, nullVector);
+      antiprotonProjectile.setEnergy(antiprotonProjectile.getMass()+kineticEnergyPerNucleon);
+      antiprotonProjectile.adjustMomentumFromEnergy();
+      Particle antineutronProjectile(antiNeutron, unitVector, nullVector);
+      antineutronProjectile.setEnergy(antineutronProjectile.getMass()+kineticEnergyPerNucleon);
+      antineutronProjectile.adjustMomentumFromEnergy();
+
+      Particle protonTarget(Proton, nullVector, nullVector);
+      Particle neutronTarget(Neutron, nullVector, nullVector);
+      const double sigmapbarp = total(&antiprotonProjectile, &protonTarget);
+      const double sigmapbarn = total(&antiprotonProjectile, &neutronTarget);
+      const double sigmanbarn = total(&antineutronProjectile, &neutronTarget);
+      const double sigmanbarp = total(&antineutronProjectile, &protonTarget);
+      /* We compute the interaction distance from the largest of the NN cross
+       * sections. Note that this is different from INCL4.6, which just takes the
+       * average of the four, and will in general lead to a different geometrical
+       * cross section.
+       */
+      const G4double largestSigma = std::max(std::max(sigmapbarp,sigmapbarn), std::max(sigmanbarn,sigmanbarp));
+      const G4double interactionDistance = std::sqrt(largestSigma/Math::tenPi);
+
+      return interactionDistance;
+    }
+
+    G4double interactionDistancenbarN(const ParticleSpecies &aSpecies, const G4double kineticEnergy) {
+//      assert(aSpecies.theType==antiNeutron);
+//      assert(aSpecies.theA<0);
+      ThreeVector nullVector;
+      ThreeVector unitVector(0.,0.,1.);
+
+      const G4double kineticEnergyPerNucleon = kineticEnergy / (- aSpecies.theA);
+
+      Particle antineutronProjectile(antiNeutron, unitVector, nullVector);
+      antineutronProjectile.setEnergy(antineutronProjectile.getMass()+kineticEnergyPerNucleon);
+      antineutronProjectile.adjustMomentumFromEnergy();
+
+      Particle protonTarget(Proton, nullVector, nullVector);
+      Particle neutronTarget(Neutron, nullVector, nullVector);
+      const G4double sigmanbarp = total(&antineutronProjectile, &protonTarget);
+      const G4double sigmanbarn = total(&antineutronProjectile, &neutronTarget);
+      /* We compute the interaction distance from the largest of the NN cross
+       * sections. Note that this is different from INCL4.6, which just takes the
+       * average of the four, and will in general lead to a different geometrical
+       * cross section.
+       */
+      const G4double largestSigma = std::max(sigmanbarp, sigmanbarn);
       const G4double interactionDistance = std::sqrt(largestSigma/Math::tenPi);
 
       return interactionDistance;
@@ -483,6 +582,8 @@ namespace G4INCL {
 			  setCrossSections(new CrossSectionsMultiPionsAndResonances);
 			else if(crossSections == StrangenessCrossSections)
 			  setCrossSections(new CrossSectionsStrangeness);
+      else if(crossSections == AntiparticlesCrossSections)
+        setCrossSections(new CrossSectionsAntiparticles);
 	  }
   }
 }

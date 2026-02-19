@@ -23,11 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
 // Hadronic Process: Nuclear De-excitations
 // by V. Lara
-
 
 #ifndef G4StatMF_h
 #define G4StatMF_h 1
@@ -39,62 +36,35 @@
 #include "G4StatMFMacroCanonical.hh"
 #include "G4StatMFChannel.hh"
 #include "G4Fragment.hh"
-#include "G4ParticleTable.hh"
-#include "G4IonTable.hh"
-#include "Randomize.hh"
 
 class G4StatMF : public G4VMultiFragmentation
 {
 public:
-    // Default constructor
-    G4StatMF();
-    // Destructor
-    ~G4StatMF();
 
-private:
-    // Copy constructor	
-    G4StatMF(const G4StatMF & right);
+  G4StatMF();
+  ~G4StatMF() override;
 
-    // Operators
-    G4StatMF & operator=(const G4StatMF & right);
-    G4bool operator==(const G4StatMF & right);
-    G4bool operator!=(const G4StatMF & right);
+  G4FragmentVector* BreakItUp(const G4Fragment &theNucleus) override;
 
-public:
-
-    G4FragmentVector * BreakItUp(const G4Fragment &theNucleus);
+  G4StatMF(const G4StatMF & right) = delete;
+  G4StatMF & operator=(const G4StatMF & right) = delete;
+  G4bool operator==(const G4StatMF & right) = delete;
+  G4bool operator!=(const G4StatMF & right) = delete;
 
 private:
 
-    // This finds temperature of breaking channel.
-    G4bool FindTemperatureOfBreakingChannel(const G4Fragment & theFragment, 
-					    const G4StatMFChannel * aChannel,
-					    G4double & Temperature);
+  // This finds temperature of breaking channel.
+  G4bool FindTemperatureOfBreakingChannel(const G4Fragment & theFragment, 
+					  const G4StatMFChannel * aChannel,
+					  G4double & Temperature);
 
-    // 
-    G4double CalcEnergy(G4int A, G4int Z, 
-			const G4StatMFChannel * aChannel,
-			G4double T);
+  G4double CalcEnergy(G4int A, G4int Z, const G4StatMFChannel* aChannel,
+		      G4double T);
 
+  G4StatMFMicroCanonical* theMicrocanonicalEnsemble{nullptr};
+  G4StatMFMacroCanonical* theMacrocanonicalEnsemble{nullptr};
 
-private:
-
-    G4VStatMFEnsemble * _theEnsemble;
-
-
-
+  G4VStatMFEnsemble* fEnsemble{nullptr};
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-

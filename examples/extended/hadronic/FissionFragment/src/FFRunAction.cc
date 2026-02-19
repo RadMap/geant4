@@ -23,6 +23,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+
 // -------------------------------------------------------------
 //  =============== Begin Documentation Comments ===============
 //!
@@ -34,46 +35,37 @@
 //!
 //  ================ End Documentation Comments ================
 //
-//  Modified: 
+//  Modified:
 //
 // -------------------------------------------------------------
 
-#include "globals.hh"
+#include "FFRunAction.hh"
 
 #include "G4RunManager.hh"
 #include "G4UserRunAction.hh"
-
-#include "FFRunAction.hh"
-
+#include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-FFRunAction::
-FFRunAction()
-:   G4UserRunAction()
+FFRunAction::FFRunAction() : G4UserRunAction()
 {
-    // Nothing here
+  // Nothing here
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void FFRunAction::
-BeginOfRunAction(const G4Run*)
+void FFRunAction::BeginOfRunAction(const G4Run*)
 {
-    G4RunManager::GetRunManager()->SetRandomNumberStore(false);
+  G4RunManager::GetRunManager()->SetRandomNumberStore(false);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void FFRunAction::
-EndOfRunAction(const G4Run*)
+void FFRunAction::EndOfRunAction(const G4Run*)
 {
-    // TODO Check location of fission fragments here
-    // TODO Implement detector tally here
+  // TODO Check location of fission fragments here
+  // TODO Implement detector tally here
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-FFRunAction::
-~FFRunAction()
+FFRunAction::~FFRunAction()
 {
-    // Nothing here
+  // Nothing here
 }
-
-

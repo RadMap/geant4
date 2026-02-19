@@ -20,10 +20,6 @@
 #ifndef HEP_TWOVECTOR_H
 #define HEP_TWOVECTOR_H
 
-#ifdef GNUPRAGMA
-#pragma interface
-#endif
-
 #include <iostream>
 
 #include "CLHEP/Vector/ThreeVector.h" 
@@ -194,7 +190,7 @@ public:
 				        const Hep2Vector & b);
   // v1-v2
 
-  enum { ZMpvToleranceTicks = 100 };
+  static const int ZMpvToleranceTicks = 100;
 
 private:
 

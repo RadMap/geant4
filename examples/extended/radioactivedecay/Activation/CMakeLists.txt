@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------------
 # Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.27)
 project(Activation)
 
 #----------------------------------------------------------------------------
@@ -47,6 +47,7 @@ set(Activation_SCRIPTS
     envHadronic.sh
     Activation.in
     plotHisto.C
+    run.mac
     vis.mac
   )
 

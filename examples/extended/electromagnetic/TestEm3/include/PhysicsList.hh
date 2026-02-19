@@ -25,10 +25,6 @@
 //
 /// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysicsList_h
 #define PhysicsList_h 1
@@ -41,30 +37,27 @@ class PhysicsListMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
-public:
-  PhysicsList();
- ~PhysicsList();
+  public:
+    PhysicsList();
+    ~PhysicsList() override;
 
-  virtual void ConstructParticle();
-        
-  void AddPhysicsList(const G4String& name);
-    
-  virtual void ConstructProcess();    
-  void AddStepMax();
-    
-private:
+    void ConstructParticle() override;
+    void ConstructProcess() override;
+    void AddPhysicsList(const G4String& name);
 
-  PhysicsListMessenger* fMessenger; 
+    void AddStepMax();
 
-  G4String fEmName;
-  G4VPhysicsConstructor*  fEmPhysicsList;
-  G4VPhysicsConstructor*  fDecayPhysics;
-  G4VPhysicsConstructor*  fHadPhysicsList;
+  private:
+    PhysicsListMessenger* fMessenger = nullptr;
+
+    G4String fEmName = " ";
+    G4VPhysicsConstructor* fEmPhysicsList = nullptr;
+    G4VPhysicsConstructor* fDecayPhysics = nullptr;
+    G4VPhysicsConstructor* fHadPhysicsList = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

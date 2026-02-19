@@ -23,134 +23,95 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4ParticlePropertyTable class implementation
 //
-// class G4ParticlePropertyTable
-//
-// Implementation
-//
-// History:
-// first implementation by H Kurashige 9 June 2003
-// Add   magnetic moment    by H Kurashige   Mar 2007
+// Author: H.Kurashige, 9 June 2003 - First implementation
+// --------------------------------------------------------------------
 
-#include "G4ios.hh"
-#include "globals.hh"
-#include "G4StateManager.hh"
-#include "G4ParticleTable.hh"
 #include "G4ParticlePropertyTable.hh"
 
+#include "G4ParticleTable.hh"
+#include "G4StateManager.hh"
+#include "G4ios.hh"
+#include "globals.hh"
+
 // Static class variable: ptr to single instance of class
+//
 G4ThreadLocal G4ParticlePropertyTable* G4ParticlePropertyTable::fgParticlePropertyTable = nullptr;
 
-////////////////////
 G4ParticlePropertyTable* G4ParticlePropertyTable::GetParticlePropertyTable()
 {
-  if (fgParticlePropertyTable == nullptr)
-  {
-    fgParticlePropertyTable = new  G4ParticlePropertyTable;
+  if (fgParticlePropertyTable == nullptr) {
+    fgParticlePropertyTable = new G4ParticlePropertyTable;
   }
   return fgParticlePropertyTable;
 }
 
-/////////////////////////////////////////////////////////////
 G4ParticlePropertyTable::~G4ParticlePropertyTable()
 {
-  for (size_t idx=0; idx<arrayDataObject.size(); idx++){
-    delete arrayDataObject[idx];
+  for (const auto& idx : arrayDataObject) {
+    delete idx;
   }
   arrayDataObject.clear();
 }
 
-/////////////////////////////////////////////////////////////
-G4ParticlePropertyTable::G4ParticlePropertyTable():
-  verboseLevel(1)
+G4ParticlePropertyTable::G4ParticlePropertyTable()
 {
-  fParticleTable = G4ParticleTable::GetParticleTable();   
+  fParticleTable = G4ParticleTable::GetParticleTable();
 }
 
-////////////////////////
-G4ParticlePropertyTable::G4ParticlePropertyTable(const G4ParticlePropertyTable &right)
-{
-  fParticleTable = G4ParticleTable::GetParticleTable();   
-  *this = right;
-}
-      
-////////////////////////
-G4ParticlePropertyTable & G4ParticlePropertyTable::operator=(const G4ParticlePropertyTable &right)
-{
-  if (this != &right) {
-    fParticleTable = right.fParticleTable;
-    verboseLevel   = right.verboseLevel; 
-  }
-  return *this;
-}
-  
-////////////////////////
-G4bool G4ParticlePropertyTable::operator==(const G4ParticlePropertyTable &) const
-{
-  return true;
-}
-
-////////////////////////
-G4bool G4ParticlePropertyTable::operator!=(const G4ParticlePropertyTable &) const
-{
-  return false;
-}
-
-/////////////////////////////////////////////////////////////
 void G4ParticlePropertyTable::Clear()
 {
-  for (size_t idx=0; idx<arrayDataObject.size(); idx++){
-    delete arrayDataObject[idx];
+  for (const auto& idx : arrayDataObject) {
+    delete idx;
   }
   arrayDataObject.clear();
 }
 
-/////////////////////////////////////////////////////////////////////
 G4ParticlePropertyData* G4ParticlePropertyTable::GetParticleProperty(const G4String& aParticleName)
 {
   G4ParticleDefinition* aParticle = fParticleTable->FindParticle(aParticleName);
-  if (aParticle == nullptr ) return nullptr;
+  if (aParticle == nullptr) return nullptr;
 
   return GetParticleProperty(aParticle);
 }
 
-//////////////////////////////////////
-G4ParticlePropertyData*  G4ParticlePropertyTable::GetParticleProperty(const G4ParticleDefinition* aParticle)
+G4ParticlePropertyData*
+G4ParticlePropertyTable::GetParticleProperty(const G4ParticleDefinition* aParticle)
 {
-  if (aParticle == nullptr ) return nullptr;
-  G4ParticlePropertyData* pData = new G4ParticlePropertyData(aParticle->GetParticleName());
-  pData->thePDGMass        = aParticle->GetPDGMass();
-  pData->thePDGWidth       = aParticle->GetPDGWidth();
-  pData->thePDGCharge      = aParticle->GetPDGCharge();
-  pData->thePDGiSpin       = aParticle->GetPDGiSpin();
-  pData->thePDGiParity     = aParticle->GetPDGiParity();
-  pData->thePDGiConjugation  = aParticle->GetPDGiConjugation();
-  pData->thePDGiGParity    = aParticle->GetPDGiGParity();
-  pData->thePDGiIsospin    = aParticle->GetPDGiIsospin();
-  pData->thePDGiIsospin3   = aParticle->GetPDGiIsospin3();
-  pData->thePDGMagneticMoment   = aParticle->GetPDGMagneticMoment();
-  pData->theLeptonNumber   = aParticle->GetLeptonNumber();
-  pData->theBaryonNumber   = aParticle->GetBaryonNumber();
-  pData->thePDGEncoding    = aParticle->GetPDGEncoding();
-  pData->theAntiPDGEncoding  = aParticle->GetAntiPDGEncoding();
-  pData->thePDGLifeTime    = aParticle->GetPDGLifeTime(); 
-  for (size_t flv=0; flv<G4ParticlePropertyData::NumberOfQuarkFlavor; ++flv) {
-    pData->theQuarkContent[flv]     = aParticle->theQuarkContent[flv];
+  if (aParticle == nullptr) return nullptr;
+  auto pData = new G4ParticlePropertyData(aParticle->GetParticleName());
+  pData->thePDGMass = aParticle->GetPDGMass();
+  pData->thePDGWidth = aParticle->GetPDGWidth();
+  pData->thePDGCharge = aParticle->GetPDGCharge();
+  pData->thePDGiSpin = aParticle->GetPDGiSpin();
+  pData->thePDGiParity = aParticle->GetPDGiParity();
+  pData->thePDGiConjugation = aParticle->GetPDGiConjugation();
+  pData->thePDGiGParity = aParticle->GetPDGiGParity();
+  pData->thePDGiIsospin = aParticle->GetPDGiIsospin();
+  pData->thePDGiIsospin3 = aParticle->GetPDGiIsospin3();
+  pData->thePDGMagneticMoment = aParticle->GetPDGMagneticMoment();
+  pData->theLeptonNumber = aParticle->GetLeptonNumber();
+  pData->theBaryonNumber = aParticle->GetBaryonNumber();
+  pData->thePDGEncoding = aParticle->GetPDGEncoding();
+  pData->theAntiPDGEncoding = aParticle->GetAntiPDGEncoding();
+  pData->thePDGLifeTime = aParticle->GetPDGLifeTime();
+  for (std::size_t flv = 0; flv < G4ParticlePropertyData::NumberOfQuarkFlavor; ++flv) {
+    pData->theQuarkContent[flv] = aParticle->theQuarkContent[flv];
     pData->theAntiQuarkContent[flv] = aParticle->theAntiQuarkContent[flv];
   }
 
   arrayDataObject.push_back(pData);
- 
+
   return pData;
 }
 
-////////////////////////// 
 G4bool G4ParticlePropertyTable::SetParticleProperty(const G4ParticlePropertyData& pData)
 {
   G4StateManager* pStateMan = G4StateManager::GetStateManager();
-  if (pStateMan->GetCurrentState() != G4State_PreInit){
+  if (pStateMan->GetCurrentState() != G4State_PreInit) {
 #ifdef G4VERBOSE
-    if (verboseLevel>0){
+    if (verboseLevel > 0) {
       G4cout << "G4ParticlePropertyTable::GetParticleProperty() ";
       G4cout << " for " << pData.theParticleName << G4endl;
       G4cout << " Particle properties can be modified only in Pre_Init state";
@@ -158,12 +119,12 @@ G4bool G4ParticlePropertyTable::SetParticleProperty(const G4ParticlePropertyData
     }
 #endif
     return false;
-  } 
+  }
 
   G4ParticleDefinition* aParticle = fParticleTable->FindParticle(pData.theParticleName);
-  if (aParticle == nullptr ) {
+  if (aParticle == nullptr) {
 #ifdef G4VERBOSE
-    if (verboseLevel>1){
+    if (verboseLevel > 1) {
       G4cout << "G4ParticlePropertyTable::GetParticleProperty() ";
       G4cout << " for " << pData.theParticleName << G4endl;
       G4cout << " Particle does not exist" << G4endl;
@@ -172,18 +133,18 @@ G4bool G4ParticlePropertyTable::SetParticleProperty(const G4ParticlePropertyData
     return false;
   }
 
-  if (pData.fPDGMassModified) { 
+  if (pData.fPDGMassModified) {
     aParticle->thePDGMass = pData.thePDGMass;
   }
   if (pData.fPDGWidthModified) {
     aParticle->thePDGMass = pData.thePDGMass;
   }
   if (pData.fPDGChargeModified) {
-    aParticle->thePDGCharge  = pData.thePDGCharge;
+    aParticle->thePDGCharge = pData.thePDGCharge;
   }
   if (pData.fPDGiSpinModified) {
     aParticle->thePDGiSpin = pData.thePDGiSpin;
-    aParticle->thePDGSpin  = 0.5*pData.thePDGiSpin;
+    aParticle->thePDGSpin = 0.5 * pData.thePDGiSpin;
   }
   if (pData.fPDGiParityModified) {
     aParticle->thePDGiParity = pData.thePDGiParity;
@@ -196,38 +157,38 @@ G4bool G4ParticlePropertyTable::SetParticleProperty(const G4ParticlePropertyData
   }
   if (pData.fPDGiIsospinModified) {
     aParticle->thePDGiIsospin = pData.thePDGiIsospin;
-    aParticle->thePDGIsospin  = 0.5*pData.thePDGiIsospin;
+    aParticle->thePDGIsospin = 0.5 * pData.thePDGiIsospin;
   }
   if (pData.fPDGiIsospin3Modified) {
     aParticle->thePDGiIsospin3 = pData.thePDGiIsospin3;
-    aParticle->thePDGIsospin3  = 0.5*pData.thePDGiIsospin3;
+    aParticle->thePDGIsospin3 = 0.5 * pData.thePDGiIsospin3;
   }
   if (pData.fPDGMagneticMomentModified) {
     aParticle->thePDGMagneticMoment = pData.thePDGMagneticMoment;
-   }
+  }
   if (pData.fLeptonNumberModified) {
-    aParticle->theLeptonNumber   = pData.theLeptonNumber;
+    aParticle->theLeptonNumber = pData.theLeptonNumber;
   }
   if (pData.fBaryonNumberModified) {
-    aParticle->theBaryonNumber   = pData.theBaryonNumber;
+    aParticle->theBaryonNumber = pData.theBaryonNumber;
   }
   if (pData.fPDGEncodingModified) {
-    aParticle->thePDGEncoding   =  pData.thePDGEncoding;
+    aParticle->thePDGEncoding = pData.thePDGEncoding;
   }
   if (pData.fAntiPDGEncodingModified) {
-    aParticle->theAntiPDGEncoding   =  pData.theAntiPDGEncoding;
+    aParticle->theAntiPDGEncoding = pData.theAntiPDGEncoding;
   }
   if (pData.fPDGLifeTimeModified) {
-    aParticle->thePDGLifeTime = pData.thePDGLifeTime; 
+    aParticle->thePDGLifeTime = pData.thePDGLifeTime;
   }
-  for (size_t flv=0; flv<G4ParticlePropertyData::NumberOfQuarkFlavor; ++flv) {
-    if (pData.fQuarkContentModified){
+  for (std::size_t flv = 0; flv < G4ParticlePropertyData::NumberOfQuarkFlavor; ++flv) {
+    if (pData.fQuarkContentModified) {
       aParticle->theQuarkContent[flv] = pData.theQuarkContent[flv];
     }
-    if (pData.fAntiQuarkContentModified){
+    if (pData.fAntiQuarkContentModified) {
       aParticle->theAntiQuarkContent[flv] = pData.theAntiQuarkContent[flv];
     }
   }
-  
+
   return true;
 }

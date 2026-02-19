@@ -29,14 +29,14 @@
 // Class G4OpenGLStoredQtViewer : a class derived from G4OpenGLQtViewer and
 //                                G4OpenGLStoredViewer.
 
-#ifdef G4VIS_BUILD_OPENGLQT_DRIVER
-
 #include "G4OpenGLStoredQtViewer.hh"
 
 #include "G4OpenGLStoredSceneHandler.hh"
 #include "G4ios.hh"
-#ifdef G4MULTITHREADED
 #include "G4Threading.hh"
+#include "G4UIQt.hh"
+#if 0x060000 <= QT_VERSION
+#include "G4Qt.hh"
 #endif
 
 #include <qapplication.h>
@@ -49,47 +49,56 @@ G4OpenGLStoredQtViewer::G4OpenGLStoredQtViewer
   G4OpenGLViewer (sceneHandler),
   G4OpenGLQtViewer (sceneHandler),
   G4OpenGLStoredViewer (sceneHandler),             // FIXME : gerer le pb du parent !
-  QGLWidget()
+  G4QGLWidgetType()
 {
+  if (fViewId < 0) return;  // In case error in base class instantiation.
+
+#if QT_VERSION < 0x060000
   fQGLWidgetInitialiseCompleted = false;
 
     // Indicates that the widget has no background, i.e. when the widget receives paint events, the background is not automatically repainted. Note: Unlike WA_OpaquePaintEvent, newly exposed areas are never filled with the background (e.g., after showing a window for the first time the user can see "through" it until the application processes the paint events). This flag is set or cleared by the widget's author.
-  QGLWidget::setAttribute (Qt::WA_NoSystemBackground);
+  G4QGLWidgetType::setAttribute (Qt::WA_NoSystemBackground);
 
   setFocusPolicy(Qt::StrongFocus); // enable keybord events
   fHasToRepaint = false;
   fPaintEventLock = false;
   fUpdateGLLock = false;
+#else
+  // Indicates that the widget has no background, i.e. when the widget receives paint events, the background is not automatically repainted. Note: Unlike WA_OpaquePaintEvent, newly exposed areas are never filled with the background (e.g., after showing a window for the first time the user can see "through" it until the application processes the paint events). This flag is set or cleared by the widget's author.
+  G4QGLWidgetType::setAttribute (Qt::WA_NoSystemBackground);
 
-  if (fViewId < 0) return;  // In case error in base class instantiation.
+  setFocusPolicy(Qt::StrongFocus); // enable keybord events
+#endif
 }
 
-G4OpenGLStoredQtViewer::~G4OpenGLStoredQtViewer() {
-  makeCurrent();
-  // this is connect to the Dialog for deleting it properly
-  // when close event.
-  //   ((QDialog*)window())->reject();
-}
+G4OpenGLStoredQtViewer::~G4OpenGLStoredQtViewer() {}
 
 void G4OpenGLStoredQtViewer::Initialise() {
-  makeCurrent();
+#if QT_VERSION < 0x060000
 
   fQGLWidgetInitialiseCompleted = false;
   CreateMainWindow (this,QString(GetName()));
 
+  makeCurrent();
   glDrawBuffer (GL_BACK);
 
    // set the good tab active
-  if (QGLWidget::parentWidget()) {
-    QTabWidget *parentTab = dynamic_cast<QTabWidget*> (QGLWidget::parentWidget()->parent()) ;
+  if (G4QGLWidgetType::parentWidget()) {
+    auto *parentTab = dynamic_cast<QTabWidget*> (G4QGLWidgetType::parentWidget()->parent()) ;
     if (parentTab) {
       parentTab->setCurrentIndex(parentTab->count()-1);
     }
   }
   
   fQGLWidgetInitialiseCompleted = true;
+#else
+  CreateMainWindow (this,QString(GetName()));
+  // Set jpg as default export format for Qt viewer
+  setExportImageFormat("jpg");
+#endif
 }
 
+#if QT_VERSION < 0x060000
 void G4OpenGLStoredQtViewer::initializeGL () {
 
   InitializeGLView ();
@@ -103,7 +112,10 @@ void G4OpenGLStoredQtViewer::initializeGL () {
    // Set the component visible
   //   setVisible(true) ;
 
+  // Set jpg as default export format for Qt viewer
+  setExportImageFormat("jpg");
 }
+#endif
 
 G4bool G4OpenGLStoredQtViewer::CompareForKernelVisit(G4ViewParameters& lastVP)
 {
@@ -121,21 +133,32 @@ G4bool G4OpenGLStoredQtViewer::CompareForKernelVisit(G4ViewParameters& lastVP)
       (lastVP.IsCullingCovered ()   != fVP.IsCullingCovered ())   ||
       (lastVP.GetCBDAlgorithmNumber() !=
        fVP.GetCBDAlgorithmNumber())                               ||
+      // Note: Section and Cutaway can reveal back-facing faces. If
+      // backface culling is implemented, the image can look strange because
+      // the back-facing faces are not there. For the moment, we have disabled
+      // (commented out) backface culling (it seems not to affect performance -
+      // in fact, performance seems to improve), so there is no problem.
       (lastVP.IsSection ()          != fVP.IsSection ())          ||
-      // Section (DCUT) implemented locally.  But still need to visit
-      // kernel if status changes so that back plane culling can be
-      // switched.
-      (lastVP.IsCutaway ()          != fVP.IsCutaway ())          ||
-      // Cutaways implemented locally.  But still need to visit kernel
-      // if status changes so that back plane culling can be switched.
+      // Section (DCUT) is NOT implemented locally so we need to visit the kernel.
+      // (lastVP.IsCutaway ()          != fVP.IsCutaway ())          ||
+      // Cutaways are implemented locally so we do not need to visit the kernel.
       (lastVP.IsExplode ()          != fVP.IsExplode ())          ||
       (lastVP.GetNoOfSides ()       != fVP.GetNoOfSides ())       ||
+      (lastVP.GetGlobalMarkerScale()    != fVP.GetGlobalMarkerScale())    ||
+      (lastVP.GetGlobalLineWidthScale() != fVP.GetGlobalLineWidthScale()) ||
+      (lastVP.IsMarkerNotHidden ()  != fVP.IsMarkerNotHidden ())  ||
       (lastVP.GetDefaultVisAttributes()->GetColour() !=
        fVP.GetDefaultVisAttributes()->GetColour())                ||
       (lastVP.GetDefaultTextVisAttributes()->GetColour() !=
        fVP.GetDefaultTextVisAttributes()->GetColour())            ||
       (lastVP.GetBackgroundColour ()!= fVP.GetBackgroundColour ())||
-      (lastVP.IsPicking ()          != fVP.IsPicking ()))
+      (lastVP.IsPicking ()          != fVP.IsPicking ())          ||
+      (lastVP.IsSpecialMeshRendering() != fVP.IsSpecialMeshRendering()) ||
+      (lastVP.GetSpecialMeshRenderingOption() != fVP.GetSpecialMeshRenderingOption()) ||
+      (lastVP.GetTransparencyByDepth() != fVP.GetTransparencyByDepth()) ||
+      (lastVP.IsDotsSmooth()        != fVP.IsDotsSmooth())        ||
+      (lastVP.GetDotsSize()         != fVP.GetDotsSize())
+      )
     return true;
 
   // Don't check VisAttributesModifiers if this comparison has been
@@ -164,6 +187,7 @@ G4bool G4OpenGLStoredQtViewer::CompareForKernelVisit(G4ViewParameters& lastVP)
   /**************************************************************
    If cutaways are implemented locally, comment this out.
    if (lastVP.IsCutaway ()) {
+   if (vp.GetCutawayMode() != fVP.GetCutawayMode()) return true;
    if (lastVP.GetCutawayPlanes ().size () !=
    fVP.GetCutawayPlanes ().size ()) return true;
    for (size_t i = 0; i < lastVP.GetCutawayPlanes().size(); ++i)
@@ -181,12 +205,20 @@ G4bool G4OpenGLStoredQtViewer::CompareForKernelVisit(G4ViewParameters& lastVP)
       (lastVP.GetExplodeFactor () != fVP.GetExplodeFactor ()))
     return true;
 
+  if (lastVP.IsSpecialMeshRendering() &&
+      (lastVP.GetSpecialMeshVolumes() != fVP.GetSpecialMeshVolumes()))
+    return true;
+
+  if (lastVP.GetTransparencyByDepth() > 0. &&
+      lastVP.GetTransparencyByDepthOption() != fVP.GetTransparencyByDepthOption())
+    return true;
+
   return false;
 }
 
 G4bool G4OpenGLStoredQtViewer::POSelected(size_t POListIndex)
 {
-  return isTouchableVisible(POListIndex);
+  return isTouchableVisible((int)POListIndex);
 }
 
 G4bool G4OpenGLStoredQtViewer::TOSelected(size_t)
@@ -195,12 +227,30 @@ G4bool G4OpenGLStoredQtViewer::TOSelected(size_t)
 }
 
 void G4OpenGLStoredQtViewer::DrawView () {
+#if QT_VERSION < 0x060000
+#else
+  if(IsGettingPickInfos()) {
+    paintGL();
+    return;
+  }
+#endif
+#if (QT_VERSION < 0x060000) || !defined(G4MULTITHREADED)
   updateQWidget();
+#else
+  if (G4Threading::IsMasterThread()) {
+    updateQWidget();
+  } else {
+    update(); //G.Barrand: updateQWidget() induces a crash on run beamOn.
+  }
+#endif
 }
 
 void G4OpenGLStoredQtViewer::ComputeView () {
 
+#if QT_VERSION < 0x060000
   makeCurrent();
+#endif
+
   G4ViewParameters::DrawingStyle dstyle = GetViewParameters().GetDrawingStyle();
 
   //Make sure current viewer is attached and clean...
@@ -212,6 +262,7 @@ void G4OpenGLStoredQtViewer::ComputeView () {
   if (!fNeedKernelVisit) {
     KernelVisitDecision ();
   }
+  fLastVP = fVP;
   G4bool kernelVisitWasNeeded = fNeedKernelVisit; // Keep (ProcessView resets).
   ProcessView ();
    
@@ -257,7 +308,9 @@ void G4OpenGLStoredQtViewer::ComputeView () {
     savePPMToTemp();
   }
 
+#if QT_VERSION < 0x060000
   fHasToRepaint = true;
+#endif
 }
 
 
@@ -270,8 +323,12 @@ void G4OpenGLStoredQtViewer::resizeGL(
 {  
   // Set new size, it will be update when next Repaint()->SetView() called
   if ((aWidth > 0) && (aHeight > 0)) {
+#if QT_VERSION < 0x060000
     ResizeWindow(aWidth,aHeight);
     fHasToRepaint = sizeHasChanged();
+#else
+    ResizeWindow(devicePixelRatio()*aWidth,devicePixelRatio()*aHeight);
+#endif
   }
 }
 
@@ -283,8 +340,13 @@ void G4OpenGLStoredQtViewer::resizeGL(
  
 void G4OpenGLStoredQtViewer::paintGL()
 {
+#if QT_VERSION < 0x060000
   updateToolbarAndMouseContextMenu();
+#else
+  //G.Barrand: don't do any change in the GUI here, just "paint" this widget!
+#endif
 
+#if QT_VERSION < 0x060000
   if (fPaintEventLock) {
 //    return ;
   }
@@ -297,6 +359,7 @@ void G4OpenGLStoredQtViewer::paintGL()
     fPaintEventLock = false;
     return;
   }
+
   // DO NOT RESIZE IF SIZE HAS NOT CHANGE :
   //    WHEN CLICK ON THE FRAME FOR EXAMPLE
   //    EXECEPT WHEN MOUSE MOVE EVENT
@@ -316,6 +379,15 @@ void G4OpenGLStoredQtViewer::paintGL()
       return;
     }
   }
+#else
+  if ((getWinWidth() == 0) && (getWinHeight() == 0)) return;  //G.Barrand: needed?
+#endif
+
+#if QT_VERSION < 0x060000
+#else
+  InitializeGLView ();
+#endif
+
   // Ensure that we really draw the BACK buffer
   glDrawBuffer (GL_BACK);
 
@@ -324,11 +396,14 @@ void G4OpenGLStoredQtViewer::paintGL()
   ClearView (); //ok, put the background correct
   ComputeView();
 
+#if QT_VERSION < 0x060000
   fHasToRepaint = false;
 
   fPaintEventLock = false;
+#endif
 }
 
+#if QT_VERSION < 0x060000
 void G4OpenGLStoredQtViewer::paintEvent(QPaintEvent *) {
   if (! fQGLWidgetInitialiseCompleted) {
     return;
@@ -340,9 +415,15 @@ void G4OpenGLStoredQtViewer::paintEvent(QPaintEvent *) {
     // The widget's rendering context will become the current context and initializeGL()
     // will be called if it hasn't already been called.
     // Copies the back buffer of a double-buffered context to the front buffer.
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     updateGL();
+#else
+    // Not sure this is correct....
+    paintGL();
+#endif
   }
 }
+#endif
 
 void G4OpenGLStoredQtViewer::mousePressEvent(QMouseEvent *event)
 {
@@ -364,12 +445,14 @@ void G4OpenGLStoredQtViewer::wheelEvent (QWheelEvent * event)
   G4wheelEvent(event);
 }
 
+#if QT_VERSION < 0x060000
 void G4OpenGLStoredQtViewer::showEvent (QShowEvent *)
 {
   if (fQGLWidgetInitialiseCompleted) {
     fHasToRepaint = true;
   }
 }
+#endif
 
 /**
  * This function was build in order to make a zoom on double clic event.
@@ -397,6 +480,7 @@ void G4OpenGLStoredQtViewer::contextMenuEvent(QContextMenuEvent *e)
 }
 
 void G4OpenGLStoredQtViewer::updateQWidget() {
+#if QT_VERSION < 0x060000
   if (fUpdateGLLock) {
     return;
   }
@@ -416,31 +500,24 @@ void G4OpenGLStoredQtViewer::updateQWidget() {
   updateViewerPropertiesTableWidget();
   updateSceneTreeWidget();
   fUpdateGLLock = false;
+#else
+  //if (!isCurrentWidget()) return; //G.Barrand: Qt must know if it has to activate paintGL() if the widget is not visible.
+  //G.Barrand: don't do any change in the GUI here, just ask to "paint" this widget!
+  update();
+#endif
 }
 
-void G4OpenGLStoredQtViewer::ShowView (
-) 
-//////////////////////////////////////////////////////////////////////////////
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+void G4OpenGLStoredQtViewer::ShowView ()
 {
-  //  glFlush ();  // Tentativley offered by JA 29/04/16.
-  
-  // Some X servers fail to draw all trajectories, particularly Mac
-  // XQuartz.  Revisit this at a future date.  Meanwhile, issue an
-  // extra...
-  //  ClearView();  // Necessary?  JA 29/04/16 
-  //  DrawView();   // Necessary?  JA 29/04/16
   activateWindow();
-  //  glFlush(); // NO NEED and as drawView will already cause a flush
-  // that could do a double flush
-  
+#if 0x060000 <= QT_VERSION
+  ((QApplication*)G4Qt::getInstance ())->processEvents();
+#endif
 }
 
 
 void G4OpenGLStoredQtViewer::DisplayTimePOColourModification (
 G4Colour& c,
 size_t poIndex) {
-  c = getColorForPoIndex(poIndex);
+  c = getColorForPoIndex((int)poIndex);
 }
-
-#endif

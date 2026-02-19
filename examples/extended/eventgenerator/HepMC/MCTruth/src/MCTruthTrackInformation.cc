@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/MCTruth/src/MCTruthTrackInformation.cc
+/// \file MCTruthTrackInformation.cc
 /// \brief Implementation of the MCTruthTrackInformation class
-//
-//
-//
-//
+
 // --------------------------------------------------------------
 //      GEANT 4 - MCTruthTrackInformation class
 // --------------------------------------------------------------
@@ -43,16 +40,11 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-MCTruthTrackInformation::MCTruthTrackInformation() 
- : G4VUserTrackInformation(),
-   fDirectParent(true)
-{
-}
+MCTruthTrackInformation::MCTruthTrackInformation() : G4VUserTrackInformation(), fDirectParent(true)
+{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-MCTruthTrackInformation::~MCTruthTrackInformation() 
-{
-} 
+MCTruthTrackInformation::~MCTruthTrackInformation() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

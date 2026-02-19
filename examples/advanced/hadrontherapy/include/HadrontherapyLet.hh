@@ -36,7 +36,6 @@
 #include <vector>
 #include <string>
 
-#include "g4csv.hh"
 #include "HadrontherapyMatrix.hh"
 struct ionLet
 {
@@ -75,7 +74,7 @@ public:
     void FillEnergySpectrum (G4int trackID,
                              G4ParticleDefinition* particleDef,
                              G4double ekinMean,
-                             G4Material* mat,
+                             const G4Material* mat,
                              G4double DE,
                              G4double DEEletrons,
                              G4double DX,

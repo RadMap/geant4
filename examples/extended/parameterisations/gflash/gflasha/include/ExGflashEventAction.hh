@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflashEventAction.hh
 /// \brief Definition of the ExGflashEventAction class
-//
+
 #ifndef ExGflashEventAction_h
 #define ExGflashEventAction_h
 
@@ -35,17 +34,18 @@
 
 class ExGflashDetectorConstruction;
 
-class ExGflashEventAction: public G4UserEventAction {
-public:
-  ExGflashEventAction(ExGflashDetectorConstruction* det);
-  ~ExGflashEventAction();
-  
-  virtual void BeginOfEventAction(const G4Event*);
-  virtual void   EndOfEventAction(const G4Event*);
-  
-private:
-  G4int    fCalorimeterCollectionId;
-  ExGflashDetectorConstruction* fDet;
+class ExGflashEventAction : public G4UserEventAction
+{
+  public:
+    ExGflashEventAction(ExGflashDetectorConstruction* det);
+    ~ExGflashEventAction() override;
 
+    void BeginOfEventAction(const G4Event*) override;
+    void EndOfEventAction(const G4Event*) override;
+
+  private:
+    G4int fCalorimeterCollectionId{-1};
+    ExGflashDetectorConstruction* fDet{nullptr};
 };
+
 #endif

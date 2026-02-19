@@ -61,16 +61,15 @@ G4SolidsWorkspace::G4SolidsWorkspace(G4bool verbose)
   fPolyhedraSideOffset = fpPolyhedraSideSIM->GetOffset();
 }
 
-G4SolidsWorkspace::~G4SolidsWorkspace()
-{
-}
 
 void
 G4SolidsWorkspace::UseWorkspace()
 {
-  if( fVerbose ) 
+  if( fVerbose )
+  { 
     G4cout << "G4SolidsWorkspace::UseWorkspace: Copying geometry - Start "
            << G4endl;
+  }
 
   // Geometry related, split classes mechanism: instantiate sub-instance
   // for this thread
@@ -94,9 +93,11 @@ void G4SolidsWorkspace::InitialiseSolids()
 void
 G4SolidsWorkspace::InitialiseWorkspace()
 {
-  if( fVerbose ) 
+  if( fVerbose )
+  { 
     G4cout << "G4SolidsWorkspace::InitialiseWorkspace: "
            << "Copying geometry - Start " << G4endl;
+  }
     
   // Geometry related, split classes mechanism:
   // Do *NOT* instantiate sub-instance for this thread, just copy the contents!!
@@ -108,9 +109,11 @@ G4SolidsWorkspace::InitialiseWorkspace()
   //
   InitialiseSolids();
   
-  if( fVerbose ) 
+  if( fVerbose )
+  { 
     G4cout << "G4SolidsWorkspace::CreateAndUseWorkspace: "
            << "Copying geometry - Done!" << G4endl;
+  }
 }
 
 void G4SolidsWorkspace::DestroyWorkspace()

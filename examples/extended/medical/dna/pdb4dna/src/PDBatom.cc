@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PDBatom.cc
+/// \brief Implementation of the PDBatom class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -32,38 +35,33 @@
 //                  simulations (submitted to Comput. Phys. Commun.)
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
-// 
-/// \file PDBatom.cc
-/// \brief Implementation of the PDBatom class
+//
 
 #include "PDBatom.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Atom::Atom(int s, const std::string& n,
-           const std::string& rN,int numInRes,int rS,
-           double xInit,double yInit,double zInit,
-           double radius,
-           double o, double tF, const std::string& e)
+Atom::Atom(int s, const std::string& n, const std::string& rN, int numInRes, int rS, double xInit,
+           double yInit, double zInit, double radius, double o, double tF, const std::string& e)
 {
-  fSerial=s;
-  fName=n;//!< Atom name
-  fResName=rN;//!< Residue name
-  fNumInRes=numInRes;
-  fResSeq=rS;//!< Residue sequence number
-  fX=xInit;
-  fY=yInit;
-  fZ=zInit;
-  fVdwRadius=radius;
-  fOccupancy=o;//!< occupancy
-  fTempFactor=tF;
-  fElement=e;
-  fpNext=0;
+  fSerial = s;
+  fName = n;  //!< Atom name
+  fResName = rN;  //!< Residue name
+  fNumInRes = numInRes;
+  fResSeq = rS;  //!< Residue sequence number
+  fX = xInit;
+  fY = yInit;
+  fZ = zInit;
+  fVdwRadius = radius;
+  fOccupancy = o;  //!< occupancy
+  fTempFactor = tF;
+  fElement = e;
+  fpNext = 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Atom *Atom::GetNext()
+Atom* Atom::GetNext()
 {
   return fpNext;
 }
@@ -119,7 +117,7 @@ double Atom::GetVanDerWaalsRadius()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void Atom::SetNext(Atom *AtomNext)
+void Atom::SetNext(Atom* AtomNext)
 {
-  fpNext=AtomNext;
+  fpNext = AtomNext;
 }

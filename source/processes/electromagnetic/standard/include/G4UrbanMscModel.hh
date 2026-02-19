@@ -63,7 +63,6 @@
 
 class G4ParticleChangeForMSC;
 class G4SafetyHelper;
-class G4LossTableManager;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -101,6 +100,14 @@ public:
 
   G4double ComputeTheta0(G4double truePathLength, G4double KineticEnergy);
 
+  inline void SetDisplacementAlgorithm96(const G4bool val);
+
+  inline void SetPositronCorrection(const G4bool val);
+
+  //  hide assignment operator
+  G4UrbanMscModel & operator=(const  G4UrbanMscModel &right) = delete;
+  G4UrbanMscModel(const  G4UrbanMscModel&) = delete;
+
 private:
 
   G4double SampleCosineTheta(G4double trueStepLength, G4double KineticEnergy);
@@ -109,29 +116,27 @@ private:
 
   void SampleDisplacementNew(G4double sinTheta, G4double phi);
 
-  inline void SetParticle(const G4ParticleDefinition*);
+  void InitialiseModelCache();
 
-  inline void UpdateCache();
+  inline void SetParticle(const G4ParticleDefinition*);
 
   inline G4double Randomizetlimit();
   
-  inline G4double SimpleScattering(G4double xmeanth, G4double x2meanth);
+  inline G4double SimpleScattering();
 
-  //  hide assignment operator
-  G4UrbanMscModel & operator=(const  G4UrbanMscModel &right) = delete;
-  G4UrbanMscModel(const  G4UrbanMscModel&) = delete;
+  inline G4double ComputeStepmin();
 
-  CLHEP::HepRandomEngine*     rndmEngineMod;
+  inline G4double ComputeTlimitmin();
 
-  const G4ParticleDefinition* particle;
+  CLHEP::HepRandomEngine* rndmEngineMod;
+
+  const G4ParticleDefinition* particle = nullptr;
   const G4ParticleDefinition* positron;
-  G4ParticleChangeForMSC*     fParticleChange;
-
-  const G4MaterialCutsCouple* couple;
-  G4LossTableManager*         theManager;
+  G4ParticleChangeForMSC* fParticleChange = nullptr;
+  const G4MaterialCutsCouple* couple = nullptr;
 
   G4double mass;
-  G4double charge,ChargeSquare;
+  G4double charge,chargeSquare;
   G4double masslimite,fr;
 
   G4double taubig;
@@ -158,7 +163,6 @@ private:
   G4double par1,par2,par3;
 
   G4double stepmin;
-  G4double stepmina,stepminb;
 
   G4double currentKinEnergy;
   G4double currentLogKinEnergy;
@@ -166,22 +170,34 @@ private:
   G4double rangeinit;
   G4double currentRadLength;
 
-  G4int    currentMaterialIndex;
-
-  G4double Zold;
-  G4double Zeff,Z2,Z23,lnZ;
-  G4double coeffth1,coeffth2;
-  G4double coeffc1,coeffc2,coeffc3,coeffc4;
-
-  G4bool   firstStep;
-  G4bool   insideskin;
-
-  G4bool   latDisplasmentbackup;
-  G4bool   dispAlg96;
-
-  G4double rangecut;
   G4double drr,finalr;
 
+  G4double tlow;
+  G4double invmev;
+  G4double xmeanth = 0.0;
+  G4double x2meanth = 1./3.;
+  G4double rndmarray[2];
+
+  struct mscData {
+    G4double Z23, sqrtZ, factmin;
+    G4double coeffth1, coeffth2;
+    G4double coeffc1, coeffc2, coeffc3, coeffc4;
+    G4double stepmina, stepminb;
+    G4double doverra, doverrb;
+    G4double posa, posb, posc, posd, pose;
+  };
+  static std::vector<mscData*> msc;
+
+  // index of G4MaterialCutsCouple
+  G4int idx = 0;
+
+  G4bool firstStep = true;
+  G4bool insideskin = false;
+
+  G4bool latDisplasmentbackup = false;
+  G4bool dispAlg96 = true;
+  G4bool fPosiCorrection = true;
+  G4bool isFirstInstance = false;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -194,7 +210,7 @@ void G4UrbanMscModel::SetParticle(const G4ParticleDefinition* p)
     particle = p;
     mass = p->GetPDGMass();
     charge = p->GetPDGCharge()/CLHEP::eplus;
-    ChargeSquare = charge*charge;
+    chargeSquare = charge*charge;
   }
 }
 
@@ -213,50 +229,55 @@ inline G4double G4UrbanMscModel::Randomizetlimit()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-inline void G4UrbanMscModel::UpdateCache()                                   
-{
-  lnZ = G4Log(Zeff);
-  // correction in theta0 formula
-  G4double w = G4Exp(lnZ/6.);
-  G4double facz = 0.990395+w*(-0.168386+w*0.093286) ;
-  coeffth1 = facz*(1. - 8.7780e-2/Zeff);
-  coeffth2 = facz*(4.0780e-2 + 1.7315e-4*Zeff);
-
-  // tail parameters
-  G4double Z13 = w*w;
-  coeffc1  = 2.3785    - Z13*(4.1981e-1 - Z13*6.3100e-2);
-  coeffc2  = 4.7526e-1 + Z13*(1.7694    - Z13*3.3885e-1);
-  coeffc3  = 2.3683e-1 - Z13*(1.8111    - Z13*3.2774e-1);
-  coeffc4  = 1.7888e-2 + Z13*(1.9659e-2 - Z13*2.6664e-3);
-
-  Z2   = Zeff*Zeff;
-  Z23  = Z13*Z13;               
-
-  stepmina = 15.99/(1.+0.119*Zeff);
-  stepminb =  4.39/(1.+0.079*Zeff);
-                                              
-  Zold = Zeff;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-inline
-G4double G4UrbanMscModel::SimpleScattering(G4double xmeanth, G4double x2meanth)
+inline G4double G4UrbanMscModel::SimpleScattering()
 {
   // 'large angle scattering'
   // 2 model functions with correct xmean and x2mean
-  G4double a = (2.*xmeanth+9.*x2meanth-3.)/(2.*xmeanth-3.*x2meanth+1.);
-  G4double prob = (a+2.)*xmeanth/a;
+  const G4double a = (2.*xmeanth+9.*x2meanth-3.)/(2.*xmeanth-3.*x2meanth+1.);
+  const G4double prob = (a+2.)*xmeanth/a;
 
   // sampling
-  G4double rdm = rndmEngineMod->flat();
-  G4double cth = (rndmEngineMod->flat() < prob)
-    ? -1.+2.*G4Exp(G4Log(rdm)/(a+1.)) : -1.+2.*rdm;
-  return cth;
+  rndmEngineMod->flatArray(2, rndmarray);
+  return (rndmarray[1] < prob) ? 
+    -1.+2.*G4Exp(G4Log(rndmarray[0])/(a+1.)) : -1.+2.*rndmarray[0];
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+inline G4double G4UrbanMscModel::ComputeStepmin()
+{
+  // define stepmin using estimation of the ratio 
+  // of lambda_elastic/lambda_transport
+  const G4double rat = currentKinEnergy*invmev;
+  return lambda0*msc[idx]->factmin/
+    (0.002 + rat*(msc[idx]->stepmina + msc[idx]->stepminb*rat));
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+inline G4double G4UrbanMscModel::ComputeTlimitmin()
+{
+  G4double x = (particle == positron) ? 
+    0.7*msc[idx]->sqrtZ*stepmin : 0.87*msc[idx]->Z23*stepmin;
+  if(currentKinEnergy < tlow) { x *= 0.5*(1.+currentKinEnergy/tlow); }
+  return std::max(x, tlimitminfix);
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+inline void G4UrbanMscModel::SetDisplacementAlgorithm96(const G4bool val)
+{
+  dispAlg96 = val;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+inline void G4UrbanMscModel::SetPositronCorrection(const G4bool val)
+{
+  fPosiCorrection = val;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
 

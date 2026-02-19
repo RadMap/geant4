@@ -58,6 +58,7 @@
 #include "G4InuclSpecialFunctions.hh"
 #include "G4ParticleLargerEkin.hh"
 #include "G4Pow.hh"
+#include "Randomize.hh"
 
 using namespace G4InuclSpecialFunctions;
 
@@ -225,6 +226,17 @@ void G4BigBanger::generateBangInSCM(G4double etot, G4int a, G4int z) {
     particles.resize(a);	// Use assignment to avoid temporaries
     for(G4int i = 0; i < a; i++) {
       G4int knd = i < z ? 1 : 2;
+      
+      // Set to 0.0 the 4-th component (total energy) of the Lorentz momentum scm_momentums[i]
+      // in order to avoid very rare cases of unphysical negative (total and kinetic) energy
+      // (as reported by ATLAS with Geant4 10.6, but never reproduced in our tests).
+      // Note that these 4-vectors are actually 3-vectors, with null 4-th component in nearly
+      // all cases. After calling the method  G4InuclElementaryParticle::fill  (see below),
+      // the 4-th component of the momentum is set (in the method  G4InuclParticle::setMomentum
+      // which in turn calls  G4DynamicParticle::SetMomentum ) to the square root of the sum of
+      // the square of the mass and the square of the magnitude of the 3-momentum.
+      scm_momentums[i].setE( 0.0 );
+
       particles[i].fill(scm_momentums[i], knd, G4InuclParticle::BigBanger);
     };
   };
@@ -287,7 +299,7 @@ G4double G4BigBanger::xProbability(G4double x, G4int a) const {
   G4Pow* theG4Pow = G4Pow::GetInstance();	// For convenience
 
   G4double ekpr = 0.0;
-  if(x < 1.0 || x > 0.0) {
+  if (x < 1.0 && x > 0.0) {
     ekpr = x * x;
 
     if (a%2 == 0) { // even A
@@ -316,12 +328,12 @@ G4double G4BigBanger::generateX(G4int a, G4double promax) const {
   G4int itry = 0;
   G4double x;
   
-  while(itry < itry_max) {	/* Loop checking 08.06.2015 MHK */
+  while(itry < itry_max) {    /* Loop checking 08.06.2015 MHK */
     itry++;
-    x = inuclRndm();
+    x = G4UniformRand();
+    if(xProbability(x, a) >= promax*G4UniformRand() ) return x;
+  }
 
-    if(xProbability(x, a) >= promax * inuclRndm()) return x;
-  };
   if (verboseLevel > 2) {
     G4cout << " BigBanger -> can not generate x " << G4endl;
   }

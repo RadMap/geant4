@@ -1,7 +1,7 @@
 
 #----------------------------------------------------------------------------
 # Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.27)
 project(userVisAction)
 
 #----------------------------------------------------------------------------
@@ -46,8 +46,6 @@ set(USERVISACTION_SCRIPTS
   userVisAction.in
   userVisAction.out
   init_vis.mac
-  run1.mac
-  run2.mac
   vis.mac
   )
 

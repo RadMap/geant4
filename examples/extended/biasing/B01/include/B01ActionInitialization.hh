@@ -23,11 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file biasing/B01/include/B01ActionInitialization.hh
+/// \file B01ActionInitialization.hh
 /// \brief Definition of the B01ActionInitialization class
-//
-//
-//
 
 #ifndef B01ActionInitialization_h
 #define B01ActionInitialization_h 1
@@ -37,13 +34,12 @@
 class B01ActionInitialization : public G4VUserActionInitialization
 {
   public:
-    B01ActionInitialization();    
+    B01ActionInitialization();
     virtual ~B01ActionInitialization();
 
   public:
     virtual void BuildForMaster() const;
     virtual void Build() const;
- 
 };
 
 #endif

@@ -23,24 +23,25 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/dmparticle/src/PrimaryGeneratorAction.cc
+/// \file PrimaryGeneratorAction.cc
 /// \brief Implementation of the PrimaryGeneratorAction class
-//
 
 #include "PrimaryGeneratorAction.hh"
+
 #include "DetectorConstruction.hh"
-#include "G4ParticleGun.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4Event.hh"
 #include "TestParameters.hh"
+
+#include "G4Event.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4ParticleGun.hh"
 #include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 PrimaryGeneratorAction::PrimaryGeneratorAction(DetectorConstruction* det)
-  :G4VUserPrimaryGeneratorAction(),fDetector(det)
+  : G4VUserPrimaryGeneratorAction(), fDetector(det)
 {
-  fParticleGun  = new G4ParticleGun(1);
+  fParticleGun = new G4ParticleGun(1);
   fParticleGun->SetParticleEnergy(100 * GeV);
   fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
 }
@@ -57,20 +58,17 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
   // this function is called at the begining of event
-  if( 0 == anEvent->GetEventID() ) 
-  {
-    G4double z0 = -0.5*(fDetector->GetWorldSizeZ()) + 1*um;
-    G4cout<<"Event = "<<anEvent->GetEventID()<<"; z0 = "<<z0;
-    fParticleGun->SetParticlePosition( G4ThreeVector( 0.0, 0.0, z0) );
-    G4cout<<"  Primary direction = "
-          <<fParticleGun->GetParticleMomentumDirection()<<G4endl;
+  if (0 == anEvent->GetEventID()) {
+    G4double z0 = -0.5 * (fDetector->GetWorldSizeZ()) + 1 * um;
+    G4cout << "Event = " << anEvent->GetEventID() << "; z0 = " << z0;
+    fParticleGun->SetParticlePosition(G4ThreeVector(0.0, 0.0, z0));
+    G4cout << "  Primary direction = " << fParticleGun->GetParticleMomentumDirection() << G4endl;
     TestParameters* param = TestParameters::GetPointer();
     param->SetBeamParticle(fParticleGun->GetParticleDefinition());
     param->SetBeamEnergy(fParticleGun->GetParticleEnergy());
     param->SetPositionZ(z0);
-  }  
-  fParticleGun->GeneratePrimaryVertex( anEvent );
+  }
+  fParticleGun->GeneratePrimaryVertex(anEvent);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

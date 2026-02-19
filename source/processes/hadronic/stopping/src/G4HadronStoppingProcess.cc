@@ -98,9 +98,9 @@ void
 G4HadronStoppingProcess::PreparePhysicsTable(const G4ParticleDefinition& p)
 {
   G4HadronicProcessStore::Instance()->RegisterParticleForExtraProcess(this,&p);
-  emcID = G4PhysicsModelCatalog::Register(G4String((GetProcessName() + "_EMCascade")));
-  ncID  = G4PhysicsModelCatalog::Register(G4String((GetProcessName() + "_NuclearCapture")));
-  dioID = G4PhysicsModelCatalog::Register(G4String((GetProcessName() + "_DIO")));
+  emcID = G4PhysicsModelCatalog::GetModelID(G4String("model_" + (GetProcessName() + "_EMCascade")));
+  ncID  = G4PhysicsModelCatalog::GetModelID(G4String("model_" + (GetProcessName() + "_NuclearCapture")));
+  dioID = G4PhysicsModelCatalog::GetModelID(G4String("model_" + (GetProcessName() + "_DIO")));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -137,7 +137,7 @@ G4VParticleChange* G4HadronStoppingProcess::AtRestDoIt(const G4Track& track,
   theTotalResult->Initialize(track);
 
   G4Nucleus* nucleus = GetTargetNucleusPointer();
-  G4Element* elm = fElementSelector->SelectZandA(track, nucleus);
+  const G4Element* elm = fElementSelector->SelectZandA(track, nucleus);
 
   G4HadFinalState* result = 0;
   thePro.Initialise(track);
@@ -155,7 +155,7 @@ G4VParticleChange* G4HadronStoppingProcess::AtRestDoIt(const G4Track& track,
   result = fEmCascade->ApplyYourself(thePro, *nucleus);
   G4double ebound = result->GetLocalEnergyDeposit(); 
   G4double edep = 0.0; 
-  G4int nSecondaries = result->GetNumberOfSecondaries();
+  G4int nSecondaries = (G4int)result->GetNumberOfSecondaries();
   G4int nEmCascadeSec = nSecondaries;
 
   // Try decay from bound level 
@@ -167,7 +167,7 @@ G4VParticleChange* G4HadronStoppingProcess::AtRestDoIt(const G4Track& track,
   if(fBoundDecay) {
     G4HadFinalState* resultDecay = 
       fBoundDecay->ApplyYourself(thePro, *nucleus);
-    G4int n = resultDecay->GetNumberOfSecondaries();
+    G4int n = (G4int)resultDecay->GetNumberOfSecondaries();
     if(0 < n) {
       nSecondaries += n;
       result->AddSecondaries(resultDecay);
@@ -241,10 +241,10 @@ G4VParticleChange* G4HadronStoppingProcess::AtRestDoIt(const G4Track& track,
     } while(!resultNuc);
 
     edep = resultNuc->GetLocalEnergyDeposit();
-    size_t nnuc = resultNuc->GetNumberOfSecondaries();
+    std::size_t nnuc = resultNuc->GetNumberOfSecondaries();
 
     // add delay time of capture
-    for(size_t i=0; i<nnuc; ++i) { 
+    for(std::size_t i=0; i<nnuc; ++i) { 
       G4HadSecondary* sec = resultNuc->GetSecondary(i);
       sec->SetTime(capTime + sec->GetTime());
     }
@@ -275,13 +275,13 @@ G4VParticleChange* G4HadronStoppingProcess::AtRestDoIt(const G4Track& track,
 			     track.GetPosition());
     t->SetWeight(w*sec->GetWeight());
 
-    // use SetCreatorModelIndex to "label" the track
+    // use SetCreatorModelID to "label" the track
     if (i<nEmCascadeSec) {
-      t->SetCreatorModelIndex(emcID);
+      t->SetCreatorModelID(emcID);
     } else if (nuclearCapture) {
-      t->SetCreatorModelIndex(ncID);
+      t->SetCreatorModelID(ncID);
     } else {
-      t->SetCreatorModelIndex(dioID);
+      t->SetCreatorModelID(dioID);
     }
 
     t->SetTouchableHandle(track.GetTouchableHandle());

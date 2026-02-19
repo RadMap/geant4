@@ -25,7 +25,9 @@
 //
 // class G4PhantomParameterisation Inline implementation
 //
-//--------------------------------------------------------------------
+// Author: Pedro Arce (CIEMAT), May 2007
+//---------------------------------------------------------------------
+
 inline
 void G4PhantomParameterisation::
 SetVoxelDimensions( G4double halfx, G4double halfy, G4double halfz )
@@ -36,109 +38,111 @@ SetVoxelDimensions( G4double halfx, G4double halfy, G4double halfz )
 }
   
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
-void G4PhantomParameterisation::SetNoVoxel( size_t nx, size_t ny, size_t nz )
+void G4PhantomParameterisation::SetNoVoxels( std::size_t nx,
+                                             std::size_t ny,
+                                             std::size_t nz )
 {
-  fNoVoxelX = nx; 
-  fNoVoxelY = ny; 
-  fNoVoxelZ = nz; 
-  fNoVoxelXY = nx*ny; 
-  fNoVoxel = nx*ny*nz;
+  fNoVoxelsX = nx; 
+  fNoVoxelsY = ny; 
+  fNoVoxelsZ = nz; 
+  fNoVoxelsXY = nx*ny; 
+  fNoVoxels = nx*ny*nz;
 }
-  
-//--------------------------------------------------------------------
+
+//---------------------------------------------------------------------
 inline
 void G4PhantomParameterisation::SetMaterials( std::vector<G4Material*>& mates )
 {
   fMaterials = mates;
 }
   
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
-void G4PhantomParameterisation::SetMaterialIndices( size_t* matInd )
+void G4PhantomParameterisation::SetMaterialIndices( std::size_t* matInd )
 {
   fMaterialIndices = matInd;
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
 G4double G4PhantomParameterisation::GetVoxelHalfX() const
 {
   return fVoxelHalfX;
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
 G4double G4PhantomParameterisation::GetVoxelHalfY() const
 {
   return fVoxelHalfY;
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
 G4double G4PhantomParameterisation::GetVoxelHalfZ() const
 {
   return fVoxelHalfZ;
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
-size_t G4PhantomParameterisation::GetNoVoxelX() const
+std::size_t G4PhantomParameterisation::GetNoVoxelsX() const
 {
-  return fNoVoxelX;
+  return fNoVoxelsX;
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
-size_t G4PhantomParameterisation::GetNoVoxelY() const
+std::size_t G4PhantomParameterisation::GetNoVoxelsY() const
 {
-  return fNoVoxelY;
+  return fNoVoxelsY;
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
-size_t G4PhantomParameterisation::GetNoVoxelZ() const
+std::size_t G4PhantomParameterisation::GetNoVoxelsZ() const
 {
-  return fNoVoxelZ;
+  return fNoVoxelsZ;
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
-size_t G4PhantomParameterisation::GetNoVoxel() const
+std::size_t G4PhantomParameterisation::GetNoVoxels() const
 {
-  return fNoVoxel;
+  return fNoVoxels;
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
 std::vector<G4Material*> G4PhantomParameterisation::GetMaterials() const
 {
   return fMaterials;
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
-size_t* G4PhantomParameterisation::GetMaterialIndices() const
+std::size_t* G4PhantomParameterisation::GetMaterialIndices() const
 {
   return fMaterialIndices;
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
 G4VSolid* G4PhantomParameterisation::GetContainerSolid() const
 {
   return fContainerSolid;
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
 G4bool G4PhantomParameterisation::SkipEqualMaterials() const
 {
   return bSkipEqualMaterials;
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 inline
 void G4PhantomParameterisation::SetSkipEqualMaterials( G4bool skip )
 {

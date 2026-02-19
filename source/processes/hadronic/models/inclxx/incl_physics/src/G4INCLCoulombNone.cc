@@ -55,6 +55,15 @@ namespace G4INCL {
     } else // If the particle does NOT enter the nucleus
       return NULL;
   }
+ 
+  ParticleEntryAvatar *CoulombNone::bringToSurfaceAbar(Particle * const p, Nucleus * const n) const {
+    Intersection intersection = IntersectionFactory::getEarlierTrajectoryIntersection(p->getPosition(), p->getPropagationVelocity(), n->getUniverseRadius());
+    if(intersection.exists) { // If the particle enters the nucleus
+      p->setPosition(intersection.position);
+      return new ParticleEntryAvatar(0.001, n, p);
+    } else // If the particle does NOT enter the nucleus
+      return NULL;
+  }
 
   IAvatarList CoulombNone::bringToSurface(Cluster * const c, Nucleus * const n) const {
     // The avatar list that we will return
@@ -80,7 +89,7 @@ namespace G4INCL {
         // Keep track of the first entering particle
         if(intersection.time < theFirstEntryTime) {
           theFirstEntryTime = intersection.time;
-          theFirstID = (*p)->getID();
+          theFirstID = (G4int)(*p)->getID();
         }
       }
     }

@@ -23,89 +23,75 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm4/TestEm4.cc
+/// \file TestEm4.cc
 /// \brief Main program of the electromagnetic/TestEm4 example
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-#include "G4Types.hh"
 
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
-
-#include "G4UImanager.hh"
-#include "Randomize.hh"
-
+#include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
-#include "ActionInitialization.hh"
-#include "SteppingVerbose.hh"
 
+#include "G4RunManagerFactory.hh"
+#include "G4SteppingVerbose.hh"
+#include "G4Types.hh"
 #include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
+#include "Randomize.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-int main(int argc,char** argv) {
-
-  //detect interactive mode (if no arguments) and define UI session
+int main(int argc, char** argv)
+{
+  // detect interactive mode (if no arguments) and define UI session
   G4UIExecutive* ui = nullptr;
-  if (argc == 1) ui = new G4UIExecutive(argc,argv);
+  if (argc == 1) ui = new G4UIExecutive(argc, argv);
 
-  //choose the Random engine
+  // choose the Random engine
   G4Random::setTheEngine(new CLHEP::RanecuEngine);
 
-  //construct the default run manager
-  #ifdef G4MULTITHREADED
-    G4MTRunManager* runManager = new G4MTRunManager;
-    G4int nThreads = G4Threading::G4GetNumberOfCores();
-    if (argc==3) nThreads = G4UIcommand::ConvertToInt(argv[2]);
-    runManager->SetNumberOfThreads(nThreads);
-  #else
-    G4VSteppingVerbose::SetInstance(new SteppingVerbose);
-    G4RunManager* runManager = new G4RunManager;
-  #endif
+  // Use SteppingVerbose with Unit
+  G4int precision = 4;
+  G4SteppingVerbose::UseBestUnit(precision);
 
-  //set mandatory initialization classes
+  // construct the run manager
+  auto runManager = G4RunManagerFactory::CreateRunManager();
+  if (argc == 3) {
+    G4int nThreads = G4UIcommand::ConvertToInt(argv[2]);
+    runManager->SetNumberOfThreads(nThreads);
+  }
+  // set mandatory initialization classes
   runManager->SetUserInitialization(new DetectorConstruction);
   runManager->SetUserInitialization(new PhysicsList);
 
-  //set user action classes
+  // set user action classes
   runManager->SetUserInitialization(new ActionInitialization());
 
-  //Initialize G4 kernel
+  // Initialize G4 kernel
   runManager->Initialize();
 
-  //initialize visualization
+  // initialize visualization
   G4VisManager* visManager = nullptr;
 
-  //get the pointer to the User Interface manager
+  // get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if (ui)  {
-   //interactive mode
-   visManager = new G4VisExecutive;
-   visManager->Initialize();
-   UImanager->ApplyCommand("/control/execute vis.mac");
-   ui->SessionStart();
-   delete ui;
+  if (ui) {
+    // interactive mode
+    visManager = new G4VisExecutive;
+    visManager->Initialize();
+    ui->SessionStart();
+    delete ui;
   }
-  else  {
-   //batch mode
-   G4String command = "/control/execute ";
-   G4String fileName = argv[1];
-   UImanager->ApplyCommand(command+fileName);
+  else {
+    // batch mode
+    G4String command = "/control/execute ";
+    G4String fileName = argv[1];
+    UImanager->ApplyCommand(command + fileName);
   }
 
-  //job termination
+  // job termination
   delete visManager;
   delete runManager;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

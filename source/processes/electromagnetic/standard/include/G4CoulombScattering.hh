@@ -56,33 +56,41 @@ class G4CoulombScattering : public G4VEmProcess
 
 public:
 
-  explicit G4CoulombScattering(const G4String& name = "CoulombScat");
+  explicit G4CoulombScattering(const G4String& name, G4bool combined);
 
-  virtual ~G4CoulombScattering();
+  // for pure single scattering use combined=false
+  G4CoulombScattering(G4bool combined = true);
 
-  virtual G4bool IsApplicable(const G4ParticleDefinition& p) final;
+  // for pure single scattering use SetIsCombined(false) method 
+  G4CoulombScattering(const G4String& name);
+
+  ~G4CoulombScattering() override;
+
+  G4bool IsApplicable(const G4ParticleDefinition& p) final;
 
   // print documentation in html format
-  virtual void ProcessDescription(std::ostream&) const override;
+  void ProcessDescription(std::ostream&) const override;
+
+  inline void SetIsCombined(G4bool val) { isCombined = val; }
+
+  G4CoulombScattering & operator=(const G4CoulombScattering &right) = delete;
+  G4CoulombScattering(const G4CoulombScattering&) = delete;
 
 protected:
 
   // Print out of the class parameters
-  virtual void StreamProcessInfo(std::ostream& outFile) const override;
+  void StreamProcessInfo(std::ostream& outFile) const override;
 
-  virtual void InitialiseProcess(const G4ParticleDefinition*) override;
+  void InitialiseProcess(const G4ParticleDefinition*) override;
 
-  virtual G4double MinPrimaryEnergy(const G4ParticleDefinition*,
-                                    const G4Material*) final;
+  G4double MinPrimaryEnergy(const G4ParticleDefinition*,
+			    const G4Material*) final;
 
 private:
-
- // hide assignment operator
-  G4CoulombScattering & operator=(const G4CoulombScattering &right) = delete;
-  G4CoulombScattering(const G4CoulombScattering&) = delete;
   
   G4double q2Max;
-  G4bool isInitialised;
+  G4bool isInitialised = false;
+  G4bool isCombined;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

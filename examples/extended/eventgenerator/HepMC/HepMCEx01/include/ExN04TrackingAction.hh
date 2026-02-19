@@ -23,22 +23,21 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/HepMCEx01/include/ExN04TrackingAction.hh
+/// \file ExN04TrackingAction.hh
 /// \brief Definition of the ExN04TrackingAction class
-//
-//
 
 #ifndef ExN04TrackingAction_h
 #define ExN04TrackingAction_h 1
 
 #include "G4UserTrackingAction.hh"
 
-class ExN04TrackingAction : public G4UserTrackingAction {
-public:
-  ExN04TrackingAction() : G4UserTrackingAction() {};
-  virtual ~ExN04TrackingAction(){};
+class ExN04TrackingAction : public G4UserTrackingAction
+{
+  public:
+    ExN04TrackingAction() : G4UserTrackingAction() {};
+    virtual ~ExN04TrackingAction() {};
 
-  virtual void PreUserTrackingAction(const G4Track*);
+    virtual void PreUserTrackingAction(const G4Track*);
 };
 
 #endif

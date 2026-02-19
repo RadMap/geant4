@@ -39,6 +39,9 @@
 #include "G4AttDef.hh"
 #include "G4AttValue.hh"
 #include "G4AttCheck.hh"
+#include "G4AxesModel.hh"
+
+#define G4warn G4cout
 
 G4VisCommandsTouchable::G4VisCommandsTouchable()
 {
@@ -58,10 +61,14 @@ G4VisCommandsTouchable::G4VisCommandsTouchable()
   // Pick up additional guidance from /vis/viewer/centreAndZoomInOn
   CopyGuidanceFrom(fpCommandCentreAndZoomInOn,fpCommandCentreOn,1);
 
-  fpCommandDraw = new G4UIcmdWithoutParameter("/vis/touchable/draw",this);
+  fpCommandDraw = new G4UIcmdWithABool("/vis/touchable/draw",this);
   fpCommandDraw->SetGuidance("Draw touchable.");
+  fpCommandDraw->SetGuidance
+  ("If parameter == true, also draw extent as a white wireframe box.");
   // Pick up additional guidance from /vis/viewer/centreAndZoomInOn
   CopyGuidanceFrom(fpCommandCentreAndZoomInOn,fpCommandDraw,1);
+  fpCommandDraw->SetParameterName("extent", omitable = true);
+  fpCommandDraw->SetDefaultValue(false);
 
   fpCommandDump = new G4UIcmdWithoutParameter("/vis/touchable/dump",this);
   fpCommandDump->SetGuidance("Dump touchable attributes.");
@@ -89,8 +96,7 @@ G4VisCommandsTouchable::G4VisCommandsTouchable()
    "\nFor example, \"/Shap/\" matches \"Shape1\" and \"Shape2\".");
   fpCommandFindPath -> SetGuidance
   ("It may help to see a textual representation of the geometry hierarchy of"
-   "\nthe worlds. Try \"/vis/drawTree [worlds]\" or one of the driver/browser"
-   "\ncombinations that have the required functionality, e.g., HepRep.");
+   "\nthe worlds. Try \"/vis/drawTree [worlds]\".");
   G4UIparameter* parameter;
   parameter = new G4UIparameter ("physical-volume-name", 's', omitable = true);
   parameter -> SetDefaultValue ("world");
@@ -100,6 +106,11 @@ G4VisCommandsTouchable::G4VisCommandsTouchable()
   parameter -> SetDefaultValue (-1);
   fpCommandFindPath -> SetParameter (parameter);
 
+  fpCommandLocalAxes = new G4UIcmdWithoutParameter("/vis/touchable/localAxes",this);
+  fpCommandLocalAxes->SetGuidance("Draw local axes.");
+  // Pick up additional guidance from /vis/viewer/centreAndZoomInOn
+  CopyGuidanceFrom(fpCommandCentreAndZoomInOn,fpCommandLocalAxes,1);
+
   fpCommandShowExtent = new G4UIcmdWithABool("/vis/touchable/showExtent",this);
   fpCommandShowExtent->SetGuidance("Print extent of touchable.");
   fpCommandShowExtent->SetGuidance("If parameter == true, also draw.");
@@ -107,6 +118,11 @@ G4VisCommandsTouchable::G4VisCommandsTouchable()
   CopyGuidanceFrom(fpCommandCentreAndZoomInOn,fpCommandShowExtent,1);
   fpCommandShowExtent->SetParameterName("draw", omitable = true);
   fpCommandShowExtent->SetDefaultValue(false);
+
+  fpCommandTwinkle = new G4UIcmdWithoutParameter("/vis/touchable/twinkle",this);
+  fpCommandTwinkle->SetGuidance("Cause touchable to twinkle.");
+  // Pick up additional guidance from /vis/viewer/centreAndZoomInOn
+  CopyGuidanceFrom(fpCommandCentreAndZoomInOn,fpCommandTwinkle,1);
 
   fpCommandVolumeForField = new G4UIcmdWithABool("/vis/touchable/volumeForField",this);
   fpCommandVolumeForField->SetGuidance("Set volume for field.");
@@ -119,7 +135,9 @@ G4VisCommandsTouchable::G4VisCommandsTouchable()
 
 G4VisCommandsTouchable::~G4VisCommandsTouchable() {
   delete fpCommandVolumeForField;
+  delete fpCommandTwinkle;
   delete fpCommandShowExtent;
+  delete fpCommandLocalAxes;
   delete fpCommandFindPath;
   delete fpCommandExtentForField;
   delete fpCommandDump;
@@ -148,7 +166,7 @@ void G4VisCommandsTouchable::SetNewValue
   G4VPhysicalVolume* world = *(transportationManager->GetWorldsIterator());
   if (!world) {
     if (verbosity >= G4VisManager::errors) {
-      G4cerr <<
+      G4warn <<
       "ERROR: G4VisCommandsTouchable::SetNewValue:"
       "\n  No world.  Maybe the geometry has not yet been defined."
       "\n  Try \"/run/initialize\""
@@ -157,128 +175,12 @@ void G4VisCommandsTouchable::SetNewValue
     return;
   }
 
-  G4VViewer* currentViewer = fpVisManager -> GetCurrentViewer ();
-  if (!currentViewer) {
-    if (verbosity >= G4VisManager::errors) {
-      G4cerr <<
-      "ERROR: No current viewer - \"/vis/viewer/list\" to see possibilities."
-      << G4endl;
-    }
-    return;
-  }
-
-  G4Scene* currentScene = fpVisManager->GetCurrentScene();
-  if (!currentScene) {
-    if (verbosity >= G4VisManager::errors) {
-      G4cerr <<
-      "ERROR: No current scene - \"/vis/scene/list\" to see possibilities."
-      << G4endl;
-    }
-    return;
-  }
-
-  if (command == fpCommandCentreOn || command == fpCommandCentreAndZoomInOn) {
-    
-    G4PhysicalVolumeModel::TouchableProperties properties =
-    G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
-    if (properties.fpTouchablePV) {
-      // To handle parameterisations, set copy number
-      properties.fpTouchablePV->SetCopyNo(properties.fCopyNo);
-      G4PhysicalVolumeModel tempPVModel
-      (properties.fpTouchablePV,
-       G4PhysicalVolumeModel::UNLIMITED,
-       properties.fTouchableGlobalTransform,
-       nullptr, // Modelling parameters (not used)
-       true, // use full extent (prevents calculating own extent, which crashes)
-       properties.fTouchableBaseFullPVPath);
-      // Use a temporary scene in order to find vis extent
-      G4Scene tempScene("Centre Scene");
-      G4bool successful = tempScene.AddRunDurationModel(&tempPVModel,warn);
-      if (successful) {
-        if (verbosity >= G4VisManager::confirmations) {
-          G4cout
-          << "Touchable " << fCurrentTouchableProperties.fTouchablePath
-          << ",\n  has been added to temporary scene \"" << tempScene.GetName() << "\"."
-          << G4endl;
-        }
-      }
-      const G4VisExtent& newExtent = tempScene.GetExtent();
-      const G4ThreeVector& newTargetPoint = newExtent.GetExtentCentre();
-      G4ViewParameters saveVP = currentViewer->GetViewParameters();
-      G4ViewParameters newVP = saveVP;
-      if (command == fpCommandCentreAndZoomInOn) {
-        // Calculate the new zoom factor
-        const G4double zoomFactor
-        = currentScene->GetExtent().GetExtentRadius()/newExtent.GetExtentRadius();
-        newVP.SetZoomFactor(zoomFactor);
-      }
-      // Change the target point
-      const G4Point3D& standardTargetPoint = currentScene->GetStandardTargetPoint();
-      newVP.SetCurrentTargetPoint(newTargetPoint - standardTargetPoint);
-      // Interpolate
-      InterpolateToNewView(currentViewer, saveVP, newVP);
-      if (verbosity >= G4VisManager::confirmations) {
-        G4cout
-        << "Viewer \"" << currentViewer->GetName()
-        << "\" centred ";
-        if (fpCommandCentreAndZoomInOn) {
-          G4cout << "and zoomed in";
-        }
-        G4cout << " on touchable\n" << fCurrentTouchableProperties.fTouchablePath
-        << G4endl;
-      }
-      SetViewParameters(currentViewer, newVP);
-    } else {
-      G4cout << "Touchable not found." << G4endl;
-    }
-    return;
-    
-  } else if (command == fpCommandDraw) {
+  if (command == fpCommandDump) {
 
     G4PhysicalVolumeModel::TouchableProperties properties =
     G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
     if (properties.fpTouchablePV) {
-      // To handle paramaterisations we have to set the copy number
-      properties.fpTouchablePV->SetCopyNo(properties.fCopyNo);
-      G4PhysicalVolumeModel* pvModel = new G4PhysicalVolumeModel
-      (properties.fpTouchablePV,
-       G4PhysicalVolumeModel::UNLIMITED,
-       properties.fTouchableGlobalTransform,
-       nullptr, // Modelling parameters (not used)
-       true, // use full extent (prevents calculating own extent, which crashes)
-       properties.fTouchableBaseFullPVPath);
-
-      G4int keepVerbose = UImanager->GetVerboseLevel();
-      G4int newVerbose(0);
-      if (keepVerbose >= 2 || verbosity >= G4VisManager::confirmations)
-        newVerbose = 2;
-      UImanager->SetVerboseLevel(newVerbose);
-      UImanager->ApplyCommand("/vis/scene/create");
-      currentScene = fpVisManager->GetCurrentScene();  // New current scene
-      G4bool successful = currentScene->AddRunDurationModel(pvModel,warn);
-      UImanager->ApplyCommand("/vis/sceneHandler/attach");
-      UImanager->SetVerboseLevel(keepVerbose);
-
-      if (successful) {
-        if (verbosity >= G4VisManager::confirmations) {
-          G4cout << "\"" << properties.fpTouchablePV->GetName()
-          << "\", copy no. " << properties.fCopyNo << " drawn"
-          << G4endl;
-        }
-      } else {
-        G4VisCommandsSceneAddUnsuccessful(verbosity);
-      }
-    } else {
-      G4cout << "Touchable not found." << G4endl;
-    }
-    return;
-
-  } else if (command == fpCommandDump) {
-
-    G4PhysicalVolumeModel::TouchableProperties properties =
-    G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
-    if (properties.fpTouchablePV) {
-      // To handle paramaterisations we have to set the copy number
+      // To handle parameterisations we have to set the copy number
       properties.fpTouchablePV->SetCopyNo(properties.fCopyNo);
       G4PhysicalVolumeModel tempPVModel
       (properties.fpTouchablePV,
@@ -291,42 +193,22 @@ void G4VisCommandsTouchable::SetNewValue
       std::vector<G4AttValue>* attValues = tempPVModel.CreateCurrentAttValues();
       G4cout << G4AttCheck(attValues,attDefs);
       delete attValues;
-      G4Polyhedron* polyhedron =
-      properties.fpTouchablePV->GetLogicalVolume()->GetSolid()->GetPolyhedron();
-      G4cout << "\nLocal polyhedron coordinates:\n" << *polyhedron;
-      G4Transform3D* transform = tempPVModel.GetCurrentTransform();
-      polyhedron->Transform(*transform);
-      G4cout << "\nGlobal polyhedron coordinates:\n" << *polyhedron;
-    } else {
-      G4cout << "Touchable not found." << G4endl;
-    }
-    return;
-
-  } else if (command == fpCommandExtentForField) {
-
-    G4PhysicalVolumeModel::TouchableProperties properties =
-    G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
-    if (properties.fpTouchablePV) {
-      G4VisExtent extent
-      = properties.fpTouchablePV->GetLogicalVolume()->GetSolid()->GetExtent();
-      extent.Transform(properties.fTouchableGlobalTransform);
-      fCurrentExtentForField = extent;
-      fCurrrentPVFindingsForField.clear();
-      if (verbosity >= G4VisManager::confirmations) {
-        G4cout << "Extent for field set to " << extent
-        << "\nVolume for field has been cleared."
-        << G4endl;
-      }
-      if (fpCommandExtentForField->GetNewBoolValue(newValue)) {
-        DrawExtent(extent);
+      const auto lv = properties.fpTouchablePV->GetLogicalVolume();
+      const auto polyhedron = lv->GetSolid()->GetPolyhedron();
+      if (polyhedron) {
+        polyhedron->SetVisAttributes(lv->GetVisAttributes());
+        G4cout << "\nLocal polyhedron coordinates:\n" << *polyhedron;
+        const G4Transform3D& transform = tempPVModel.GetCurrentTransform();
+        polyhedron->Transform(transform);
+        G4cout << "\nGlobal polyhedron coordinates:\n" << *polyhedron;
       }
     } else {
-      G4cout << "Touchable not found." << G4endl;
+      G4warn << "Touchable not found." << G4endl;
     }
     return;
 
   } else if (command == fpCommandFindPath) {
-
+    
     G4String pvName;
     G4int copyNo;
     std::istringstream iss(newValue);
@@ -338,6 +220,7 @@ void G4VisCommandsTouchable::SetNewValue
       G4PhysicalVolumeModel searchModel (*iterWorld);  // Unlimited depth.
       G4ModelingParameters mp;  // Default - no culling.
       searchModel.SetModelingParameters (&mp);
+      // Find all instances at any position in the tree
       G4PhysicalVolumesSearchScene searchScene (&searchModel, pvName, copyNo);
       searchModel.DescribeYourselfTo (searchScene);  // Initiate search.
       for (const auto& findings: searchScene.GetFindings()) {
@@ -360,10 +243,192 @@ void G4VisCommandsTouchable::SetNewValue
       << "\nor to see overlaps: \"/vis/drawLogicalVolume <mother-logical-volume-name>\""
       << G4endl;
     } else {
-      G4cout << pvName;
-      if (copyNo >= 0) G4cout << ':' << copyNo;
-      G4cout << " not found" << G4endl;
+      G4warn << pvName;
+      if (copyNo >= 0) G4warn << ':' << copyNo;
+      G4warn << " not found" << G4endl;
     }
+    return;
+  }
+
+  G4VViewer* currentViewer = fpVisManager -> GetCurrentViewer ();
+  if (!currentViewer) {
+    if (verbosity >= G4VisManager::errors) {
+      G4warn <<
+      "ERROR: No current viewer - \"/vis/viewer/list\" to see possibilities."
+      << G4endl;
+    }
+    return;
+  }
+
+  G4Scene* currentScene = fpVisManager->GetCurrentScene();
+  if (!currentScene) {
+    if (verbosity >= G4VisManager::errors) {
+      G4warn <<
+      "ERROR: No current scene - \"/vis/scene/list\" to see possibilities."
+      << G4endl;
+    }
+    return;
+  }
+
+  if (command == fpCommandCentreOn || command == fpCommandCentreAndZoomInOn) {
+
+    // For twinkling...
+    std::vector<std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>> touchables;
+
+    G4PhysicalVolumeModel::TouchableProperties properties =
+    G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
+    if (properties.fpTouchablePV) {
+      // To handle parameterisations, set copy number
+      properties.fpTouchablePV->SetCopyNo(properties.fCopyNo);
+      G4PhysicalVolumeModel tempPVModel
+      (properties.fpTouchablePV,
+       G4PhysicalVolumeModel::UNLIMITED,
+       properties.fTouchableGlobalTransform,
+       nullptr, // Modelling parameters (not used)
+       true, // use full extent (prevents calculating own extent, which crashes)
+       properties.fTouchableBaseFullPVPath);
+      touchables.push_back(properties.fTouchableFullPVPath);  // Only one in this case
+      // Use a temporary scene in order to find vis extent
+      G4Scene tempScene("Centre Scene");
+      G4bool successful = tempScene.AddRunDurationModel(&tempPVModel,warn);
+      if (!successful) return;
+      if (verbosity >= G4VisManager::parameters) {
+        G4cout
+        << "Touchable " << fCurrentTouchableProperties.fTouchablePath
+        << ",\n  has been added to temporary scene \"" << tempScene.GetName() << "\"."
+        << G4endl;
+      }
+
+      const G4VisExtent& newExtent = tempScene.GetExtent();
+      const G4ThreeVector& newTargetPoint = newExtent.GetExtentCentre();
+      G4ViewParameters saveVP = currentViewer->GetViewParameters();
+      G4ViewParameters newVP = saveVP;
+      if (command == fpCommandCentreAndZoomInOn) {
+        // Calculate the new zoom factor
+        const G4double zoomFactor
+        = currentScene->GetExtent().GetExtentRadius()/newExtent.GetExtentRadius();
+        newVP.SetZoomFactor(zoomFactor);
+      }
+      // Change the target point
+      const G4Point3D& standardTargetPoint = currentScene->GetStandardTargetPoint();
+      newVP.SetCurrentTargetPoint(newTargetPoint - standardTargetPoint);
+
+      if (currentViewer->GetKernelVisitElapsedTimeSeconds() < 0.1) {
+        // Interpolate
+        auto keepVisVerbose = fpVisManager->GetVerbosity();
+        fpVisManager->SetVerboseLevel(G4VisManager::errors);
+        if (newVP != saveVP) InterpolateToNewView(currentViewer, saveVP, newVP);
+        // ...and twinkle
+        Twinkle(currentViewer,newVP,touchables);
+        fpVisManager->SetVerboseLevel(keepVisVerbose);
+      }
+
+      if (verbosity >= G4VisManager::confirmations) {
+        G4cout
+        << "Viewer \"" << currentViewer->GetName()
+        << "\" centred ";
+        if (fpCommandCentreAndZoomInOn) {
+          G4cout << "and zoomed in";
+        }
+        G4cout << " on touchable\n" << fCurrentTouchableProperties.fTouchablePath
+        << G4endl;
+      }
+      SetViewParameters(currentViewer, newVP);
+    } else {
+      G4warn << "Touchable not found." << G4endl;
+    }
+    return;
+    
+  } else if (command == fpCommandDraw) {
+
+    G4PhysicalVolumeModel::TouchableProperties properties =
+    G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
+    if (properties.fpTouchablePV) {
+      // To handle parameterisations we have to set the copy number
+      properties.fpTouchablePV->SetCopyNo(properties.fCopyNo);
+      G4PhysicalVolumeModel* pvModel = new G4PhysicalVolumeModel
+      (properties.fpTouchablePV,
+       G4PhysicalVolumeModel::UNLIMITED,
+       properties.fTouchableGlobalTransform,
+       nullptr, // Modelling parameters (not used)
+       true, // use full extent (prevents calculating own extent, which crashes)
+       properties.fTouchableBaseFullPVPath);
+
+      UImanager->ApplyCommand("/vis/scene/create");
+      currentScene = fpVisManager->GetCurrentScene();  // New current scene
+      G4bool successful = currentScene->AddRunDurationModel(pvModel,warn);
+      UImanager->ApplyCommand("/vis/sceneHandler/attach");
+
+      if (successful) {
+        if (fpCommandDraw->GetNewBoolValue(newValue)) {
+          const auto& extent = pvModel->GetExtent();
+          const G4double halfX = (extent.GetXmax()-extent.GetXmin())/2.;
+          const G4double halfY = (extent.GetYmax()-extent.GetYmin())/2.;
+          const G4double halfZ = (extent.GetZmax()-extent.GetZmin())/2.;
+          G4Box extentBox("extent",halfX,halfY,halfZ);
+          G4VisAttributes extentVA;
+          extentVA.SetForceWireframe();
+          fpVisManager->Draw(extentBox,extentVA,G4Translate3D(extent.GetExtentCentre()));
+        }
+        if (verbosity >= G4VisManager::confirmations) {
+          G4cout << "\"" << properties.fpTouchablePV->GetName()
+          << "\", copy no. " << properties.fCopyNo << " drawn";
+          if (fpCommandDraw->GetNewBoolValue(newValue)) {
+            G4cout << " with extent box";
+          }
+          G4cout << '.' << G4endl;
+        }
+      } else {
+        G4VisCommandsSceneAddUnsuccessful(verbosity);
+      }
+    } else {
+      G4warn << "Touchable not found." << G4endl;
+    }
+    return;
+
+  } else if (command == fpCommandExtentForField) {
+
+    G4PhysicalVolumeModel::TouchableProperties properties =
+    G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
+    if (properties.fpTouchablePV) {
+      G4VisExtent extent
+      = properties.fpTouchablePV->GetLogicalVolume()->GetSolid()->GetExtent();
+      extent.Transform(properties.fTouchableGlobalTransform);
+      fCurrentExtentForField = extent;
+      fCurrrentPVFindingsForField.clear();
+      if (verbosity >= G4VisManager::confirmations) {
+        G4cout << "Extent for field set to " << extent
+        << "\nVolume for field has been cleared."
+        << G4endl;
+      }
+      if (fpCommandExtentForField->GetNewBoolValue(newValue)) {
+        DrawExtent(extent);
+      }
+    } else {
+      G4warn << "Touchable not found." << G4endl;
+    }
+    return;
+
+  } else if (command == fpCommandLocalAxes) {
+
+    G4PhysicalVolumeModel::TouchableProperties properties =
+    G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
+    if (properties.fpTouchablePV) {
+      const auto& transform = fCurrentTouchableProperties.fTouchableGlobalTransform;
+      const auto& extent = fCurrentTouchableProperties.fpTouchablePV->GetLogicalVolume()->GetSolid()->GetExtent();
+      const G4double lengthMax = extent.GetExtentRadius()/2.;
+      const G4double intLog10LengthMax = std::floor(std::log10(lengthMax));
+      G4double length = std::pow(10,intLog10LengthMax);
+      if (5.*length < lengthMax) length *= 5.;
+      else if (2.*length < lengthMax) length *= 2.;
+      G4AxesModel axesModel(0.,0.,0.,length,transform);
+      axesModel.SetGlobalTag("LocalAxesModel");
+      axesModel.DescribeYourselfTo(*fpVisManager->GetCurrentSceneHandler());
+      G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/refresh");
+    } else {
+      G4warn << "Touchable not found." << G4endl;
+    }
+    return;
 
   } else if (command == fpCommandShowExtent) {
 
@@ -376,7 +441,29 @@ void G4VisCommandsTouchable::SetNewValue
       G4cout << extent << G4endl;
       if (fpCommandShowExtent->GetNewBoolValue(newValue)) DrawExtent(extent);
     } else {
-      G4cout << "Touchable not found." << G4endl;
+      G4warn << "Touchable not found." << G4endl;
+    }
+    return;
+
+  } else if (command == fpCommandTwinkle) {
+
+    if (currentViewer->GetKernelVisitElapsedTimeSeconds() < 0.1) {
+      G4PhysicalVolumeModel::TouchableProperties properties =
+      G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
+      if (properties.fpTouchablePV) {
+        std::vector<std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>> touchables;
+        touchables.push_back(properties.fTouchableFullPVPath);
+        auto keepVisVerbose = fpVisManager->GetVerbosity();
+        fpVisManager->SetVerboseLevel(G4VisManager::errors);
+        auto keepVP = currentViewer->GetViewParameters();
+        Twinkle(currentViewer,currentViewer->GetViewParameters(),touchables);
+        SetViewParameters(currentViewer, keepVP);
+        fpVisManager->SetVerboseLevel(keepVisVerbose);
+      } else {
+        G4warn << "Touchable not found." << G4endl;
+      }
+    } else {
+      G4warn << "Twinkling not available - image construction time too long." << G4endl;
     }
     return;
 
@@ -403,14 +490,14 @@ void G4VisCommandsTouchable::SetNewValue
         DrawExtent(extent);
       }
     } else {
-      G4cout << "Touchable not found." << G4endl;
+      G4warn << "Touchable not found." << G4endl;
     }
     return;
 
   } else {
 
     if (verbosity >= G4VisManager::errors) {
-      G4cerr <<
+      G4warn <<
       "ERROR: G4VisCommandsTouchable::SetNewValue: unrecognised command."
       << G4endl;
     }

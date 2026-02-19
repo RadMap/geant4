@@ -24,7 +24,10 @@
 // ********************************************************************
 //
 
-#ifdef G4VIS_BUILD_OI_DRIVER
+// 03-MAY-2021 F.W. Jones: removed the camera sensor which is redundant
+// since the group node sensor receives all camera motion events and
+// can update the view parameters, irrespective of any changes to the
+// camera type.
 
 // this :
 #include "G4OpenInventorViewer.hh"
@@ -62,10 +65,8 @@ G4OpenInventorViewer::G4OpenInventorViewer(
 ,fSoImageWriter(0)
 ,fGL2PSAction(0) //To be set be suclass.
 ,fGroupCameraSensor(0)
-,fCameraSensor(0)
+ //,fCameraSensor(0)
 {
-  fNeedKernelVisit = true;  //?? Temporary, until KernelVisitDecision fixed.
-
   fVP.SetAutoRefresh(true);
   fDefaultVP.SetAutoRefresh(true);
   fVP.SetPicking(true);
@@ -125,14 +126,15 @@ G4OpenInventorViewer::G4OpenInventorViewer(
   fGroupCameraSensor = new SoNodeSensor(GroupCameraSensorCB,this);
   fGroupCameraSensor->setPriority(0);//Needed in order to do getTriggerNode()
   fGroupCameraSensor->attach(group);
-
-  fCameraSensor = new SoNodeSensor(CameraSensorCB,this);
-  fCameraSensor->setPriority(0);//Needed in order to do getTriggerNode()
+  // FWJ Upgraded the group sensor so the camera sensor is not needed
+  //  fCameraSensor = new SoNodeSensor(CameraSensorCB,this);
+  //  fCameraSensor->setPriority(0);//Needed in order to do getTriggerNode()
+  //  fCameraSensor->attach(camera);
 }
 
 G4OpenInventorViewer::~G4OpenInventorViewer () {
-  fCameraSensor->detach();
-  delete fCameraSensor;
+   //  fCameraSensor->detach();
+   //  delete fCameraSensor;
   fGroupCameraSensor->detach();
   delete fGroupCameraSensor;
   fSoSelection->unref();
@@ -151,7 +153,6 @@ void G4OpenInventorViewer::KernelVisitDecision () {
       CompareForKernelVisit(fLastVP)) {
     NeedKernelVisit ();
   }      
-  fLastVP = fVP;
 }
  
 G4bool G4OpenInventorViewer::CompareForKernelVisit(G4ViewParameters& vp) {
@@ -175,6 +176,8 @@ G4bool G4OpenInventorViewer::CompareForKernelVisit(G4ViewParameters& vp) {
       // G4OpenGLStoredSceneHander::CreateSection/CutawayPolyhedron.
       (vp.IsExplode ()          != fVP.IsExplode ())          ||
       (vp.GetNoOfSides ()       != fVP.GetNoOfSides ())       ||
+      (vp.GetGlobalMarkerScale()    != fVP.GetGlobalMarkerScale())    ||
+      (vp.GetGlobalLineWidthScale() != fVP.GetGlobalLineWidthScale()) ||
       (vp.IsMarkerNotHidden ()  != fVP.IsMarkerNotHidden ())  ||
       (vp.GetDefaultVisAttributes()->GetColour() !=
        fVP.GetDefaultVisAttributes()->GetColour())            ||
@@ -186,11 +189,12 @@ G4bool G4OpenInventorViewer::CompareForKernelVisit(G4ViewParameters& vp) {
       // needs a kernel visit.  (In this respect, it differs from the
       // OpenGL drivers, where it's done in SetView.)
       (vp.GetScaleFactor ()     != fVP.GetScaleFactor ())     ||
-      // If G4OpenInventor ever introduces VAMs, the following might need
-      // changing to a complete comparison, i.e., remove ".size()".  See
-      // G4OpenGLStoredViewer::CompareForKernelVisit.
-      (vp.GetVisAttributesModifiers().size() !=
-       fVP.GetVisAttributesModifiers().size())
+      (vp.GetVisAttributesModifiers()    != fVP.GetVisAttributesModifiers())    ||
+      (vp.IsSpecialMeshRendering()       != fVP.IsSpecialMeshRendering())       ||
+      (vp.GetSpecialMeshRenderingOption()!= fVP.GetSpecialMeshRenderingOption())||
+      (vp.GetTransparencyByDepth() != fVP.GetTransparencyByDepth()) ||
+      (vp.IsDotsSmooth()        != fVP.IsDotsSmooth())        ||
+      (vp.GetDotsSize()         != fVP.GetDotsSize())
       )
     return true;
 
@@ -208,6 +212,7 @@ G4bool G4OpenInventorViewer::CompareForKernelVisit(G4ViewParameters& vp) {
     return true;
 
   if (vp.IsCutaway ()) {
+    if (vp.GetCutawayMode() != fVP.GetCutawayMode()) return true;
     if (vp.GetCutawayPlanes ().size () !=
 	fVP.GetCutawayPlanes ().size ()) return true;
     for (size_t i = 0; i < vp.GetCutawayPlanes().size(); ++i)
@@ -219,6 +224,22 @@ G4bool G4OpenInventorViewer::CompareForKernelVisit(G4ViewParameters& vp) {
       (vp.GetExplodeFactor () != fVP.GetExplodeFactor ()))
     return true;
       
+  if (vp.IsSpecialMeshRendering() &&
+      (vp.GetSpecialMeshVolumes() != fVP.GetSpecialMeshVolumes()))
+    return true;
+
+  if (vp.GetTransparencyByDepth() > 0. &&
+      vp.GetTransparencyByDepthOption() != fVP.GetTransparencyByDepthOption())
+    return true;
+
+  return false;
+}
+
+G4bool G4OpenInventorViewer::CompareForTransientsRedraw(G4ViewParameters& vp)
+{
+  if (vp.GetTimeParameters() != fVP.GetTimeParameters()) {
+    return fTransientsNeedRedrawing = true;
+  }
   return false;
 }
 
@@ -374,7 +395,21 @@ G4OpenInventorViewer::lookedAt(SoCamera* camera,SbVec3f & dir, SbVec3f & up)
 void G4OpenInventorViewer::DrawView () {
   //G4cout << "debug Iv::DrawViewer " <<G4endl;
   if (!fNeedKernelVisit) KernelVisitDecision();
-  ProcessView();
+  G4bool kernelVisitWasNeeded = fNeedKernelVisit; // Keep (ProcessView resets).
+
+  ProcessView ();  // Clears store and processes scene only if necessary.
+
+  if (kernelVisitWasNeeded) {
+    // We might need to do something if the kernel was visited.
+  } else {  // Or even if it was not!
+    if (!fTransientsNeedRedrawing) CompareForTransientsRedraw(fLastVP);
+    if (fTransientsNeedRedrawing) {
+      ProcessTransients();
+    }
+  }
+
+  fLastVP = fVP;
+
   FinishView();
 }
 
@@ -382,29 +417,51 @@ void G4OpenInventorViewer::ShowView () {
   fInteractorManager -> SecondaryLoop ();
 }
 
-void G4OpenInventorViewer::GroupCameraSensorCB(void* aThis,SoSensor* aSensor){ 
+// FWJ This sensor now performs the fVP updates
+void G4OpenInventorViewer::GroupCameraSensorCB(void* aThis, SoSensor* aSensor)
+{ 
   G4OpenInventorViewer* This = (G4OpenInventorViewer*)aThis;
 
   SoNode* node = ((SoNodeSensor*)aSensor)->getTriggerNode();
-  //printf("debug : GroupCameraSensorCB %s\n",
-  //node->getTypeId().getName().getString());
+  //  printf("debug : GroupCameraSensorCB %s\n",
+  //         node->getTypeId().getName().getString());
 
   if(node->isOfType(SoCamera::getClassTypeId())) {
+    SoCamera* camera = (SoCamera*)node;
+
+    // FWJ DEBUG
+    //    G4cout << "   UPDATING fVP FROM CAMERA " << camera << G4endl;
+    SbVec3f direction, up;
+    lookedAt(camera, direction, up);
+    This->fVP.SetViewpointDirection
+      (G4Vector3D(-direction[0], -direction[1], -direction[2]));
+    This->fVP.SetUpVector(G4Vector3D(up[0], up[1], up[2]));
+
+    SbVec3f pos = camera->position.getValue();
+    SbVec3f target = pos + direction * camera->focalDistance.getValue();
+
+    This->fVP.SetCurrentTargetPoint(G4Point3D(target[0], target[1], target[2]));
+    
+    // FWJ camera sensor no longer needed
     // Viewer had changed the camera type, 
     // attach the fCameraSensor to the new camera.
-    SoCamera* camera = (SoCamera*)node;
-    This->fCameraSensor->detach();
-    This->fCameraSensor->attach(camera);
+    // FWJ DEBUG
+    //    G4cout << "   SWITCHING TO CAMERA " << camera << G4endl;
+    //    This->fCameraSensor->detach();
+    //    This->fCameraSensor->attach(camera);
   }
 
 }
 
+/* FWJ This sensor is no longer needed
 void G4OpenInventorViewer::CameraSensorCB(void* aThis,SoSensor* aSensor) { 
   G4OpenInventorViewer* This = (G4OpenInventorViewer*)aThis;
 
-  //printf("debug : CameraSensorCB\n");
+  //  printf("debug : CameraSensorCB\n");
 
   SoNode* node = ((SoNodeSensor*)aSensor)->getTriggerNode();
+//  printf("debug : CameraSensorCB %s\n",
+//         node->getTypeId().getName().getString());
 
   if(node->isOfType(SoCamera::getClassTypeId())) {
     SoCamera* camera = (SoCamera*)node;
@@ -421,6 +478,7 @@ void G4OpenInventorViewer::CameraSensorCB(void* aThis,SoSensor* aSensor) {
     This->fVP.SetCurrentTargetPoint(G4Point3D(target[0],target[1],target[2]));
   }
 }
+*/
 
 void G4OpenInventorViewer::SelectionCB(
  void* aThis
@@ -492,29 +550,25 @@ void G4OpenInventorViewer::Escape(){
 void G4OpenInventorViewer::WritePostScript(const G4String& aFile) {
   if(!fGL2PSAction) return;
   fGL2PSAction->setFileName(aFile.c_str());
-  fGL2PSAction->setExportImageFormat(GL2PS_EPS);
-  // Use gl2ps default buffer (2048*2048)
-  fGL2PSAction->setBufferSize(0);
+  fGL2PSAction->setExportImageFormat_EPS();
+  fGL2PSAction->setTitleAndProducer("Geant4 output","Geant4");
   G4cout << "Produce " << aFile << "..." << G4endl;
   if (fGL2PSAction->enableFileWriting()) {
     ViewerRender();
     fGL2PSAction->disableFileWriting();
   }
-  fGL2PSAction->resetBufferSizeParameters();
 }
 
 void G4OpenInventorViewer::WritePDF(const G4String& aFile) {
   if(!fGL2PSAction) return;
   fGL2PSAction->setFileName(aFile.c_str());
-  fGL2PSAction->setExportImageFormat(GL2PS_PDF);
-  // Use gl2ps default buffer (2048*2048)
-  fGL2PSAction->setBufferSize(0);
+  fGL2PSAction->setExportImageFormat_PDF();
+  fGL2PSAction->setTitleAndProducer("Geant4 output","Geant4");
   G4cout << "Produce " << aFile << "..." << G4endl;
   if (fGL2PSAction->enableFileWriting()) {
     ViewerRender();
     fGL2PSAction->disableFileWriting();
   }
-  fGL2PSAction->resetBufferSizeParameters();
 }
 
 void G4OpenInventorViewer::WritePixmapPostScript(const G4String& aFile) {
@@ -755,5 +809,3 @@ Controls on an Inventor examiner viewer are :\n\
     return "";
   }
 }
-
-#endif

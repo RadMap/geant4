@@ -25,10 +25,6 @@
 //
 /// \file TrackingAction.hh
 /// \brief Definition of the TrackingAction class
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef TrackingAction_h
 #define TrackingAction_h 1
@@ -41,27 +37,27 @@ class TrackingMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class TrackingAction : public G4UserTrackingAction {
-
-  public:  
+class TrackingAction : public G4UserTrackingAction
+{
+  public:
     TrackingAction(EventAction*);
-   ~TrackingAction();
-   
-    virtual void  PreUserTrackingAction(const G4Track*);
-    virtual void PostUserTrackingAction(const G4Track*);
-    
-    void SetFullChain(G4bool flag) { fFullChain = flag;};
-    void SetTimeWindow(G4double , G4double);
-    
-  private:
-    EventAction*        fEvent;
-    TrackingMessenger*  fTrackMessenger;
-    
-    G4double fCharge, fMass;        
-    G4bool   fFullChain;
+    ~TrackingAction() override;
 
-    G4double fTime_birth,  fTime_end;
-    G4double fTimeWindow1, fTimeWindow2;
+    void PreUserTrackingAction(const G4Track*) override;
+    void PostUserTrackingAction(const G4Track*) override;
+
+    void SetFullChain(G4bool flag) { fFullChain = flag; };
+    void SetTimeWindow(G4double, G4double);
+
+  private:
+    EventAction* fEvent = nullptr;
+    TrackingMessenger* fTrackMessenger = nullptr;
+
+    G4double fCharge = 0., fMass = 0.;
+    G4bool fFullChain = true;
+
+    G4double fTimeBirth = 0., fTimeEnd = 0.;
+    G4double fTimeWindow1 = 0., fTimeWindow2 = 0.;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

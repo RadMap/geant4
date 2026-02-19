@@ -65,7 +65,7 @@ class G4MaterialCutsCouple;
 class G4ParticleChangeForLoss;
 class G4PAIModelData;
 
-class G4PAIModel : public G4VEmModel, public G4VEmFluctuationModel
+class G4PAIModel final : public G4VEmModel, public G4VEmFluctuationModel
 {
 
 public:
@@ -102,10 +102,12 @@ public:
 
   G4double SampleFluctuations(const G4MaterialCutsCouple*,
 			      const G4DynamicParticle*,
-			      G4double, G4double, G4double) final;
+			      const G4double, const G4double,
+                              const G4double, const G4double) final;
 
   G4double Dispersion(const G4Material*, const G4DynamicParticle*,
-		      G4double, G4double) final;
+		      const G4double, const G4double, 
+                      const G4double) final;
 
   void DefineForRegion(const G4Region* r) final;
 
@@ -117,6 +119,10 @@ public:
 
   inline void SetVerboseLevel(G4int verbose);
 
+  // hide assignment operator 
+  G4PAIModel & operator=(const  G4PAIModel &right) = delete;
+  G4PAIModel(const  G4PAIModel&) = delete;
+
 protected:
 
   G4double MaxSecondaryEnergy(const G4ParticleDefinition*, 
@@ -127,10 +133,6 @@ private:
   inline G4int FindCoupleIndex(const G4MaterialCutsCouple*);
 
   inline void SetParticle(const G4ParticleDefinition* p);
-
-  // hide assignment operator 
-  G4PAIModel & operator=(const  G4PAIModel &right) = delete;
-  G4PAIModel(const  G4PAIModel&) = delete;
 
   G4int                       fVerbose; 
 
@@ -174,8 +176,8 @@ inline void G4PAIModel::SetVerboseLevel(G4int verbose)
 inline G4int G4PAIModel::FindCoupleIndex(const G4MaterialCutsCouple* couple)
 {
   G4int idx = -1;
-  size_t jMatMax = fMaterialCutsCoupleVector.size();
-  for(size_t jMat = 0;jMat < jMatMax; ++jMat) { 
+  G4int jMatMax = (G4int)fMaterialCutsCoupleVector.size();
+  for(G4int jMat = 0;jMat < jMatMax; ++jMat) { 
     if(couple == fMaterialCutsCoupleVector[jMat]) {
       idx = jMat; 
       break; 
@@ -196,10 +198,3 @@ inline void G4PAIModel::SetParticle(const G4ParticleDefinition* p)
 }
 
 #endif
-
-
-
-
-
-
-

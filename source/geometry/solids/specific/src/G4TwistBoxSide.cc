@@ -25,7 +25,7 @@
 //
 // G4TwistBoxSide implementation
 //
-// Author: 18/03/2005 - O.Link (Oliver.Link@cern.ch)
+// Author: Oliver Link (CERN), 27.10.2004 - Created
 // --------------------------------------------------------------------
 
 #include <cmath>
@@ -68,7 +68,7 @@ G4TwistBoxSide::G4TwistBoxSide(const G4String&     name,
 
   // this is an overhead. But the parameter naming scheme fits to the other surfaces.
  
-  if ( ! (fDx1 == fDx2 && fDx3 == fDx4 ) )
+  if ( fDx1 != fDx2 || fDx3 != fDx4 )
   {
     std::ostringstream message;
     message << "TwistedTrapBoxSide is not used as a the side of a box: "
@@ -122,21 +122,10 @@ G4TwistBoxSide::G4TwistBoxSide(const G4String&     name,
 //* Fake default constructor ------------------------------------------
 
 G4TwistBoxSide::G4TwistBoxSide( __void__& a )
-  : G4VTwistSurface(a), fTheta(0.), fPhi(0.), fDy1(0.), fDx1(0.), fDx2(0.), 
-    fDy2(0.), fDx3(0.), fDx4(0.), fDz(0.), fAlph(0.), fTAlph(0.), fPhiTwist(0.), 
-    fAngleSide(0.), fdeltaX(0.), fdeltaY(0.), fDx4plus2(0.), fDx4minus2(0.), 
-    fDx3plus1(0.), fDx3minus1(0.), fDy2plus1(0.), fDy2minus1(0.), fa1md1(0.), 
-    fa2md2(0.)
+  : G4VTwistSurface(a)
 {
 }
 
-
-//=====================================================================
-//* destructor --------------------------------------------------------
-
-G4TwistBoxSide::~G4TwistBoxSide()
-{
-}
 
 //=====================================================================
 //* GetNormal ---------------------------------------------------------
@@ -225,15 +214,14 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
     }
     return fCurStatWithV.GetNXX();
   }
-  else  // initialize
+
+  // initialize
+  for (G4int i=0; i<G4VSURFACENXX ; ++i)
   {
-    for (G4int i=0; i<G4VSURFACENXX ; ++i)
-    {
-      distance[i] = kInfinity;
-      areacode[i] = sOutside;
-      isvalid[i]  = false;
-      gxx[i].set(kInfinity, kInfinity, kInfinity);
-    }
+    distance[i] = kInfinity;
+    areacode[i] = sOutside;
+    isvalid[i]  = false;
+    gxx[i].set(kInfinity, kInfinity, kInfinity);
   }
 
   G4ThreeVector p = ComputeLocalPoint(gp);
@@ -267,14 +255,14 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
 
   if ( v.z() == 0. )
   {
-    if ( (std::fabs(p.z()) <= L) && fPhiTwist )  // intersection possible in z
+    if ( (std::fabs(p.z()) <= L) && (fPhiTwist != 0.0) )  // intersection possible in z
     {
       phi = p.z() * fPhiTwist / L ;  // phi is determined by the z-position 
 
       q = (2.* fPhiTwist*((v.x() - fTAlph*v.y())*std::cos(phi)
                              + (fTAlph*v.x() + v.y())*std::sin(phi)));
       
-      if (q)
+      if (q != 0.0)
       {
         u = (2*(-(fdeltaY*phi*v.x()) + fPhiTwist*p.y()*v.x()
                 + fdeltaX*phi*v.y() - fPhiTwist*p.x()*v.y())
@@ -331,7 +319,7 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
 
     for (G4int i = 0 ; i<num ; ++i )    // loop over all mathematical solutions
     {
-      if ( (si[i]==0.0) && fPhiTwist )    // only real solutions
+      if ( (si[i]==0.0) && (fPhiTwist != 0.0) )    // only real solutions
       {
 #ifdef G4TWISTDEBUG
         G4cout << "Solution " << i << " : " << srd[i] << G4endl ;
@@ -360,7 +348,7 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
   }  // end general case
 
 
-  nxx = xbuf.size() ;  // save the number of  solutions
+  nxx = (G4int)xbuf.size() ;  // save the number of  solutions
 
   G4ThreeVector xxonsurface  ;       // point on surface
   G4ThreeVector surfacenormal  ;     // normal vector  
@@ -371,7 +359,7 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
   G4int maxint = 30 ;                // number of iterations
 
 
-  for ( size_t k = 0 ; k<xbuf.size() ; ++k )
+  for (auto & k : xbuf)
   {
 #ifdef G4TWISTDEBUG
     G4cout << "Solution " << k << " : " 
@@ -379,8 +367,8 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
            << ", uR = " << xbuf[k].u << G4endl ; 
 #endif
     
-    phi = xbuf[k].phi ;  // get the stored values for phi and u
-    u = xbuf[k].u ;
+    phi = k.phi ;  // get the stored values for phi and u
+    u = k.u ;
 
     IsConverged = false ;   // no convergence at the beginning
     
@@ -416,7 +404,7 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
       
     }  // end iterative loop (i)
 
-    if ( std::fabs(tmpdist)<ctol ) tmpdist = 0. ; 
+    if ( std::fabs(tmpdist)<ctol ) { tmpdist = 0. ; }
 
 #ifdef G4TWISTDEBUG
     G4cout << "refined solution "  << phi << " , " << u  <<  G4endl ;
@@ -433,7 +421,7 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
         tmpareacode = GetAreaCode(tmpxx);
         if (!IsOutside(tmpareacode))
         {
-          if (tmpdist >= 0) tmpisvalid = true;
+          if (tmpdist >= 0) { tmpisvalid = true; }
         }
       }
       else if (validate == kValidateWithoutTol)
@@ -441,7 +429,7 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
         tmpareacode = GetAreaCode(tmpxx, false);
         if (IsInside(tmpareacode))
         {
-          if (tmpdist >= 0) tmpisvalid = true;
+          if (tmpdist >= 0) { tmpisvalid = true; }
         }
       }
       else   // kDontValidate
@@ -458,10 +446,10 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
     }  
 
     // store the found values 
-    xbuf[k].xx = tmpxx ;
-    xbuf[k].distance = tmpdist ;
-    xbuf[k].areacode = tmpareacode ;
-    xbuf[k].isvalid = tmpisvalid ;
+    k.xx = tmpxx ;
+    k.distance = tmpdist ;
+    k.areacode = tmpareacode ;
+    k.isvalid = tmpisvalid ;
 
   }  // end loop over physical solutions (variable k)
 
@@ -477,7 +465,7 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
 
   // add guesses
 
-  G4int nxxtmp = xbuf.size() ;
+  auto nxxtmp = (G4int)xbuf.size() ;
 
   if ( nxxtmp<2 || IsParallel  )
   {
@@ -511,7 +499,7 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
     
     xbuf.push_back(xbuftmp) ;  // store it to xbuf
 
-    for ( size_t k = nxxtmp ; k<xbuf.size() ; ++k )
+    for ( std::size_t k = nxxtmp ; k<xbuf.size() ; ++k )
     {
 #ifdef G4TWISTDEBUG
       G4cout << "Solution " << k << " : " 
@@ -557,7 +545,7 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
       
       }  // end iterative loop (i)
 
-    if ( std::fabs(tmpdist)<ctol ) tmpdist = 0. ; 
+      if ( std::fabs(tmpdist)<ctol ) { tmpdist = 0. ; }
 
 #ifdef G4TWISTDEBUG
       G4cout << "refined solution "  << phi << " , " << u  <<  G4endl ;
@@ -574,7 +562,7 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
           tmpareacode = GetAreaCode(tmpxx);
           if (!IsOutside(tmpareacode))
           {
-            if (tmpdist >= 0) tmpisvalid = true;
+            if (tmpdist >= 0) { tmpisvalid = true; }
           }
         }
         else if (validate == kValidateWithoutTol)
@@ -582,7 +570,7 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
           tmpareacode = GetAreaCode(tmpxx, false);
           if (IsInside(tmpareacode))
           {
-            if (tmpdist >= 0) tmpisvalid = true;
+            if (tmpdist >= 0) { tmpisvalid = true; }
           }
         }
         else   // kDontValidate
@@ -617,9 +605,9 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
   G4cout << G4endl << G4endl ;
 #endif
 
-  nxx = xbuf.size() ;   // determine number of solutions again.
+  nxx = (G4int)xbuf.size() ;   // determine number of solutions again.
 
-  for ( size_t i = 0 ; i<xbuf.size() ; ++i )
+  for ( G4int i = 0 ; i<(G4int)xbuf.size() ; ++i )
   {
     distance[i] = xbuf[i].distance;
     gxx[i]      = ComputeGlobalPoint(xbuf[i].xx);
@@ -677,16 +665,15 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
       }
       return fCurStat.GetNXX();
    }
-   else  // initialize
+
+   // initialize
+   for (G4int i=0; i<G4VSURFACENXX; ++i)
    {
-      for (G4int i=0; i<G4VSURFACENXX; ++i)
-      {
-         distance[i] = kInfinity;
-         areacode[i] = sOutside;
-         gxx[i].set(kInfinity, kInfinity, kInfinity);
-      }
+      distance[i] = kInfinity;
+      areacode[i] = sOutside;
+      gxx[i].set(kInfinity, kInfinity, kInfinity);
    }
-   
+
    G4ThreeVector p = ComputeLocalPoint(gp);
    G4ThreeVector xx;  // intersection point
    G4ThreeVector xxonsurface ; // interpolated intersection point 
@@ -724,10 +711,10 @@ G4int G4TwistBoxSide::DistanceToSurface(const G4ThreeVector& gp,
    G4double halfphi = 0.5*fPhiTwist ;
    G4double uMax = GetBoundaryMax(phiR) ;
 
-   if (  phiR > halfphi ) phiR =  halfphi ;
-   if ( phiR < -halfphi ) phiR = -halfphi ;
-   if ( uR > uMax ) uR = uMax ;
-   if ( uR < -uMax ) uR = -uMax ;
+   if (  phiR > halfphi ) { phiR =  halfphi ; }
+   if ( phiR < -halfphi ) { phiR = -halfphi ; }
+   if ( uR > uMax ) { uR = uMax ; }
+   if ( uR < -uMax ) { uR = -uMax ; }
 
    xxonsurface = SurfacePoint(phiR,uR) ;
    distance[0] = (  p - xx ).mag() ;
@@ -786,40 +773,50 @@ G4int G4TwistBoxSide::GetAreaCode(const G4ThreeVector& xx,
       
       if (withTol)
       {
-        G4bool isoutside = false;
+         G4bool isoutside = false;
         
         // test boundary of yaxis
 
          if (yprime < fYAxisMin + ctol)
          {
-            areacode |= (sAxis0 & (sAxisY | sAxisMin)) | sBoundary; 
-            if (yprime <= fYAxisMin - ctol) isoutside = true;
-
+           areacode |= (sAxis0 & (sAxisY | sAxisMin)) | sBoundary; 
+           if (yprime <= fYAxisMin - ctol) { isoutside = true; }
          }
          else if (yprime > fYAxisMax - ctol)
          {
-            areacode |= (sAxis0 & (sAxisY | sAxisMax)) | sBoundary;
-            if (yprime >= fYAxisMax + ctol)  isoutside = true;
+           areacode |= (sAxis0 & (sAxisY | sAxisMax)) | sBoundary;
+           if (yprime >= fYAxisMax + ctol) {  isoutside = true; }
          }
 
          // test boundary of z-axis
 
          if (xx.z() < fAxisMin[zaxis] + ctol)
          {
-            areacode |= (sAxis1 & (sAxisZ | sAxisMin)); 
+           areacode |= (sAxis1 & (sAxisZ | sAxisMin)); 
 
-            if   (areacode & sBoundary) areacode |= sCorner;  // xx on corner.
-            else                        areacode |= sBoundary;
-            if (xx.z() <= fAxisMin[zaxis] - ctol) isoutside = true;
-
+           if ((areacode & sBoundary) != 0)
+           {
+             areacode |= sCorner;  // xx on corner.
+           }
+           else
+           {
+             areacode |= sBoundary;
+           }
+           if (xx.z() <= fAxisMin[zaxis] - ctol) { isoutside = true; }
          }
          else if (xx.z() > fAxisMax[zaxis] - ctol)
          {
-            areacode |= (sAxis1 & (sAxisZ | sAxisMax));
+           areacode |= (sAxis1 & (sAxisZ | sAxisMax));
 
-            if   (areacode & sBoundary) areacode |= sCorner;  // xx on corner.
-            else                        areacode |= sBoundary; 
-            if (xx.z() >= fAxisMax[zaxis] + ctol) isoutside = true;
+           if ((areacode & sBoundary) != 0)
+           {
+             areacode |= sCorner;  // xx on corner.
+           }
+           else
+           {
+             areacode |= sBoundary; 
+           }
+           if (xx.z() >= fAxisMax[zaxis] + ctol) { isoutside = true; }
          }
 
          // if isoutside = true, clear inside bit.             
@@ -827,12 +824,12 @@ G4int G4TwistBoxSide::GetAreaCode(const G4ThreeVector& xx,
          
          if (isoutside)
          {
-            G4int tmpareacode = areacode & (~sInside);
-            areacode = tmpareacode;
+           G4int tmpareacode = areacode & (~sInside);
+           areacode = tmpareacode;
          }
          else if ((areacode & sBoundary) != sBoundary)
          {
-            areacode |= (sAxis0 & sAxisY) | (sAxis1 & sAxisZ);
+           areacode |= (sAxis0 & sAxisY) | (sAxis1 & sAxisZ);
          }           
          
       }
@@ -842,27 +839,38 @@ G4int G4TwistBoxSide::GetAreaCode(const G4ThreeVector& xx,
 
          if (yprime < fYAxisMin )
          {
-            areacode |= (sAxis0 & (sAxisY | sAxisMin)) | sBoundary;
+           areacode |= (sAxis0 & (sAxisY | sAxisMin)) | sBoundary;
          }
          else if (yprime > fYAxisMax)
          {
-            areacode |= (sAxis0 & (sAxisY | sAxisMax)) | sBoundary;
+           areacode |= (sAxis0 & (sAxisY | sAxisMax)) | sBoundary;
          }
          
          // boundary of z-axis
 
          if (xx.z() < fAxisMin[zaxis])
          {
-            areacode |= (sAxis1 & (sAxisZ | sAxisMin));
-            if   (areacode & sBoundary) areacode |= sCorner;  // xx on corner.
-            else                        areacode |= sBoundary; 
-           
+           areacode |= (sAxis1 & (sAxisZ | sAxisMin));
+           if ((areacode & sBoundary) != 0)
+           {
+             areacode |= sCorner;  // xx on corner.
+           }
+           else
+           {
+             areacode |= sBoundary; 
+           }
          }
          else if (xx.z() > fAxisMax[zaxis])
          {
-            areacode |= (sAxis1 & (sAxisZ | sAxisMax)) ;
-            if   (areacode & sBoundary) areacode |= sCorner;  // xx on corner.
-            else                        areacode |= sBoundary; 
+           areacode |= (sAxis1 & (sAxisZ | sAxisMax)) ;
+           if ((areacode & sBoundary) != 0)
+           {
+             areacode |= sCorner;  // xx on corner.
+           }
+           else
+           {
+             areacode |= sBoundary; 
+           }
          }
 
          if ((areacode & sBoundary) != sBoundary)
@@ -872,17 +880,16 @@ G4int G4TwistBoxSide::GetAreaCode(const G4ThreeVector& xx,
       }
       return areacode;
    }
-   else
-   {
-      G4Exception("G4TwistBoxSide::GetAreaCode()",
-                  "GeomSolids0001", FatalException,
-                  "Feature NOT implemented !");
-   }
+
+   G4Exception("G4TwistBoxSide::GetAreaCode()",
+               "GeomSolids0001", FatalException,
+               "Feature NOT implemented !");
+
    return areacode;
 }
 
 //=====================================================================
-//* SetCorners() ------------------------------------------------------
+//* SetCorners --------------------------------------------------------
 
 void G4TwistBoxSide::SetCorners()
 {
@@ -935,7 +942,7 @@ void G4TwistBoxSide::SetCorners()
 }
 
 //=====================================================================
-//* SetBoundaries() ---------------------------------------------------
+//* SetBoundaries -----------------------------------------------------
 
 void G4TwistBoxSide::SetBoundaries()
 {
@@ -978,8 +985,10 @@ void G4TwistBoxSide::SetBoundaries()
   }
 }
 
+//=====================================================================
+//* GetPhiUAtX --------------------------------------------------------
 
-void G4TwistBoxSide::GetPhiUAtX( G4ThreeVector p, G4double& phi, G4double& u) 
+void G4TwistBoxSide::GetPhiUAtX( const G4ThreeVector& p, G4double& phi, G4double& u) 
 {
   // find closest point XX on surface for a given point p
   // X0 is a point on the surface,  d is the direction
@@ -997,6 +1006,8 @@ void G4TwistBoxSide::GetPhiUAtX( G4ThreeVector p, G4double& phi, G4double& u)
          + fPhiTwist*fTAlph*fTAlph)) ;
 }
 
+//=====================================================================
+//* ProjectPoint ------------------------------------------------------
 
 G4ThreeVector G4TwistBoxSide::ProjectPoint(const G4ThreeVector& p, 
                                                  G4bool isglobal) 
@@ -1023,13 +1034,13 @@ G4ThreeVector G4TwistBoxSide::ProjectPoint(const G4ThreeVector& p,
 
   if (isglobal)
   {
-     return (fRot * xx + fTrans);
+    return (fRot * xx + fTrans);
   }
-  else
-  {
-     return xx;
-  }
+  return xx;
 }
+
+//=====================================================================
+//* GetFacets ---------------------------------------------------------
 
 void G4TwistBoxSide::GetFacets( G4int k, G4int n,  G4double xyz[][3],
                                 G4int faces[][4], G4int iside ) 

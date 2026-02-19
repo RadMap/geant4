@@ -23,42 +23,33 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm10/include/PhysicsListMessenger.hh
+/// \file PhysicsListMessenger.hh
 /// \brief Definition of the PhysicsListMessenger class
-//
-//
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef PhysicsListMessenger_h
 #define PhysicsListMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class PhysicsList;
 class G4UIcmdWithAString;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-class PhysicsListMessenger: public G4UImessenger
+class PhysicsListMessenger : public G4UImessenger
 {
-public:
-  PhysicsListMessenger(PhysicsList*);
-  ~PhysicsListMessenger();
-    
-  void SetNewValue(G4UIcommand*, G4String);
-    
-private:
+  public:
+    PhysicsListMessenger(PhysicsList*);
+    ~PhysicsListMessenger();
 
-  PhysicsList*          fList;
+    void SetNewValue(G4UIcommand*, G4String);
 
-  G4UIcmdWithAString*   fXTRModelCmd;
-  G4UIcmdWithAString*   fListCmd;
+  private:
+    PhysicsList* fList;
+
+    G4UIcmdWithAString* fXTRModelCmd;
+    G4UIcmdWithAString* fListCmd;
 };
 
 #endif
-

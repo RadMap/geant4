@@ -27,6 +27,8 @@
 
 #include "G4RayTracerViewer.hh"
 
+#include "G4Timer.hh"
+
 #include "G4ios.hh"
 #include <sstream>
 #include <iomanip>
@@ -35,8 +37,16 @@
 
 #include "G4VSceneHandler.hh"
 #include "G4Scene.hh"
+#ifdef G4MULTITHREADED
+#include "G4TheMTRayTracer.hh"
+#else
 #include "G4TheRayTracer.hh"
+#endif
+#include "G4RTJpegMaker.hh"
+#include "G4RTSimpleScanner.hh"
 #include "G4UImanager.hh"
+
+#define G4warn G4cout
 
 G4RayTracerViewer::G4RayTracerViewer
 (G4VSceneHandler& sceneHandler,
@@ -44,10 +54,14 @@ G4RayTracerViewer::G4RayTracerViewer
  G4TheRayTracer* aTracer)
 : G4VViewer(sceneHandler, sceneHandler.IncrementViewCount(), name)
 , fFileCount(0)
-, theTracer(aTracer)
+#ifdef G4MULTITHREADED
+, theTracer(aTracer? aTracer: G4TheMTRayTracer::Instance(new G4RTJpegMaker, new G4RTSimpleScanner))
+#else
+, theTracer(aTracer? aTracer: new G4TheRayTracer(new G4RTJpegMaker, new G4RTSimpleScanner))
+#endif
 {
   if (!theTracer) {
-    G4cerr << "G4RayTracerViewer::Initialise: No tracer" << G4endl;
+    G4warn << "G4RayTracerViewer::Initialise: No tracer" << G4endl;
     fViewId = -1;  // This flags an error.
     return;
   }
@@ -90,7 +104,6 @@ void G4RayTracerViewer::SetView()
   theTracer->SetBackgroundColour(fVP.GetBackgroundColour());
 }
 
-
 void G4RayTracerViewer::ClearView() {}
 
 void G4RayTracerViewer::DrawView()
@@ -103,7 +116,7 @@ void G4RayTracerViewer::DrawView()
   if (fVP.GetFieldHalfAngle() == 0.) { // Orthogonal (parallel) projection.
     G4double fieldHalfAngle = perMillion;
     fVP.SetFieldHalfAngle(fieldHalfAngle);
-    G4cout << 
+    G4warn <<
       "WARNING: G4RayTracerViewer::DrawView: true orthogonal projection"
       "\n  not yet implemented.  Doing a \"long shot\", i.e., a perspective"
       "\n  projection with a half field angle of "
@@ -117,10 +130,16 @@ void G4RayTracerViewer::DrawView()
   else {
     ProcessView();
   }
+
+  // Normally it's ProcessView() that takes the time, but for RayTracer it's Trace()
+  G4Timer timer;
+  timer.Start();
   std::ostringstream filename;
   filename << "g4RayTracer." << fShortName << '_'
   << std::setw(4) << std::setfill('0') << fFileCount++ << ".jpeg";
   theTracer->Trace(filename.str());
+  timer.Stop();
+  fKernelVisitElapsedTimeSeconds = timer.GetRealElapsed();
 
   // Reset call flag
   called = false;

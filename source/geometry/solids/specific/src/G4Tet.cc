@@ -72,7 +72,7 @@ G4Tet::G4Tet(const G4String& pName,
 {
   // Check for degeneracy
   G4bool degenerate = CheckDegeneracy(p0, p1, p2, p3);
-  if (degeneracyFlag)
+  if (degeneracyFlag != nullptr)
   {
     *degeneracyFlag = degenerate;
   }
@@ -167,8 +167,8 @@ G4Tet& G4Tet::operator = (const G4Tet& rhs)
 ////////////////////////////////////////////////////////////////////////
 //
 // Return true if tetrahedron is degenerate
-// Tetrahedron is concidered as degenerate in case if its minimal
-// height is less than degeneracy tolerance
+// Tetrahedron is considered as degenerate in case its minimal
+// height is less than the degeneracy tolerance
 //
 G4bool G4Tet::CheckDegeneracy(const G4ThreeVector& p0,
                               const G4ThreeVector& p1,
@@ -189,7 +189,10 @@ G4bool G4Tet::CheckDegeneracy(const G4ThreeVector& p0,
 
   // Find face with max area
   G4int k = 0;
-  for (G4int i = 1; i < 4; ++i) { if (ss[i] > ss[k]) k = i; }
+  for (G4int i = 1; i < 4; ++i)
+  {
+    if (ss[i] > ss[k]) { k = i; }
+  }
 
   // Check: vol^2 / s^2 <= hmin^2
   return (vol*vol <= ss[k]*hmin*hmin);
@@ -218,7 +221,7 @@ void G4Tet::Initialize(const G4ThreeVector& p0,
   G4double volume = norm[0].dot(p3 - p0);
   if (volume > 0.)
   {
-    for (G4int i = 0; i < 4; ++i) { norm[i] = -norm[i]; }
+    for (auto & i : norm) { i = -i; }
   }
 
   // Set normals to face planes
@@ -250,11 +253,15 @@ void G4Tet::Initialize(const G4ThreeVector& p0,
 void G4Tet::SetVertices(const G4ThreeVector& p0,
                         const G4ThreeVector& p1,
                         const G4ThreeVector& p2,
-                        const G4ThreeVector& p3)
+                        const G4ThreeVector& p3, G4bool* degeneracyFlag)
 {
   // Check for degeneracy
   G4bool degenerate = CheckDegeneracy(p0, p1, p2, p3);
-  if (degenerate)
+  if (degeneracyFlag != nullptr)
+  {
+    *degeneracyFlag = degenerate;
+  }
+  else if (degenerate)
   {
     std::ostringstream message;
     message << "Degenerate tetrahedron is not permitted: " << GetName() << " !\n"
@@ -264,7 +271,7 @@ void G4Tet::SetVertices(const G4ThreeVector& p0,
             << "  p3    : " << p3 << "\n"
             << "  volume: "
             << std::abs((p1 - p0).cross(p2 - p0).dot(p3 - p0))/6.;
-    G4Exception("G4Tet::G4SetVertices()", "GeomSolids0002",
+    G4Exception("G4Tet::SetVertices()", "GeomSolids0002",
                 FatalException, message);
   }
 
@@ -310,6 +317,43 @@ void G4Tet::ComputeDimensions(G4VPVParameterisation* ,
                               const G4int ,
                               const G4VPhysicalVolume* )
 {
+}
+
+////////////////////////////////////////////////////////////////////////
+//
+// Set bounding box
+//
+void G4Tet::SetBoundingLimits(const G4ThreeVector& pMin,
+                              const G4ThreeVector& pMax)
+{
+  G4int iout[4] = { 0, 0, 0, 0 };
+  for (G4int i = 0; i < 4; ++i)
+  {
+    iout[i] = (G4int)(fVertex[i].x() < pMin.x() ||
+                      fVertex[i].y() < pMin.y() ||
+                      fVertex[i].z() < pMin.z() ||
+                      fVertex[i].x() > pMax.x() ||
+                      fVertex[i].y() > pMax.y() ||
+                      fVertex[i].z() > pMax.z());
+  }
+  if (iout[0] + iout[1] + iout[2] + iout[3] != 0)
+  {
+    std::ostringstream message;
+    message << "Attempt to set bounding box that does not encapsulate solid: "
+            << GetName() << " !\n"
+            << "  Specified bounding box limits:\n"
+            << "    pmin: " << pMin << "\n"
+            << "    pmax: " << pMax << "\n"
+            << "  Tetrahedron vertices:\n"
+            << "    anchor " << fVertex[0] << ((iout[0]) != 0 ? " is outside\n" : "\n")
+            << "    p1 "     << fVertex[1] << ((iout[1]) != 0 ? " is outside\n" : "\n")
+            << "    p2 "     << fVertex[2] << ((iout[2]) != 0 ? " is outside\n" : "\n")
+            << "    p3 "     << fVertex[3] << ((iout[3]) != 0 ? " is outside"   : "");
+    G4Exception("G4Tet::SetBoundingLimits()", "GeomSolids0002",
+                FatalException, message);
+  }
+  fBmin = pMin;
+  fBmax = pMax;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -395,31 +439,36 @@ G4ThreeVector G4Tet::SurfaceNormal( const G4ThreeVector& p) const
   G4double k[4];
   for (G4int i = 0; i < 4; ++i)
   {
-    k[i] = std::abs(fNormal[i].dot(p) - fDist[i]) <= halfTolerance;
+    k[i] = (G4double)(std::abs(fNormal[i].dot(p) - fDist[i]) <= halfTolerance);
   }
   G4double nsurf = k[0] + k[1] + k[2] + k[3];
   G4ThreeVector norm =
     k[0]*fNormal[0] + k[1]*fNormal[1] + k[2]*fNormal[2] + k[3]*fNormal[3];
 
-  if (nsurf == 1.) return norm;
-  else if (nsurf > 1.) return norm.unit(); // edge or vertex
+  if (nsurf == 1.)
   {
-#ifdef G4SPECSDEBUG
-    std::ostringstream message;
-    G4int oldprc = message.precision(16);
-    message << "Point p is not on surface (!?) of solid: "
-            << GetName() << "\n";
-    message << "Position:\n";
-    message << "   p.x() = " << p.x()/mm << " mm\n";
-    message << "   p.y() = " << p.y()/mm << " mm\n";
-    message << "   p.z() = " << p.z()/mm << " mm";
-    G4cout.precision(oldprc);
-    G4Exception("G4Tet::SurfaceNormal(p)", "GeomSolids1002",
-                JustWarning, message );
-    DumpInfo();
-#endif
-    return ApproxSurfaceNormal(p);
+    return norm;
   }
+  if (nsurf > 1.)
+  {
+    return norm.unit(); // edge or vertex
+  }
+
+#ifdef G4SPECSDEBUG
+  std::ostringstream message;
+  G4long oldprc = message.precision(16);
+  message << "Point p is not on surface (!?) of solid: "
+          << GetName() << "\n";
+  message << "Position:\n";
+  message << "   p.x() = " << p.x()/mm << " mm\n";
+  message << "   p.y() = " << p.y()/mm << " mm\n";
+  message << "   p.z() = " << p.z()/mm << " mm";
+  G4cout.precision(oldprc);
+  G4Exception("G4Tet::SurfaceNormal(p)", "GeomSolids1002",
+              JustWarning, message );
+  DumpInfo();
+#endif
+  return ApproxSurfaceNormal(p);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -497,8 +546,8 @@ G4double G4Tet::DistanceToOut(const G4ThreeVector& p,
   {
     G4double tmp = fNormal[i].dot(v);
     cosa[i] = tmp;
-    ind[nside] = (tmp > 0) * i;
-    nside += (tmp > 0);
+    ind[nside] = (G4int)(tmp > 0) * i;
+    nside += (G4int)(tmp > 0);
     dist[i] = fNormal[i].dot(p) - fDist[i];
   }
 
@@ -543,7 +592,16 @@ G4double G4Tet::DistanceToOut(const G4ThreeVector& p) const
 //
 G4GeometryType G4Tet::GetEntityType() const
 {
-  return G4String("G4Tet");
+  return {"G4Tet"};
+}
+
+////////////////////////////////////////////////////////////////////////
+//
+// IsFaceted
+//
+G4bool G4Tet::IsFaceted() const
+{
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -561,7 +619,7 @@ G4VSolid* G4Tet::Clone() const
 //
 std::ostream& G4Tet::StreamInfo(std::ostream& os) const
 {
-  G4int oldprc = os.precision(16);
+  G4long oldprc = os.precision(16);
   os << "-----------------------------------------------------------\n"
      << "    *** Dump for solid - " << GetName() << " ***\n"
      << "    ===================================================\n"
@@ -587,7 +645,9 @@ G4ThreeVector G4Tet::GetPointOnSurface() const
   // Select face
   G4double select = fSurfaceArea*G4QuickRand();
   G4int i = 0;
-  for ( ; i < 4; ++i) { if ((select -= fArea[i]) <= 0.) break; }
+  i += (G4int)(select > fArea[0]);
+  i += (G4int)(select > fArea[0] + fArea[1]);
+  i += (G4int)(select > fArea[0] + fArea[1] + fArea[2]);
 
   // Set selected triangle
   G4ThreeVector p0 = fVertex[iface[i][0]];
@@ -634,9 +694,9 @@ void G4Tet::DescribeYourselfTo (G4VGraphicsScene& scene) const
 //
 G4VisExtent G4Tet::GetExtent() const
 {
-  return G4VisExtent(fBmin.x(), fBmax.x(),
-                     fBmin.y(), fBmax.y(),
-                     fBmin.z(), fBmax.z());
+  return { fBmin.x(), fBmax.x(),
+           fBmin.y(), fBmax.y(),
+           fBmin.z(), fBmax.z() };
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -665,7 +725,7 @@ G4Polyhedron* G4Tet::CreatePolyhedron() const
 
   // Create polyhedron
   G4int faces[4][4] = { {1,3,2,0}, {1,4,3,0}, {1,2,4,0}, {2,3,4,0} };
-  G4Polyhedron* ph = new G4Polyhedron;
+  auto  ph = new G4Polyhedron;
   ph->createPolyhedron(4,4,xyz,faces);
 
   return ph;

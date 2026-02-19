@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
  <define> 
   <constant name="PI" value="1.*pi" />
   <constant name="TWOPI" value="2.*pi"/>
@@ -53,8 +53,8 @@
 
  <solids>
 
-  <eltube aunit="cm" lunit="cm" name="FirstLiver" dx="14.19" dy="7.84" dz="7.21" />
-  <box aunit="cm" lunit="cm" name="SubtrLiver" x="20.00" y="50.00" z="50.00" /> 
+  <eltube lunit="cm" name="FirstLiver" dx="14.19" dy="7.84" dz="7.21" />
+  <box lunit="cm" name="SubtrLiver" x="20.00" y="50.00" z="50.00" /> 
 
   <subtraction name="Liver">
    <first ref="FirstLiver" />

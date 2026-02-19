@@ -23,54 +23,35 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ActionInitialization.cc
 /// \brief Implementation of the ActionInitialization class
 
 #include "ActionInitialization.hh"
-#include "DetectorConstruction.hh"
+
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 #include "SteppingAction.hh"
-#include "SteppingVerbose.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 ActionInitialization::ActionInitialization(DetectorConstruction* det)
- : G4VUserActionInitialization(),fDetector(det)
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-ActionInitialization::~ActionInitialization()
-{ }
+  : G4VUserActionInitialization(), fDetector(det)
+{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void ActionInitialization::BuildForMaster() const
 {
- SetUserAction(new RunAction());
+  SetUserAction(new RunAction());
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void ActionInitialization::Build() const
 {
-
-  PrimaryGeneratorAction* prim = new PrimaryGeneratorAction(fDetector);
-  SetUserAction(prim);
-
-  RunAction* run = new RunAction();
-  SetUserAction(run); 
-
+  SetUserAction(new PrimaryGeneratorAction(fDetector));
+  SetUserAction(new RunAction);
   SetUserAction(new SteppingAction());
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-G4VSteppingVerbose* ActionInitialization::InitializeSteppingVerbose() const
-{
-  return new SteppingVerbose();
-}  
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

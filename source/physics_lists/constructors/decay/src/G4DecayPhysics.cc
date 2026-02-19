@@ -50,28 +50,27 @@
 #include "G4BaryonConstructor.hh"
 #include "G4IonConstructor.hh"
 #include "G4ShortLivedConstructor.hh"
+#include "G4BuilderType.hh"
+#include "G4PhysListUtil.hh"
 
 // factory
 #include "G4PhysicsConstructorFactory.hh"
 //
 G4_DECLARE_PHYSCONSTR_FACTORY(G4DecayPhysics);
 
-G4ThreadLocal G4Decay* G4DecayPhysics::fDecayProcess = 0;
-G4ThreadLocal G4bool G4DecayPhysics::wasActivated = false;
-
-G4DecayPhysics::G4DecayPhysics(G4int ver)
-  :  G4VPhysicsConstructor("Decay"), verbose(ver)
-{
-}
-
 G4DecayPhysics::G4DecayPhysics(const G4String& name, G4int ver)
   :  G4VPhysicsConstructor(name), verbose(ver)
 {
+  SetPhysicsType(bDecay);
+  G4PhysListUtil::InitialiseParameters();
 }
 
+G4DecayPhysics::G4DecayPhysics(G4int ver)
+  :  G4DecayPhysics("Decay", ver)
+{}
+
 G4DecayPhysics::~G4DecayPhysics()
-{
-}
+{}
 
 void G4DecayPhysics::ConstructParticle()
 {
@@ -98,13 +97,10 @@ void G4DecayPhysics::ConstructParticle()
 
 void G4DecayPhysics::ConstructProcess()
 {
-  if(wasActivated) { return; }
-  wasActivated = true;
-
   G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
 
   // Add Decay Process
-  fDecayProcess = new G4Decay();
+  G4Decay* fDecayProcess = new G4Decay();
   auto myParticleIterator=GetParticleIterator();
   myParticleIterator->reset();
   G4ParticleDefinition* particle=0;

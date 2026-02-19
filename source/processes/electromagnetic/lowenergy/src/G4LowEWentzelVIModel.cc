@@ -52,18 +52,11 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-using namespace std;
-
 G4LowEWentzelVIModel::G4LowEWentzelVIModel() :
-  G4WentzelVIModel(false,"LowEnWentzelVI")
+  G4WentzelVIModel(true, "LowEnWentzelVI")
 {
   SetSingleScatteringFactor(0.5);
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-G4LowEWentzelVIModel::~G4LowEWentzelVIModel()
-{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -76,9 +69,6 @@ G4double G4LowEWentzelVIModel::ComputeTruePathLengthLimit(
   G4StepPoint* sp = track.GetStep()->GetPreStepPoint();
   G4StepStatus stepStatus = sp->GetStepStatus();
   singleScatteringMode = false;
-  //G4cout << "G4LowEWentzelVIModel::ComputeTruePathLengthLimit stepStatus= " 
-  //	 << stepStatus << "  " << track.GetDefinition()->GetParticleName() 
-  //	 << G4endl;
 
   // initialisation for each step, lambda may be computed from scratch
   preKinEnergy  = dp->GetKineticEnergy();
@@ -86,10 +76,7 @@ G4double G4LowEWentzelVIModel::ComputeTruePathLengthLimit(
   lambdaeff = GetTransportMeanFreePath(particle,preKinEnergy);
   currentRange = GetRange(particle,preKinEnergy,currentCouple);
   cosTetMaxNuc = wokvi->SetupKinematic(preKinEnergy, currentMaterial);
-  /*
-  G4cout << "lambdaeff= " << lambdaeff << " Range= " << currentRange
-  	 << " tlimit= " << tlimit << " 1-cost= " << 1 - cosTetMaxNuc << G4endl;
-  */
+
   // extra check for abnormal situation
   // this check needed to run MSC with eIoni and eBrem inactivated
   tlimit = std::min(tlimit, currentRange);
@@ -124,19 +111,10 @@ G4double G4LowEWentzelVIModel::ComputeTruePathLengthLimit(
   */
   // natural limit for high energy
   G4double rlimit = std::max(facrange*currentRange, lambdaeff);
-  //G4double rlimit = std::max(facrange*currentRange, 
-  //			     0.7*(1.0 - cosTetMaxNuc)*lambdaeff);
 
   // low-energy e-
   rlimit = std::max(rlimit, facsafety*presafety);
-   
-  // cut correction
-  //G4double rcut = currentCouple->GetProductionCuts()->GetProductionCut(1);
-  //G4cout << "rcut= " << rcut << " rlimit= " << rlimit << " presafety= " 
-  // << presafety << " 1-cosThetaMax= " <<1-cosThetaMax 
-  //<< " 1-cosTetMaxNuc= " << 1-cosTetMaxNuc << G4endl;
-  //if(rcut > rlimit) { rlimit = std::min(rlimit, rcut*sqrt(rlimit/rcut)); }
- 
+    
   tlimit = std::min(tlimit, rlimit);
   tlimit = std::max(tlimit, tlimitminfix);
 

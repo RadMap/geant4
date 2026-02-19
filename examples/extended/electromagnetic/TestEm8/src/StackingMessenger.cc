@@ -23,26 +23,22 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm8/src/StackingMessenger.cc
+/// \file StackingMessenger.cc
 /// \brief Implementation of the StackingMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "StackingMessenger.hh"
 
 #include "StackingAction.hh"
+
 #include "G4UIcmdWithABool.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-StackingMessenger::StackingMessenger(StackingAction* stack)
-:G4UImessenger(),fStackAction(stack),fKillCmd(0)
-{   
-  fKillCmd = new G4UIcmdWithABool("/testem/killSecondaries",this);
+StackingMessenger::StackingMessenger(StackingAction* stack) : fStackAction(stack), fKillCmd(0)
+{
+  fKillCmd = new G4UIcmdWithABool("/testem/killSecondaries", this);
   fKillCmd->SetGuidance("Kill secondary charged particles");
-  fKillCmd->SetParameterName("choice",true);
+  fKillCmd->SetParameterName("choice", true);
   fKillCmd->SetDefaultValue(false);
 }
 
@@ -56,9 +52,10 @@ StackingMessenger::~StackingMessenger()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void StackingMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
-{     
-  if(command == fKillCmd)
-    {fStackAction->SetKillStatus(fKillCmd->GetNewBoolValue(newValue));}
+{
+  if (command == fKillCmd) {
+    fStackAction->SetKillStatus(fKillCmd->GetNewBoolValue(newValue));
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

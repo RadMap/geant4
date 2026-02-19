@@ -37,6 +37,9 @@
 #include "G4VModularPhysicsList.hh"
 #include "G4RadioactiveDecayPhysics.hh"
 #include "G4OpticalPhysics.hh"
+#include "G4ThermalNeutrons.hh"
+#include "G4NeutrinoPhysics.hh"
+#include "G4ChargeExchangePhysics.hh"
 
 G4PhysListFactoryMessenger::G4PhysListFactoryMessenger(G4VModularPhysicsList* pl)
 {
@@ -48,25 +51,48 @@ G4PhysListFactoryMessenger::G4PhysListFactoryMessenger(G4VModularPhysicsList* pl
 
   theRadDecay = new G4UIcommand("/physics_lists/factory/addRadioactiveDecay",this);
   theRadDecay->SetGuidance("Enable radioactive decay.");
-  theRadDecay->AvailableForStates(G4State_PreInit,G4State_Init,G4State_Idle);
+  theRadDecay->AvailableForStates(G4State_PreInit);
 
   theOptical = new G4UIcommand("/physics_lists/factory/addOptical",this);
   theOptical->SetGuidance("Enable optical physics.");
-  theOptical->AvailableForStates(G4State_PreInit,G4State_Init,G4State_Idle);
+  theOptical->AvailableForStates(G4State_PreInit);
+
+  theThermal = new G4UIcommand("/physics_lists/factory/addThermal",this);
+  theThermal->SetGuidance("Enable special elastic scattering of thermal neutrons (Ekin < 4 eV).");
+  theThermal->SetGuidance("Important note: to be used only with HP-based physics lists!");
+  theThermal->AvailableForStates(G4State_PreInit);
+
+  theNeutrino = new G4UIcommand("/physics_lists/factory/addNeutrino",this);
+  theNeutrino->SetGuidance("Enable physics processes for neutrino.");
+  theNeutrino->AvailableForStates(G4State_PreInit);
+
+  theChargeEx = new G4UIcommand("/physics_lists/factory/addChargeExchange",this);
+  theChargeEx->SetGuidance("Enable charge exchange hadronic processes.");
+  theChargeEx->AvailableForStates(G4State_PreInit);
 }
 
 G4PhysListFactoryMessenger::~G4PhysListFactoryMessenger()
 {
+  delete theThermal;
   delete theOptical;
   delete theRadDecay;
+  delete theNeutrino;
+  delete theChargeEx;
   delete theDir;
 }
 
 void G4PhysListFactoryMessenger::SetNewValue(G4UIcommand* aComm, G4String)
 {
-  if(aComm == theRadDecay) {
-    thePhysList->RegisterPhysics(new G4RadioactiveDecayPhysics(1));
-  } else if(aComm == theOptical) {
-    thePhysList->RegisterPhysics(new G4OpticalPhysics(1));
+  G4int ver = thePhysList->GetVerboseLevel();
+  if (aComm == theRadDecay) {
+    thePhysList->RegisterPhysics(new G4RadioactiveDecayPhysics(ver));
+  } else if (aComm == theOptical) {
+    thePhysList->RegisterPhysics(new G4OpticalPhysics(ver));
+  } else if (aComm == theThermal) {
+    thePhysList->RegisterPhysics(new G4ThermalNeutrons(ver));
+  } else if (aComm == theNeutrino) {
+    thePhysList->RegisterPhysics(new G4NeutrinoPhysics(ver));
+  } else if(aComm == theChargeEx) {
+    thePhysList->RegisterPhysics(new G4ChargeExchangePhysics(ver));
   }
 }

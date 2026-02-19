@@ -31,15 +31,12 @@
  */
 
 #include "G4MoleculeGunMessenger.hh"
+
 #include "G4MoleculeGun.hh"
-
 #include "G4Tokenizer.hh"
-
-#include "G4UIdirectory.hh"
-#include "G4UIcmdWithAString.hh"
-#include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWith3VectorAndUnit.hh"
 #include "G4UIcmdWithADoubleAndUnit.hh"
+#include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4UIdirectory.hh"
 
@@ -57,7 +54,7 @@ G4MoleculeGunMessenger::G4MoleculeGunMessenger(G4MoleculeGun* gun) :
 
 G4MoleculeGunMessenger::~G4MoleculeGunMessenger()
 {
-  if (fpGunNewGunType) delete fpGunNewGunType;
+  delete fpGunNewGunType;
 }
 
 //------------------------------------------------------------------------------
@@ -82,7 +79,7 @@ void G4MoleculeGunMessenger::SetNewValue(G4UIcommand* command,
     G4String shootType;
     iss >> shootType;
         
-    if(shootType == "" || shootType.empty())
+    if(shootType.empty() || shootType.empty())
     {
       CreateNewType<G4Track>(shootName);
     }
@@ -97,9 +94,8 @@ void G4MoleculeGunMessenger::SetNewValue(G4UIcommand* command,
 
 G4MoleculeShootMessenger::G4MoleculeShootMessenger(const G4String& name,
                                                    G4MoleculeGunMessenger*,
-                                                   G4shared_ptr<G4MoleculeShoot>
-                                                      shoot) :
-    G4UImessenger(), fpShoot(shoot)
+                                                   G4shared_ptr<G4MoleculeShoot> shoot)
+  : fpShoot(std::move(shoot))
 {
   G4String dir("/chem/gun/");
   dir += name;
@@ -125,7 +121,7 @@ G4MoleculeShootMessenger::G4MoleculeShootMessenger(const G4String& name,
   tmp += "/rndmPosition";
   fpGunRdnmPosition = new G4UIcmdWith3VectorAndUnit(tmp, this);
 
-  tmp = dir;
+  tmp = std::move(dir);
   tmp += "/type";
   fpGunType = new G4UIcmdWithAString(tmp, this);
 
@@ -136,10 +132,10 @@ G4MoleculeShootMessenger::G4MoleculeShootMessenger(const G4String& name,
 
 G4MoleculeShootMessenger::~G4MoleculeShootMessenger()
 {
-  if (fpGunSpecies) delete fpGunSpecies;
-  if (fpGunPosition) delete fpGunPosition;
-  if (fpGunTime) delete fpGunTime;
-  if (fpGunN) delete fpGunN;
+  delete fpGunSpecies;
+  delete fpGunPosition;
+  delete fpGunTime;
+  delete fpGunN;
 }
 
 //------------------------------------------------------------------------------
@@ -171,7 +167,7 @@ void G4MoleculeShootMessenger::SetNewValue(G4UIcommand* command, G4String newVal
     if(newValue == "CM")
     {
 //      G4cout << "**** Change type" << G4endl;
-//      TG4MoleculeShoot<G4ContinuousMedium>* casted = reinterpret_cast<TG4MoleculeShoot<G4ContinuousMedium>*>(fpShoot.get());
+//      TG4MoleculeShoot<G4ContinuousMedium>* casted = static_cast<TG4MoleculeShoot<G4ContinuousMedium>*>(fpShoot.get());
 //      fpShoot.reset(casted);
       fpShoot = fpShoot.get()->ChangeType<G4ContinuousMedium>();
     }
@@ -186,23 +182,23 @@ G4String G4MoleculeShootMessenger::GetCurrentValue(G4UIcommand* command)
   {
     return fpShoot->fMoleculeName;
   }
-  else if (command == fpGunPosition)
+  if (command == fpGunPosition)
   {
     return fpGunPosition->ConvertToStringWithBestUnit(fpShoot->fPosition);
   }
-  else if (command == fpGunRdnmPosition)
+  if (command == fpGunRdnmPosition)
   {
-    if(fpShoot->fBoxSize)
+    if(fpShoot->fBoxSize != nullptr)
     {
       return fpGunRdnmPosition->ConvertToStringWithBestUnit(*fpShoot->fBoxSize);
     }
     return fpGunRdnmPosition->ConvertToStringWithBestUnit(G4ThreeVector());
   }
-  else if (command == fpGunTime)
+  if (command == fpGunTime)
   {
     return fpGunTime->ConvertToStringWithBestUnit(fpShoot->fTime);
   }
-  else if (command == fpGunN)
+  if (command == fpGunN)
   {
     return fpGunN->ConvertToString(fpShoot->fNumber);
   }

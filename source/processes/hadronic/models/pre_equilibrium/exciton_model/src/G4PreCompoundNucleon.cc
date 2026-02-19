@@ -49,9 +49,6 @@ G4PreCompoundNucleon::G4PreCompoundNucleon(
   : G4PreCompoundFragment(part,aCoulombBarrier)
 {}
 
-G4PreCompoundNucleon::~G4PreCompoundNucleon()
-{}
-
 G4double G4PreCompoundNucleon::
 ProbabilityDistributionFunction(G4double eKin, 
 				const G4Fragment& aFragment)
@@ -65,27 +62,24 @@ ProbabilityDistributionFunction(G4double eKin,
   G4double g0 = sixoverpi2*fNucData->GetLevelDensity(theFragZ, theFragA, U);
   G4double g1 = sixoverpi2*fNucData->GetLevelDensity(theResZ, theResA, 0.0);
   
-  G4double A0 = G4double(P*P+H*H+P-3*H)/(4.0*g0);
-  G4double A1 = (A0 - 0.5*P)/g1;  
-
-  G4double E0 = U - A0;
+  G4double E0 = U;
   if (E0 <= 0.0) { return 0.0; }
 
-  G4double E1 = U - eKin -  theBindingEnergy - A1;
+  G4double E1 = U - eKin -  theBindingEnergy;
   if (E1 <= 0.0) { return 0.0; }
 
   G4double rj = GetRj(P, aFragment.GetNumberOfCharged());
   G4double xs = CrossSection(eKin);
 
-  if (rj <0.0 || xs < 0.0) { return 0.0; }
+  if (rj < 0.0 || xs < 0.0) { return 0.0; }
 
   static const G4double fact = 2*CLHEP::millibarn
     /(CLHEP::pi2*CLHEP::hbarc*CLHEP::hbarc*CLHEP::hbarc);
   G4double Probability = fact * theReducedMass * rj * xs * eKin * P * (N-1) 
     * g4calc->powN(g1*E1/(g0*E0),N-2) * g1 / (E0*g0*g0);
 
-  //G4cout << "N= " << N << " g0= " << g0 << " g1= " << g1 << " E0= " << E0 << " E1= " << E1
-  //	 << " prob= " << Probability << G4endl;
+  //G4cout << "N=" << N << " g0=" << g0 << " g1=" << g1 << " E0=" << E0
+  //       << " E1=" << E1 << " prob=" << Probability << G4endl;
   
   return Probability;
 }

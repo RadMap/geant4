@@ -117,7 +117,57 @@ namespace G4INCL {
       theA = 1;
       theZ = -1;
       theS = -1;
-      theType = G4INCL::SigmaMinus;
+      theType = G4INCL::SigmaMinus; 
+    } else if(pS=="xi-" || pS=="x-") {
+      theA = 1;
+      theZ = -1;
+      theS = -2;
+      theType = G4INCL::XiMinus; 
+    } else if(pS=="xi0" || pS=="x0") {
+      theA = 1;
+      theZ = 0;
+      theS = -2;
+      theType = G4INCL::XiZero;  
+    } else if(pS=="pb" || pS=="pbar" || pS=="antiproton") {
+      theA = -1;
+      theZ = -1;
+      theS = 0;
+      theType = G4INCL::antiProton;   
+    } else if(pS=="nb" || pS=="nbar" || pS=="antineutron") {
+      theA = -1;
+      theZ = 0;
+      theS = 0;
+      theType = G4INCL::antiNeutron;
+    } else if(pS=="s+b" || pS=="antisigma+" || pS=="antisigmaplus")  {
+      theA = -1;
+      theZ = -1;
+      theS = 1;
+      theType = G4INCL::antiSigmaPlus;
+    } else if(pS=="s0b" || pS=="antisigma0" || pS=="antisigmazero")  {
+      theA = -1;
+      theZ = 0;
+      theS = 1;
+      theType = G4INCL::antiSigmaZero;
+    } else if(pS=="s-b" || pS=="antisigma-" || pS=="antisigmaminus")  { //Sm = Samarium; Whats wrong with the sign?
+      theA = -1;
+      theZ = 1;
+      theS = 1;
+      theType = G4INCL::antiSigmaMinus;
+    } else if(pS=="antilambda" || pS=="lb" || pS=="l0b")  {
+      theA = -1;
+      theZ = 0;
+      theS = 1;
+      theType = G4INCL::antiLambda;
+    } else if(pS=="antixi-" || pS=="x-b") {
+      theA = -1;
+      theZ = 1;
+      theS = 2;
+      theType = G4INCL::antiXiMinus; 
+    } else if(pS=="antixi0" || pS=="x0b") {
+      theA = -1;
+      theZ = 0;
+      theS = 2;
+      theType = G4INCL::antiXiZero;  
     } else if(pS=="k+" || pS=="kaon+" || pS=="kplus" || pS=="kaonplus") {
       theA = 0;
       theZ = 1;
@@ -182,7 +232,12 @@ namespace G4INCL {
       theA = 0;
       theZ = 0;
       theS = 0;
-      theType = G4INCL::Photon;
+      theType = G4INCL::Photon;    
+    } else if (pS=="db" || pS=="dbar" || pS=="antideuteron"){
+      theA = -2;
+      theZ = -1;
+      theS = 0;
+      theType = G4INCL::antiComposite;     
     } else
       parseNuclide(pS);
   }
@@ -194,19 +249,33 @@ namespace G4INCL {
     theS(ParticleTable::getStrangenessNumber(theType))
   {}
 
-  ParticleSpecies::ParticleSpecies(const G4int A, const G4int Z) :
-    theType(Composite),
-    theA(A),
-    theZ(Z),
-    theS(0)
-  {}
+  ParticleSpecies::ParticleSpecies(const int A, const int Z){
+    if (A>=0){
+      theType = Composite;
+      theA = A;
+      theZ = Z;
+      theS = 0;
+    } else {
+      theType = antiComposite;
+      theA = A;
+      theZ = Z;
+      theS = 0;
+    }
+  }
 
-  ParticleSpecies::ParticleSpecies(const G4int A, const G4int Z, const G4int S) :
-    theType(Composite),
-    theA(A),
-    theZ(Z),
-    theS(S)
-  {}
+  ParticleSpecies::ParticleSpecies(const int A, const int Z, const int S){
+    if (A>=0){
+      theType = Composite;
+      theA = A;
+      theZ = Z;
+      theS = S;
+    } else {
+      theType = antiComposite;
+      theA = A;
+      theZ = Z;
+      theS = S;
+    }
+  }
 
   void ParticleSpecies::parseNuclide(std::string const &pS) {
     theType = Composite;
@@ -278,7 +347,7 @@ namespace G4INCL {
       endFirstSection = beginSecondSection;
 
     } else {
-      // One separator, Fe-56 or 56-Fe style
+      // One separator, Fe-56 or 56-Fe style or hypercluster style: Fe56-1 (iron 56 including 1 lambda)
       endFirstSection = firstSeparator;
       beginSecondSection = firstSeparator+1;
     }
@@ -286,6 +355,22 @@ namespace G4INCL {
     std::string firstSection(pS.substr(0,endFirstSection));
     std::string secondSection(pS.substr(beginSecondSection,std::string::npos));
     std::stringstream parsingStream;
+
+    if(std::isalpha(firstSection.at(0)) && std::isdigit(firstSection.at(endFirstSection-1))) { // Hypernucleus, must be Fe56-1 style
+      std::stringstream parseStrangeness;
+      parseStrangeness.str(secondSection);
+      parseStrangeness >> theS;
+      if(parsingStream.fail()) {
+        // Couldn't parse the strange charge section
+        // Setting unknown particle species
+        (*this) = ParticleSpecies(UnknownParticle);
+        return;
+      }
+      theS *= (-1);
+      beginSecondSection = std::find_if(pS.begin()+1, pS.end(), predicate) - pS.begin(); // predicate == std::isdigit(G4int) in this case
+      firstSection = pS.substr(0, beginSecondSection);
+      secondSection = pS.substr(beginSecondSection, endFirstSection);
+    }
 
     // Parse the sections
     G4bool success;
@@ -398,7 +483,37 @@ namespace G4INCL {
 			break;
 		case SigmaMinus:
 		    return 3112;
+			break;			
+      case antiProton:
+        return -2212;
+      break;
+		case XiMinus:
+		    return 3312;
 			break;
+		case XiZero:
+		    return 3322;
+			break;			
+		case antiNeutron:
+		    return -2112;
+			break;
+		case antiLambda:
+		    return -3122;
+			break;
+		case antiSigmaPlus:
+		    return -3222;
+			break;
+		case antiSigmaZero:
+		    return -3212;
+			break;
+		case antiSigmaMinus:
+		    return -3112;
+			break;
+		case antiXiMinus:
+		    return -3312;
+			break;
+		case antiXiZero:
+		    return -3322;
+			break;				
 		case KPlus:
 		    return 321;
 			break;
@@ -416,13 +531,19 @@ namespace G4INCL {
 			break;
 		case KMinus:
 		    return -321;
-			break;
+			break;		
 		case Composite:
 			if(theA == 1 && theZ == 1 && theS == 0) return 2212;
 			else if(theA == 1 && theZ == 0 && theS == 0) return 2112;
 			else if(theA == 1 && theZ == 0 && theS == -1) return 3122;
 			else return theA+theZ*1000-theS*1e6; // Here -theS because hyper-nucleus -> theS < 0
 			break;
+    case antiComposite:
+        if(theA == 1 && theZ == 1 && theS == 0) return -2212;
+        else if(theA == 1 && theZ == 0 && theS == 0) return -2112;
+        else if(theA == 1 && theZ == 0 && theS == -1) return -3122;
+        else return -(theA + theZ*1000 - theS*1e6);
+      break;
 		default:
 			INCL_ERROR("ParticleSpecies::getPDGCode: Unknown particle type." << '\n');
 			return 0;

@@ -44,31 +44,36 @@ class G4PhotoNuclearCrossSection : public G4VCrossSectionDataSet
 public:
     
     G4PhotoNuclearCrossSection();
-    virtual ~G4PhotoNuclearCrossSection();
+    ~G4PhotoNuclearCrossSection() override;
     
     static const char* Default_Name() {return "PhotoNuclearXS";}
     
-    virtual void CrossSectionDescription(std::ostream&) const;
+    void CrossSectionDescription(std::ostream&) const override;
 
-    virtual G4bool
-    IsIsoApplicable(const G4DynamicParticle* particle, G4int Z, G4int A,
-                    const G4Element* elm = 0, const G4Material* mat = 0);
+    G4bool IsIsoApplicable(const G4DynamicParticle*, G4int Z, G4int A,
+                           const G4Element* elm = nullptr,
+			   const G4Material* mat = nullptr) override;
     
-    virtual G4bool
-    IsElementApplicable(const G4DynamicParticle* particle, G4int Z,
-                        const G4Material*);
+    G4bool IsElementApplicable(const G4DynamicParticle*, G4int Z,
+                               const G4Material* mat = nullptr) override;
 
-    virtual G4double
-    GetIsoCrossSection(const G4DynamicParticle* dynPart,
-                    G4int Z, G4int A,
-                    const G4Isotope*,
-                    const G4Element* elm,
-                    const G4Material* mat);
+    G4double GetIsoCrossSection(const G4DynamicParticle*,
+                                G4int Z, G4int A,
+                                const G4Isotope* iso = nullptr,
+                                const G4Element* elm = nullptr,
+                                const G4Material* mat = nullptr) override;
     
-    virtual G4double
-    GetElementCrossSection(const G4DynamicParticle*, G4int Z,
-                           const G4Material*);
-    
+    G4double GetElementCrossSection(const G4DynamicParticle*, G4int Z,
+                                    const G4Material*) override;
+
+    G4double ComputeElementXSection(G4double energy, G4int Z);
+
+    G4double ComputeIsoXSection(G4double energy, G4int Z, G4int A);
+
+    G4PhotoNuclearCrossSection& operator=
+    (const G4PhotoNuclearCrossSection& right) = delete;
+    G4PhotoNuclearCrossSection(const G4PhotoNuclearCrossSection&) = delete;
+
 private:
     
     G4int GetFunctions(G4double a, G4double* y, G4double* z);
@@ -76,25 +81,30 @@ private:
                           const G4double XD, const G4double* Y);
     G4double ThresholdEnergy(G4int Z, G4int N);
     
-    // Body
-private:
-    
-    G4int     lastZ;   // The last Z of calculated nucleus
-    G4double  lastSig; // Last value of the Cross Section
-    G4double* lastGDR; // Pointer to the last array of GDR cross sections
-    G4double* lastHEN; // Pointer to the last array of HEn cross sections
-    G4double  lastE;   // Last used in the cross section Energy
-    G4double  lastTH;  // Last value of the Energy Threshold (A-dependent)
-    G4double  lastSP;  // Last value of the ShadowingPomeron (A-dependent)
+    G4int     lastZ = 0;         // The last Z of calculated nucleus
+    G4double  lastSig = 0.0;     // Last value of the Cross Section
+    G4double* lastGDR = nullptr; // Pointer to the last array of GDR cross sections
+    G4double* lastHEN = nullptr; // Pointer to the last array of HEn cross sections
+    G4double  lastE = 0.0;       // Last used in the cross section Energy
+    G4double  lastTH = 0.0;      // Last value of the Energy Threshold (A-dependent)
+    G4double  lastSP = 0.0;      // Last value of the ShadowingPomeron (A-dependent)
     
     // Vector of pointers to the GDRPhotonuclearCrossSection
     std::vector <G4double*> GDR;
 
-    // ejc3 // store deuteron XS
-    G4double* deuteron_GDR;
-    G4double* deuteron_HR;
-    G4double deuteron_TH;
-    G4double deuteron_SP;
+    // store deuteron, triton, He3 XS
+    G4double* deuteron_GDR = nullptr;
+    G4double* deuteron_HR = nullptr;
+    G4double deuteron_TH = 0.0;
+    G4double deuteron_SP = 0.0;
+    G4double* triton_GDR = nullptr;
+    G4double* triton_HR = nullptr;
+    G4double triton_TH = 0.0;
+    G4double triton_SP = 0.0;
+    G4double* he3_GDR = nullptr;
+    G4double* he3_HR = nullptr;
+    G4double he3_TH = 0.0;
+    G4double he3_SP = 0.0;
     
     // Vector of pointers to the HighEnPhotonuclearCrossSect
     std::vector <G4double*> HEN;

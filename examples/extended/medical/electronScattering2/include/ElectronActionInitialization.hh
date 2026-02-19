@@ -23,16 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ElectronActionInitialization.hh
 /// \brief Definition of the ElectronActionInitialization class
 
 #ifndef ElectronActionInitialization_h
 #define ElectronActionInitialization_h 1
 
+#include "G4String.hh"
 #include "G4VUserActionInitialization.hh"
-
-class G4GeneralParticleSource;
 
 /// Action initialization class.
 ///
@@ -45,11 +43,9 @@ class ElectronActionInitialization : public G4VUserActionInitialization
 
     virtual void BuildForMaster() const;
     virtual void Build() const;
-    
-private:
+
+  private:
     G4String fOutputFileSpec;
 };
 
 #endif
-
-    

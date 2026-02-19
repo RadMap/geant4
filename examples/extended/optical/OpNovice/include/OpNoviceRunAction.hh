@@ -23,39 +23,35 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file OpNovice/include/OpNoviceRunAction.hh
+/// \file OpNoviceRunAction.hh
 /// \brief Definition of the OpNoviceRunAction class
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef OpNoviceRunAction_h
 #define OpNoviceRunAction_h 1
 
-#include "globals.hh"
 #include "G4UserRunAction.hh"
+#include "globals.hh"
+
+class OpNovicePrimaryGeneratorAction;
+class OpNoviceRun;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class G4Timer;
 class G4Run;
 
 class OpNoviceRunAction : public G4UserRunAction
 {
   public:
-    OpNoviceRunAction();
-    virtual ~OpNoviceRunAction();
+    OpNoviceRunAction(OpNovicePrimaryGeneratorAction* = nullptr);
+    ~OpNoviceRunAction() override = default;
 
-  public:
-    virtual void BeginOfRunAction(const G4Run* aRun);
-    virtual void EndOfRunAction(const G4Run* aRun);
+    G4Run* GenerateRun() override;
+    void BeginOfRunAction(const G4Run*) override;
+    void EndOfRunAction(const G4Run*) override;
 
   private:
-    G4Timer* fTimer;
+    OpNoviceRun* fRun = nullptr;
+    OpNovicePrimaryGeneratorAction* fPrimary = nullptr;
 };
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-#endif /*OpNoviceRunAction_h*/
+#endif

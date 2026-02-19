@@ -23,29 +23,25 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file RE05/src/RE05ActionInitialization.cc
+/// \file RE05ActionInitialization.cc
 /// \brief Implementation of the RE05ActionInitialization class
-//
 
 #include "RE05ActionInitialization.hh"
+
+#include "RE05EventAction.hh"
 #include "RE05PrimaryGeneratorAction.hh"
 #include "RE05RunAction.hh"
-#include "RE05EventAction.hh"
 #include "RE05StackingAction.hh"
-#include "RE05TrackingAction.hh"
 #include "RE05SteppingAction.hh"
+#include "RE05TrackingAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RE05ActionInitialization::RE05ActionInitialization()
-: G4VUserActionInitialization()
-{}
+RE05ActionInitialization::RE05ActionInitialization() : G4VUserActionInitialization() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RE05ActionInitialization::~RE05ActionInitialization()
-{}
+RE05ActionInitialization::~RE05ActionInitialization() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

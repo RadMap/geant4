@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm8/include/StackingMessenger.hh
+/// \file StackingMessenger.hh
 /// \brief Definition of the StackingMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef StackingMessenger_h
 #define StackingMessenger_h 1
@@ -41,18 +37,20 @@ class G4UIcmdWithABool;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class StackingMessenger: public G4UImessenger
+class StackingMessenger : public G4UImessenger
 {
-public:
-  StackingMessenger(StackingAction*);
-  ~StackingMessenger();
-    
-  virtual void SetNewValue(G4UIcommand*, G4String);
-    
-private:
+  public:
+    explicit StackingMessenger(StackingAction*);
+    ~StackingMessenger() override;
 
-  StackingAction*    fStackAction;    
-  G4UIcmdWithABool*  fKillCmd;
+    void SetNewValue(G4UIcommand*, G4String) override;
+
+    StackingMessenger& operator=(const StackingMessenger& right) = delete;
+    StackingMessenger(const StackingMessenger&) = delete;
+
+  private:
+    StackingAction* fStackAction;
+    G4UIcmdWithABool* fKillCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

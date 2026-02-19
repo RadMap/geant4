@@ -23,15 +23,12 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/LXe/include/LXeStackingAction.hh
+/// \file LXeStackingAction.hh
 /// \brief Definition of the LXeStackingAction class
-//
-//
-#ifndef LXeStackingAction_H
-#define LXeStackingAction_H 1
 
-#include "globals.hh"
+#ifndef LXeStackingAction_h
+#define LXeStackingAction_h 1
+
 #include "G4UserStackingAction.hh"
 
 class LXeEventAction;
@@ -39,16 +36,13 @@ class LXeEventAction;
 class LXeStackingAction : public G4UserStackingAction
 {
   public:
-
     LXeStackingAction(LXeEventAction*);
-    virtual ~LXeStackingAction();
- 
-    virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack);
-    virtual void NewStage();
-    virtual void PrepareNewEvent();
- 
+    ~LXeStackingAction() override = default;
+
+    G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack) override;
+
   private:
-    LXeEventAction* fEventAction;
+    LXeEventAction* fEventAction = nullptr;
 };
 
 #endif

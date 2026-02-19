@@ -23,47 +23,40 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file optical/OpNovice2/src/TrackInformation.cc
+/// \file TrackInformation.cc
 /// \brief Implementation of the TrackInformation class
-//
-//
-//
 
 #include "TrackInformation.hh"
+
+#include "G4SystemOfUnits.hh"
+#include "G4Track.hh"
 #include "G4ios.hh"
-#include "G4SystemOfUnits.hh"    
 
-G4ThreadLocal G4Allocator<TrackInformation> *
-                                   aTrackInformationAllocator = 0;
+G4ThreadLocal G4Allocator<TrackInformation>* aTrackInformationAllocator = nullptr;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-TrackInformation::TrackInformation()
-  : G4VUserTrackInformation()
+TrackInformation::TrackInformation() : G4VUserTrackInformation()
 {
   fFirstTankX = true;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-TrackInformation::TrackInformation(const G4Track*)
-  : G4VUserTrackInformation()
+TrackInformation::TrackInformation(const G4Track*) : G4VUserTrackInformation()
 {
   fFirstTankX = true;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-TrackInformation ::TrackInformation(const TrackInformation* aTrackInfo)
-  : G4VUserTrackInformation()
+TrackInformation::TrackInformation(const TrackInformation* aTrackInfo) : G4VUserTrackInformation()
 {
   fFirstTankX = aTrackInfo->fFirstTankX;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-TrackInformation::~TrackInformation()
-{;}
+TrackInformation::~TrackInformation() = default;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-TrackInformation& TrackInformation::operator=
-  (const TrackInformation& aTrackInfo)
+TrackInformation& TrackInformation::operator=(const TrackInformation& aTrackInfo)
 {
   fFirstTankX = aTrackInfo.fFirstTankX;
 
@@ -79,8 +72,7 @@ void TrackInformation::SetSourceTrackInformation(const G4Track*)
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void TrackInformation::Print() const
 {
-  G4cout 
-    << "first time track incident on X: " << fFirstTankX << G4endl;
+  G4cout << "first time track incident on X: " << fFirstTankX << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

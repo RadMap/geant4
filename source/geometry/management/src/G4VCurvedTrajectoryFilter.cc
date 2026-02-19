@@ -23,20 +23,12 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// G4VCurvedTrajectoryFilter class implementation
+// G4VCurvedTrajectoryFilter implementation
 //
-// First version: Oct 30, 2002 - Jacek Generowicz
+// Author: Jacek Generowicz (CERN), 30.10.2002
 // --------------------------------------------------------------------
 
 #include "G4VCurvedTrajectoryFilter.hh"
-
-G4VCurvedTrajectoryFilter::G4VCurvedTrajectoryFilter()
-{
-}
-
-G4VCurvedTrajectoryFilter::~G4VCurvedTrajectoryFilter()
-{
-}
 
 std::vector<G4ThreeVector>* 
 G4VCurvedTrajectoryFilter::GimmeThePointsAndForgetThem()
@@ -55,7 +47,7 @@ G4VCurvedTrajectoryFilter::GimmeThePointsAndForgetThem()
 }
 
 void
-G4VCurvedTrajectoryFilter::CreateNewTrajectorySegment( )
+G4VCurvedTrajectoryFilter::CreateNewTrajectorySegment()
 {
   if (fpFilteredPoints != nullptr)
   {

@@ -23,27 +23,25 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/HepMCEx01/include/ExN04CalorimeterROGeometry.hh
+/// \file ExN04CalorimeterROGeometry.hh
 /// \brief Definition of the ExN04CalorimeterROGeometry class
-//
-//
 
 #ifndef ExN04CalorimeterROGeometry_h
 #define ExN04CalorimeterROGeometry_h 1
 
 #include "G4VReadOutGeometry.hh"
 
-class ExN04CalorimeterROGeometry : public G4VReadOutGeometry {
-public:
-  ExN04CalorimeterROGeometry();
-  ExN04CalorimeterROGeometry(G4String);
-  ~ExN04CalorimeterROGeometry();
+class ExN04CalorimeterROGeometry : public G4VReadOutGeometry
+{
+  public:
+    ExN04CalorimeterROGeometry();
+    ExN04CalorimeterROGeometry(G4String);
+    ~ExN04CalorimeterROGeometry();
 
-private:
-  virtual G4VPhysicalVolume* Build();
+  private:
+    virtual G4VPhysicalVolume* Build();
 
 #include "ExN04DetectorParameterDef.hh"
-
 };
 
 #endif

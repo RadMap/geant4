@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm9/include/EventAction.hh
+/// \file EventAction.hh
 /// \brief Definition of the EventAction class
-//
-//
 
 #ifndef EventAction_h
 #define EventAction_h 1
@@ -34,26 +32,26 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#include "G4UserEventAction.hh"
 #include "G4Event.hh"
+#include "G4UserEventAction.hh"
 #include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 class EventAction : public G4UserEventAction
 {
-public: 
+  public:
+    EventAction();
+    ~EventAction() override = default;
 
-  EventAction();
+    void BeginOfEventAction(const G4Event*) override;
+    void EndOfEventAction(const G4Event*) override;
 
-  virtual ~EventAction();
+    EventAction& operator=(const EventAction& right) = delete;
+    EventAction(const EventAction&) = delete;
 
-  virtual void BeginOfEventAction(const G4Event*);
-  virtual void   EndOfEventAction(const G4Event*);
-
-private:
-
-  G4int    fVerbose;
+  private:
+    G4int fVerbose;
 };
 
 #endif

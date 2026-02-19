@@ -23,15 +23,19 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// This example is provided by the Geant4-DNA collaboration
-// Any report or published results obtained using the Geant4-DNA software 
-// shall cite the following Geant4-DNA collaboration publication:
-// Med. Phys. 37 (2010) 4692-4708
-// The Geant4-DNA web site is available at http://geant4-dna.org
-//
-//
 /// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
+
+// This example is provided by the Geant4-DNA collaboration
+// Any report or published results obtained using the Geant4-DNA software
+// shall cite the following Geant4-DNA collaboration publications:
+// Med. Phys. 45 (2018) e722-e739
+// Phys. Med. 31 (2015) 861-874
+// Med. Phys. 37 (2010) 4692-4708
+// Int. J. Model. Simul. Sci. Comput. 1 (2010) 157–178
+//
+// The Geant4-DNA web site is available at http://geant4-dna.org
+//
 
 #ifndef PhysicsList_h
 #define PhysicsList_h 1
@@ -43,12 +47,27 @@ class G4VPhysicsConstructor;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
   public:
     PhysicsList();
-    virtual ~PhysicsList();
+    ~PhysicsList() override;
+
+    void ConstructParticle() override;
+    void ConstructProcess() override;
+
+    void AddPhysics(const G4String&);
+    void SetTrackingCut(G4bool);
+
+  private:
+    void TrackingCut();
+
+    G4VPhysicsConstructor* fEmPhysicsList = nullptr;
+    G4VPhysicsConstructor* fDecayPhysicsList = nullptr;
+    G4VPhysicsConstructor* fRadDecayPhysicsList = nullptr;
+
+    G4String fEmPhysics = "";
+    G4bool fIsTrackingCutSet = true;
 };
 
 #endif
-

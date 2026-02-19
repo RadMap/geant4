@@ -23,18 +23,13 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/fanoCavity2/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef RunAction_h
 #define RunAction_h 1
 
 #include "G4UserRunAction.hh"
-
 #include "globals.hh"
 
 class Run;
@@ -43,32 +38,27 @@ class DetectorConstruction;
 class PrimaryGeneratorAction;
 class HistoManager;
 
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class RunAction : public G4UserRunAction
 {
   public:
     RunAction(DetectorConstruction*, PrimaryGeneratorAction*);
-   ~RunAction();
+    ~RunAction();
 
   public:
     virtual G4Run* GenerateRun();
     virtual void BeginOfRunAction(const G4Run*);
-    virtual void   EndOfRunAction(const G4Run*);
+    virtual void EndOfRunAction(const G4Run*);
 
-    
   private:
-    DetectorConstruction*   fDetector;
+    DetectorConstruction* fDetector;
     PrimaryGeneratorAction* fKinematic;
 
-    Run*          fRun;
-    HistoManager*           fHistoManager;
-
-
+    Run* fRun;
+    HistoManager* fHistoManager;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

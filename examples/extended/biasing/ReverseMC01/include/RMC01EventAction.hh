@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file biasing/ReverseMC01/include/RMC01EventAction.hh
+/// \file RMC01EventAction.hh
 /// \brief Definition of the RMC01EventAction class
-//
-//
-//////////////////////////////////////////////////////////////
+
 //  Class Name:            RMC01EventAction
 //        Author:               L. Desorgher
 //        Organisation:         SpaceIT GmbH
@@ -52,16 +50,14 @@ class RMC01EventActionMessenger;
 
 class RMC01EventAction : public G4UserEventAction
 {
- public:
-   RMC01EventAction();
-   virtual ~RMC01EventAction();
+  public:
+    RMC01EventAction();
+    virtual ~RMC01EventAction();
 
-   virtual void  BeginOfEventAction(const G4Event*);
-   virtual void  EndOfEventAction(const G4Event*);
+    virtual void BeginOfEventAction(const G4Event*);
+    virtual void EndOfEventAction(const G4Event*);
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-    

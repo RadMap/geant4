@@ -23,35 +23,33 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file GB04ActionInitialization.cc
 /// \brief Implementation of the GB04ActionInitialization class
 
 #include "GB04ActionInitialization.hh"
+
 #include "GB04PrimaryGeneratorAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-GB04ActionInitialization::GB04ActionInitialization()
- : G4VUserActionInitialization()
-{}
+GB04ActionInitialization::GB04ActionInitialization() : G4VUserActionInitialization() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 GB04ActionInitialization::~GB04ActionInitialization()
-{;}
+{
+  ;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void GB04ActionInitialization::BuildForMaster() const
-{
-}
+void GB04ActionInitialization::BuildForMaster() const {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void GB04ActionInitialization::Build() const
 {
   SetUserAction(new GB04PrimaryGeneratorAction);
-}  
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

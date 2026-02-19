@@ -25,6 +25,7 @@
 //
 // class G4BlockingList Implementation
 //
+// Author: Paul Kent (CERN), 24.07.1996
 // --------------------------------------------------------------------
 
 #include "G4BlockingList.hh"
@@ -34,18 +35,12 @@ G4BlockingList::G4BlockingList(G4int maxDefault, G4int stride)
 {
 }
 
-// Do nothing destructor
-//
-G4BlockingList::~G4BlockingList()
-{
-}
-
 // Clear List and reset tag
 //
 void G4BlockingList::FullyReset()
 {
   fBlockTagNo = 1;
-  for ( G4long i=G4long(fBlockingList.size()-1); i>=0; --i )
+  for ( auto  i=G4long(fBlockingList.size()-1); i>=0; --i )
   {
     fBlockingList[i] = 0;
   }  

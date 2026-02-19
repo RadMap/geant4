@@ -23,9 +23,10 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4DefaultLinearColorMap
 //
-//
-
+// Author: Makoto Asai
+// --------------------------------------------------------------------
 #ifndef G4DefaultLinearColorMap_h
 #define G4DefaultLinearColorMap_h 1
 
@@ -34,13 +35,12 @@
 
 class G4DefaultLinearColorMap : public G4VScoreColorMap
 {
-  public:
-      G4DefaultLinearColorMap(G4String mName);
-      virtual ~G4DefaultLinearColorMap();
+ public:
 
-  public:
-      virtual void GetMapColor(G4double val, G4double color[4]);
+  using G4VScoreColorMap::G4VScoreColorMap;
+  ~G4DefaultLinearColorMap() override = default;
+
+  void GetMapColor(G4double val, G4double color[4]) override;
 };
 
 #endif
-

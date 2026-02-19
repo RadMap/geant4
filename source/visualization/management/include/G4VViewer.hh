@@ -37,11 +37,18 @@
 
 #include "globals.hh"
 
+#include "G4SceneTreeItem.hh"
+
 #include "G4ViewParameters.hh"
 #include "G4PhysicalVolumeModel.hh"
+#include "G4PseudoScene.hh"
+
+#include <vector>
+#include <list>
 
 class G4VSceneHandler;
 
+// clang-format off
 class G4VViewer {
 
 public: // With description
@@ -98,9 +105,10 @@ public: // With description
   // It is not yet the end of all drawing; that is signalled by
   // ShowView ().)
 
+  virtual G4bool ReadyToDraw() {return true;}
+
   std::vector<G4ThreeVector> ComputeFlyThrough(G4Vector3D*);
 
-#ifdef G4MULTITHREADED
   // Note: the order of calling of MovingToVisSubThread and SwitchToVisSubThread
   // is undefined, so you may need to implement mutexes to ensure your preferred
   // order - see, e.g., G4OpenGLQtViewer. To summarise, the order of calling is
@@ -113,23 +121,82 @@ public: // With description
   // SwitchToMasterThread
 
   // Called on the master thread before starting the vis sub-thread.
-  virtual void DoneWithMasterThread ();
+  virtual void DoneWithMasterThread () {}
 
   // Called on the master thread after starting the vis sub-thread.
-  virtual void MovingToVisSubThread ();
+  virtual void MovingToVisSubThread () {}
 
   // Called on the vis sub-thread at start of vis sub-thread.
-  virtual void SwitchToVisSubThread ();
+  virtual void SwitchToVisSubThread () {}
 
   // Called on the vis sub-thread when all events have been processed.
-  virtual void DoneWithVisSubThread ();
+  virtual void DoneWithVisSubThread () {}
 
   // Called on the vis sub-thread when all events have been processed.
-  virtual void MovingToMasterThread ();
+  virtual void MovingToMasterThread () {}
   
   // Called on the master thread after the vis sub-thread has terminated.
-  virtual void SwitchToMasterThread ();
-#endif
+  virtual void SwitchToMasterThread () {}
+
+  //////////////////////////////////////////////////////////////
+  // Stuff for scene tree.
+  /**
+   - The scene tree is a tree of G4SceneTreeItem objects (see graphics-reps).
+   - Its root is a data member fSceneTree of all viewers by virtue of
+   G4VViewer inheritance,
+   - G4SceneTreeItem is an aggregate of data members that represent
+   properties of objects in the scene (G4Scene). Its data members are
+   low-level types - G4String, G4VisAttributes and G4AttDef/Value - so
+   that it can be used across categories, avoiding coupling.
+   - The root item has children that represent the models (G4VModel
+   sub-classes) in the scene.
+   - For a G4PhysicalVolumeModel (detector components), its children and
+   children's children, etc., imitate the geometry hierarchy of that
+   model. These descendants are called "touchables".
+   - There may be more than one G4PhysicalVolumeModel, depending how
+   the user creates his/her scene.
+   - The scene tree is reviewed, and updated if necessary, at every pass
+   of G4VSceneHandler::ProcessScene.  This is called a "kernel visit".
+   - A kernel visit is triggered by some vis commands (e.g.,
+   /vis/viewer/rebuild) and by a viewer if it deems necessary. For
+   example, a kernel visit may not be required for a rotation, zoom, etc.,
+   but required for a change from surface to wireframe.
+   - The idea is that the scene tree can be passed to a GUI, the GUI can
+   create a tree widget, and interactions with it raise UI commands such as
+   /vis/scene/activateModel, /vis/set/touchable and /vis/touchable/set/...
+   The viewer decides if this requires a kernel visit, otherwise it
+   must update fSceneTree itself (utilities are provided -
+   G4VViewer::TouchableSetVisibility/Colour).
+  */
+  class SceneTreeScene: public G4PseudoScene {
+    // G4PhysicalVolumeModel sends touchables to this scene
+  public:
+    SceneTreeScene(G4VViewer*, G4PhysicalVolumeModel*);
+    ~SceneTreeScene() = default;
+  private:
+    void ProcessVolume(const G4VSolid& solid) override;
+    std::list<G4SceneTreeItem>::iterator FindOrInsertTouchable
+    (const G4String& modelID, G4SceneTreeItem& mother,
+     G4int depth, const G4String& partialPathString, const G4String& fullPathString);
+    G4VViewer* fpViewer = nullptr;
+    G4PhysicalVolumeModel* fpPVModel = nullptr;
+    std::list<G4SceneTreeItem>::iterator  fModelIter;  // Points to scene tree item for this model
+    G4int fMaximumExpandedDepth = 0;    // To be calculated in constructor
+    const G4int fMaximumExpanded = 30;  // So as not to swamp the GUI
+  };
+  void InsertModelInSceneTree(G4VModel*);
+  const G4SceneTreeItem& GetSceneTree() {return fSceneTree;}
+  G4SceneTreeItem& AccessSceneTree() {return fSceneTree;}
+  void UpdateGUISceneTree();  // A utility
+  
+  //GUI update functions
+  void UpdateGUIControlWidgets();
+  void UpdateGUIDrawingStyle();
+  void UpdateGUIProjectionStyle();
+  void UpdateGUITransparencySlider();
+
+  const G4int fMaxAllTouchables = 10000;  // Limits memory to about 50 MB per PV model
+  G4bool fCurtailDescent = false;  // Flag to curtail descent into PV model for scene tree
 
   //////////////////////////////////////////////////////////////
   // Access functions.
@@ -140,6 +207,7 @@ public: // With description
   G4VSceneHandler*        GetSceneHandler   () const;
   const G4ViewParameters& GetViewParameters        () const;
   const G4ViewParameters& GetDefaultViewParameters () const;
+  G4double                GetKernelVisitElapsedTimeSeconds () const;
 
   virtual const std::vector<G4ModelingParameters::VisAttributesModifier>*
   GetPrivateVisAttributesModifiers() const;
@@ -166,6 +234,14 @@ public: // With description
   void ProcessView ();
   // Used by DrawView ().  Invokes SetView ().  The basic logic is here.
 
+  void ProcessTransients ();
+  // Re-draws transients only
+
+  void ZoomFromMouseWheel(G4double delta, G4bool shift = false, G4double xPos = 0, G4double yPos = 0);
+
+  virtual G4bool GetWindowSize(unsigned int& a_w,unsigned int& a_h) {a_w = 0; a_h = 0; return false;}
+  virtual G4double GetSceneNearWidth() {return 0;}
+
 protected:
 
   //////////////////////////////////////////////////////////////
@@ -187,29 +263,6 @@ protected:
   // Set the touchable colour attribute.
   // Changes the Vis Attribute Modifiers WITHOUT triggering a rebuild.
 
-  class G4Spline
-  {
-  public:
-
-    // Constructors and destructor
-    G4Spline();
-    ~G4Spline();
-
-    // Operations
-    void AddSplinePoint(const G4Vector3D& v);
-    G4Vector3D GetInterpolatedSplinePoint(float t);   // t = 0...1; 0=vp[0] ... 1=vp[max]
-    int GetNumPoints();
-    G4Vector3D GetPoint(int);
-    // method for computing the Catmull-Rom parametric equation
-    // given a time (t) and a vector quadruple (p1,p2,p3,p4).
-    G4Vector3D CatmullRom_Eq(float t, const G4Vector3D& p1, const G4Vector3D& p2,
-                             const G4Vector3D& p3, const G4Vector3D& p4);
-
-  private:
-    std::vector<G4Vector3D> vp;
-    float delta_t;
-  };
-  
   //////////////////////////////////////////////////////////////
   // Data members
   G4VSceneHandler&        fSceneHandler;     // Abstract scene for this view.
@@ -218,10 +271,14 @@ protected:
   G4String         fShortName; // Up to first ' ' character, if any.
   G4ViewParameters fVP;        // View parameters.
   G4ViewParameters fDefaultVP; // Default view parameters.
+  G4double         fKernelVisitElapsedTimeSeconds = 999.;  // Default to a large number
+  // Note: fKernelVisitElapsedTimeSeconds is measured in ProcessView().
+  G4SceneTreeItem  fSceneTree;
 
   //////////////////////////////////////////////////////////////
   // Other parameters.
   G4bool           fNeedKernelVisit;  // See DrawView() for comments.
+  G4bool           fTransientsNeedRedrawing;  // See DrawView() for comments.
 };
 
 #include "G4VViewer.icc"

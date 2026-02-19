@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/monopole/include/G4MonopoleFieldMessenger.hh
+/// \file G4MonopoleFieldMessenger.hh
 /// \brief Definition of the G4MonopoleFieldMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 // =======================================================================
 // Created:  15 Jun 2010, B. Bozsogi
@@ -37,8 +33,8 @@
 #ifndef G4MonopoleFieldMessenger_h
 #define G4MonopoleFieldMessenger_h
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class G4MonopoleFieldSetup;
 class G4UIdirectory;
@@ -46,24 +42,21 @@ class G4UIcmdWithADoubleAndUnit;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class G4MonopoleFieldMessenger: public G4UImessenger
+class G4MonopoleFieldMessenger : public G4UImessenger
 {
-public:
-  
-  G4MonopoleFieldMessenger(G4MonopoleFieldSetup* );
-  ~G4MonopoleFieldMessenger();
-    
-  virtual void SetNewValue(G4UIcommand*, G4String);
-    
-private:
-  
-  G4MonopoleFieldSetup*  fField;
-    
-  G4UIdirectory*             fFieldDir;
-  G4UIcmdWithADoubleAndUnit* fSetFieldCmd;
+  public:
+    G4MonopoleFieldMessenger(G4MonopoleFieldSetup*);
+    ~G4MonopoleFieldMessenger();
+
+    virtual void SetNewValue(G4UIcommand*, G4String);
+
+  private:
+    G4MonopoleFieldSetup* fField;
+
+    G4UIdirectory* fFieldDir;
+    G4UIcmdWithADoubleAndUnit* fSetFieldCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

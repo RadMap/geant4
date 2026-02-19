@@ -23,11 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE02/include/RE02PSPassageCellFlux.hh
+/// \file RE02PSPassageCellFlux.hh
 /// \brief Definition of the RE02PSPassageCellFlux class
-//
-//
-//
 
 #ifndef RE02PSPassageCellFlux_h
 #define RE02PSPassageCellFlux_h 1
@@ -48,16 +45,15 @@
 
 class RE02PSPassageCellFlux : public G4PSPassageCellFlux
 {
-   public: // with description
-      RE02PSPassageCellFlux(G4String name,G4int nx,G4int ny, G4int nz);
-      virtual ~RE02PSPassageCellFlux();
+  public:  // with description
+    RE02PSPassageCellFlux(G4String name, G4int nx, G4int ny, G4int nz);
+    virtual ~RE02PSPassageCellFlux();
 
-  protected: // with description
-      virtual G4int GetIndex(G4Step*);
+  protected:  // with description
+    virtual G4int GetIndex(G4Step*);
 
   private:
-      G4int fNx, fNy, fNz;
+    G4int fNx, fNy, fNz;
 };
 
 #endif
-

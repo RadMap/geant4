@@ -23,41 +23,41 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
 // --------------------------------------------------------------
-//	GEANT 4 class implementation file 
+//	GEANT 4 class implementation file
 //
 
 #include "G4IonConstructor.hh"
-
-#include "G4ParticleDefinition.hh"
-#include "G4ParticleTable.hh"
 // Nuclei
 #include "G4Alpha.hh"
 #include "G4Deuteron.hh"
-#include "G4Triton.hh"
-#include "G4He3.hh"
 #include "G4GenericIon.hh"
+#include "G4He3.hh"
+#include "G4Triton.hh"
 // AntiNuclei
 #include "G4AntiAlpha.hh"
 #include "G4AntiDeuteron.hh"
-#include "G4AntiTriton.hh"
 #include "G4AntiHe3.hh"
-
-G4IonConstructor::G4IonConstructor()
-{
-}
-
-G4IonConstructor::~G4IonConstructor()
-{
-}
-
+#include "G4AntiTriton.hh"
+// Hyper-nuclei
+#include "G4DoubleHyperDoubleNeutron.hh"
+#include "G4DoubleHyperH4.hh"
+#include "G4HyperAlpha.hh"
+#include "G4HyperH4.hh"
+#include "G4HyperHe5.hh"
+#include "G4HyperTriton.hh"
+// Anti-hyper-nuclei
+#include "G4AntiDoubleHyperDoubleNeutron.hh"
+#include "G4AntiDoubleHyperH4.hh"
+#include "G4AntiHyperAlpha.hh"
+#include "G4AntiHyperH4.hh"
+#include "G4AntiHyperHe5.hh"
+#include "G4AntiHyperTriton.hh"
 
 void G4IonConstructor::ConstructParticle()
 {
   ConstructLightIons();
+  ConstructHyperNuclei();
 }
 
 void G4IonConstructor::ConstructLightIons()
@@ -76,3 +76,19 @@ void G4IonConstructor::ConstructLightIons()
   G4GenericIon::GenericIonDefinition();
 }
 
+void G4IonConstructor::ConstructHyperNuclei()
+{
+  G4DoubleHyperDoubleNeutron::DoubleHyperDoubleNeutron();
+  G4DoubleHyperH4::DoubleHyperH4();
+  G4HyperAlpha::HyperAlpha();
+  G4HyperH4::HyperH4();
+  G4HyperHe5::HyperHe5();
+  G4HyperTriton::HyperTriton();
+
+  G4AntiDoubleHyperDoubleNeutron::AntiDoubleHyperDoubleNeutron();
+  G4AntiDoubleHyperH4::AntiDoubleHyperH4();
+  G4AntiHyperAlpha::AntiHyperAlpha();
+  G4AntiHyperH4::AntiHyperH4();
+  G4AntiHyperHe5::AntiHyperHe5();
+  G4AntiHyperTriton::AntiHyperTriton();
+}

@@ -23,14 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr01/include/HistoMessenger.hh
+/// \file HistoMessenger.hh
 /// \brief Definition of the HistoMessenger class
-//
-//
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef HistoMessenger_h
 #define HistoMessenger_h 1
@@ -47,23 +41,20 @@ class G4UIcmdWithAString;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class HistoMessenger: public G4UImessenger
+class HistoMessenger : public G4UImessenger
 {
-public:
+  public:
+    HistoMessenger(Histo*);
+    ~HistoMessenger() override;
 
-  HistoMessenger(Histo* );
-  virtual ~HistoMessenger();
+    void SetNewValue(G4UIcommand*, G4String) override;
 
-  virtual void SetNewValue(G4UIcommand* ,G4String );
+  private:
+    Histo* fHisto;
 
-private:
-
-  Histo*                  fHisto;
-   
-  G4UIdirectory*          fHistoDir;   
-  G4UIcmdWithAString*     fFactoryCmd;
-  G4UIcommand*            fHistoCmd;
-
+    G4UIdirectory* fHistoDir;
+    G4UIcmdWithAString* fFactoryCmd;
+    G4UIcommand* fHistoCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

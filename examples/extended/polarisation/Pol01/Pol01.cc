@@ -23,83 +23,69 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file polarisation/Pol01/Pol01.cc
+/// \file Pol01.cc
 /// \brief Main program of the polarisation/Pol01 example
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo...... 
 
-#include "G4Types.hh"
-
-#include "G4RunManager.hh"
-#include "G4UImanager.hh"
-#include "Randomize.hh"
-
+#include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
 #include "PrimaryGeneratorAction.hh"
 
-#include "RunAction.hh"
-#include "EventAction.hh"
-#include "SteppingAction.hh"
-
-#include "G4VisExecutive.hh"
+#include "G4RunManagerFactory.hh"
+#include "G4Types.hh"
 #include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
+#include "G4VisExecutive.hh"
+#include "Randomize.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
- 
-int main(int argc,char** argv) {
- 
+
+int main(int argc, char** argv)
+{
   // Instantiate G4UIExecutive if interactive mode
   G4UIExecutive* ui = nullptr;
-  if ( argc == 1 ) {
+  if (argc == 1) {
     ui = new G4UIExecutive(argc, argv);
   }
 
-  //choose the Random engine
-  //  CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
-  CLHEP::HepRandom::setTheEngine(new CLHEP::RanluxEngine());
-  
-  // Construct the default run manager
-  G4RunManager * runManager = new G4RunManager;
+  // Creating run manager
+  auto runManager = G4RunManagerFactory::CreateRunManager();
+
+  if (argc == 3) {
+    G4int nThreads = G4UIcommand::ConvertToInt(argv[2]);
+    runManager->SetNumberOfThreads(nThreads);
+  }
 
   // set mandatory initialization classes
-  DetectorConstruction* det;
-  PrimaryGeneratorAction* prim;
-  runManager->SetUserInitialization(det = new DetectorConstruction);
-  runManager->SetUserInitialization(new PhysicsList);
-  runManager->SetUserAction(prim = new PrimaryGeneratorAction(det));
+  DetectorConstruction* det = new DetectorConstruction();
+  runManager->SetUserInitialization(det);
+  runManager->SetUserInitialization(new PhysicsList());
 
-  G4VisManager* visManager = new G4VisExecutive;
-  visManager->Initialize();
+  // User action initialization
+  runManager->SetUserInitialization(new ActionInitialization(det));
 
-  // set user action classes
-  RunAction* run;  
-  runManager->SetUserAction(run = new RunAction(det,prim)); 
-  runManager->SetUserAction(new EventAction(run));
-  runManager->SetUserAction(new SteppingAction(det,prim,run));
-   
-  // get the pointer to the User Interface manager 
-    G4UImanager* UImanager = G4UImanager::GetUIpointer();  
+  // get the pointer to the User Interface manager
+  G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if (ui)   // Define UI terminal for interactive mode
-    { 
-      ui->SessionStart();
-      delete ui;
-    }
-  else           // Batch mode
-    { 
-      G4String command = "/control/execute ";
-      G4String fileName = argv[1];
-      UImanager->ApplyCommand(command+fileName);
-    }
+  if (ui)  // Define UI terminal for interactive mode
+  {
+    G4VisManager* visManager = new G4VisExecutive;
+    visManager->Initialize();
+    ui->SessionStart();
+    delete ui;
+    delete visManager;
+  }
+  else  // Batch mode
+  {
+    G4String command = "/control/execute ";
+    G4String fileName = argv[1];
+    UImanager->ApplyCommand(command + fileName);
+  }
 
-  // job termination     
-  delete visManager;
+  // job termination
   delete runManager;
 
   return 0;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo...... 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

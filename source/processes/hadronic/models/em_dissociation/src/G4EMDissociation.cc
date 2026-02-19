@@ -74,9 +74,12 @@
 #include "G4ReactionProductVector.hh"
 #include "Randomize.hh"
 #include "globals.hh"
+#include "G4PhysicsModelCatalog.hh"
 
-G4EMDissociation::G4EMDissociation():G4HadronicInteraction("EMDissociation") {
-
+G4EMDissociation::G4EMDissociation() :
+  G4HadronicInteraction("EMDissociation"),
+  secID_projectileDissociation(-1), secID_targetDissociation(-1)
+{				    
   // Send message to stdout to advise that the G4EMDissociation model is being
   // used.
   PrintWelcomeMessage();
@@ -98,9 +101,15 @@ G4EMDissociation::G4EMDissociation():G4HadronicInteraction("EMDissociation") {
 
   // Set the default verbose level to 0 - no output.
   verboseLevel = 0;
+
+  // Creator model ID for the secondaries created by this model
+  secID_projectileDissociation = G4PhysicsModelCatalog::GetModelID( "model_projectile" + GetModelName() );
+  secID_targetDissociation     = G4PhysicsModelCatalog::GetModelID( "model_target"     + GetModelName() );
 }
 
-G4EMDissociation::G4EMDissociation (G4ExcitationHandler *aExcitationHandler)
+G4EMDissociation::G4EMDissociation (G4ExcitationHandler *aExcitationHandler) :
+  G4HadronicInteraction("EMDissociation"),
+  secID_projectileDissociation(-1), secID_targetDissociation(-1)
 {
   // Send message to stdout to advise that the G4EMDissociation model is being
   // used.
@@ -119,6 +128,10 @@ G4EMDissociation::G4EMDissociation (G4ExcitationHandler *aExcitationHandler)
   SetMinEnergy(100.0*MeV);
   SetMaxEnergy(500.0*GeV);
   verboseLevel = 0;
+  
+  // Creator model ID for the secondaries created by this model
+  secID_projectileDissociation = G4PhysicsModelCatalog::GetModelID( "model_projectile" + GetModelName() );
+  secID_targetDissociation     = G4PhysicsModelCatalog::GetModelID( "model_target"     + GetModelName() );
 }
 
 
@@ -151,6 +164,7 @@ G4HadFinalState *G4EMDissociation::ApplyYourself
   G4double E         = theTrack.GetKineticEnergy()/AP;
   G4double MP        = theTrack.GetTotalEnergy() - E*AP;
   G4double b         = pP.beta();
+  if (b <= DBL_MIN) { return &theParticleChange; } 
   G4double AT        = theTarget.GetA_asInt();
   G4double ZT        = theTarget.GetZ_asInt();
   G4double MT        = G4NucleiProperties::GetNuclearMass(AT,ZT);
@@ -175,8 +189,8 @@ G4HadFinalState *G4EMDissociation::ApplyYourself
   // Initialise the variables which will be used with the phase-space decay and
   // to boost the secondaries from the interaction.
   
-  G4ParticleDefinition *typeNucleon  = NULL;
-  G4ParticleDefinition *typeDaughter = NULL;
+  G4ParticleDefinition *typeNucleon  = nullptr;
+  G4ParticleDefinition *typeDaughter = nullptr;
   G4double Eg                        = 0.0;
   G4double mass                      = 0.0;
   G4ThreeVector boost = G4ThreeVector(0.0, 0.0, 0.0);
@@ -197,9 +211,9 @@ G4HadFinalState *G4EMDissociation::ApplyYourself
 
   // Now sample whether the interaction involved EM dissociation of the projectile
   // or the target.
-
-  if (G4UniformRand() <
-    totCrossSectionP / (totCrossSectionP + totCrossSectionT)) {
+  
+  G4int secID = -1;  // Creator model ID for the secondaries
+  if (G4UniformRand() * (totCrossSectionP + totCrossSectionT) < totCrossSectionP) {
 
     // It was the projectile which underwent EM dissociation.  Define the Lorentz
     // boost to be applied to the secondaries, and sample whether a proton or a
@@ -207,6 +221,7 @@ G4HadFinalState *G4EMDissociation::ApplyYourself
     // which passed from the target nucleus ... this will be used to define the
     // excitation of the projectile.
 
+    secID = secID_projectileDissociation;
     mass  = MP;
     if (G4UniformRand() < dissociationCrossSection->
       GetWilsonProbabilityForProtonDissociation (AP, ZP))
@@ -244,7 +259,7 @@ G4HadFinalState *G4EMDissociation::ApplyYourself
     // energy includes the projectile and virtual gamma.  This is then used
     // to calculate the boost required for the secondaries.
 
-    pP.setE(pP.e()+Eg);
+    pP.setE( std::sqrt( pP.vect().mag2() + (mass + Eg)*(mass + Eg) ) );
     boost = pP.findBoostToCM();
   }
   else
@@ -253,7 +268,8 @@ G4HadFinalState *G4EMDissociation::ApplyYourself
     // proton or a neutron was ejected.  Then determine the energy of the virtual 
     // gamma ray which passed from the projectile nucleus ... this will be used to
     // define the excitation of the target.
-
+    
+    secID = secID_targetDissociation;
     mass = MT;
     if (G4UniformRand() < dissociationCrossSection->
       GetWilsonProbabilityForProtonDissociation (AT, ZT))
@@ -294,7 +310,7 @@ G4HadFinalState *G4EMDissociation::ApplyYourself
     G4ThreeVector v = pP.vect();
     v.setMag(1.0);
     G4DynamicParticle *changedP = new G4DynamicParticle (definitionP, v, E*AP-Eg);
-    theParticleChange.AddSecondary (changedP);
+    theParticleChange.AddSecondary (changedP, secID);
     if (verboseLevel >= 2)
     {
       G4cout <<"Projectile change:" <<G4endl;
@@ -329,7 +345,7 @@ G4HadFinalState *G4EMDissociation::ApplyYourself
     pp = std::sqrt(pp);
   G4double costheta = 2.*G4UniformRand()-1.0;
   G4double sintheta = std::sqrt((1.0 - costheta)*(1.0 + costheta));
-  G4double phi      = 2.0*pi*G4UniformRand()*rad;
+  G4double phi      = 2.0*pi*G4UniformRand();
   G4ThreeVector direction(sintheta*std::cos(phi),sintheta*std::sin(phi),costheta);
   G4DynamicParticle *dynamicNucleon =
     new G4DynamicParticle(typeNucleon, direction*pp);
@@ -341,15 +357,16 @@ G4HadFinalState *G4EMDissociation::ApplyYourself
   // The "decay" products have to be transferred to the G4HadFinalState object.
   // Furthermore, the residual nucleus should be de-excited.
 
-  theParticleChange.AddSecondary (dynamicNucleon);
+  theParticleChange.AddSecondary (dynamicNucleon, secID);
   if (verboseLevel >= 2) {
     G4cout <<"Nucleon from the EMD process:" <<G4endl;
     dynamicNucleon->DumpInfo();
   }
 
   G4Fragment* theFragment = new
-    G4Fragment((G4int) typeDaughter->GetBaryonNumber(),
-    (G4int) typeDaughter->GetPDGCharge(), dynamicDaughter->Get4Momentum());
+    G4Fragment(typeDaughter->GetBaryonNumber(),
+	       G4lrint(typeDaughter->GetPDGCharge()/CLHEP::eplus), 
+	       dynamicDaughter->Get4Momentum());
 
   if (verboseLevel >= 2) {
     G4cout <<"Dynamic properties of the prefragment:" <<G4endl;
@@ -369,7 +386,7 @@ G4HadFinalState *G4EMDissociation::ApplyYourself
   for (iter = products->begin(); iter != products->end(); ++iter) {
     secondary = new G4DynamicParticle((*iter)->GetDefinition(),
     (*iter)->GetTotalEnergy(), (*iter)->GetMomentum());
-    theParticleChange.AddSecondary (secondary);
+    theParticleChange.AddSecondary (secondary, secID);
   }
   delete products;
 

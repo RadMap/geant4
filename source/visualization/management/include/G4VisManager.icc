@@ -32,6 +32,10 @@ inline void G4VisManager::Initialize () {
   Initialise ();
 }
 
+inline G4bool G4VisManager::IsEnabled () const{
+  return GetConcreteInstance();
+}
+
 inline const std::vector<G4VisManager::UserVisAction>&
 G4VisManager::GetRunDurationUserVisActions () const {
   return fRunDurationUserVisActions;
@@ -94,8 +98,12 @@ inline const G4Event* G4VisManager::GetRequestedEvent() const {
   return fpRequestedEvent;
 }
 
-inline G4int G4VisManager::GetNKeepRequests () const {
-  return fNKeepRequests;
+inline G4int G4VisManager::GetNKeepForPostProcessingRequests () const {
+  return fNKeepForPostProcessingRequests;
+}
+
+inline G4int G4VisManager::GetNKeepTheEventRequests () const {
+  return fNKeepTheEventRequests;
 }
 
 inline G4bool G4VisManager::GetReviewingKeptEvents() const {
@@ -106,11 +114,17 @@ inline G4bool G4VisManager::GetAbortReviewKeptEvents() const {
   return fAbortReviewKeptEvents;
 }
 
+inline G4bool G4VisManager::GetReviewingPlots() const {
+  return fReviewingPlots;
+}
+
+inline G4bool G4VisManager::GetAbortReviewPlots() const {
+  return fAbortReviewPlots;
+}
+
 inline const G4ViewParameters& G4VisManager::GetDefaultViewParameters() const {
   return fDefaultViewParameters;
 }
-
-#ifdef G4MULTITHREADED
 
 inline G4int G4VisManager::GetMaxEventQueueSize() const {
   return fMaxEventQueueSize;
@@ -120,7 +134,21 @@ inline G4bool G4VisManager::GetWaitOnEventQueueFull () const {
   return fWaitOnEventQueueFull;
 }
 
-#endif
+inline const G4String& G4VisManager::GetDefaultGraphicsSystemName () {
+  return fDefaultGraphicsSystemName;
+}
+
+inline const G4String& G4VisManager::GetDefaultXGeometryString () const {
+  return fDefaultXGeometryString;
+}
+
+inline const G4String& G4VisManager::GetDefaultGraphicsSystemBasis () const {
+  return fDefaultGraphicsSystemBasis;
+}
+
+inline const G4String& G4VisManager::GetDefaultXGeometryStringBasis () const {
+  return fDefaultXGeometryStringBasis;
+}
 
 inline G4SceneList& G4VisManager::SetSceneList () {
   return fSceneList;
@@ -162,16 +190,23 @@ inline void G4VisManager::SetRequestedEvent (const G4Event* event) {
 inline void G4VisManager::SetReviewingKeptEvents (G4bool reveiwing) {
   fReviewingKeptEvents = reveiwing;
 }
+
 inline void G4VisManager::SetAbortReviewKeptEvents (G4bool abort) {
   fAbortReviewKeptEvents = abort;
+}
+
+inline void G4VisManager::SetReviewingPlots (G4bool reveiwing) {
+  fReviewingPlots = reveiwing;
+}
+
+inline void G4VisManager::SetAbortReviewPlots (G4bool abort) {
+  fAbortReviewPlots = abort;
 }
 
 inline void G4VisManager::SetDefaultViewParameters
 (const G4ViewParameters& vp) {
   fDefaultViewParameters = vp;
 }
-
-#ifdef G4MULTITHREADED
 
 inline void G4VisManager::SetMaxEventQueueSize (G4int size) {
   fMaxEventQueueSize = size;
@@ -181,4 +216,18 @@ inline void G4VisManager::SetWaitOnEventQueueFull (G4bool wait) {
   fWaitOnEventQueueFull = wait;
 }
 
-#endif
+inline void G4VisManager::SetDefaultGraphicsSystemName (const G4String& name) {
+  fDefaultGraphicsSystemName = name;
+}
+
+inline void G4VisManager::SetDefaultXGeometryString (const G4String& string) {
+  fDefaultXGeometryString = string;
+}
+
+inline void G4VisManager::SetDefaultGraphicsSystemBasis (const G4String& basis) {
+  fDefaultGraphicsSystemBasis = basis;
+}
+
+inline void G4VisManager::SetDefaultXGeometryStringBasis (const G4String& basis) {
+  fDefaultXGeometryStringBasis = basis;
+}

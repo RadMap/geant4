@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/LXe/include/LXeDetectorMessenger.hh
+/// \file LXeDetectorMessenger.hh
 /// \brief Definition of the LXeDetectorMessenger class
-//
-//
+
 #ifndef LXeDetectorMessenger_h
 #define LXeDetectorMessenger_h 1
 
@@ -35,43 +33,42 @@
 #include "globals.hh"
 
 class LXeDetectorConstruction;
-class G4UIdirectory;
-class G4UIcmdWithADoubleAndUnit;
-class G4UIcmdWith3VectorAndUnit;
-class G4UIcmdWithAnInteger;
-class G4UIcommand;
+
 class G4UIcmdWithABool;
 class G4UIcmdWithADouble;
+class G4UIcmdWithADoubleAndUnit;
+class G4UIcmdWithAnInteger;
+class G4UIcmdWith3VectorAndUnit;
+class G4UIcommand;
+class G4UIdirectory;
 
-class LXeDetectorMessenger: public G4UImessenger
+class LXeDetectorMessenger : public G4UImessenger
 {
   public:
-
     LXeDetectorMessenger(LXeDetectorConstruction*);
-    virtual ~LXeDetectorMessenger();
- 
-    virtual void SetNewValue(G4UIcommand*, G4String);
- 
-  private:
+    ~LXeDetectorMessenger() override;
 
-    LXeDetectorConstruction*     fLXeDetector;
-    G4UIdirectory*               fDetectorDir;
-    G4UIdirectory*               fVolumesDir;
-    G4UIcmdWith3VectorAndUnit*   fDimensionsCmd;
-    G4UIcmdWithADoubleAndUnit*   fHousingThicknessCmd;
-    G4UIcmdWithADoubleAndUnit*   fPmtRadiusCmd;
-    G4UIcmdWithAnInteger*        fNxCmd;
-    G4UIcmdWithAnInteger*        fNyCmd;
-    G4UIcmdWithAnInteger*        fNzCmd;
-    G4UIcmdWithABool*            fSphereCmd;
-    G4UIcmdWithADouble*          fReflectivityCmd;
-    G4UIcmdWithABool*            fWlsCmd;
-    G4UIcmdWithABool*            fLxeCmd;
-    G4UIcmdWithAnInteger*        fNFibersCmd;
-    G4UIcommand*                 fDefaultsCmd;
-    G4UIcmdWithADouble*          fMainScintYield;
-    G4UIcmdWithADouble*          fWLSScintYield;
-    G4UIcmdWithAnInteger*        fSaveThresholdCmd;
+    void SetNewValue(G4UIcommand*, G4String) override;
+
+  private:
+    LXeDetectorConstruction* fLXeDetector = nullptr;
+    G4UIdirectory* fDetectorDir = nullptr;
+    G4UIdirectory* fVolumesDir = nullptr;
+    G4UIcmdWith3VectorAndUnit* fDimensionsCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fHousingThicknessCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fPmtRadiusCmd = nullptr;
+    G4UIcmdWithAnInteger* fNxCmd = nullptr;
+    G4UIcmdWithAnInteger* fNyCmd = nullptr;
+    G4UIcmdWithAnInteger* fNzCmd = nullptr;
+    G4UIcmdWithABool* fSphereCmd = nullptr;
+    G4UIcmdWithADouble* fReflectivityCmd = nullptr;
+    G4UIcmdWithABool* fWlsCmd = nullptr;
+    G4UIcmdWithABool* fLxeCmd = nullptr;
+    G4UIcmdWithAnInteger* fNFibersCmd = nullptr;
+    G4UIcommand* fDefaultsCmd = nullptr;
+    G4UIcmdWithADouble* fMainScintYield = nullptr;
+    G4UIcmdWithADouble* fWLSScintYield = nullptr;
+    G4UIcmdWithAnInteger* fSaveThresholdCmd = nullptr;
 };
 
 #endif

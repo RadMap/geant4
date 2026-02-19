@@ -153,7 +153,7 @@ void G4NuclNuclDiffuseElastic::Initialise()
   // fEnergyVector = new G4PhysicsLogVector( theMinEnergy, theMaxEnergy, fEnergyBin );
 
   const G4ElementTable* theElementTable = G4Element::GetElementTable();
-  size_t jEl, numOfEl = G4Element::GetNumberOfElements();
+  std::size_t jEl, numOfEl = G4Element::GetNumberOfElements();
 
   // projectile radius
 
@@ -724,7 +724,8 @@ G4NuclNuclDiffuseElastic::SampleThetaCMS(const G4ParticleDefinition* particle,
                                        G4double momentum, G4double A)
 {
   G4int i, iMax = 100;  
-  G4double norm, result, theta1, theta2, thetaMax, sum = 0.;
+  G4double norm, theta1, theta2, thetaMax;
+  G4double result = 0., sum = 0.;
 
   fParticle      = particle;
   fWaveVector    = momentum/hbarc;
@@ -855,7 +856,7 @@ G4double
 G4NuclNuclDiffuseElastic::SampleTableThetaCMS(const G4ParticleDefinition* particle, 
                                        G4double momentum, G4double Z, G4double A)
 {
-  size_t iElement;
+  std::size_t iElement;
   G4int iMomentum, iAngle;  
   G4double randAngle, position, theta1, theta2, E1, E2, W1, W2, W;  
   G4double m1 = particle->GetPDGMass();
@@ -1096,7 +1097,7 @@ G4NuclNuclDiffuseElastic:: GetScatteringAngle( G4int iMomentum, G4int iAngle, G4
   {
     if ( iAngle >= G4int((*fAngleTable)(iMomentum)->GetVectorLength()) )
     {
-      iAngle = (*fAngleTable)(iMomentum)->GetVectorLength() - 1;
+      iAngle = G4int((*fAngleTable)(iMomentum)->GetVectorLength() - 1);
     }
     y1 = (*(*fAngleTable)(iMomentum))(iAngle-1);
     y2 = (*(*fAngleTable)(iMomentum))(iAngle);
@@ -1118,13 +1119,9 @@ G4NuclNuclDiffuseElastic:: GetScatteringAngle( G4int iMomentum, G4int iAngle, G4
 }
 
 
-
 ////////////////////////////////////////////////////////////////////////////
 //
 // Return scattering angle sampled in lab system (target at rest)
-
-
-
 G4double 
 G4NuclNuclDiffuseElastic::SampleThetaLab( const G4HadProjectile* aParticle, 
                                         G4double tmass, G4double A)
@@ -1144,15 +1141,15 @@ G4NuclNuclDiffuseElastic::SampleThetaLab( const G4HadProjectile* aParticle,
   G4double tmax    = 4.0*ptot*ptot;
   G4double t       = 0.0;
 
-
   //
   // Sample t
   //
   
   t = SampleT( theParticle, ptot, A);
+  if (t <= 0.0) { return 0.0; }
 
   // NaN finder
-  if(!(t < 0.0 || t >= 0.0)) 
+  if (t > tmax) 
   {
     if (verboseLevel > 0) 
     {
@@ -1172,22 +1169,8 @@ G4NuclNuclDiffuseElastic::SampleThetaLab( const G4HadProjectile* aParticle,
 
   G4double phi  = G4UniformRand()*twopi;
   G4double cost = 1. - 2.0*t/tmax;
-  G4double sint;
+  G4double sint = std::sqrt((1.0-cost)*(1.0+cost));
 
-  if( cost >= 1.0 ) 
-  {
-    cost = 1.0;
-    sint = 0.0;
-  }
-  else if( cost <= -1.0) 
-  {
-    cost = -1.0;
-    sint =  0.0;
-  }
-  else  
-  {
-    sint = std::sqrt((1.0-cost)*(1.0+cost));
-  }    
   if (verboseLevel>1) 
   {
     G4cout << "cos(t)=" << cost << " std::sin(t)=" << sint << G4endl;

@@ -36,21 +36,19 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 
-////////////////////////////////////////////////////////////////////////////////////
-
-using namespace std;
+//////////////////////////////////////////////////////////////////////////////////
 
 const G4double G4XrayRayleighModel::fCofA = 2.*pi2*Bohr_radius*Bohr_radius;
 
 const G4double G4XrayRayleighModel::fCofR = 8.*pi*classic_electr_radius*classic_electr_radius/3.;
 
-//////////////////////////////////////////////////////////////////////////////////.
+//////////////////////////////////////////////////////////////////////////////////
 
 G4XrayRayleighModel::G4XrayRayleighModel(const G4ParticleDefinition*,
 						   const G4String& nam)
   :G4VEmModel(nam),isInitialised(false)
 {
-  fParticleChange = 0;
+  fParticleChange = nullptr;
   lowEnergyLimit  = 250*eV; 
   highEnergyLimit = 10.*MeV;
   fFormFactor     = 0.0;
@@ -78,12 +76,9 @@ G4XrayRayleighModel::G4XrayRayleighModel(const G4ParticleDefinition*,
 
 //////////////////////////////////////////////////////////////////////////////////
 
-G4XrayRayleighModel::~G4XrayRayleighModel()
-{  
+G4XrayRayleighModel::~G4XrayRayleighModel() = default;
 
-}
-
-/////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
 
 void G4XrayRayleighModel::Initialise(const G4ParticleDefinition* particle,
 					  const G4DataVector& cuts)
@@ -102,7 +97,7 @@ void G4XrayRayleighModel::Initialise(const G4ParticleDefinition* particle,
 
 }
 
-/////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
 
 G4double G4XrayRayleighModel::ComputeCrossSectionPerAtom(
                                        const G4ParticleDefinition*,
@@ -150,7 +145,7 @@ G4double G4XrayRayleighModel::ComputeCrossSectionPerAtom(
 
 }
 
-///////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
 
 void G4XrayRayleighModel::SampleSecondaries(std::vector<G4DynamicParticle*>* /*fvect*/,  
                                             const G4MaterialCutsCouple* couple,

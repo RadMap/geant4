@@ -23,37 +23,28 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file GB06/include/GB06DetectorConstruction.hh
+/// \file GB06DetectorConstruction.hh
 /// \brief Definition of the GB06DetectorConstruction class
-//
+
 #ifndef GB06DetectorConstruction_h
 #define GB06DetectorConstruction_h 1
 
 #include "G4VUserDetectorConstruction.hh"
 #include "globals.hh"
 
-class G4Box;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
-class G4Material;
-class G4UniformMagField;
-class DetectorMessenger;
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class GB06DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
-  
-  GB06DetectorConstruction();
-  ~GB06DetectorConstruction();
-  
-public:
-  
-  virtual G4VPhysicalVolume* Construct();
-  virtual void     ConstructSDandField();
+  public:
+    GB06DetectorConstruction();
+    ~GB06DetectorConstruction() override;
 
+    G4VPhysicalVolume* Construct() override;
+    void ConstructSDandField() override;
+
+  private:
+    G4LogicalVolume* logicMeasurement = nullptr;
 };
 
 #endif
-

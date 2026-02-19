@@ -1,26 +1,25 @@
--------------------------------------------------------------------
+# Example gflash History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top). It must **not**
+be used as a substitute for writing good git commit messages!
 
-                           History file
-                           ------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all category-tags.
-It DOES NOT substitute the  CVS log-message one should put at every
-committal in the CVS repository !
+## 2024-10-28   I. Semeniouk  (exgflasha-V11-02-02)
+- ExGflashHistoManager - fix fVerbose used but uninitialised
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2024-10-21   I. Semeniouk  (exgflasha-V11-02-01)
+ - Code cleanup
+ - Restore setMat functionality, added geometry commands
+ - New commands documented in README
+ - Event generator defaults moved from vis.mac to PrimaryGenerator code
+ - Macro files updated
 
-28-Oct-2019 I. Hrivnacova (exgflasha-V10-05-01)
-- Fixed formatting in .README.txt and Doxygen warnings
+## 2024-10-02   I. Semeniouk  (exgflasha-V11-02-00)
+ - Added dedicated History
+ - Bigger calo length, radial histos in fraction of radius Moliere,
+ fix index range.
 
-22-Oct-2019 I.Semeniouk (exgflasha-V10-05-00)
-- Example demonstrating usage 'gflash' shower parameterisation
-  in homogeneous calorimeter. This example allow compared shower
-  profiles from fast simulation with full simulation.
+---
+
+# History entries prior to 11.0
 

@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr01/include/EventAction.hh
+/// \file EventAction.hh
 /// \brief Definition of the EventAction class
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // EventAction
@@ -36,13 +35,14 @@
 // Modified:
 //
 ////////////////////////////////////////////////////////////////////////
-// 
+//
 
 #ifndef EventAction_h
 #define EventAction_h 1
- 
+
 #include "G4UserEventAction.hh"
 #include "globals.hh"
+
 #include <vector>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -53,44 +53,26 @@ class G4UImanager;
 
 class EventAction : public G4UserEventAction
 {
-public: // Without description
+  public:  // Without description
+    EventAction();
+    ~EventAction() override;
 
-  EventAction();
-  virtual ~EventAction();
+    void BeginOfEventAction(const G4Event*) override;
+    void EndOfEventAction(const G4Event*) override;
 
-  virtual void BeginOfEventAction(const G4Event*);
-  virtual void   EndOfEventAction(const G4Event*);
+    void SetPrintModulo(G4int val) { fPrintModulo = val; };
+    void AddEventToDebug(G4int val) { fSelectedEvents.push_back(val); };
 
-  inline void SetPrintModulo(G4int val);
-  inline void AddEventToDebug(G4int val);
+    EventAction& operator=(const EventAction& right) = delete;
+    EventAction(const EventAction&) = delete;
 
-private:
+  private:
+    EventActionMessenger* fEventMessenger;
+    G4UImanager* fUI;
+    std::vector<G4int> fSelectedEvents;
 
-  EventAction & operator=(const EventAction &right);
-  EventAction(const EventAction&);
-
-  EventActionMessenger* fEventMessenger;
-  G4UImanager*          fUI;
-  std::vector<G4int>    fSelectedEvents;
-
-  G4int        fPrintModulo;
-  G4int        fSelected;
-
-  G4bool       fDebugStarted;
-
+    G4int fPrintModulo{100};
+    G4bool fDebugStarted{false};
 };
 
-inline void EventAction::SetPrintModulo(G4int val)   
-{ 
-  fPrintModulo = val;
-}
- 
-inline void EventAction::AddEventToDebug(G4int val)  
-{ 
-  fSelectedEvents.push_back(val);
-  ++fSelected;
-}
-
 #endif
-
-

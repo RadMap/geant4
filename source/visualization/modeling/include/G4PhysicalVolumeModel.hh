@@ -102,12 +102,20 @@ public: // With description
       fTransform(transform),
       fDrawn(drawn) {}
     G4VPhysicalVolume* GetPhysicalVolume() const {return fpPV;}
-    G4int GetCopyNo() const {return fCopyNo;}
-    G4int GetNonCulledDepth() const {return fNonCulledDepth;}
-    const G4Transform3D& GetTransform() const {return fTransform;}
-    G4bool GetDrawn() const {return fDrawn;}
-    void SetDrawn(G4bool drawn) {fDrawn = drawn;}
-    G4bool operator< (const G4PhysicalVolumeNodeID& right) const;
+    G4int  GetCopyNo()                     const {return fCopyNo;}
+    G4int  GetNonCulledDepth()             const {return fNonCulledDepth;}
+    const  G4Transform3D& GetTransform()   const {return fTransform;}
+    G4bool GetDrawn()                      const {return fDrawn;}
+    void SetPhysicalVolume(G4VPhysicalVolume* v)   {fpPV = v;}
+    void SetCopyNo        (G4int n)                {fCopyNo = n;}
+    void SetNonCulledDepth(G4int d)                {fNonCulledDepth = d;}
+    void SetTransform     (const G4Transform3D& t) {fTransform = t;}
+    void SetDrawn         (G4bool b)               {fDrawn = b;}
+    G4bool operator<  (const G4PhysicalVolumeNodeID& right) const;
+    G4bool operator!= (const G4PhysicalVolumeNodeID& right) const;
+    G4bool operator== (const G4PhysicalVolumeNodeID& right) const {
+      return !operator!= (right);
+    }
   private:
     G4VPhysicalVolume* fpPV;
     G4int fCopyNo;
@@ -139,6 +147,7 @@ public: // With description
     G4int                                  fCopyNo;
     G4Transform3D                          fTouchableGlobalTransform;
     std::vector<G4PhysicalVolumeNodeID>    fTouchableBaseFullPVPath;
+    std::vector<G4PhysicalVolumeNodeID>    fTouchableFullPVPath;
   };
 
   G4PhysicalVolumeModel
@@ -173,6 +182,9 @@ public: // With description
   G4int GetCurrentDepth() const {return fCurrentDepth;}
   // Current depth in geom. hierarchy.
 
+  const G4Transform3D& GetTransformation() const {return fTransform;}
+  // Initial transformation
+
   G4VPhysicalVolume* GetCurrentPV() const {return fpCurrentPV;}
   // Current physical volume.
 
@@ -185,7 +197,7 @@ public: // With description
   G4Material* GetCurrentMaterial() const {return fpCurrentMaterial;}
   // Current material.
 
-  G4Transform3D* GetCurrentTransform() const {return fpCurrentTransform;}
+  const G4Transform3D& GetCurrentTransform() const {return fCurrentTransform;}
   // Current transform.
 
   const std::vector<G4PhysicalVolumeNodeID>& GetBaseFullPVPath() const
@@ -211,7 +223,11 @@ public: // With description
 
   static G4ModelingParameters::PVNameCopyNoPath GetPVNameCopyNoPath
   (const std::vector<G4PhysicalVolumeNodeID>&);
-  // Converts
+  // Converts to PVNameCopyNoPath
+
+  static G4String GetPVNamePathString(const std::vector<G4PhysicalVolumeNodeID>&);
+  // Converts to path string, e.g., " World 0 Envelope 0 Shape1 0".
+  // Note leading space character.
 
   const std::map<G4String,G4AttDef>* GetAttDefs() const;
   // Attribute definitions for current solid.
@@ -225,6 +241,21 @@ public: // With description
   // G4XXXStoredSceneHandler::PreAddSolid for how to access and
   // G4VTrajectory::ShowTrajectory for an example of the use of
   // G4Atts.
+
+  const std::map<G4int,G4int>& GetMapOfDrawnTouchables() const {return fMapDrawnTouchables;}
+  // Number of touchables drawn at each depth.
+
+  G4int GetTotalDrawnTouchables () {return fTotalDrawnTouchables;}
+  // Total number of touchables drawn.
+
+  G4int GetMaxFullDepth () const {return fMaxFullDepth;}
+  // Including base path, i.e., from the world volume
+
+  const std::map<G4int,G4int>& GetMapOfAllTouchables() const {return fMapAllTouchables;}
+  // Number of all touchables at each depth.
+
+  G4int GetTotalAllTouchables () {return fTotalAllTouchables;}
+  // Total number of touchables.
 
   void SetRequestedDepth (G4int requestedDepth) {
     fRequestedDepth = requestedDepth;
@@ -247,6 +278,8 @@ public: // With description
   void CurtailDescent() const {fCurtailDescent = true;}
   // Curtail descent of current branch.
 
+  void CalculateExtent ();
+
 protected:
 
   void VisitGeometryAndGetVisReps (G4VPhysicalVolume*,
@@ -267,8 +300,6 @@ protected:
 			      const G4VisAttributes* pVisAttribs,
 			      G4VGraphicsScene& sceneHandler);
 
-  void CalculateExtent ();
-
   /////////////////////////////////////////////////////////
   // Data members...
 
@@ -278,12 +309,13 @@ protected:
   G4int              fRequestedDepth;
                      // Requested depth of geom. hierarchy search.
   G4bool             fUseFullExtent; // ...if requested.
+  G4Transform3D      fTransform;     // Initial transform
   G4int              fCurrentDepth;  // Current depth of geom. hierarchy.
   G4VPhysicalVolume* fpCurrentPV;    // Current physical volume.
   G4int              fCurrentPVCopyNo; // Current copy number.
   G4LogicalVolume*   fpCurrentLV;    // Current logical volume.
-  G4Material*    fpCurrentMaterial;  // Current material.
-  G4Transform3D* fpCurrentTransform; // Current transform.
+  G4Material*        fpCurrentMaterial;  // Current material.
+  G4Transform3D      fCurrentTransform;  // Current transform.
   std::vector<G4PhysicalVolumeNodeID> fBaseFullPVPath; // Base. May be empty.
   std::vector<G4PhysicalVolumeNodeID> fFullPVPath;     // Starts from base.
   std::vector<G4PhysicalVolumeNodeID> fDrawnPVPath;    // Omits culled volumes.
@@ -291,6 +323,13 @@ protected:
   mutable G4bool     fCurtailDescent;// Can be set to curtail descent.
   G4VSolid*          fpClippingSolid;
   ClippingMode       fClippingMode;
+  G4int              fNClippers;     // No of clipping/cutting solids - only 0 or 1 allowed
+  std::map<G4int,G4int> fMapDrawnTouchables;   // No of touchables drawn at each depth
+  G4int              fTotalDrawnTouchables;
+  std::map<G4int,G4int> fMapAllTouchables;   // No of all touchables at each depth
+  G4int              fTotalAllTouchables;
+  G4int              fMaxFullDepth;  // Including base path, i.e., from the world volume
+
 
 private:
 

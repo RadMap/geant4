@@ -38,25 +38,21 @@ class G4NeutralDefinition;
 // class description:
 //
 //  This is the class of a filter to be associated with a
-// sensitive detector. 
+// sensitive detector.
 //
 //  This filter accepts neutral tracks.
 //
 // Created: 2005-11-14  Tsukasa ASO.
-// 
+//
 ///////////////////////////////////////////////////////////////////////////////
 
-class G4SDNeutralFilter : public G4VSDFilter 
+class G4SDNeutralFilter : public G4VSDFilter
 {
+ public:
+  G4SDNeutralFilter(const G4String& name);
+  ~G4SDNeutralFilter() override = default;
 
-  public: // with description
-      G4SDNeutralFilter(G4String name);
-      virtual ~G4SDNeutralFilter();
-
-  public: // with description
-      virtual G4bool Accept(const G4Step*) const;
-
+  G4bool Accept(const G4Step*) const override;
 };
 
 #endif
-

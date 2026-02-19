@@ -23,19 +23,25 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file visualization/standalone/include/StandaloneVisAction.hh
+/// \file StandaloneVisAction.hh
 /// \brief Definition of the StandaloneVisAction class
-//
-//
 
 #ifndef STANDALONEVISACTION_HH
 #define STANDALONEVISACTION_HH
 
 #include "G4VUserVisAction.hh"
 
-class StandaloneVisAction: public G4VUserVisAction {
-  virtual void Draw();
+class G4Polyhedron;
+
+class StandaloneVisAction : public G4VUserVisAction
+{
+  public:
+    StandaloneVisAction();
+    ~StandaloneVisAction();
+    void Draw() override;
+
+  private:
+    G4Polyhedron* fpSubtractedPolyhedron;
 };
 
 #endif
-

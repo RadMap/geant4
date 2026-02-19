@@ -120,7 +120,7 @@ void G4Para::SetTanAlpha(G4double val)
 }
 
 inline
-void G4Para::SetThetaAndPhi(double pTheta, double pPhi)
+void G4Para::SetThetaAndPhi(G4double pTheta, G4double pPhi)
 {
   G4double tanTheta = std::tan(pTheta);
   fTthetaCphi = tanTheta*std::cos(pPhi);
@@ -131,4 +131,20 @@ void G4Para::SetThetaAndPhi(double pTheta, double pPhi)
   fRebuildPolyhedron = true;
 
   MakePlanes();
+}
+
+inline G4double G4Para::GetPhi() const       
+{
+   return std::atan2(fTthetaSphi,fTthetaCphi);
+}
+
+inline G4double G4Para::GetTheta() const
+{
+   return std::atan(std::sqrt(fTthetaCphi*fTthetaCphi
+                              +fTthetaSphi*fTthetaSphi));
+}
+
+inline G4double G4Para::GetAlpha() const
+{
+  return std::atan(fTalpha);
 }

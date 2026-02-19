@@ -54,6 +54,8 @@
 #include "G4HadronicException.hh"
 #include "G4NuclearLevelData.hh"
 #include "G4DeexPrecoParameters.hh"
+#include "G4PhysicsModelCatalog.hh"
+
 
 G4PreCompoundEmission::G4PreCompoundEmission()
 {
@@ -65,6 +67,7 @@ G4PreCompoundEmission::G4PreCompoundEmission()
   G4DeexPrecoParameters* param = fNuclData->GetParameters();
   fFermiEnergy  = param->GetFermiEnergy();
   fUseAngularGenerator = param->UseAngularGen();
+  fModelID = G4PhysicsModelCatalog::GetModelID("model_PRECO");
 }
 
 G4PreCompoundEmission::~G4PreCompoundEmission()
@@ -100,8 +103,9 @@ void G4PreCompoundEmission::SetHETCModel()
 G4ReactionProduct* 
 G4PreCompoundEmission::PerformEmission(G4Fragment & aFragment)
 {
+  G4ReactionProduct* res = nullptr; 
   // Choose a Fragment for emission
-  G4VPreCompoundFragment * thePreFragment = 
+  G4VPreCompoundFragment * thePreFragment =
     theFragmentsVector->ChooseFragment();
   if (thePreFragment == nullptr)
     {
@@ -110,10 +114,8 @@ G4PreCompoundEmission::PerformEmission(G4Fragment & aFragment)
 	     << "while trying to de-excite\n" 
 	     << aFragment << G4endl;
       throw G4HadronicException(__FILE__, __LINE__, "");
+      return res;
     }
-
-  //G4cout << "Chosen fragment: " << G4endl;
-  //G4cout << *thePreFragment << G4endl;
 
   // Kinetic Energy of emitted fragment
   G4double kinEnergy = thePreFragment->SampleKineticEnergy(aFragment);
@@ -133,7 +135,14 @@ G4PreCompoundEmission::PerformEmission(G4Fragment & aFragment)
   // Now we can calculate the four momentum 
   // both options are valid and give the same result but 2nd one is faster
   G4LorentzVector Emitted4Momentum(theFinalMomentum,EmittedMass + kinEnergy);
-    
+
+  if (2 < fVerbose) {
+    G4cout << "             Emitted  Z="
+           << thePreFragment->GetZ() << " A=" << thePreFragment->GetA()
+           << " Ekin(MeV)=" << kinEnergy << " 4-mom C.M.S.: "
+           << Emitted4Momentum << G4endl;
+  }
+  
   // Perform Lorentz boost
   G4LorentzVector Rest4Momentum = aFragment.GetMomentum();
   Emitted4Momentum.boost(Rest4Momentum.boostVector());  
@@ -165,9 +174,13 @@ G4PreCompoundEmission::PerformEmission(G4Fragment & aFragment)
   aFragment.SetMomentum(Rest4Momentum);
 	
   // Create a G4ReactionProduct 
-  G4ReactionProduct * MyRP = thePreFragment->GetReactionProduct();
+  res = thePreFragment->GetReactionProduct();
 
-  return MyRP;
+  // Set the creator model ID
+  aFragment.SetCreatorModelID(fModelID);
+  if (res != nullptr) { res->SetCreatorModelID(fModelID); }
+
+  return res;
 }
 
 void G4PreCompoundEmission::AngularDistribution(
@@ -210,7 +223,7 @@ void G4PreCompoundEmission::AngularDistribution(
   G4double Eeff = ekin + Bemission + fFermiEnergy;
   if(ekin > DBL_MIN && Eeff > DBL_MIN) {
 
-    G4double zeta = std::max(1.0,9.3/std::sqrt(ekin/MeV));
+    G4double zeta = std::max(1.0,9.3/std::sqrt(ekin/CLHEP::MeV));
   
     // This should be the projectile energy. If I would know which is 
     // the projectile (proton, neutron) I could remove the binding energy. 
@@ -221,7 +234,7 @@ void G4PreCompoundEmission::AngularDistribution(
     an = 3*std::sqrt((ProjEnergy+fFermiEnergy)*Eeff)/(zeta*Eav);
 
     G4int ne = aFragment.GetNumberOfExcitons() - 1;
-    if ( ne > 1 ) { an /= (G4double)ne; }
+    if ( ne > 1 ) { an /= static_cast<G4double>(ne); }
 			
     // protection of exponent
     if ( an > 10. ) { an = 10.; }
@@ -259,12 +272,11 @@ G4double G4PreCompoundEmission::rho(G4int p, G4int h, G4double gg,
 				    G4double E, G4double Ef) const
 {	
   // 25.02.2010 V.Ivanchenko added more protections
-  G4double Aph   = (p*p + h*h + p - 3.0*h)/(4.0*gg);
-  //  G4double alpha = (p*p + h*h)/(2.0*gg);
+  G4double Aph = (p*p + h*h + p - 3.0*h)/(4.0*gg);
   
   if ( E - Aph < 0.0) { return 0.0; }
   
-  G4double logConst =  (p+h)*G4Log(gg) 
+  G4double logConst = (p+h)*G4Log(gg) 
     - g4calc->logfactorial(p+h-1) - g4calc->logfactorial(p) 
     - g4calc->logfactorial(h);
 
@@ -285,7 +297,7 @@ G4double G4PreCompoundEmission::rho(G4int p, G4int h, G4double gg,
       Eeff -= Ef;
       if(Eeff < 0.0) { break; }
       t1 *= -1.;
-      t2 *= (G4double)(h+1-j)/(G4double)j;
+      t2 *= static_cast<G4double>(h+1-j)/static_cast<G4double>(j);
       logt3 = (p+h-1) * G4Log( Eeff) + logConst;
       if(logt3 > logmax) { logt3 = logmax; }
       tot += t1*t2*G4Exp(logt3);

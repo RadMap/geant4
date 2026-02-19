@@ -23,88 +23,87 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4HCofThisEvent
 //
+// Class description:
 //
-
-#ifndef G4HCofThisEvent_h
-#define G4HCofThisEvent_h 1
-
-#include "globals.hh"
-#include "G4Allocator.hh"
-#include "G4VHitsCollection.hh"
-#include <vector>
-
-// class description:
-//
-//  This is a class which stores hits collections generated at one event.
+// This is a class which stores hits collections generated at one event.
 // This class is exclusively constructed by G4SDManager when the first
 // hits collection of an event is passed to the manager, and this class
 // object is deleted by G4RunManager when a G4Event class object is deleted.
-//  Almost all public methods must be used by Geant4 kernel classes and
+// Almost all public methods must be used by Geant4 kernel classes and
 // the user should not invoke them. The user can use two const methods,
 // GetHC() and GetNumberOfCollections() for accessing to the stored hits
 // collection(s).
+//
+// Author: Makoto Asai
+// --------------------------------------------------------------------
+#ifndef G4HCofThisEvent_h
+#define G4HCofThisEvent_h 1
 
-class G4HCofThisEvent 
+#include "G4Allocator.hh"
+#include "G4VHitsCollection.hh"
+#include "globals.hh"
+
+#include <vector>
+
+class G4HCofThisEvent
 {
   public:
-      G4HCofThisEvent();
-      G4HCofThisEvent(G4int cap);
-      ~G4HCofThisEvent();
-      inline void *operator new(size_t);
-      inline void operator delete(void* anHCoTE);
 
-      void AddHitsCollection(G4int HCID,G4VHitsCollection * aHC);
+    G4HCofThisEvent();
+    explicit G4HCofThisEvent(G4int cap);
+    ~G4HCofThisEvent();
+    G4HCofThisEvent(const G4HCofThisEvent&);
+    G4HCofThisEvent& operator=(const G4HCofThisEvent&);
 
-      G4HCofThisEvent(const G4HCofThisEvent&);
-      G4HCofThisEvent& operator=(const G4HCofThisEvent&);
+    inline void* operator new(std::size_t);
+    inline void operator delete(void* anHCoTE);
+
+    void AddHitsCollection(G4int HCID, G4VHitsCollection* aHC);
+
+    // Returns a pointer to a hits collection. Null will be returned
+    // if the particular collection is not stored at the current event.
+    // The integer argument is ID number which is assigned by G4SDManager
+    // and the number can be obtained by G4SDManager::GetHitsCollectionID()
+    // method.
+    inline G4VHitsCollection* GetHC(G4int i) { return (*HC)[i]; }
+
+    // Return number of hits collections which are stored in this class
+    // object.
+    inline G4int GetNumberOfCollections()
+    {
+      G4int n = 0;
+      for (const G4VHitsCollection* h : *HC) {
+        if (h != nullptr) ++n;
+      }
+      return n;
+    }
+
+    inline std::size_t GetCapacity() { return HC->size(); }
+
   private:
-      std::vector<G4VHitsCollection*> * HC;
 
-  public: // with description
-      inline G4VHitsCollection* GetHC(G4int i)
-      { return (*HC)[i]; }
-      //  Returns a pointer to a hits collection. Null will be returned
-      // if the particular collection is not stored at the current event.
-      // The integer argument is ID number which is assigned by G4SDManager
-      // and the number can be obtained by G4SDManager::GetHitsCollectionID()
-      // method.
-      inline G4int GetNumberOfCollections()
-      {
-        G4int n = 0;
-        for(size_t i=0;i<HC->size();i++)
-        {
-          if((*HC)[i]) n++;
-        }
-        return n;
-      }
-      //  Returns the number of hits collections which are stored in this class
-      // object.
-  public:
-      inline size_t GetCapacity()
-      {
-        return HC->size();
-      }
+    std::vector<G4VHitsCollection*>* HC;
 };
 
 #if defined G4DIGI_ALLOC_EXPORT
-  extern G4DLLEXPORT G4Allocator<G4HCofThisEvent>*& anHCoTHAllocator_G4MT_TLS_();
+extern G4DLLEXPORT G4Allocator<G4HCofThisEvent>*& anHCoTHAllocator_G4MT_TLS_();
 #else
-  extern G4DLLIMPORT G4Allocator<G4HCofThisEvent>*& anHCoTHAllocator_G4MT_TLS_();
+extern G4DLLIMPORT G4Allocator<G4HCofThisEvent>*& anHCoTHAllocator_G4MT_TLS_();
 #endif
 
-inline void* G4HCofThisEvent::operator new(size_t)
-{  ;;;   if (!anHCoTHAllocator_G4MT_TLS_()) anHCoTHAllocator_G4MT_TLS_() = new G4Allocator<G4HCofThisEvent>  ; G4Allocator<G4HCofThisEvent> &anHCoTHAllocator = *anHCoTHAllocator_G4MT_TLS_();  ;;;
-  void* anHCoTH;
-  anHCoTH = (void*)anHCoTHAllocator.MallocSingle();
-  return anHCoTH;
+inline void* G4HCofThisEvent::operator new(std::size_t)
+{
+  if (anHCoTHAllocator_G4MT_TLS_() == nullptr) {
+    anHCoTHAllocator_G4MT_TLS_() = new G4Allocator<G4HCofThisEvent>;
+  }
+  return (void*)anHCoTHAllocator_G4MT_TLS_()->MallocSingle();
 }
 
 inline void G4HCofThisEvent::operator delete(void* anHCoTH)
-{  ;;;   if (!anHCoTHAllocator_G4MT_TLS_()) anHCoTHAllocator_G4MT_TLS_() = new G4Allocator<G4HCofThisEvent>  ; G4Allocator<G4HCofThisEvent> &anHCoTHAllocator = *anHCoTHAllocator_G4MT_TLS_();  ;;;
-  anHCoTHAllocator.FreeSingle((G4HCofThisEvent*)anHCoTH);
+{
+  anHCoTHAllocator_G4MT_TLS_()->FreeSingle((G4HCofThisEvent*)anHCoTH);
 }
 
-
 #endif
-

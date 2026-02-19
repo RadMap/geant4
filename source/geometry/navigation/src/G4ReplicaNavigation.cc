@@ -22,10 +22,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// class G4ReplicaNavigation Implementation
+// Class G4ReplicaNavigation Implementation
 //
-// Author: P.Kent, 1996
-//
+// Author: Paul Kent (CERN), August 1996
 // --------------------------------------------------------------------
 
 #include "G4ReplicaNavigation.hh"
@@ -59,14 +58,6 @@ G4ReplicaNavigation::G4ReplicaNavigation()
   halfkRadTolerance = kRadTolerance*0.5;
   halfkAngTolerance = kAngTolerance*0.5;
   fMinStep = 0.05*kCarTolerance;
-}
-
-// ********************************************************************
-// Destructor
-// ********************************************************************
-//
-G4ReplicaNavigation::~G4ReplicaNavigation()
-{
 }
 
 // ********************************************************************
@@ -107,7 +98,7 @@ G4ReplicaNavigation::Inside(const G4VPhysicalVolume* pVol,
       }
       break;
     case kPhi:
-      if ( localPoint.y()||localPoint.x() )
+      if ( (localPoint.y() != 0.0)||(localPoint.x() != 0.0) )
       {
         coord = std::fabs(std::atan2(localPoint.y(),localPoint.x()))-width*0.5;
         if ( coord<=-halfkAngTolerance )
@@ -142,7 +133,7 @@ G4ReplicaNavigation::Inside(const G4VPhysicalVolume* pVol,
       {
         // Known to be inside outer radius
         //
-        if ( replicaNo||offset )
+        if ( (replicaNo != 0)||(offset != 0.0) )
         {
           rmin = rmax-width;
           tolRMin2 = rmin-halfkRadTolerance;
@@ -221,7 +212,7 @@ G4ReplicaNavigation::DistanceToOut(const G4VPhysicalVolume* pVol,
     case kRho:
       rho = localPoint.perp();
       rmax = width*(replicaNo+1)+offset;
-      if ( replicaNo||offset )
+      if ( (replicaNo != 0)||(offset != 0.0) )
       {
         rmin  = rmax-width;
         safe1 = rho-rmin;
@@ -561,7 +552,7 @@ G4ReplicaNavigation::DistanceToOutRad(const G4ThreeVector& localPoint,
     {
       // Possible rmin intersection
       //
-      if (rmin)
+      if (rmin != 0.0)
       {
         deltaR = t3-rmin*rmin;
         b  = t2/t1;
@@ -770,7 +761,7 @@ G4ReplicaNavigation::ComputeStep(const G4ThreeVector& globalPoint,
   G4double ourStep=currentProposedStepLength;
   G4double ourSafety=kInfinity;
   G4double sampleStep, sampleSafety, motherStep, motherSafety;
-  G4int localNoDaughters, sampleNo;
+  G4long localNoDaughters, sampleNo;
   G4int depth;
   G4ExitNormal exitNormalStc;
   // G4int depthDeterminingStep= -1; // Useful only for debugging - for now
@@ -803,7 +794,7 @@ G4ReplicaNavigation::ComputeStep(const G4ThreeVector& globalPoint,
                                history.GetTopReplicaNo(),
                                localPoint);
   G4ExitNormal normalOutStc;
-  const G4int topDepth= history.GetDepth();
+  const auto  topDepth= (G4int)history.GetDepth();
 
   ourSafety = std::min( ourSafety, sampleSafety);
 
@@ -923,10 +914,9 @@ G4ReplicaNavigation::ComputeStep(const G4ThreeVector& globalPoint,
   // Requires further investigation and eventually reimplementation of
   // LevelLocate() to take into account point and direction ...
   //
-  if  ( ( (ourStep<fMinStep) && (sampleSafety<halfkCarTolerance) )
-     && ( repLogical->GetSolid()->Inside(localPoint)==kSurface ) )
+  if( ourStep<fMinStep )
   {
-    ourStep = 100*kCarTolerance;
+    ourStep = 2*kCarTolerance;
   }
 
   if ( motherSafety<ourSafety )
@@ -955,9 +945,11 @@ G4ReplicaNavigation::ComputeStep(const G4ThreeVector& globalPoint,
                     "Point is far outside Current Volume !" ); 
       }
       else
+      {
         G4Exception("G4ReplicaNavigation::ComputeStep()",
                     "GeomNav1002", JustWarning, message,
                     "Point is a little outside Current Volume."); 
+      }
     }
   }
 #endif
@@ -988,7 +980,7 @@ G4ReplicaNavigation::ComputeStep(const G4ThreeVector& globalPoint,
     }
     // Transform to Grand-mother reference frame
     const G4RotationMatrix* rot = motherPhysical->GetRotation();
-    if ( rot )
+    if ( rot != nullptr )
     {
       exitNormalVector *= rot->inverse();
     }
@@ -1035,7 +1027,7 @@ G4ReplicaNavigation::ComputeStep(const G4ThreeVector& globalPoint,
   localNoDaughters = repLogical->GetNoDaughters();
   for ( sampleNo=localNoDaughters-1; sampleNo>=0; sampleNo-- )
   {
-    samplePhysical = repLogical->GetDaughter(sampleNo);
+    samplePhysical = repLogical->GetDaughter((G4int)sampleNo);
     if ( samplePhysical!=blockedExitedVol )
     {
       G4ThreeVector localExitNorm;
@@ -1067,7 +1059,7 @@ G4ReplicaNavigation::ComputeStep(const G4ThreeVector& globalPoint,
           entering = true;
           exiting  = false;
           *pBlockedPhysical = samplePhysical;
-          blockedReplicaNo  = sampleNo;
+          blockedReplicaNo  = (G4int)sampleNo;
 
 #ifdef DAUGHTER_NORMAL_ALSO
           // This norm can be calculated later, if needed daughter is available
@@ -1087,7 +1079,7 @@ G4ReplicaNavigation::ComputeStep(const G4ThreeVector& globalPoint,
             EInside insideIntPt = sampleSolid->Inside(intersectionPoint); 
             if ( insideIntPt != kSurface )
             {
-              G4int oldcoutPrec = G4cout.precision(16); 
+              G4long oldcoutPrec = G4cout.precision(16); 
               std::ostringstream message;
               message << "Navigator gets conflicting response from Solid."
                       << G4endl
@@ -1095,21 +1087,24 @@ G4ReplicaNavigation::ComputeStep(const G4ThreeVector& globalPoint,
                       << sampleSolid->GetName() << G4endl
                       << "          Solid gave DistanceToIn = "
                       << sampleStepDistance << " yet returns " ;
-              if ( insideIntPt == kInside )
+              if ( insideIntPt == kInside ) {
                 message << "-kInside-"; 
-              else if ( insideIntPt == kOutside )
+              } else if ( insideIntPt == kOutside ) {
                 message << "-kOutside-";
-              else
+              } else {
                 message << "-kSurface-"; 
+              }
               message << " for this point !" << G4endl
                       << "          Point = " << intersectionPoint << G4endl;
-              if ( insideIntPt != kInside )
+              if ( insideIntPt != kInside ) {
                 message << "        DistanceToIn(p) = " 
                        << sampleSolid->DistanceToIn(intersectionPoint)
                        << G4endl;
-              if ( insideIntPt != kOutside ) 
+}
+              if ( insideIntPt != kOutside ) { 
                 message << "        DistanceToOut(p) = " 
                        << sampleSolid->DistanceToOut(intersectionPoint);
+}
               G4Exception("G4ReplicaNavigation::ComputeStep()", 
                           "GeomNav1002", JustWarning, message); 
               G4cout.precision(oldcoutPrec);
@@ -1152,8 +1147,8 @@ G4ReplicaNavigation::ComputeStep(const G4ThreeVector& globalPoint,
 G4double
 G4ReplicaNavigation::ComputeSafety(const G4ThreeVector& globalPoint,
                                    const G4ThreeVector& localPoint,
-                                         G4NavigationHistory& history,
-                                   const G4double )
+                                   const G4NavigationHistory& history,
+                                   const G4double ) const
 {
   G4VPhysicalVolume *repPhysical, *motherPhysical;
   G4VPhysicalVolume *samplePhysical, *blockedExitedVol = nullptr;
@@ -1162,7 +1157,7 @@ G4ReplicaNavigation::ComputeSafety(const G4ThreeVector& globalPoint,
   G4ThreeVector repPoint;
   G4double ourSafety = kInfinity;
   G4double sampleSafety;
-  G4int localNoDaughters, sampleNo;
+  G4long localNoDaughters, sampleNo;
   G4int depth;
 
   repPhysical = history.GetTopVolume();
@@ -1180,7 +1175,7 @@ G4ReplicaNavigation::ComputeSafety(const G4ThreeVector& globalPoint,
     ourSafety = sampleSafety;
   }
 
-  depth = history.GetDepth()-1;
+  depth = (G4int)history.GetDepth()-1;
 
   // Loop checking, 07.10.2016, JA -- need to add: assert(depth>0)
   while ( history.GetVolumeType(depth)==kReplica )
@@ -1213,7 +1208,7 @@ G4ReplicaNavigation::ComputeSafety(const G4ThreeVector& globalPoint,
   localNoDaughters = repLogical->GetNoDaughters();
   for ( sampleNo=localNoDaughters-1; sampleNo>=0; sampleNo-- )
   {
-    samplePhysical = repLogical->GetDaughter(sampleNo);
+    samplePhysical = repLogical->GetDaughter((G4int)sampleNo);
     if ( samplePhysical!=blockedExitedVol )
     {
       G4AffineTransform sampleTf(samplePhysical->GetRotation(),
@@ -1251,7 +1246,7 @@ G4ReplicaNavigation::BackLocate(G4NavigationHistory& history,
   G4int mdepth, depth, cdepth;
   EInside insideCode;
 
-  cdepth = history.GetDepth();
+  cdepth = (G4int)history.GetDepth();
   
   // Find non replicated mother
   //
@@ -1305,10 +1300,7 @@ G4ReplicaNavigation::BackLocate(G4NavigationHistory& history,
         history.BackLevel(cdepth-depth);
         return insideCode;
       }
-      else
-      {
-        goodPoint = repPoint;
-      }
+      goodPoint = repPoint;
     }
     localPoint = history.GetTransform(depth).TransformPoint(globalPoint);
     insideCode = Inside(history.GetVolume(depth),

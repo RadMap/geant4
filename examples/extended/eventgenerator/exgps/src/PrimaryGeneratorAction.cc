@@ -23,26 +23,22 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file eventgenerator/exgps/src/PrimaryGeneratorAction.cc
+/// \file PrimaryGeneratorAction.cc
 /// \brief Implementation of the PrimaryGeneratorAction class
-//
 
 #include "PrimaryGeneratorAction.hh"
 
 #include "G4Event.hh"
 #include "G4GeneralParticleSource.hh"
-#include "G4ParticleTable.hh"
 #include "G4ParticleDefinition.hh"
+#include "G4ParticleTable.hh"
 #include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PrimaryGeneratorAction::PrimaryGeneratorAction()
- : G4VUserPrimaryGeneratorAction(),
-   fParticleGun(0)
+PrimaryGeneratorAction::PrimaryGeneratorAction() : G4VUserPrimaryGeneratorAction(), fParticleGun(0)
 {
-   fParticleGun = new G4GeneralParticleSource();
+  fParticleGun = new G4GeneralParticleSource();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -23,20 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm2/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef RunAction_h
 #define RunAction_h 1
 
 #include "G4UserRunAction.hh"
 #include "G4ThreeVector.hh"
-
-#include "g4root.hh"
+#include "G4AnalysisManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -49,44 +44,36 @@ class Run;
 
 class RunAction : public G4UserRunAction
 {
-public:
+  public:
+    RunAction(DetectorConstruction*, PrimaryGeneratorAction*);
+    ~RunAction() override;
 
-  RunAction(DetectorConstruction*, PrimaryGeneratorAction*);
-  virtual ~RunAction();
+    virtual G4Run* GenerateRun() override;
+    void BeginOfRunAction(const G4Run*) override;
+    void EndOfRunAction(const G4Run*) override;
 
-  virtual G4Run* GenerateRun();  
-  virtual void BeginOfRunAction(const G4Run*);
-  virtual void   EndOfRunAction(const G4Run*);
+    void SetVerbose(G4int val);
 
-  void SetVerbose(G4int val);
-     
-  // Histogram name 
-  void SetHistoName(G4String& val);
-    
-  // Acceptance parameters
-  void  SetEdepAndRMS(G4ThreeVector);
-     
-private:
-  void BookHisto();
-  
-private:
-  DetectorConstruction*   fDet;
-  PrimaryGeneratorAction* fKin;
-  RunActionMessenger*     fRunMessenger;
-  G4AnalysisManager*      fAnalysisManager;
-  Run*  fRun;
+    // Acceptance parameters
+    void SetEdepAndRMS(G4ThreeVector);
 
-  G4int    fVerbose;
-    
-  G4String fHistoName[2];
+  private:
+    void BookHisto();
 
-  G4double fEdeptrue;
-  G4double fRmstrue;
-  G4double fLimittrue;
+  private:
+    DetectorConstruction* fDet = nullptr;
+    PrimaryGeneratorAction* fKin = nullptr;
+    RunActionMessenger* fRunMessenger = nullptr;
+    G4AnalysisManager* fAnalysisManager = nullptr;
+    Run* fRun = nullptr;
 
+    G4int fVerbose = 0;
+
+    G4double fEdeptrue = 1.;
+    G4double fRmstrue = 1.;
+    G4double fLimittrue = DBL_MAX;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

@@ -23,23 +23,24 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4CollectionNameVector
 //
-//
-
-#ifndef G4CollectionNameVector_H 
+// Author: Makoto Asai
+// --------------------------------------------------------------------
+#ifndef G4CollectionNameVector_H
 #define G4CollectionNameVector_H 1
 
 #include "globals.hh"
+
 #include <vector>
 
 class G4CollectionNameVector : public std::vector<G4String>
 {
-  public:
-    G4CollectionNameVector() {;}
-    virtual ~G4CollectionNameVector() {;}
+ public:
+  G4CollectionNameVector() {}
+  virtual ~G4CollectionNameVector() {}
 
-    void insert(G4String str) { push_back(str); }
+  void insert(const G4String& str) { push_back(str); }
 };
 
 #endif
-

@@ -36,37 +36,36 @@
 G4VisAttributes::G4VisAttributes ():
 fVisible             (true),
 fDaughtersInvisible  (false),
-fColour              (G4Colour ()),
 fLineStyle           (unbroken),
 fLineWidth           (1.),
 fForceDrawingStyle   (false),
 fForcedStyle         (wireframe),
-fForcedNumberOfCloudPoints (10000),
+fForcedNumberOfCloudPoints (0),  // <= 0 means under control of viewer
 fForceAuxEdgeVisible (false),
 fForcedAuxEdgeVisible(false),
 fForcedLineSegmentsPerCircle (0),  // <=0 means not forced.
 fStartTime           (-fVeryLongTime),
 fEndTime             (fVeryLongTime),
-fAttValues           (0),
-fAttDefs             (0)
+fAttValues           (nullptr),
+fAttDefs             (nullptr)
 {}
 
 G4VisAttributes::G4VisAttributes (G4bool visibility):
 fVisible             (visibility),
 fDaughtersInvisible  (false),
-fColour              (G4Colour ()),
+
 fLineStyle           (unbroken),
 fLineWidth           (1.),
 fForceDrawingStyle   (false),
 fForcedStyle         (wireframe),
-fForcedNumberOfCloudPoints (10000),
+fForcedNumberOfCloudPoints (0),  // <= 0 means under control of viewer
 fForceAuxEdgeVisible (false),
 fForcedAuxEdgeVisible(false),
 fForcedLineSegmentsPerCircle (0),  // <=0 means not forced.
 fStartTime           (-fVeryLongTime),
 fEndTime             (fVeryLongTime),
-fAttValues           (0),
-fAttDefs             (0)
+fAttValues           (nullptr),
+fAttDefs             (nullptr)
 {}
 
 G4VisAttributes::G4VisAttributes (const G4Colour& colour):
@@ -77,14 +76,14 @@ fLineStyle           (unbroken),
 fLineWidth           (1.),
 fForceDrawingStyle   (false),
 fForcedStyle         (wireframe),
-fForcedNumberOfCloudPoints (10000),
+fForcedNumberOfCloudPoints (0),  // <= 0 means under control of viewer
 fForceAuxEdgeVisible (false),
 fForcedAuxEdgeVisible(false),
 fForcedLineSegmentsPerCircle (0),  // <=0 means not forced.
 fStartTime           (-fVeryLongTime),
 fEndTime             (fVeryLongTime),
-fAttValues           (0),
-fAttDefs             (0)
+fAttValues           (nullptr),
+fAttDefs             (nullptr)
 {}
 
 G4VisAttributes::G4VisAttributes (G4bool visibility,
@@ -96,41 +95,16 @@ fLineStyle           (unbroken),
 fLineWidth           (1.),
 fForceDrawingStyle   (false),
 fForcedStyle         (wireframe),
-fForcedNumberOfCloudPoints (10000),
+fForcedNumberOfCloudPoints (0),  // <= 0 means under control of viewer
 fForceAuxEdgeVisible (false),
 fForcedAuxEdgeVisible(false),
 fForcedLineSegmentsPerCircle (0),  // <=0 means not forced.
 fStartTime           (-fVeryLongTime),
 fEndTime             (fVeryLongTime),
-fAttValues           (0),
-fAttDefs             (0)
+fAttValues           (nullptr),
+fAttDefs             (nullptr)
 {}
 
-G4VisAttributes::G4VisAttributes (const G4VisAttributes& va):
-fVisible             (va.fVisible),
-fDaughtersInvisible  (va.fDaughtersInvisible),
-fColour              (va.fColour),
-fLineStyle           (va.fLineStyle),
-fLineWidth           (va.fLineWidth),
-fForceDrawingStyle   (va.fForceDrawingStyle),
-fForcedStyle         (va.fForcedStyle),
-fForcedNumberOfCloudPoints (va.fForcedNumberOfCloudPoints),
-fForceAuxEdgeVisible (va.fForceAuxEdgeVisible),
-fForcedAuxEdgeVisible(va.fForcedAuxEdgeVisible),
-fForcedLineSegmentsPerCircle (va.fForcedLineSegmentsPerCircle),
-fStartTime           (va.fStartTime),
-fEndTime             (va.fEndTime),
-// AttValues are created afresh for each object (using the
-// CreateAttValues message), but deletion is the responsibility of
-// the creator.  So just copy pointer.
-fAttValues           (va.fAttValues),
-// AttDefs, if any, belong to the object from which they were obtained
-// (with a GetAttDefs message), so just copy pointer.
-fAttDefs             (va.fAttDefs)
-{}
-
-G4VisAttributes::~G4VisAttributes()
-{}
 
 G4VisAttributes& G4VisAttributes::operator= (const G4VisAttributes& rhs)
 {
@@ -157,11 +131,6 @@ G4VisAttributes& G4VisAttributes::operator= (const G4VisAttributes& rhs)
   fAttDefs             = rhs.fAttDefs;
   return *this;
 }
-
-#ifndef WIN32
-// Deprecated 14 July 2016  JA
-const G4VisAttributes  G4VisAttributes::Invisible = G4VisAttributes (false);
-#endif
 
 const G4VisAttributes& G4VisAttributes::GetInvisible() {
   static const G4VisAttributes invisible = G4VisAttributes(false);
@@ -200,8 +169,9 @@ void G4VisAttributes::SetForceNumberOfCloudPoints (G4int nPoints) {
   if (nPoints <= 0) {
     G4cout <<
     "G4VisAttributes::SetForceNumberOfCloudPoints: number of cloud points"
-    "set to " << fForcedNumberOfCloudPoints
-    << ". This means the viewer default will be used."
+    " set to " << fForcedNumberOfCloudPoints << '.' <<
+    "\n  This means the viewer default will be used, typically controlled by"
+    "\n  \"/vis/viewer/set/numberOfCloudPoints\""
     << G4endl;
   }
 }
@@ -214,12 +184,12 @@ void G4VisAttributes::SetForceAuxEdgeVisible (G4bool visibility) {
 G4VisAttributes::ForcedDrawingStyle
 G4VisAttributes::GetForcedDrawingStyle () const {
   if (fForceDrawingStyle) return fForcedStyle;
-  else return G4VisAttributes::wireframe;
+  return G4VisAttributes::wireframe;
 }
 
 G4bool G4VisAttributes::IsForcedAuxEdgeVisible () const {
   if (fForceAuxEdgeVisible) return fForcedAuxEdgeVisible;
-  else return false;
+  return false;
 }
 
 const std::vector<G4AttValue>* G4VisAttributes::CreateAttValues () const {
@@ -229,11 +199,11 @@ const std::vector<G4AttValue>* G4VisAttributes::CreateAttValues () const {
 
 void G4VisAttributes::SetForceLineSegmentsPerCircle (G4int nSegments) {
   const G4int nSegmentsMin = fMinLineSegmentsPerCircle;
-  if (nSegments > 0 && nSegments < nSegmentsMin) {
+  if (nSegments < nSegmentsMin) {
     nSegments = nSegmentsMin;
     G4cout <<
       "G4VisAttributes::SetForcedLineSegmentsPerCircle: attempt to set the"
-      "\nnumber of line segements per circle < " << nSegmentsMin
+      "\nnumber of line segments per circle < " << nSegmentsMin
          << "; forced to " << nSegments << G4endl;
   }
   fForcedLineSegmentsPerCircle = nSegments;
@@ -241,6 +211,7 @@ void G4VisAttributes::SetForceLineSegmentsPerCircle (G4int nSegments) {
 
 std::ostream& operator << (std::ostream& os, const G4VisAttributes& a)
 {
+  os << std::defaultfloat;
   os << "G4VisAttributes: ";
   if (!a.fVisible) os << "in";
   os << "visible, daughters ";
@@ -289,12 +260,12 @@ std::ostream& operator << (std::ostream& os, const G4VisAttributes& a)
   }
   os << "\n  time range: (" << a.fStartTime << ',' << a.fEndTime << ')';
   os << "\n  G4AttValue pointer is ";
-  if (a.fAttValues) {
+  if (a.fAttValues != nullptr) {
     os << "non-";
   }
   os << "zero";
   os << ", G4AttDef pointer is ";
-  if (a.fAttDefs) {
+  if (a.fAttDefs != nullptr) {
     os << "non-";
   }
   os << "zero";
@@ -303,6 +274,7 @@ std::ostream& operator << (std::ostream& os, const G4VisAttributes& a)
 
 G4bool G4VisAttributes::operator != (const G4VisAttributes& a) const {
 
+  // clang-format off
   if (
       (fVisible            != a.fVisible)            ||
       (fDaughtersInvisible != a.fDaughtersInvisible) ||
@@ -318,6 +290,7 @@ G4bool G4VisAttributes::operator != (const G4VisAttributes& a) const {
       (fAttDefs            != a.fAttDefs)
       )
     return true;
+  // clang-format on
 
   if (fForceDrawingStyle) {
     if (fForcedStyle != a.fForcedStyle) return true;

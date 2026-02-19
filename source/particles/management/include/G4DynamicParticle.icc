@@ -23,31 +23,28 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4DynamicParticle inline implementation
 //
-//
-// 
-// ------------------------------------------------------------
-//	GEANT 4 class header file 
-//
-//	History: first implementation, based on object model of
-//                             17 AUg. 1999   H.Kurashige  
-// ------------------------------------------------------------
+// 17.08.1999 - H.Kurashige
+// --------------------------------------------------------------------
+
 extern G4PART_DLL G4Allocator<G4DynamicParticle>*& pDynamicParticleAllocator();
 
 // ------------------------
 // Inlined operators
 // ------------------------
 
-inline void * G4DynamicParticle::operator new(size_t)
+inline void* G4DynamicParticle::operator new(size_t)
 {
-  if (!pDynamicParticleAllocator()) pDynamicParticleAllocator() =
-    new G4Allocator<G4DynamicParticle>;
+  if (pDynamicParticleAllocator() == nullptr) {
+    pDynamicParticleAllocator() = new G4Allocator<G4DynamicParticle>;
+  }
   return pDynamicParticleAllocator()->MallocSingle();
 }
 
-inline void G4DynamicParticle::operator delete(void * aDynamicParticle)
+inline void G4DynamicParticle::operator delete(void* aDynamicParticle)
 {
-  pDynamicParticleAllocator()->FreeSingle((G4DynamicParticle *) aDynamicParticle);
+  pDynamicParticleAllocator()->FreeSingle((G4DynamicParticle*)aDynamicParticle);
 }
 
 // ------------------------
@@ -59,20 +56,22 @@ inline const G4ElectronOccupancy* G4DynamicParticle::GetElectronOccupancy() cons
   return theElectronOccupancy;
 }
 
-inline G4int  G4DynamicParticle::GetTotalOccupancy() const
+inline G4int G4DynamicParticle::GetTotalOccupancy() const
 {
-  return (theElectronOccupancy) ? theElectronOccupancy->GetTotalOccupancy() : 0;
+  return (theElectronOccupancy) != nullptr ? theElectronOccupancy->GetTotalOccupancy() : 0;
 }
 
 inline G4int G4DynamicParticle::GetOccupancy(G4int orbit) const
 {
-  return (theElectronOccupancy) ? theElectronOccupancy->GetOccupancy(orbit) : 0;
+  return (theElectronOccupancy) != nullptr ? theElectronOccupancy->GetOccupancy(orbit) : 0;
 }
 
-inline void  G4DynamicParticle::AddElectron(G4int orbit, G4int number )
+inline void G4DynamicParticle::AddElectron(G4int orbit, G4int number)
 {
-  if (!theElectronOccupancy) { AllocateElectronOccupancy(); }
-  if ( theElectronOccupancy) { 
+  if (theElectronOccupancy == nullptr) {
+    AllocateElectronOccupancy();
+  }
+  if (theElectronOccupancy != nullptr) {
     G4int n = theElectronOccupancy->AddElectron(orbit, number);
     theDynamicalCharge -= CLHEP::eplus * n;
     theDynamicalMass += CLHEP::electron_mass_c2 * n;
@@ -81,9 +80,11 @@ inline void  G4DynamicParticle::AddElectron(G4int orbit, G4int number )
 
 inline void G4DynamicParticle::RemoveElectron(G4int orbit, G4int number)
 {
- if (!theElectronOccupancy) AllocateElectronOccupancy();
- if ( theElectronOccupancy) { 
-    G4int n = theElectronOccupancy->RemoveElectron(orbit, number );
+  if (theElectronOccupancy == nullptr) {
+    AllocateElectronOccupancy();
+  }
+  if (theElectronOccupancy != nullptr) {
+    G4int n = theElectronOccupancy->RemoveElectron(orbit, number);
     theDynamicalCharge += CLHEP::eplus * n;
     theDynamicalMass -= CLHEP::electron_mass_c2 * n;
   }
@@ -101,7 +102,7 @@ inline void G4DynamicParticle::SetCharge(G4double newCharge)
 
 inline void G4DynamicParticle::SetCharge(G4int newCharge)
 {
-  theDynamicalCharge = newCharge*CLHEP::eplus;
+  theDynamicalCharge = newCharge * CLHEP::eplus;
 }
 
 inline G4double G4DynamicParticle::GetMass() const
@@ -111,7 +112,10 @@ inline G4double G4DynamicParticle::GetMass() const
 
 inline void G4DynamicParticle::SetMass(G4double newMass)
 {
-  theDynamicalMass = std::max(newMass, 0.0);
+  if (theDynamicalMass != newMass) {
+    theDynamicalMass = std::max(newMass, 0.0);
+    theBeta = -1.0;
+  }
 }
 
 inline G4double G4DynamicParticle::GetSpin() const
@@ -119,14 +123,14 @@ inline G4double G4DynamicParticle::GetSpin() const
   return theDynamicalSpin;
 }
 
-inline void  G4DynamicParticle::SetSpin(G4double spin)
+inline void G4DynamicParticle::SetSpin(G4double spin)
 {
   theDynamicalSpin = spin;
 }
 
-inline void  G4DynamicParticle::SetSpin(G4int spinInUnitOfHalfInteger)
+inline void G4DynamicParticle::SetSpin(G4int spinInUnitOfHalfInteger)
 {
-  theDynamicalSpin =  spinInUnitOfHalfInteger * 0.5;
+  theDynamicalSpin = spinInUnitOfHalfInteger * 0.5;
 }
 
 inline G4double G4DynamicParticle::GetMagneticMoment() const
@@ -134,9 +138,9 @@ inline G4double G4DynamicParticle::GetMagneticMoment() const
   return theDynamicalMagneticMoment;
 }
 
-inline void  G4DynamicParticle::SetMagneticMoment(G4double magneticMoment)
+inline void G4DynamicParticle::SetMagneticMoment(G4double magneticMoment)
 {
-  theDynamicalMagneticMoment = magneticMoment;  
+  theDynamicalMagneticMoment = magneticMoment;
 }
 
 inline const G4ThreeVector& G4DynamicParticle::GetMomentumDirection() const
@@ -146,30 +150,28 @@ inline const G4ThreeVector& G4DynamicParticle::GetMomentumDirection() const
 
 inline G4ThreeVector G4DynamicParticle::GetMomentum() const
 {
-  G4double pModule = std::sqrt(theKineticEnergy*theKineticEnergy +
-                        2*theKineticEnergy*theDynamicalMass);
-  G4ThreeVector pMomentum(theMomentumDirection.x()*pModule,
-                          theMomentumDirection.y()*pModule,
-                          theMomentumDirection.z()*pModule);
+  G4double pModule =
+    std::sqrt(theKineticEnergy * theKineticEnergy + 2 * theKineticEnergy * theDynamicalMass);
+  G4ThreeVector pMomentum(theMomentumDirection.x() * pModule, theMomentumDirection.y() * pModule,
+                          theMomentumDirection.z() * pModule);
   return pMomentum;
 }
 
-inline  G4LorentzVector  G4DynamicParticle::Get4Momentum() const
+inline G4LorentzVector G4DynamicParticle::Get4Momentum() const
 {
-  G4double mass      = theDynamicalMass;
-  G4double energy    = theKineticEnergy;
-  G4double momentum  = std::sqrt(energy*energy+2.0*mass*energy);
-  G4LorentzVector    p4( theMomentumDirection.x()*momentum,
-       			 theMomentumDirection.y()*momentum,
-       			 theMomentumDirection.z()*momentum,
-       			 energy+mass);
+  const G4double mass = theDynamicalMass;
+  const G4double energy = theKineticEnergy;
+  const G4double momentum = std::sqrt(energy * energy + 2.0 * mass * energy);
+  G4LorentzVector p4(theMomentumDirection.x() * momentum, theMomentumDirection.y() * momentum,
+                     theMomentumDirection.z() * momentum, energy + mass);
   return p4;
 }
 
 inline G4double G4DynamicParticle::GetTotalMomentum() const
 {
-  // The momentum is returned in energy equivalent.
-  return std::sqrt((theKineticEnergy + 2.*theDynamicalMass)* theKineticEnergy);
+  // The momentum is returned in energy equivalent
+  //
+  return std::sqrt((theKineticEnergy + 2. * theDynamicalMass) * theKineticEnergy);
 }
 
 inline G4ParticleDefinition* G4DynamicParticle::GetDefinition() const
@@ -194,7 +196,7 @@ inline G4double G4DynamicParticle::GetProperTime() const
 
 inline G4double G4DynamicParticle::GetTotalEnergy() const
 {
-  return (theKineticEnergy+theDynamicalMass);
+  return (theKineticEnergy + theDynamicalMass);
 }
 
 inline G4double G4DynamicParticle::GetKineticEnergy() const
@@ -204,13 +206,13 @@ inline G4double G4DynamicParticle::GetKineticEnergy() const
 
 inline G4double G4DynamicParticle::GetLogKineticEnergy() const
 {
-  if (theLogKineticEnergy == DBL_MAX) { 
+  if (theLogKineticEnergy == DBL_MAX) {
     theLogKineticEnergy = (theKineticEnergy > 0.) ? G4Log(theKineticEnergy) : LOG_EKIN_MIN;
   }
   return theLogKineticEnergy;
 }
 
-inline void G4DynamicParticle::SetMomentumDirection(const G4ThreeVector &aDirection)
+inline void G4DynamicParticle::SetMomentumDirection(const G4ThreeVector& aDirection)
 {
   theMomentumDirection = aDirection;
 }
@@ -222,7 +224,7 @@ inline void G4DynamicParticle::SetMomentumDirection(G4double px, G4double py, G4
   theMomentumDirection.setZ(pz);
 }
 
-inline void G4DynamicParticle::SetPolarization(const G4ThreeVector & vp)
+inline void G4DynamicParticle::SetPolarization(const G4ThreeVector& vp)
 {
   thePolarization = vp;
 }
@@ -236,8 +238,11 @@ inline void G4DynamicParticle::SetPolarization(G4double polX, G4double polY, G4d
 
 inline void G4DynamicParticle::SetKineticEnergy(G4double aEnergy)
 {
-  theLogKineticEnergy = DBL_MAX;
-  theKineticEnergy = aEnergy;
+  if (aEnergy != theKineticEnergy) {
+    theLogKineticEnergy = DBL_MAX;
+    theKineticEnergy = aEnergy;
+    theBeta = -1.0;
+  }
 }
 
 inline void G4DynamicParticle::SetProperTime(G4double atime)
@@ -259,38 +264,33 @@ inline G4double G4DynamicParticle::GetPreAssignedDecayProperTime() const
 {
   return thePreAssignedDecayTime;
 }
- 
+
 inline void G4DynamicParticle::SetPreAssignedDecayProperTime(G4double aTime)
 {
   thePreAssignedDecayTime = aTime;
 }
 
-inline 
-void G4DynamicParticle::SetVerboseLevel(G4int value)
+inline void G4DynamicParticle::SetVerboseLevel(G4int value)
 {
   verboseLevel = value;
 }
 
-inline 
-G4int G4DynamicParticle::GetVerboseLevel() const
+inline G4int G4DynamicParticle::GetVerboseLevel() const
 {
   return verboseLevel;
 }
 
-inline 
-void G4DynamicParticle::SetPrimaryParticle(G4PrimaryParticle* p) 
+inline void G4DynamicParticle::SetPrimaryParticle(G4PrimaryParticle* p)
 {
   primaryParticle = p;
 }
 
-inline
-G4PrimaryParticle* G4DynamicParticle::GetPrimaryParticle() const 
+inline G4PrimaryParticle* G4DynamicParticle::GetPrimaryParticle() const
 {
   return primaryParticle;
 }
 
-inline 
-G4int G4DynamicParticle::GetPDGcode() const
+inline G4int G4DynamicParticle::GetPDGcode() const
 {
   G4int code = theParticleDefinition->GetPDGEncoding();
   return (code == 0) ? thePDGcode : code;
@@ -299,4 +299,24 @@ G4int G4DynamicParticle::GetPDGcode() const
 inline void G4DynamicParticle::SetPDGcode(G4int c)
 {
   thePDGcode = c;
+}
+
+inline void G4DynamicParticle::ComputeBeta() const
+{
+  // ultra relativistic particles and particles with mass zero
+  theBeta = 1.0;
+
+  // other particles
+  if (theDynamicalMass > 0.0 && theKineticEnergy < 1000 * theDynamicalMass) {
+    const G4double T = theKineticEnergy / theDynamicalMass;
+    theBeta = std::sqrt(T * (T + 2.)) / (T + 1.0);
+  }
+}
+
+inline G4double G4DynamicParticle::GetBeta() const
+{
+  if (theBeta < 0.0) {
+    ComputeBeta();
+  }
+  return theBeta;
 }

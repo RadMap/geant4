@@ -23,18 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/LXe/src/LXeRunAction.cc
+/// \file LXeRunAction.cc
 /// \brief Implementation of the LXeRunAction class
-//
-//
+
 #include "LXeRunAction.hh"
-#include "LXeRun.hh"
+
 #include "LXeHistoManager.hh"
+#include "LXeRun.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-LXeRunAction::LXeRunAction() : fRun(nullptr), fHistoManager(nullptr)
+LXeRunAction::LXeRunAction()
 {
   // Book predefined histograms
   fHistoManager = new LXeHistoManager();
@@ -66,7 +65,8 @@ void LXeRunAction::BeginOfRunAction(const G4Run*)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void LXeRunAction::EndOfRunAction(const G4Run*){
+void LXeRunAction::EndOfRunAction(const G4Run*)
+{
   if (isMaster) fRun->EndOfRun();
 
   // save histograms

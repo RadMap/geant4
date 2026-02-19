@@ -23,63 +23,56 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field06/src/F06PhysicsList.cc
+/// \file F06PhysicsList.cc
 /// \brief Implementation of the F06PhysicsList class
-//
-//
+
 #include "F06PhysicsList.hh"
 
+#include "G4AntiNeutrinoE.hh"
 #include "G4DecayPhysics.hh"
-#include "G4StepLimiterPhysics.hh"
-
+#include "G4Electron.hh"
+#include "G4GenericIon.hh"
+#include "G4MuonMinus.hh"
+#include "G4MuonPlus.hh"
 #include "G4Neutron.hh"
 #include "G4Proton.hh"
-#include "G4Electron.hh"
-#include "G4AntiNeutrinoE.hh"
-#include "G4MuonPlus.hh"
-#include "G4MuonMinus.hh"
-#include "G4GenericIon.hh"
+#include "G4StepLimiterPhysics.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-F06PhysicsList::F06PhysicsList() : G4VModularPhysicsList() 
+F06PhysicsList::F06PhysicsList()
 {
-    RegisterPhysics(new G4DecayPhysics());
+  RegisterPhysics(new G4DecayPhysics());
 
-    G4StepLimiterPhysics* stepLimiterPhysics = new G4StepLimiterPhysics();
-    stepLimiterPhysics->SetApplyToAll(true);
-    RegisterPhysics(stepLimiterPhysics);
+  auto stepLimiterPhysics = new G4StepLimiterPhysics();
+  stepLimiterPhysics->SetApplyToAll(true);
+  RegisterPhysics(stepLimiterPhysics);
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-F06PhysicsList::~F06PhysicsList() {;}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void F06PhysicsList::ConstructParticle()
 {
-    G4Neutron::NeutronDefinition();
-    G4Proton::ProtonDefinition();
-    G4Electron::ElectronDefinition();
-    G4AntiNeutrinoE::AntiNeutrinoEDefinition();
-    G4MuonPlus::MuonPlusDefinition();
-    G4MuonMinus::MuonMinusDefinition();
+  G4Neutron::NeutronDefinition();
+  G4Proton::ProtonDefinition();
+  G4Electron::ElectronDefinition();
+  G4AntiNeutrinoE::AntiNeutrinoEDefinition();
+  G4MuonPlus::MuonPlusDefinition();
+  G4MuonMinus::MuonMinusDefinition();
 
-    G4GenericIon::GenericIonDefinition();
+  G4GenericIon::GenericIonDefinition();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void F06PhysicsList::ConstructProcess()
 {
-    G4VModularPhysicsList::ConstructProcess();
+  G4VModularPhysicsList::ConstructProcess();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void F06PhysicsList::SetCuts()
 {
-    SetCutsWithDefault();
+  SetCutsWithDefault();
 }

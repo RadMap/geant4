@@ -23,34 +23,28 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file polarisation/Pol01/src/PrimaryGeneratorAction.cc
+/// \file PrimaryGeneratorAction.cc
 /// \brief Implementation of the PrimaryGeneratorAction class
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "PrimaryGeneratorAction.hh"
 
 #include "DetectorConstruction.hh"
 
 #include "G4Event.hh"
-#include "G4ParticleTable.hh"
 #include "G4ParticleDefinition.hh"
+#include "G4ParticleTable.hh"
 #include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 PrimaryGeneratorAction::PrimaryGeneratorAction(DetectorConstruction* det)
-: G4VUserPrimaryGeneratorAction(), 
-  fParticleGun(0), fDetector(det)                                               
+  : G4VUserPrimaryGeneratorAction(), fParticleGun(0), fDetector(det)
 {
-  fParticleGun  = new G4ParticleGun(1);
-  G4ParticleDefinition* particle
-           = G4ParticleTable::GetParticleTable()->FindParticle("e-");
+  fParticleGun = new G4ParticleGun(1);
+  G4ParticleDefinition* particle = G4ParticleTable::GetParticleTable()->FindParticle("e-");
   fParticleGun->SetParticleDefinition(particle);
-  fParticleGun->SetParticleEnergy(10*MeV);    
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
+  fParticleGun->SetParticleEnergy(10 * MeV);
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -64,11 +58,11 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-  //this function is called at the begining of event
+  // this function is called at the begining of event
   //
-  G4double halfSize = 0.5*(fDetector->GetWorldSize());
-  G4double z0 = - halfSize;
-  
+  G4double halfSize = 0.5 * (fDetector->GetWorldSize());
+  G4double z0 = -halfSize;
+
   fParticleGun->SetParticlePosition(G4ThreeVector(0., 0., z0));
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }

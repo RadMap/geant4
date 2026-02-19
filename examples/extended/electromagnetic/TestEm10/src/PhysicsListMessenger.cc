@@ -23,30 +23,27 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm10/src/PhysicsListMessenger.cc
+/// \file PhysicsListMessenger.cc
 /// \brief Implementation of the PhysicsListMessenger class
-//
-//
-//
 
 #include "PhysicsListMessenger.hh"
 
 #include "PhysicsList.hh"
+
 #include "G4UIcmdWithAString.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PhysicsListMessenger::PhysicsListMessenger(PhysicsList* aList)
- : G4UImessenger(),fList(aList)
+PhysicsListMessenger::PhysicsListMessenger(PhysicsList* aList) : G4UImessenger(), fList(aList)
 {
-  fXTRModelCmd = new G4UIcmdWithAString("/emphyslist/setXTRModel",this);
+  fXTRModelCmd = new G4UIcmdWithAString("/emphyslist/setXTRModel", this);
   fXTRModelCmd->SetGuidance("Set XTR model");
-  fXTRModelCmd->SetParameterName("XTRModel",false);
-  fXTRModelCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  fXTRModelCmd->SetParameterName("XTRModel", false);
+  fXTRModelCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 
-  fListCmd = new G4UIcmdWithAString("/testem/phys/addPhysics",this);  
+  fListCmd = new G4UIcmdWithAString("/testem/phys/addPhysics", this);
   fListCmd->SetGuidance("Add modula physics list.");
-  fListCmd->SetParameterName("PList",false);
+  fListCmd->SetParameterName("PList", false);
   fListCmd->AvailableForStates(G4State_PreInit);
 }
 
@@ -62,9 +59,12 @@ PhysicsListMessenger::~PhysicsListMessenger()
 
 void PhysicsListMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
 {
-  if( command == fXTRModelCmd )  { fList->SetXTRModel(newValue); }
-  else if( command == fListCmd ) { fList->AddPhysicsList(newValue); }
+  if (command == fXTRModelCmd) {
+    fList->SetXTRModel(newValue);
+  }
+  else if (command == fListCmd) {
+    fList->AddPhysicsList(newValue);
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-

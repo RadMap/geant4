@@ -57,6 +57,7 @@
 #include "globals.hh"
 #include "G4ThreadLocalSingleton.hh"
 #include "G4VEnergyLossProcess.hh"
+#include "G4EmParameters.hh"
 
 class G4PhysicsTable;
 class G4MaterialCutsCouple;
@@ -72,6 +73,7 @@ class G4EmCorrections;
 class G4LossTableBuilder;
 class G4VAtomDeexcitation;
 class G4VSubCutProducer;
+class G4VXRayModel;
 
 class G4LossTableManager
 {
@@ -89,13 +91,13 @@ public:
   //-------------------------------------------------
 
   void PreparePhysicsTable(const G4ParticleDefinition* aParticle,
-                           G4VEnergyLossProcess* p, G4bool theMaster);
+                           G4VEnergyLossProcess* p);
 
   void PreparePhysicsTable(const G4ParticleDefinition* aParticle,
-                           G4VEmProcess* p, G4bool theMaster);
+                           G4VEmProcess* p);
 
   void PreparePhysicsTable(const G4ParticleDefinition* aParticle,
-                           G4VMultipleScattering* p, G4bool theMaster);
+                           G4VMultipleScattering* p);
 
   void BuildPhysicsTable(const G4ParticleDefinition* aParticle);
 
@@ -113,11 +115,6 @@ public:
   //-------------------------------------------------
 
   inline G4double GetDEDX(
-    const G4ParticleDefinition *aParticle,
-    G4double kineticEnergy,
-    const G4MaterialCutsCouple *couple);
-
-  inline G4double GetSubDEDX(
     const G4ParticleDefinition *aParticle,
     G4double kineticEnergy,
     const G4MaterialCutsCouple *couple);
@@ -176,10 +173,16 @@ public:
 
   void DeRegister(G4VEmFluctuationModel* p);
 
+  void Register(G4VXRayModel* p);
+
+  void DeRegister(G4VXRayModel* p);
+
   void RegisterExtraParticle(const G4ParticleDefinition* aParticle, 
                              G4VEnergyLossProcess* p);
 
   void SetVerbose(G4int val);
+
+  void ResetParameters();
 
   void SetAtomDeexcitation(G4VAtomDeexcitation*);
 
@@ -221,9 +224,16 @@ public:
 
   inline G4VEmProcess* GetGammaGeneralProcess(); 
 
-  inline void SetElectronGeneralProcess(G4VEnergyLossProcess*); 
+  inline void SetElectronGeneralProcess(G4VEmProcess*); 
 
-  inline G4VEnergyLossProcess* GetElectronGeneralProcess(); 
+  inline G4VEmProcess* GetElectronGeneralProcess(); 
+
+  inline void SetPositronGeneralProcess(G4VEmProcess*); 
+
+  inline G4VEmProcess* GetPositronGeneralProcess(); 
+
+  G4LossTableManager(G4LossTableManager &) = delete;
+  G4LossTableManager & operator=(const G4LossTableManager &right) = delete;
 
 private:
 
@@ -234,8 +244,6 @@ private:
   G4LossTableManager();
 
   void Clear();
-
-  void ResetParameters();
 
   G4VEnergyLossProcess* BuildTables(const G4ParticleDefinition* aParticle);
 
@@ -248,55 +256,55 @@ private:
 
   void PrintEWarning(G4String, G4double);
 
-  G4LossTableManager(G4LossTableManager &) = delete;
-  G4LossTableManager & operator=(const G4LossTableManager &right) = delete;
-
   static G4ThreadLocal G4LossTableManager* instance;
 
   typedef const G4ParticleDefinition* PD;
 
-  std::map<PD,G4VEnergyLossProcess*,std::less<PD> > loss_map;
+  // cache
+  G4VEnergyLossProcess* currentLoss{nullptr};
+  PD currentParticle{nullptr};
+  PD theElectron;
+  PD theGenericIon{nullptr};
+  PD firstParticle{nullptr};
+
+  G4LossTableBuilder* tableBuilder;
+  G4EmCorrections* emCorrections;
+  G4EmConfigurator* emConfigurator{nullptr};
+  G4ElectronIonPair* emElectronIonPair{nullptr};
+  G4NIELCalculator* nielCalculator{nullptr};
+  G4VAtomDeexcitation* atomDeexcitation{nullptr};
+  G4VSubCutProducer* subcutProducer{nullptr};
+
+  G4EmParameters* theParameters;
+  G4VEmProcess* gGeneral{nullptr};
+  G4VEmProcess* eGeneral{nullptr};
+  G4VEmProcess* pGeneral{nullptr};
+
+  G4int verbose;
+  G4int n_loss{0};
+  G4int run{-1};
+
+  G4bool all_tables_are_built{false};
+  G4bool startInitialisation{false};
+  G4bool resetParam{true};
+  G4bool isMaster{false};
 
   std::vector<G4VEnergyLossProcess*> loss_vector;
   std::vector<PD> part_vector;
   std::vector<PD> base_part_vector;
-  std::vector<G4bool> tables_are_built;
-  std::vector<G4bool> isActive;
   std::vector<G4PhysicsTable*> dedx_vector;
   std::vector<G4PhysicsTable*> range_vector;
   std::vector<G4PhysicsTable*> inv_range_vector;
+  std::vector<G4bool> tables_are_built;
+  std::vector<G4bool> isActive;
   std::vector<G4VMultipleScattering*> msc_vector;
   std::vector<G4VEmProcess*> emp_vector;
   std::vector<G4VEmModel*> mod_vector;
   std::vector<G4VEmFluctuationModel*> fmod_vector;
+  std::vector<G4VXRayModel*> xray_vector;
   std::vector<G4VProcess*> p_vector;
 
-  // cache
-  G4VEnergyLossProcess* currentLoss;
-  PD                    currentParticle;
-  PD                    theElectron;
-  PD                    theGenericIon;
-  PD                    firstParticle;
-
-  G4int n_loss;
-  G4int run;
-
-  G4bool all_tables_are_built;
-  G4bool startInitialisation;
-  G4bool isMaster;
-  G4LossTableBuilder*         tableBuilder;
-  G4EmCorrections*            emCorrections;
-  G4EmConfigurator*           emConfigurator;
-  G4ElectronIonPair*          emElectronIonPair;
-  G4NIELCalculator*           nielCalculator;
-  G4VAtomDeexcitation*        atomDeexcitation;
-  G4VSubCutProducer*          subcutProducer;
-
-  G4EmParameters*       theParameters;
-  G4VEmProcess*         gGeneral;
-  G4VEnergyLossProcess* eGeneral;
-
-  G4int verbose;
+  std::map<PD,G4VEnergyLossProcess*,std::less<PD> > loss_map;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -309,17 +317,6 @@ G4double G4LossTableManager::GetDEDX(const G4ParticleDefinition *aParticle,
 {
   if(aParticle != currentParticle) { GetEnergyLossProcess(aParticle); }
   return currentLoss ? currentLoss->GetDEDX(kineticEnergy, couple) : 0.0;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
-
-inline
-G4double G4LossTableManager::GetSubDEDX(const G4ParticleDefinition *aParticle,
-                                        G4double kineticEnergy,
-                                        const G4MaterialCutsCouple *couple)
-{
-  if(aParticle != currentParticle) { GetEnergyLossProcess(aParticle); }
-  return currentLoss ? currentLoss->GetDEDXForSubsec(kineticEnergy, couple) : 0.0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
@@ -342,7 +339,7 @@ G4double G4LossTableManager::GetRangeFromRestricteDEDX(
                              const G4MaterialCutsCouple *couple)
 {
   if(aParticle != currentParticle) { GetEnergyLossProcess(aParticle); }
-  return currentLoss ? currentLoss->GetRangeForLoss(kineticEnergy, couple) : DBL_MAX;
+  return currentLoss ? currentLoss->GetRange(kineticEnergy, couple) : DBL_MAX;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
@@ -431,20 +428,31 @@ inline G4VEmProcess* G4LossTableManager::GetGammaGeneralProcess()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-inline 
-void G4LossTableManager::SetElectronGeneralProcess(G4VEnergyLossProcess* ptr)
+inline void G4LossTableManager::SetElectronGeneralProcess(G4VEmProcess* ptr)
 {
   eGeneral = ptr;
 } 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-inline G4VEnergyLossProcess* G4LossTableManager::GetElectronGeneralProcess()
+inline G4VEmProcess* G4LossTableManager::GetElectronGeneralProcess()
 {
   return eGeneral;
 } 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#endif
+inline void G4LossTableManager::SetPositronGeneralProcess(G4VEmProcess* ptr)
+{
+  pGeneral = ptr;
+} 
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+inline G4VEmProcess* G4LossTableManager::GetPositronGeneralProcess()
+{
+  return pGeneral;
+} 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+#endif

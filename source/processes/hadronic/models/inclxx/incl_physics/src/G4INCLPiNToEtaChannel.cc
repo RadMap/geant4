@@ -65,7 +65,6 @@ namespace G4INCL {
             pion = particle1;
         }
 
-
 		G4int iso=ParticleTable::getIsospin(nucleon->getType())+ParticleTable::getIsospin(pion->getType());
 // assert(iso == 1 || iso == -1);
 		if (iso == 1) {
@@ -75,6 +74,13 @@ namespace G4INCL {
 			nucleon->setType(Neutron);
         }
 		pion->setType(Eta);
+#ifdef INCLXX_IN_GEANT4_MODE
+    // Erase the parent resonance information of the nucleon and pion
+    nucleon->setParentResonancePDGCode(0);
+    nucleon->setParentResonanceID(0);
+    pion->setParentResonancePDGCode(0);
+    pion->setParentResonanceID(0);
+#endif
 		G4double sh=nucleon->getEnergy()+pion->getEnergy();
 		G4double mn=nucleon->getMass();
 		G4double me=pion->getMass();
@@ -86,10 +92,9 @@ namespace G4INCL {
 
 // real distribution (from PRC 78, 025204 (2008))
  
-
 		G4double ECM=G4INCL::KinematicsUtils::totalEnergyInCM(particle1,particle2);
 
-		const G4double pi=std::acos(-1.0);		
+		const G4double pi=std::acos(-1.0);
 		G4double x1;
 		G4double u1;
 		G4double fteta;

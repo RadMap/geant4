@@ -23,14 +23,10 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/fanoCavity2/include/ProcessesCount.hh
+/// \file ProcessesCount.hh
 /// \brief Definition of the ProcessesCount class
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-// 08.03.01 Hisaya: adapted for STL   
+// 08.03.01 Hisaya: adapted for STL
 // 26.10.98 mma   : first version
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -40,24 +36,29 @@
 #define ProcessesCount_HH
 
 #include "globals.hh"
+
 #include <vector>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class OneProcessCount
 {
-public:
-    OneProcessCount(G4String name) {fName=name; fCounter=0;};
-   ~OneProcessCount() {};
-   
-public:
-    G4String      GetName()       {return fName;};
-    G4int         GetCounter()    {return fCounter;};
-    void          Count()         {fCounter++;};
-    
-private:
-    G4String fName;            // process name
-    G4int    fCounter;         // process counter
+  public:
+    OneProcessCount(G4String name)
+    {
+      fName = name;
+      fCounter = 0;
+    };
+    ~OneProcessCount() {};
+
+  public:
+    G4String GetName() { return fName; };
+    G4int GetCounter() { return fCounter; };
+    void Count() { fCounter++; };
+
+  private:
+    G4String fName;  // process name
+    G4int fCounter;  // process counter
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -65,9 +66,3 @@ private:
 typedef std::vector<OneProcessCount*> ProcessesCount;
 
 #endif
-
-
-
-
-
-

@@ -23,16 +23,16 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflashSensitiveDetector.hh
 /// \brief Definition of the ExGflashSensitiveDetector class
-//
+
 #ifndef EXGFLASHSENSITIVEDETECTOR_H
 #define EXGFLASHSENSITIVEDETECTOR_H
 
-#include "G4VSensitiveDetector.hh"
-#include "G4VGFlashSensitiveDetector.hh"
 #include "ExGflashHit.hh"
+
+#include "G4VGFlashSensitiveDetector.hh"
+#include "G4VSensitiveDetector.hh"
 #include "globals.hh"
 
 class G4GFlashSpot;
@@ -42,21 +42,21 @@ class G4Step;
 class G4HCofThisEvent;
 class G4TouchableHistory;
 
-class ExGflashSensitiveDetector: public G4VSensitiveDetector, 
-                                 public G4VGFlashSensitiveDetector {
-public:
-  ExGflashSensitiveDetector(G4String, ExGflashDetectorConstruction* det);
-  ~ExGflashSensitiveDetector();
-  
-  virtual void Initialize(G4HCofThisEvent*);
-  virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
-  virtual G4bool ProcessHits(G4GFlashSpot*aSpot,G4TouchableHistory*);
-  virtual void EndOfEvent(G4HCofThisEvent*);
+class ExGflashSensitiveDetector : public G4VSensitiveDetector, public G4VGFlashSensitiveDetector
+{
+  public:
+    ExGflashSensitiveDetector(G4String, ExGflashDetectorConstruction* det);
+    ~ExGflashSensitiveDetector() override;
 
-private:
-  ExGflashHitsCollection* fCaloHitsCollection;
-  //  ExGflashDetectorConstruction* fDetector;
-  G4int fHCID;
+    void Initialize(G4HCofThisEvent*) override;
+    G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
+    G4bool ProcessHits(G4GFlashSpot* aSpot, G4TouchableHistory*) override;
+    void EndOfEvent(G4HCofThisEvent*) override;
+
+  private:
+    ExGflashHitsCollection* fCaloHitsCollection;
+    //  ExGflashDetectorConstruction* fDetector;
+    G4int fHCID{-1};
 };
 
 #endif

@@ -38,16 +38,22 @@
 #include "G4INCLParticleEntryAvatar.hh"
 #include "G4INCLIChannel.hh"
 #include "G4INCLParticleEntryChannel.hh"
+#include "G4INCLPbarAtrestEntryChannel.hh"
+#include "G4INCLNbarAtrestEntryChannel.hh"
+#include "G4INCLAntinucleiAtrestEntryChannel.hh"
+
 
 namespace G4INCL {
   //  ParticleEntryAvatar::ParticleEntryAvatar()
   //  {
   //  }
 
+  
   ParticleEntryAvatar::ParticleEntryAvatar(G4double time,
 					   G4INCL::Nucleus *nucleus,
-					   G4INCL::Particle *particle)
-    :IAvatar(time), theNucleus(nucleus), theParticle(particle)
+					   G4INCL::Particle *particle,
+             EntryType EType)
+    :IAvatar(time), theNucleus(nucleus), theParticle(particle), theEType(EType)
   {
     setType(ParticleEntryAvatarType);
   }
@@ -69,6 +75,21 @@ namespace G4INCL {
   }
 
   IChannel* ParticleEntryAvatar::getChannel() {
-    return new ParticleEntryChannel(theNucleus, theParticle);
+    if(theEType == APAR){ 
+      return new PbarAtrestEntryChannel(theNucleus, theParticle); 
+      INCL_DEBUG("Particle " << theParticle->getID() << " is trying to enter at rest" << '\n');
+    }
+    else if(theEType == ANAR){
+      return new NbarAtrestEntryChannel(theNucleus, theParticle);
+      INCL_DEBUG("Particle " << theParticle->getID() << "is trying to enter at rest " << '\n');
+
+    }
+    else if(theEType == ADAR){
+      return new AntinucleiAtrestEntryChannel(theNucleus, theParticle);
+      INCL_DEBUG("Particle " << theParticle->getID() << "is trying to enter at rest " << '\n');
+    }
+    else {
+      return new ParticleEntryChannel(theNucleus, theParticle);
+    }
   }
 }

@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------------
 # Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.27)
 project(TestEm0)
 
 #----------------------------------------------------------------------------
@@ -36,7 +36,7 @@ target_link_libraries(DirectAccess ${Geant4_LIBRARIES} )
 # relies on these scripts being in the current working directory.
 #
 set(TestEm0_SCRIPTS
-    TestEm0.in TestEm0.out muon.mac
+    TestEm0.in TestEm0.out ion.mac muon.mac xenonGas.mac
   )
 
 foreach(_script ${TestEm0_SCRIPTS})

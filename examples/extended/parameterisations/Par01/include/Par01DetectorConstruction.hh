@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file Par01/include/Par01DetectorConstruction.hh
+/// \file Par01DetectorConstruction.hh
 /// \brief Definition of the Par01DetectorConstruction class
-//
-//
-//
+
 #ifndef Par01DetectorConstruction_h
 #define Par01DetectorConstruction_h 1
 
@@ -39,21 +37,19 @@ class Par01DetectorMessenger;
 
 class Par01DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
-  Par01DetectorConstruction();
-  virtual ~Par01DetectorConstruction();
-  
-public:
-  virtual G4VPhysicalVolume* Construct();
-  virtual void ConstructSDandField();
+  public:
+    Par01DetectorConstruction();
+    virtual ~Par01DetectorConstruction();
 
-private:
-  G4LogicalVolume* fCrystalLog;
-  G4LogicalVolume*   fTowerLog;
-  G4int    fnX,    fnY;
-  G4int fnXhad, fnYhad;
+  public:
+    virtual G4VPhysicalVolume* Construct();
+    virtual void ConstructSDandField();
+
+  private:
+    G4LogicalVolume* fCrystalLog;
+    G4LogicalVolume* fTowerLog;
+    G4int fnX, fnY;
+    G4int fnXhad, fnYhad;
 };
 
-
 #endif
-

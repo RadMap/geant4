@@ -24,12 +24,13 @@
 // ********************************************************************
 //
 
-// Author: Ivana Hrivnacova, 04/07/2012  (ivana@ipno.in2p3.fr)
+// Author: Ivana Hrivnacova, IJCLab IN2P3/CNRS, 04/07/2012
 
 #ifndef G4MergeMode_h
 #define G4MergeMode_h 1
 
 #include "globals.hh"
+#include "G4Exception.hh"
 
 #include <functional>
 #include <cmath>
@@ -41,7 +42,7 @@ enum class G4MergeMode {
   kMultiplication,  // "And" if boolean type
   kMaximum,         // "Or" if boolean type
   kMinimum          // "And" if boolean type
-};  
+};
 
 // Generic merge function
 template <typename T>
@@ -57,23 +58,23 @@ G4MergeFunction<T> GetMergeFunction(G4MergeMode mergeMode)
 {
   switch ( mergeMode ) {
     case G4MergeMode::kAddition:
-      // return std::bind([](const T& x, const T& y) { return x + y; });
-      return [](const T& x, const T& y) { return x + y; };
+      return std::plus<T>();
 
     case G4MergeMode::kMultiplication:
-      return [](const T& x, const T& y) { return x * y; };
-      
+      return std::multiplies<T>();
+
     case G4MergeMode::kMaximum:
-      // return std::bind([](const T& x, const T& y) { return std::max(x,y);});
       return [](const T& x, const T& y) { return std::max(x,y); };
 
     case G4MergeMode::kMinimum:
-      // return std::bind([](const T& x, const T& y) { return std::min(x,y);});
       return [](const T& x, const T& y) { return std::min(x,y); };
-
-    default:
-      return [](const T&, const T&) { return 0.0; };
   }
+
+  // Must never get here, but we need a return to satisfy MSVC
+  G4Exception("G4Accumulables::GetMergeFunction<T>",
+            "Analysis_F001", FatalException,
+            "Undefined merge mode");
+  return [](const T&, const T&) { return T(); };
 }
 
 template <G4bool>

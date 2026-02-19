@@ -57,7 +57,7 @@
 #include "G4PhysicsTable.hh"
 #include "G4PhysicsLogVector.hh"
 #include "G4PhysicsTableHelper.hh"
-#include "G4LPhysicsFreeVector.hh"
+#include "G4PhysicsFreeVector.hh"
 #include "G4ProductionCutsTable.hh"
 #include "G4MaterialCutsCouple.hh"
 #include "G4Material.hh"
@@ -66,72 +66,75 @@
 #include "G4LossTableManager.hh"
 #include "G4EmParameters.hh"
 
+G4bool G4LossTableBuilder::baseMatFlag = false;
 std::vector<G4double>* G4LossTableBuilder::theDensityFactor = nullptr;
-std::vector<G4int>*    G4LossTableBuilder::theDensityIdx = nullptr;
-std::vector<G4bool>*   G4LossTableBuilder::theFlag = nullptr;
-#ifdef G4MULTITHREADED
-  G4Mutex G4LossTableBuilder::ltbMutex = G4MUTEX_INITIALIZER;
-#endif
+std::vector<G4int>* G4LossTableBuilder::theDensityIdx = nullptr;
+std::vector<G4bool>* G4LossTableBuilder::theFlag = nullptr;
+std::vector<G4bool>* G4LossTableBuilder::theFluct = nullptr;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4LossTableBuilder::G4LossTableBuilder(G4bool master) : isMaster(master) 
+G4LossTableBuilder::G4LossTableBuilder(G4bool master)
+  : isInitializer(master)
 {
   theParameters = G4EmParameters::Instance();
-  splineFlag = true;
-  isInitialized = false;
-  if(isMaster || !theFlag) {
-#ifdef G4MULTITHREADED
-    G4MUTEXLOCK(&ltbMutex);
-    if(isMaster || !theFlag) {
-#endif
-      isMaster = true;
-      theDensityFactor = new std::vector<G4double>;
-      theDensityIdx = new std::vector<G4int>;
-      theFlag = new std::vector<G4bool>;
-    } else {
-      isMaster = false;
-    }
-#ifdef G4MULTITHREADED
+  if (nullptr == theFlag) {
+    theDensityFactor = new std::vector<G4double>;
+    theDensityIdx = new std::vector<G4int>;
+    theFlag = new std::vector<G4bool>;
+    theFluct = new std::vector<G4bool>;
   }
-  G4MUTEXUNLOCK(&ltbMutex);
-#endif
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 G4LossTableBuilder::~G4LossTableBuilder() 
 {
-  if(isMaster) {
+  if (isInitializer) {
     delete theDensityFactor;
     delete theDensityIdx;
     delete theFlag;
+    delete theFluct;
     theDensityFactor = nullptr;
     theDensityIdx = nullptr;
     theFlag = nullptr;
+    theFluct = nullptr;
   }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-const std::vector<G4int>* G4LossTableBuilder::GetCoupleIndexes() const
+const std::vector<G4int>* G4LossTableBuilder::GetCoupleIndexes()
 {
   return theDensityIdx;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-const std::vector<G4double>* G4LossTableBuilder::GetDensityFactors() const
+const std::vector<G4double>* G4LossTableBuilder::GetDensityFactors()
 {
   return theDensityFactor;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4bool G4LossTableBuilder::GetFlag(size_t idx)
+const std::vector<G4bool>* G4LossTableBuilder::GetFluctuationFlags()
 {
-  if(theFlag->empty()) { InitialiseBaseMaterials(); }
+  return theFluct;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+G4bool G4LossTableBuilder::GetFlag(std::size_t idx)
+{
   return (idx < theFlag->size()) ? (*theFlag)[idx] : false;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+G4bool G4LossTableBuilder::GetBaseMaterialFlag()
+{
+  return baseMatFlag;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -141,62 +144,62 @@ G4LossTableBuilder::BuildDEDXTable(G4PhysicsTable* dedxTable,
                                    const std::vector<G4PhysicsTable*>& list)
 {
   InitialiseBaseMaterials(dedxTable);
-  size_t n_processes = list.size();
-  //G4cout << "Nproc= " << n_processes << " Ncoup= " 
-  //<< dedxTable->size() << G4endl;
+  std::size_t n_processes = list.size();
   if(1 >= n_processes) { return; }
 
-  size_t nCouples = dedxTable->size();
+  std::size_t nCouples = dedxTable->size();
+  //G4cout << "Nproc= " << n_processes << " nCouples=" << nCouples << " Nv= " 
+  //	 << dedxTable->size() << G4endl;
   if(0 >= nCouples) { return; }
 
-  for (size_t i=0; i<nCouples; ++i) {
-    G4PhysicsLogVector* pv0 = static_cast<G4PhysicsLogVector*>((*(list[0]))[i]);
-    if(pv0) {
-      size_t npoints = pv0->GetVectorLength();
-      G4PhysicsLogVector* pv = new G4PhysicsLogVector(*pv0);
-      pv->SetSpline(splineFlag);
-      for (size_t j=0; j<npoints; ++j) {
-	G4double dedx = 0.0;
-	for (size_t k=0; k<n_processes; ++k) {
-	  G4PhysicsVector* pv1   = (*(list[k]))[i];
-	  dedx += (*pv1)[j];
-	}
-	pv->PutValue(j, dedx);
+  for (std::size_t i=0; i<nCouples; ++i) {
+    auto pv0 = static_cast<G4PhysicsLogVector*>((*(list[0]))[i]);
+    //if (0 == i) G4cout << i << ". pv0=" << pv0 << "  t:" << list[0] << G4endl;
+    if(pv0 == nullptr) { continue; } 
+    std::size_t npoints = pv0->GetVectorLength();
+    auto pv = new G4PhysicsLogVector(*pv0);
+    for (std::size_t j=0; j<npoints; ++j) {
+      G4double dedx = 0.0;
+      for (std::size_t k=0; k<n_processes; ++k) {
+	const G4PhysicsVector* pv1 = (*(list[k]))[i];
+	//if (0 == i) G4cout << "     " << k << ". pv1=" << pv1 << "  t:" << list[k] << G4endl;
+	dedx += (*pv1)[j];
       }
-      if(splineFlag) { pv->FillSecondDerivatives(); }
-      G4PhysicsTableHelper::SetPhysicsVector(dedxTable, i, pv);
+      pv->PutValue(j, dedx);
     }
+    if(splineFlag) { pv->FillSecondDerivatives(); }
+    G4PhysicsTableHelper::SetPhysicsVector(dedxTable, i, pv);
   }
+  //G4cout << "### G4LossTableBuilder::BuildDEDXTable " << G4endl; 
+  //G4cout << *dedxTable << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void G4LossTableBuilder::BuildRangeTable(const G4PhysicsTable* dedxTable,
-                                         G4PhysicsTable* rangeTable,
-                                         G4bool useBM)
+                                         G4PhysicsTable* rangeTable)
 // Build range table from the energy loss table
 {
-  size_t nCouples = dedxTable->size();
+  //G4cout << "### G4LossTableBuilder::BuildRangeTable: DEDX table" << G4endl; 
+  //G4cout << *const_cast<G4PhysicsTable*>(dedxTable) << G4endl;
+  const std::size_t nCouples = dedxTable->size();
   if(0 >= nCouples) { return; }
 
-  size_t n = 100;
-  G4double del = 1.0/(G4double)n;
+  const std::size_t n = 100;
+  const G4double del = 1.0/(G4double)n;
 
-  for (size_t i=0; i<nCouples; ++i) {
-    G4PhysicsLogVector* pv = static_cast<G4PhysicsLogVector*>((*dedxTable)[i]);
-    if((pv == nullptr) || (useBM && !(*theFlag)[i])) { continue; } 
-    size_t npoints = pv->GetVectorLength();
-    size_t bin0    = 0;
+  for (std::size_t i=0; i<nCouples; ++i) {
+    auto pv = static_cast<G4PhysicsLogVector*>((*dedxTable)[i]);
+    if((pv == nullptr) || (isBaseMatActive && !(*theFlag)[i])) { continue; } 
+    std::size_t npoints = pv->GetVectorLength();
+    std::size_t bin0    = 0;
     G4double elow  = pv->Energy(0);
     G4double ehigh = pv->Energy(npoints-1);
     G4double dedx1 = (*pv)[0];
 
-    //G4cout << "i= " << i << "npoints= " << npoints << " dedx1= " 
-    //<< dedx1 << G4endl;
-
     // protection for specific cases dedx=0
     if(dedx1 == 0.0) {
-      for (size_t k=1; k<npoints; ++k) {
+      for (std::size_t k=1; k<npoints; ++k) {
 	++bin0;
 	elow  = pv->Energy(k);
 	dedx1 = (*pv)[k];
@@ -204,116 +207,132 @@ void G4LossTableBuilder::BuildRangeTable(const G4PhysicsTable* dedxTable,
       }
       npoints -= bin0;
     }
-    //G4cout<<"New Range vector" << G4endl;
-    //G4cout<<"nbins= "<<npoints-1<<" elow= "<<elow<<" ehigh= "<<ehigh
-    //            <<" bin0= " << bin0 <<G4endl;
 
     // initialisation of a new vector
-    if(npoints < 2) { npoints = 2; }
+    if(npoints < 3) { npoints = 3; }
 
     delete (*rangeTable)[i];
     G4PhysicsLogVector* v;
     if(0 == bin0) { v = new G4PhysicsLogVector(*pv); }
-    else { v = new G4PhysicsLogVector(elow, ehigh, npoints-1); }
-
-    // dedx is exact zero cannot build range table
-    if(2 == npoints) {
-      v->PutValue(0,1000.);
-      v->PutValue(1,2000.);
-      G4PhysicsTableHelper::SetPhysicsVector(rangeTable, i, v);
-      return;
-    }
-    v->SetSpline(splineFlag);
+    else { v = new G4PhysicsLogVector(elow, ehigh, npoints-1, splineFlag); }
 
     // assumed dedx proportional to beta
     G4double energy1 = v->Energy(0);
     G4double range   = 2.*energy1/dedx1;
-    //G4cout << "range0= " << range << G4endl;
+    /*
+    G4cout << "New Range vector Npoints=" << v->GetVectorLength()
+	   << " coupleIdx=" << i << " spline=" << v->GetSpline() 
+	   << " Elow=" << v->GetMinEnergy() <<" Ehigh=" << v->GetMinEnergy()
+	   << " DEDX(Elow)=" << dedx1 << " R(Elow)=" << range << G4endl;
+    */
     v->PutValue(0,range);
 
-    for (size_t j=1; j<npoints; ++j) {
+    for (std::size_t j=1; j<npoints; ++j) {
 
       G4double energy2 = v->Energy(j);
       G4double de      = (energy2 - energy1) * del;
       G4double energy  = energy2 + de*0.5;
       G4double sum = 0.0;
-      //G4cout << "j= " << j << " e1= " << energy1 << " e2= " << energy2 
-      //       << " n= " << n << G4endl;
-      for (size_t k=0; k<n; ++k) {
+      std::size_t idx = j - 1;
+      for (std::size_t k=0; k<n; ++k) {
 	energy -= de;
-	dedx1 = pv->Value(energy);
+	dedx1 = pv->Value(energy, idx);
 	if(dedx1 > 0.0) { sum += de/dedx1; }
       }
       range += sum;
+      /*
+      if(energy < 10.) 
+	G4cout << "j= " << j << " e1= " << energy1 << " e2= " << energy2 
+	       << " n= " << n << " range=" << range<< G4endl;
+      */
       v->PutValue(j,range);
       energy1 = energy2;
     }
     if(splineFlag) { v->FillSecondDerivatives(); }
     G4PhysicsTableHelper::SetPhysicsVector(rangeTable, i, v);
   }
+  //G4cout << "### Range table" << G4endl; 
+  //G4cout << *rangeTable << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void 
 G4LossTableBuilder::BuildInverseRangeTable(const G4PhysicsTable* rangeTable,
-                                           G4PhysicsTable* invRangeTable,
-                                           G4bool useBM)
+                                           G4PhysicsTable* invRangeTable)
 // Build inverse range table from the energy loss table
 {
-  size_t nCouples = rangeTable->size();
+  std::size_t nCouples = rangeTable->size();
   if(0 >= nCouples) { return; }
 
-  for (size_t i=0; i<nCouples; ++i) {
+  for (std::size_t i=0; i<nCouples; ++i) {
     G4PhysicsVector* pv = (*rangeTable)[i];
-    if((pv == nullptr) || (useBM && !(*theFlag)[i])) { continue; } 
-    size_t npoints = pv->GetVectorLength();
-    G4double rlow  = (*pv)[0];
-    G4double rhigh = (*pv)[npoints-1];
+    if((pv == nullptr) || (isBaseMatActive && !(*theFlag)[i])) { continue; } 
+    std::size_t npoints = pv->GetVectorLength();
       
     delete (*invRangeTable)[i];
-    G4LPhysicsFreeVector* v = new G4LPhysicsFreeVector(npoints,rlow,rhigh);
-    v->SetSpline(splineFlag);
+    auto v = new G4PhysicsFreeVector(npoints, splineFlag);
 
-    for (size_t j=0; j<npoints; ++j) {
+    for (std::size_t j=0; j<npoints; ++j) {
       G4double e  = pv->Energy(j);
       G4double r  = (*pv)[j];
       v->PutValues(j,r,e);
     }
-    if(splineFlag) { v->FillSecondDerivatives(); }
+    if (splineFlag) { v->FillSecondDerivatives(); }
+    v->EnableLogBinSearch(theParameters->NumberForFreeVector());
 
     G4PhysicsTableHelper::SetPhysicsVector(invRangeTable, i, v);
   }
+  //G4cout << "### Inverse range table" << G4endl; 
+  //G4cout << *invRangeTable << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void G4LossTableBuilder::InitialiseBaseMaterials(const G4PhysicsTable* table)
 {
-  if(!isMaster) { return; }
+  if(!isInitializer) { return; }
   const G4ProductionCutsTable* theCoupleTable=
     G4ProductionCutsTable::GetProductionCutsTable();
-  size_t nCouples = theCoupleTable->GetTableSize();
-  size_t nFlags = theFlag->size();
-  if(isInitialized && nFlags == nCouples) { return; }
+  std::size_t nCouples = theCoupleTable->GetTableSize();
+  std::size_t nFlags = theFlag->size();
+  /*
+  G4cout << "### InitialiseBaseMaterials: nCouples=" << nCouples
+	 << " nFlags=" << nFlags << " isInit:" << isInitialized
+	 << " baseMat:" << baseMatFlag << G4endl; 
+  */
+  // define base material flag
+  if(isBaseMatActive && !baseMatFlag) {
+    for(G4int i=0; i<(G4int)nCouples; ++i) {
+      if(nullptr != theCoupleTable->GetMaterialCutsCouple(i)->GetMaterial()->GetBaseMaterial()) {
+	baseMatFlag = true;
+        isInitialized = false;
+	break;
+      }
+    }
+  }
 
+  if(nFlags != nCouples) { isInitialized = false; }
+  if(isInitialized) { return; }
+
+  // reserve and fill memory
+  theFlag->resize(nCouples, true);
+  theFluct->resize(nCouples, theParameters->LossFluctuation());
+  theParameters->DefineFluctuationFlags(theFluct);
+
+  theDensityFactor->resize(nCouples,1.0);
+  theDensityIdx->resize(nCouples, 0);
+
+  // define default flag and index of used material cut couple
+  for (G4int i=0; i<(G4int)nCouples; ++i) {
+    (*theFlag)[i] = (nullptr == table) ? true : table->GetFlag(i); 
+    (*theDensityIdx)[i] = i;
+  }
   isInitialized = true;
-  if(0 == nFlags) {
-    theDensityFactor->reserve(nCouples);
-    theDensityIdx->reserve(nCouples);
-    theFlag->reserve(nCouples);
-  }
-  for(size_t i=0; i<nFlags; ++i) {
-    (*theFlag)[i] = (table) ? table->GetFlag(i) : true;
-  }
-  for(size_t i=nFlags; i<nCouples; ++i) {
-    G4bool yes = (table) ? table->GetFlag(i) : true; 
-    theDensityFactor->push_back(1.0);
-    theDensityIdx->push_back(i);
-    theFlag->push_back(yes);
-  }
+  if (!baseMatFlag) { return; }
+
   // use base materials
-  for(size_t i=0; i<nCouples; ++i) { 
+  for (G4int i=0; i<(G4int)nCouples; ++i) { 
     // base material is needed only for a couple which is not
     // initialised and for which tables will be computed
     auto couple = theCoupleTable->GetMaterialCutsCouple(i);
@@ -322,8 +341,8 @@ void G4LossTableBuilder::InitialiseBaseMaterials(const G4PhysicsTable* table)
     auto bmat = mat->GetBaseMaterial();
 
     // base material exists - find it and check if it can be reused
-    if(bmat) {
-      for(size_t j=0; j<nCouples; ++j) {
+    if(nullptr != bmat) {
+      for(G4int j=0; j<(G4int)nCouples; ++j) {
 	if(j == i) { continue; }
 	auto bcouple = theCoupleTable->GetMaterialCutsCouple(j);
 
@@ -339,19 +358,11 @@ void G4LossTableBuilder::InitialiseBaseMaterials(const G4PhysicsTable* table)
 	  (*theDensityFactor)[j] = 1.0;
 	  (*theDensityIdx)[j] = j;
 	  (*theFlag)[j] = true;
-	  break;
-	} 
+	  break; 
+	}
       }
     }
   }
-  /*
-  for(size_t i=0; i<nCouples; ++i) {
-    G4cout << "CoupleIdx= " << i << "  Flag= " <<  theFlag[i] 
-           << "  TableFlag= " << table->GetFlag(i) << "  "
-           << theCoupleTable->GetMaterialCutsCouple(i)->GetMaterial()->GetName()
-           << G4endl;
-  }
-  */
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -365,54 +376,57 @@ G4LossTableBuilder::BuildTableForModel(G4PhysicsTable* aTable,
 {
   // check input
   G4PhysicsTable* table = G4PhysicsTableHelper::PreparePhysicsTable(aTable);
-  if(!table) { return table; }
-  if(emin >= emax) { 
-    table->clearAndDestroy();
-    delete table;
-    table = nullptr;
-    return table; 
+  if (nullptr == table) { return table; }
+  if (aTable != nullptr && aTable != table) {
+    aTable->clearAndDestroy();
+    delete aTable;
   }
+
   InitialiseBaseMaterials(table);
   G4int nbins = theParameters->NumberOfBinsPerDecade();
-  G4bool useMB = model->UseBaseMaterials();
 
   // Access to materials
   const G4ProductionCutsTable* theCoupleTable=
         G4ProductionCutsTable::GetProductionCutsTable();
-  size_t numOfCouples = theCoupleTable->GetTableSize();
-
+  std::size_t numOfCouples = theCoupleTable->GetTableSize();
+  /*
+  G4cout << "   G4LossTableBuilder::BuildTableForModel Ncouple=" << numOfCouples
+	 << " isMaster=" << isInitializer << " model:" << model->GetName()
+	 << "  " << part->GetParticleName() << G4endl; 
+  */
   G4PhysicsLogVector* aVector = nullptr;
 
-  for(size_t i=0; i<numOfCouples; ++i) {
-    if ((useMB && GetFlag(i)) || (!useMB && table->GetFlag(i))) {
+  for(G4int i=0; i<(G4int)numOfCouples; ++i) {
+    //G4cout << i << ".  " << (*theFlag)[i] << "  "  << table->GetFlag(i) << G4endl;
+    if (table->GetFlag(i)) {
 
       // create physics vector and fill it
       auto couple = theCoupleTable->GetMaterialCutsCouple(i);
       delete (*table)[i];
 
       // if start from zero then change the scale
-
       const G4Material* mat = couple->GetMaterial();
 
-      G4double tmin = std::max(emin,model->MinPrimaryEnergy(mat,part));
+      G4double tmin = std::max(emin, model->MinPrimaryEnergy(mat,part));
       if(0.0 >= tmin) { tmin = CLHEP::eV; }
       G4int n = nbins;
 
       if(tmin >= emax) {
         aVector = nullptr;
       } else {
-        n *= (G4int)(std::log10(emax/tmin) + 0.5);
+        n *= G4lrint(std::log10(emax/tmin));
         n = std::max(n, 3);
-        aVector = new G4PhysicsLogVector(tmin, emax, n);
+        aVector = new G4PhysicsLogVector(tmin, emax, n, spline);
       }
 
-      if(aVector) {
-        aVector->SetSpline(spline);
+      if(nullptr != aVector) {
         //G4cout << part->GetParticleName() << " in " << mat->GetName() 
-	//       << " tmin= " << tmin << G4endl;
+	//     << " emin= " << tmin << " emax=" << emax << " n=" << n << G4endl;
         for(G4int j=0; j<=n; ++j) {
-          aVector->PutValue(j, model->Value(couple, part, 
-                                            aVector->Energy(j)));
+	  G4double e = aVector->Energy(j);
+	  G4double y = model->Value(couple, part, e);
+	  //G4cout << "      " << j << ") E=" << e << "  y=" << y << G4endl;
+          aVector->PutValue(j, y);
         }
         if(spline) { aVector->FillSecondDerivatives(); }
       }
@@ -424,8 +438,8 @@ G4LossTableBuilder::BuildTableForModel(G4PhysicsTable* aTable,
          << part->GetParticleName() << " and "<< model->GetName()
          << "  " << table << G4endl;
   */
+  //G4cout << *table << G4endl;
   return table; 
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-

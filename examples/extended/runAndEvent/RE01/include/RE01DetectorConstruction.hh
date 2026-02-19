@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE01/include/RE01DetectorConstruction.hh
+/// \file RE01DetectorConstruction.hh
 /// \brief Definition of the RE01DetectorConstruction class
-//
-//
 
 #ifndef RE01DetectorConstruction_h
 #define RE01DetectorConstruction_h 1
@@ -39,20 +37,19 @@ class G4LogicalVolume;
 
 class RE01DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
-  RE01DetectorConstruction();
-  virtual ~RE01DetectorConstruction();
-  
-public:
-  virtual G4VPhysicalVolume* Construct();
-  virtual void ConstructSDandField();
-  
-private:
+  public:
+    RE01DetectorConstruction();
+    virtual ~RE01DetectorConstruction();
+
+  public:
+    virtual G4VPhysicalVolume* Construct();
+    virtual void ConstructSDandField();
+
+  private:
 #include "RE01DetectorParameterDef.hh"
 
-  G4LogicalVolume * fTrackerLayer_log;
-  G4LogicalVolume * fCalorimeter_log;
+    G4LogicalVolume* fTrackerLayer_log;
+    G4LogicalVolume* fCalorimeter_log;
 };
 
 #endif
-

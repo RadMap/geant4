@@ -37,8 +37,6 @@
 // Usage (a): G4AttCheck(values,definitions);
 //    or (b): G4cout << G4AttCheck(values,definitions) << G4endl;
 //
-// For further details, see the HepRep home page at http://heprep.freehep.org
-//  
 // @author J.Allison
 // @author J.Perl
 // Class Description - End:
@@ -61,7 +59,7 @@ public: // With description
   (const std::vector<G4AttValue>* values,
    const std::map<G4String,G4AttDef>* definitions);
 
-  ~G4AttCheck();
+  ~G4AttCheck() = default;
 
   const std::vector<G4AttValue>* GetAttValues() const {
     return fpValues;

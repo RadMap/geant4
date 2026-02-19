@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm8/src/TargetSD.cc
+/// \file TargetSD.cc
 /// \brief Implementation of the TargetSD class
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // TestEm8: Gaseous detector
@@ -36,32 +35,27 @@
 // Modified:
 //
 ////////////////////////////////////////////////////////////////////////
-// 
+//
 
 #include "TargetSD.hh"
+
 #include "Run.hh"
-#include "globals.hh"
+
 #include "G4HCofThisEvent.hh"
-#include "G4TouchableHistory.hh"
-#include "G4Step.hh"
 #include "G4RunManager.hh"
+#include "G4Step.hh"
+#include "G4TouchableHistory.hh"
+#include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TargetSD::TargetSD(const G4String& name)
-  : G4VSensitiveDetector(name), fRun(0)
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-TargetSD::~TargetSD()
-{}
+TargetSD::TargetSD(const G4String& name) : G4VSensitiveDetector(name) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void TargetSD::Initialize(G4HCofThisEvent*)
 {
-  fRun = (Run*)G4RunManager::GetRunManager()->GetNonConstCurrentRun();  
+  fRun = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -69,24 +63,20 @@ void TargetSD::Initialize(G4HCofThisEvent*)
 G4bool TargetSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
   G4double edep = aStep->GetTotalEnergyDeposit();
-  fRun->AddEnergy(edep, aStep); 
+  fRun->AddEnergy(edep, aStep);
   return true;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TargetSD::EndOfEvent(G4HCofThisEvent*)
-{}
+void TargetSD::EndOfEvent(G4HCofThisEvent*) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TargetSD::clear()
-{}
+void TargetSD::clear() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TargetSD::PrintAll()
-{}
+void TargetSD::PrintAll() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

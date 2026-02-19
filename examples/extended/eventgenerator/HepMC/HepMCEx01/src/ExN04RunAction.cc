@@ -23,29 +23,23 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/HepMCEx01/src/ExN04RunAction.cc
+/// \file ExN04RunAction.cc
 /// \brief Implementation of the ExN04RunAction class
-//
-//
+
+#include "ExN04RunAction.hh"
 
 #include "G4Run.hh"
 #include "G4RunManager.hh"
-#include "ExN04RunAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-ExN04RunAction::ExN04RunAction()
- : G4UserRunAction()
-{
-}
+ExN04RunAction::ExN04RunAction() : G4UserRunAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-ExN04RunAction::~ExN04RunAction()
-{
-}
+ExN04RunAction::~ExN04RunAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void ExN04RunAction::BeginOfRunAction(const G4Run* aRun)
 {
-  G4cout << "### Run " << aRun-> GetRunID() << " start." << G4endl;
-  G4RunManager::GetRunManager()-> SetRandomNumberStore(true);
+  G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl;
+  G4RunManager::GetRunManager()->SetRandomNumberStore(true);
 }

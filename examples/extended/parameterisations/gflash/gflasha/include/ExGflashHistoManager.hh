@@ -23,15 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflashHistoManager.hh
-/// \brief Definition of the ExGflasHistoManager class
+/// \brief Definition of the ExGflashHistoManager class
 
 #ifndef ExGflashHistoManager_h
 #define ExGflashHistoManager_h 1
 
+#include "G4AnalysisManager.hh"
 #include "globals.hh"
-#include "g4root.hh"
 
 class ExGflashDetectorConstruction;
 
@@ -41,24 +40,18 @@ class ExGflashHistoManager
 {
   public:
     ExGflashHistoManager(ExGflashDetectorConstruction* myDet);
-   ~ExGflashHistoManager();
+    ~ExGflashHistoManager();
 
-  void InitializePerEvent();
-  void FillPerEvent();
+    void InitializePerEvent();
+    void SetBinning();
 
-  inline void FillPerTrack(G4double,G4double);
-  inline void FillPerStep (G4double,G4int,G4int);
+  private:
+    void Book();
+    G4String fFileName;
 
-private:
-  void Book();
-  G4String fFileName;
-  
-  ExGflashDetectorConstruction*   fDet;
-  
-  G4int    fVerbose;
+    ExGflashDetectorConstruction* fDet;
 
+    G4int fVerbose{1};
 };
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif

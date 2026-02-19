@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file RE05/include/RE05PrimaryGeneratorMessenger.hh
+/// \file RE05PrimaryGeneratorMessenger.hh
 /// \brief Definition of the RE05PrimaryGeneratorMessenger class
-//
 
 #ifndef RE05PrimaryGeneratorMessenger_h
 #define RE05PrimaryGeneratorMessenger_h 1
@@ -38,22 +36,22 @@ class G4UIcmdWithAString;
 #include "G4UImessenger.hh"
 #include "globals.hh"
 
-class RE05PrimaryGeneratorMessenger: public G4UImessenger
+class RE05PrimaryGeneratorMessenger : public G4UImessenger
 {
   public:
     RE05PrimaryGeneratorMessenger(RE05PrimaryGeneratorAction* mpga);
     virtual ~RE05PrimaryGeneratorMessenger();
-    
+
   public:
-    virtual void SetNewValue(G4UIcommand * command,G4String newValues);
-    virtual G4String GetCurrentValue(G4UIcommand * command);
+    virtual void SetNewValue(G4UIcommand* command, G4String newValues);
+    virtual G4String GetCurrentValue(G4UIcommand* command);
 
   private:
-    RE05PrimaryGeneratorAction * fMyAction;
-    
-    //commands
-    G4UIdirectory *             fMydetDirectory;
-    G4UIcmdWithAString *        fGenCmd;
+    RE05PrimaryGeneratorAction* fMyAction;
+
+    // commands
+    G4UIdirectory* fMydetDirectory;
+    G4UIcmdWithAString* fGenCmd;
 };
 
 #endif

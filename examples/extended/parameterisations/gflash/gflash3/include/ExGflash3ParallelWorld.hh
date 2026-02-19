@@ -23,8 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
+/// \file ExGflash3ParallelWorld.hh
+/// \brief Definition of the ExGflash3ParallelWorld class
+
 #ifndef ExGflash3ParallelWorld_h
 #define ExGflash3ParallelWorld_h 1
 
@@ -36,19 +37,18 @@ class G4VPhysicalVolume;
 
 class ExGflash3ParallelWorld : public G4VUserParallelWorld
 {
-public:
-  ExGflash3ParallelWorld(G4String aWorldName);
-  ~ExGflash3ParallelWorld();
-  
-  virtual void Construct() final;
-  virtual void ConstructSD() final;
-  
-  const G4VPhysicalVolume* GetCristal(int aNumCrystal)
-  {return fCrystalPhys[aNumCrystal];};
-  
-private:
-  G4LogicalVolume*    fCrystalLog;
-  G4VPhysicalVolume*  fCrystalPhys[100];
+  public:
+    ExGflash3ParallelWorld(G4String aWorldName);
+    ~ExGflash3ParallelWorld() override;
+
+    void Construct() final;
+    void ConstructSD() final;
+
+    const G4VPhysicalVolume* GetCristal(int aNumCrystal) { return fCrystalPhys[aNumCrystal]; };
+
+  private:
+    G4LogicalVolume* fCrystalLog{nullptr};
+    G4VPhysicalVolume* fCrystalPhys[100]{};
 };
 
 #endif

@@ -76,37 +76,32 @@ public:
 
   explicit G4MuPairProduction(const G4String& processName = "muPairProd");
 
-  ~G4MuPairProduction() = default;
+  ~G4MuPairProduction() override = default;
 
-  virtual G4bool IsApplicable(const G4ParticleDefinition& p) override;
+  G4bool IsApplicable(const G4ParticleDefinition& p) override;
 
-  virtual G4double MinPrimaryEnergy(const G4ParticleDefinition* p,
-				    const G4Material*, G4double cut) override;
+  G4double MinPrimaryEnergy(const G4ParticleDefinition* p,
+			    const G4Material*, G4double cut) override;
 
   inline void SetLowestKineticEnergy(G4double e);
 
   // print description in html
-  virtual void ProcessDescription(std::ostream&) const override;
-
-protected:
-
-  // Print out of the class parameters
-  virtual void StreamProcessInfo(std::ostream& outFile) const override;
-
-  virtual void 
-  InitialiseEnergyLossProcess(const G4ParticleDefinition*,
-			      const G4ParticleDefinition*) override;
-
-private:
+  void ProcessDescription(std::ostream&) const override;
 
   G4MuPairProduction & operator=(const G4MuPairProduction &right) = delete;
   G4MuPairProduction(const G4MuPairProduction&) = delete;
 
 protected:
 
-  const G4ParticleDefinition* theParticle;
+  // Print out of the class parameters
+  void StreamProcessInfo(std::ostream& outFile) const override;
+
+  void InitialiseEnergyLossProcess(const G4ParticleDefinition*,
+			           const G4ParticleDefinition*) override;
+
+  const G4ParticleDefinition* theParticle = nullptr;
   G4double                    lowestKinEnergy;
-  G4bool                      isInitialised;
+  G4bool                      isInitialised = false;
 
 };
 

@@ -23,17 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field04/include/F04RunAction.hh
+/// \file F04RunAction.hh
 /// \brief Definition of the F04RunAction class
-//
 
 #ifndef F04RunAction_h
 #define F04RunAction_h 1
 
-#include "globals.hh"
-
 #include "G4UserRunAction.hh"
+#include "globals.hh"
 
 class F04RunActionMessenger;
 class G4Run;
@@ -41,27 +38,23 @@ class G4Run;
 class F04RunAction : public G4UserRunAction
 {
   public:
-
     F04RunAction();
-    virtual ~F04RunAction();
+    ~F04RunAction() override;
 
   public:
+    void BeginOfRunAction(const G4Run*) override;
+    void EndOfRunAction(const G4Run*) override;
 
-    virtual void BeginOfRunAction(const G4Run*);
-    virtual void EndOfRunAction(const G4Run*);
+    void SetRndmFreq(G4int val) { fSaveRndm = val; }
+    G4int GetRndmFreq() { return fSaveRndm; }
 
-    void  SetRndmFreq(G4int val) {fSaveRndm = val;}
-    G4int GetRndmFreq()          {return fSaveRndm;}
-
-    inline void SetAutoSeed (const G4bool val) {fAutoSeed = val;}
+    inline void SetAutoSeed(const G4bool val) { fAutoSeed = val; }
 
   private:
- 
-    F04RunActionMessenger* fRunMessenger;
+    F04RunActionMessenger* fRunMessenger = nullptr;
 
-    G4int fSaveRndm;
-    G4bool fAutoSeed;
-
+    G4int fSaveRndm = 0;
+    G4bool fAutoSeed = false;
 };
 
 #endif

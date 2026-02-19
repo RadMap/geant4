@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PrimaryGeneratorAction.cc
+/// \brief Implementation of the PrimaryGeneratorAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,28 +34,26 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file PrimaryGeneratorAction.cc
-/// \brief Implementation of the PrimaryGeneratorAction class
 
 #include "PrimaryGeneratorAction.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4ParticleTable.hh"
+
 #include "G4ParticleGun.hh"
+#include "G4ParticleTable.hh"
+#include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PrimaryGeneratorAction::PrimaryGeneratorAction() :
-  G4VUserPrimaryGeneratorAction(),
-  fpParticleGun(new G4ParticleGun(1))
+PrimaryGeneratorAction::PrimaryGeneratorAction()
+  : G4VUserPrimaryGeneratorAction(), fpParticleGun(new G4ParticleGun(1))
 {
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* particle = particleTable->FindParticle("proton");
 
   // default gun parameters
   fpParticleGun->SetParticleDefinition(particle);
-  fpParticleGun->SetParticleEnergy(30.*MeV);
-  fpParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
-  fpParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,0.*micrometer));
+  fpParticleGun->SetParticleEnergy(30. * MeV);
+  fpParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
+  fpParticleGun->SetParticlePosition(G4ThreeVector(0., 0., 0. * micrometer));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

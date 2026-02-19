@@ -43,8 +43,7 @@
 using namespace std;
 
 G4PhotoElectricEffect::G4PhotoElectricEffect(const G4String& processName,
-  G4ProcessType type):G4VEmProcess (processName, type),
-    isInitialised(false)
+  G4ProcessType type):G4VEmProcess (processName, type)
 {
   SetBuildTableFlag(false);
   SetSecondaryParticle(G4Electron::Electron());
@@ -54,8 +53,7 @@ G4PhotoElectricEffect::G4PhotoElectricEffect(const G4String& processName,
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4PhotoElectricEffect::~G4PhotoElectricEffect()
-{}
+G4PhotoElectricEffect::~G4PhotoElectricEffect() = default;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -70,18 +68,13 @@ void G4PhotoElectricEffect::InitialiseProcess(const G4ParticleDefinition*)
 {
   if(!isInitialised) {
     isInitialised = true;
-    if(!EmModel()) { SetEmModel(new G4PEEffectFluoModel()); }
+    if(nullptr == EmModel()) { SetEmModel(new G4PEEffectFluoModel()); }
     G4EmParameters* param = G4EmParameters::Instance();
     EmModel()->SetLowEnergyLimit(param->MinKinEnergy());
     EmModel()->SetHighEnergyLimit(param->MaxKinEnergy());
     AddEmModel(1, EmModel());
   }
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void G4PhotoElectricEffect::PrintInfo()
-{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

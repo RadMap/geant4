@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file RE05/include/RE05DummySD.hh
+/// \file RE05DummySD.hh
 /// \brief Definition of the RE05DummySD class
-//
 
 // Dummy sensitive used only to flag sensitivity
 // in cells of RO geometry.
@@ -40,18 +38,16 @@ class G4Step;
 
 class RE05DummySD : public G4VSensitiveDetector
 {
-public:
-  RE05DummySD();
-  virtual ~RE05DummySD() {}
-  
-  virtual void Initialize(G4HCofThisEvent*) {}
-  virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*) {return false;}
-  virtual void EndOfEvent(G4HCofThisEvent*) {}
-  virtual void clear() {}
-  virtual void DrawAll() {}
-  virtual void PrintAll() {}
+  public:
+    RE05DummySD();
+    virtual ~RE05DummySD() {}
+
+    virtual void Initialize(G4HCofThisEvent*) {}
+    virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*) { return false; }
+    virtual void EndOfEvent(G4HCofThisEvent*) {}
+    virtual void clear() {}
+    virtual void DrawAll() {}
+    virtual void PrintAll() {}
 };
-RE05DummySD::RE05DummySD()
-  : G4VSensitiveDetector("dummySD")
-{}
+RE05DummySD::RE05DummySD() : G4VSensitiveDetector("dummySD") {}
 #endif

@@ -26,6 +26,7 @@
 
 #include "G4DNAAttachment.hh"
 #include "G4LEPTSAttachmentModel.hh"
+#include "G4LowEnergyEmProcessSubType.hh"
 
 #include "G4SystemOfUnits.hh"
 #include "G4Positron.hh"
@@ -35,16 +36,15 @@
 using namespace std;
 
 G4DNAAttachment::G4DNAAttachment(const G4String& processName,
-  G4ProcessType type):G4VEmProcess (processName, type),
-    isInitialised(false)
+  G4ProcessType type):G4VEmProcess (processName, type) 
 {
-  SetProcessSubType(55);
+  SetProcessSubType(fLowEnergyAttachment);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
 G4DNAAttachment::~G4DNAAttachment()
-{}
+= default;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -66,7 +66,7 @@ void G4DNAAttachment::InitialiseProcess(const G4ParticleDefinition* p)
 
     if(name == "e-" )
     {
-      if(!EmModel())
+      if(EmModel() == nullptr)
       {
         SetEmModel(new G4DNAMeltonAttachmentModel);
         EmModel()->SetLowEnergyLimit(4.*eV);
@@ -76,7 +76,7 @@ void G4DNAAttachment::InitialiseProcess(const G4ParticleDefinition* p)
     }
     else if(name == "e+" )
     {
-      if(!EmModel())
+      if(EmModel() == nullptr)
       {
         SetEmModel(new G4LEPTSAttachmentModel);
         EmModel()->SetLowEnergyLimit(1.*eV);

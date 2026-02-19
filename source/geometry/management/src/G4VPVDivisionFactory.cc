@@ -23,9 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// class G4VPVDivisionFactory Implementation file
+// G4VPVDivisionFactory Implementation file
 //
-// Author: Ivana Hrivnacova, 4.5.2004
+// Author: Ivana Hrivnacova (IJCLab, Orsay), 04.05.2004
 // ------------------------------------------------------------------------
 
 #include "G4VPVDivisionFactory.hh"
@@ -40,19 +40,3 @@ G4VPVDivisionFactory* G4VPVDivisionFactory::Instance()
   // ---
   return fgInstance;
 }  
-
-
-//_____________________________________________________________________________
-
-G4VPVDivisionFactory::G4VPVDivisionFactory()
-{
-  // Protected singleton constructor.
-  // ---
-  // fgInstance = this;
-}
-
-//_____________________________________________________________________________
-
-G4VPVDivisionFactory::~G4VPVDivisionFactory()
-{
-}

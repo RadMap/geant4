@@ -23,35 +23,32 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/LXe/include/LXeRunAction.hh
+/// \file LXeRunAction.hh
 /// \brief Definition of the LXeRunAction class
-//
-//
+
 #include "G4UserRunAction.hh"
 
 #ifndef LXeRunAction_h
-#define LXeRunAction_h 1
+#  define LXeRunAction_h 1
 
 class LXeRun;
 class LXeHistoManager;
+
 class G4Run;
 
 class LXeRunAction : public G4UserRunAction
 {
   public:
-
     LXeRunAction();
-    virtual ~LXeRunAction();
+    ~LXeRunAction() override;
 
-    virtual G4Run* GenerateRun();
-    virtual void BeginOfRunAction(const G4Run*);
-    virtual void EndOfRunAction(const G4Run*);
+    G4Run* GenerateRun() override;
+    void BeginOfRunAction(const G4Run*) override;
+    void EndOfRunAction(const G4Run*) override;
 
   private:
-
-    LXeRun*          fRun;
-    LXeHistoManager* fHistoManager;
+    LXeRun* fRun = nullptr;
+    LXeHistoManager* fHistoManager = nullptr;
 };
 
 #endif

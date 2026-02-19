@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file RunAction.cc
+/// \brief Implementation of the RunAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,34 +34,27 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file RunAction.cc
-/// \brief Implementation of the RunAction class
+
+#include "RunAction.hh"
 
 #include "G4RunManager.hh"
-#include "RunAction.hh"
-//#include "G4Run.hh
+// #include "G4Run.hh
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::RunAction() : G4UserRunAction()
-{}
+RunAction::RunAction() : G4UserRunAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::~RunAction()
-{}
+RunAction::~RunAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void RunAction::BeginOfRunAction(const G4Run*)
-{}
+void RunAction::BeginOfRunAction(const G4Run*) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void RunAction::EndOfRunAction(const G4Run*)
 {
-    G4cout << "Seed used :"
-        <<  CLHEP::HepRandom::getTheSeed() << G4endl;
+  G4cout << "Seed used :" << CLHEP::HepRandom::getTheSeed() << G4endl;
 }
-
-

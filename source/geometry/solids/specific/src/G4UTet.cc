@@ -22,7 +22,7 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-// 
+//
 // Implementation for G4UTet wrapper class
 //
 // 1.11.13 G.Cosmo, CERN
@@ -49,62 +49,30 @@ using namespace CLHEP;
 // A Tet has all of its geometrical information precomputed
 //
 G4UTet::G4UTet(const G4String& pName,
-                     G4ThreeVector anchor,
-                     G4ThreeVector p2,
-                     G4ThreeVector p3,
-                     G4ThreeVector p4, G4bool* degeneracyFlag)
+               const G4ThreeVector& anchor,
+               const G4ThreeVector& p1,
+               const G4ThreeVector& p2,
+               const G4ThreeVector& p3, G4bool* degeneracyFlag)
   : Base_t(pName, U3Vector(anchor.x(),anchor.y(),anchor.z()),
+                  U3Vector(p1.x(), p1.y(), p1.z()),
                   U3Vector(p2.x(), p2.y(), p2.z()),
-                  U3Vector(p3.x(), p3.y(), p3.z()),
-                  U3Vector(p4.x(), p4.y(), p4.z()))
+                  U3Vector(p3.x(), p3.y(), p3.z()))
 {
-  G4double fXMin=std::min(std::min(std::min(anchor.x(), p2.x()),p3.x()),p4.x());
-  G4double fXMax=std::max(std::max(std::max(anchor.x(), p2.x()),p3.x()),p4.x());
-  G4double fYMin=std::min(std::min(std::min(anchor.y(), p2.y()),p3.y()),p4.y());
-  G4double fYMax=std::max(std::max(std::max(anchor.y(), p2.y()),p3.y()),p4.y());
-  G4double fZMin=std::min(std::min(std::min(anchor.z(), p2.z()),p3.z()),p4.z());
-  G4double fZMax=std::max(std::max(std::max(anchor.z(), p2.z()),p3.z()),p4.z());
-
-  G4ThreeVector fMiddle=G4ThreeVector(fXMax+fXMin,fYMax+fYMin,fZMax+fZMin)*0.5;
-  G4double fMaxSize=std::max(std::max(std::max((anchor-fMiddle).mag(),
-                                               (p2-fMiddle).mag()),
-                                      (p3-fMiddle).mag()),
-                             (p4-fMiddle).mag());
-  // fV<x><y> is vector from vertex <y> to vertex <x>
-  //
-  G4ThreeVector fV21=p2-anchor;
-  G4ThreeVector fV31=p3-anchor;
-  G4ThreeVector fV41=p4-anchor;
-
-  // make sure this is a correctly oriented set of points for the tetrahedron
-  //
-  G4double signed_vol=fV21.cross(fV31).dot(fV41);
-  G4bool degenerate=std::fabs(signed_vol) < 1e-9*fMaxSize*fMaxSize*fMaxSize;
-
-  if(degeneracyFlag) *degeneracyFlag = degenerate;
+  // Check for degeneracy
+  G4bool degenerate = CheckDegeneracy(anchor, p1, p2, p3);
+  if(degeneracyFlag != nullptr) *degeneracyFlag = degenerate;
   else if (degenerate)
   {
     G4Exception("G4UTet::G4UTet()", "GeomSolids0002", FatalException,
                 "Degenerate tetrahedron not allowed.");
   }
-}
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Fake default constructor - sets only member data and allocates memory
-//                            for usage restricted to object persistency.
-//
-G4UTet::G4UTet( __void__& a )
-  : Base_t(a)
-{
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Destructor
-//
-G4UTet::~G4UTet()
-{
+  // Set bounding box
+  for (G4int i = 0; i < 3; ++i)
+  {
+    fBmin[i] = std::min(std::min(std::min(anchor[i], p1[i]), p2[i]), p3[i]);
+    fBmax[i] = std::max(std::max(std::max(anchor[i], p1[i]), p2[i]), p3[i]);
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -114,6 +82,8 @@ G4UTet::~G4UTet()
 G4UTet::G4UTet(const G4UTet& rhs)
   : Base_t(rhs)
 {
+  fBmin = rhs.fBmin;
+  fBmax = rhs.fBmax;
 }
 
 
@@ -121,17 +91,50 @@ G4UTet::G4UTet(const G4UTet& rhs)
 //
 // Assignment operator
 //
-G4UTet& G4UTet::operator = (const G4UTet& rhs) 
+G4UTet& G4UTet::operator = (const G4UTet& rhs)
 {
-   // Check assignment to self
-   //
-   if (this == &rhs)  { return *this; }
+  // Check assignment to self
+  if (this == &rhs)  { return *this; }
 
-   // Copy base class data
-   //
-   Base_t::operator=(rhs);
+  // Copy base class data
+  Base_t::operator=(rhs);
 
-   return *this;
+  // Copy bounding box
+  fBmin = rhs.fBmin;
+  fBmax = rhs.fBmax;
+
+  return *this;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Return true if tetrahedron is degenerate
+// Tetrahedron is concidered as degenerate in case if its minimal
+// height is less than the degeneracy tolerance
+//
+G4bool G4UTet::CheckDegeneracy(const G4ThreeVector& p0,
+                               const G4ThreeVector& p1,
+                               const G4ThreeVector& p2,
+                               const G4ThreeVector& p3) const
+{
+  G4double hmin = 4. * kCarTolerance; // degeneracy tolerance
+
+  // Calculate volume
+  G4double vol = std::abs((p1 - p0).cross(p2 - p0).dot(p3 - p0));
+
+  // Calculate face areas squared
+  G4double ss[4];
+  ss[0] = ((p1 - p0).cross(p2 - p0)).mag2();
+  ss[1] = ((p2 - p0).cross(p3 - p0)).mag2();
+  ss[2] = ((p3 - p0).cross(p1 - p0)).mag2();
+  ss[3] = ((p2 - p1).cross(p3 - p1)).mag2();
+
+  // Find face with max area
+  G4int k = 0;
+  for (G4int i = 1; i < 4; ++i) { if (ss[i] > ss[k]) k = i; }
+
+  // Check: vol^2 / s^2 <= hmin^2
+  return (vol*vol <= ss[k]*hmin*hmin);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -156,8 +159,44 @@ G4VSolid* G4UTet::Clone() const
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+// Modifier
+//
+void G4UTet::SetVertices(const G4ThreeVector& anchor,
+                         const G4ThreeVector& p1,
+                         const G4ThreeVector& p2,
+                         const G4ThreeVector& p3,
+                         G4bool* degeneracyFlag)
+{
+  // Check for degeneracy
+  G4bool degenerate = CheckDegeneracy(anchor, p1, p2, p3);
+  if(degeneracyFlag != nullptr) *degeneracyFlag = degenerate;
+  else if (degenerate)
+  {
+    G4Exception("G4UTet::SetVertices()", "GeomSolids0002", FatalException,
+                "Degenerate tetrahedron not allowed.");
+  }
+
+  // Change tetrahedron
+  *this = G4UTet(GetName(), anchor, p1, p2, p3, &degenerate);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
 // Accessors
 //
+void G4UTet::GetVertices(G4ThreeVector& anchor,
+                         G4ThreeVector& p1,
+                         G4ThreeVector& p2,
+                         G4ThreeVector& p3) const
+{
+  std::vector<U3Vector> vec(4);
+  Base_t::GetVertices(vec[0], vec[1], vec[2], vec[3]);
+  anchor = G4ThreeVector(vec[0].x(), vec[0].y(), vec[0].z());
+  p1 = G4ThreeVector(vec[1].x(), vec[1].y(), vec[1].z());
+  p2 = G4ThreeVector(vec[2].x(), vec[2].y(), vec[2].z());
+  p3 = G4ThreeVector(vec[3].x(), vec[3].y(), vec[3].z());
+}
+
 std::vector<G4ThreeVector> G4UTet::GetVertices() const
 {
   std::vector<U3Vector> vec(4);
@@ -171,30 +210,54 @@ std::vector<G4ThreeVector> G4UTet::GetVertices() const
   return vertices;
 }
 
+////////////////////////////////////////////////////////////////////////
+//
+// Set bounding box
+//
+void G4UTet::SetBoundingLimits(const G4ThreeVector& pMin,
+                               const G4ThreeVector& pMax)
+{
+  G4ThreeVector fVertex[4];
+  GetVertices(fVertex[0], fVertex[1], fVertex[2], fVertex[3]);
+
+  G4int iout[4] = { 0, 0, 0, 0 };
+  for (G4int i = 0; i < 4; ++i)
+  {
+    iout[i] = (G4int)(fVertex[i].x() < pMin.x() ||
+                      fVertex[i].y() < pMin.y() ||
+                      fVertex[i].z() < pMin.z() ||
+                      fVertex[i].x() > pMax.x() ||
+                      fVertex[i].y() > pMax.y() ||
+                      fVertex[i].z() > pMax.z());
+  }
+  if (iout[0] + iout[1] + iout[2] + iout[3] != 0)
+  {
+    std::ostringstream message;
+    message << "Attempt to set bounding box that does not encapsulate solid: "
+            << GetName() << " !\n"
+            << "  Specified bounding box limits:\n"
+            << "    pmin: " << pMin << "\n"
+            << "    pmax: " << pMax << "\n"
+            << "  Tetrahedron vertices:\n"
+            << "    anchor " << fVertex[0] << ((iout[0]) != 0 ? " is outside\n" : "\n")
+            << "    p1 "     << fVertex[1] << ((iout[1]) != 0 ? " is outside\n" : "\n")
+            << "    p2 "     << fVertex[2] << ((iout[2]) != 0 ? " is outside\n" : "\n")
+            << "    p3 "     << fVertex[3] << ((iout[3]) != 0 ? " is outside"   : "");
+    G4Exception("G4UTet::SetBoundingLimits()", "GeomSolids0002",
+                FatalException, message);
+  }
+  fBmin = pMin;
+  fBmax = pMax;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Get bounding box
 
 void G4UTet::BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const
 {
-  U3Vector vmin, vmax;
-  Base_t::Extent(vmin,vmax);
-  pMin.set(vmin.x(),vmin.y(),vmin.z());
-  pMax.set(vmax.x(),vmax.y(),vmax.z());
-
-  // Check correctness of the bounding box
-  //
-  if (pMin.x() >= pMax.x() || pMin.y() >= pMax.y() || pMin.z() >= pMax.z())
-  {
-    std::ostringstream message;
-    message << "Bad bounding box (min >= max) for solid: "
-            << GetName() << " !"
-            << "\npMin = " << pMin
-            << "\npMax = " << pMax;
-    G4Exception("G4UTet::BoundingLimits()", "GeomMgt0001",
-                JustWarning, message);
-    StreamInfo(G4cout);
-  }
+  pMin = fBmin;
+  pMax = fBmax;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -266,7 +329,7 @@ G4Polyhedron* G4UTet::CreatePolyhedron() const
     xyz[i][2] = vec[i].z();
   }
 
-  G4Polyhedron* ph = new G4Polyhedron;
+  auto ph = new G4Polyhedron;
   ph->createPolyhedron(4,4,xyz,faces);
   return ph;
 }

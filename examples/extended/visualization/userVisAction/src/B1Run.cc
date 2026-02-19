@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file B1Run.cc
 /// \brief Implementation of the B1Run class
 
@@ -31,36 +30,29 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-B1Run::B1Run()
-: G4Run(),
-  fEdep(0.), 
-  fEdep2(0.)
-{} 
+B1Run::B1Run() : G4Run(), fEdep(0.), fEdep2(0.) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-B1Run::~B1Run()
-{} 
- 
+B1Run::~B1Run() {}
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void B1Run::Merge(const G4Run* run)
 {
   const B1Run* localRun = static_cast<const B1Run*>(run);
-  fEdep  += localRun->fEdep;
+  fEdep += localRun->fEdep;
   fEdep2 += localRun->fEdep2;
 
-  G4Run::Merge(run); 
-} 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void B1Run::AddEdep (G4double edep)
-{
-  fEdep  += edep;
-  fEdep2 += edep*edep;
+  G4Run::Merge(run);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+void B1Run::AddEdep(G4double edep)
+{
+  fEdep += edep;
+  fEdep2 += edep * edep;
+}
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

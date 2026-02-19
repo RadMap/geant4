@@ -23,123 +23,102 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/monopole/monopole.cc
+/// \file monopole.cc
 /// \brief Main program of the exoticphysics/monopole example
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include "G4Types.hh"
-
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
-
-#include "G4UImanager.hh"
-#include "Randomize.hh"
-
-#include "G4VisExecutive.hh"
-#include "G4UIExecutive.hh"
-
+#include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
+
 #include "G4MonopolePhysics.hh"
 #include "G4PhysListFactory.hh"
+#include "G4RunManagerFactory.hh"
+#include "G4Types.hh"
+#include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
 #include "G4VModularPhysicsList.hh"
-#include "ActionInitialization.hh"
-
+#include "G4VisExecutive.hh"
+#include "Randomize.hh"
 #include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-namespace {
-  void PrintUsage() {
-    G4cerr 
-      << " Usage: " << G4endl
-      << " exampleB4a [-m macro ] [-s setupMonopole] [-t nThreads]" << G4endl
-      << "   Note: " << G4endl
-      << "    -s should be followed by a composed string, eg. \'1 0 100 GeV\'" << G4endl
-      << "    -t option is available only for multi-threaded mode." << G4endl
-      << G4endl;
-  }
+namespace
+{
+void PrintUsage()
+{
+  G4cerr << " Usage: " << G4endl << " monopole [-m macro ] [-s setupMonopole] [-t nThreads]"
+         << G4endl << "   Note: " << G4endl
+         << "    -s should be followed by a composed string, eg. \'1 0 100 GeV\'" << G4endl
+         << "    -t option is for multi-threaded mode." << G4endl << G4endl;
 }
+}  // namespace
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-int main(int argc,char** argv) 
+int main(int argc, char** argv)
 {
   // Evaluate arguments
   //
-  if ( argc > 7 ) {
+  if (argc > 7) {
     PrintUsage();
     return 1;
   }
 
   G4String macro;
   G4String setupMonopole;
-#ifdef G4MULTITHREADED
-  G4int nThreads = 0;
-#endif
-  for ( G4int i=1; i<argc; i=i+2 ) {
-    if      ( G4String(argv[i]) == "-m" ) macro = argv[i+1];
-    else if ( G4String(argv[i]) == "-s" ) setupMonopole = argv[i+1];
-#ifdef G4MULTITHREADED
-    else if ( G4String(argv[i]) == "-t" ) {
-      nThreads = G4UIcommand::ConvertToInt(argv[i+1]);
+  G4int nThreads = 1;
+  for (G4int i = 1; i < argc; i = i + 2) {
+    if (G4String(argv[i]) == "-m")
+      macro = argv[i + 1];
+    else if (G4String(argv[i]) == "-s")
+      setupMonopole = argv[i + 1];
+    else if (G4String(argv[i]) == "-t") {
+      nThreads = G4UIcommand::ConvertToInt(argv[i + 1]);
     }
-#endif
     else {
       PrintUsage();
       return 1;
     }
-  }  
-  
-  // Instantiate G4UIExecutive if interactive mode
+  }
+
+  // Construct the default run manager
+  auto* runManager = G4RunManagerFactory::CreateRunManager();
+  if (nThreads > 0) {
+    runManager->SetNumberOfThreads(nThreads);
+  }
+  G4cout << "===== Example is started with " << runManager->GetNumberOfThreads()
+         << " threads =====" << G4endl;
+
+  // Instantiate G4UIExecutive if interactive
   G4UIExecutive* ui = nullptr;
-  if ( ! macro.size() ) {
+  if (macro.empty()) {
     ui = new G4UIExecutive(argc, argv);
   }
 
-  //choose the Random engine
-  CLHEP::HepRandom::setTheEngine(new CLHEP::MixMaxRng);
+  // get the pointer to the User Interface manager
+  G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  // Construct the default run manager
-#ifdef G4MULTITHREADED
-  G4MTRunManager* runManager = new G4MTRunManager;
-  if ( nThreads > 0 ) { 
-    runManager->SetNumberOfThreads(nThreads);
-  }  
-  G4cout << "===== Monopole is started with "
-         <<  runManager->GetNumberOfThreads() << " threads =====" << G4endl;
-#else
-  G4RunManager* runManager = new G4RunManager();
-#endif
-
-  //create physicsList
-  // Physics List is defined via environment variable PHYSLIST
+  // create physicsList
+  //  Physics List is defined via environment variable PHYSLIST
   G4PhysListFactory factory;
   G4VModularPhysicsList* phys = factory.GetReferencePhysList("FTFP_BERT");
 
   // monopole physics is added
-  G4MonopolePhysics * theMonopole = new G4MonopolePhysics();
+  G4MonopolePhysics* theMonopole = new G4MonopolePhysics();
 
-  //get the pointer to the User Interface manager
-  G4UImanager* UImanager = G4UImanager::GetUIpointer();
   // Setup monopole
-  if ( setupMonopole.size() )  {
+  if (setupMonopole.size()) {
     UImanager->ApplyCommand("/control/verbose 1");
     UImanager->ApplyCommand("/monopole/setup " + setupMonopole);
   }
 
   // regsiter monopole physics
   phys->RegisterPhysics(theMonopole);
+
   runManager->SetUserInitialization(phys);
 
   // visualization manager
-  G4VisManager* visManager = new G4VisExecutive();
-  visManager->Initialize();
+  G4VisManager* visManager = nullptr;
 
   // set detector construction
   DetectorConstruction* det = new DetectorConstruction();
@@ -150,13 +129,15 @@ int main(int argc,char** argv)
 
   // Process macro or start UI session
   //
-  if ( macro.size() ) {
+  if (macro.size()) {
     // batch mode
     G4String command = "/control/execute ";
-    UImanager->ApplyCommand(command+macro);
+    UImanager->ApplyCommand(command + macro);
   }
-  else  {  
+  else {
     // interactive mode : define UI session
+    visManager = new G4VisExecutive();
+    visManager->Initialize();
     UImanager->ApplyCommand("/control/execute init_vis.mac");
     ui->SessionStart();
     delete ui;

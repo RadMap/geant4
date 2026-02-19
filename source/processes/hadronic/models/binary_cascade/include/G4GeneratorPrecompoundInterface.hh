@@ -95,6 +95,7 @@ private:
 
   const G4ParticleDefinition* proton;
   const G4ParticleDefinition* neutron;
+  const G4ParticleDefinition* lambda;
 
   const G4ParticleDefinition* deuteron;
   const G4ParticleDefinition* triton;
@@ -108,6 +109,8 @@ private:
   const G4ParticleDefinition* ANTItriton;
   const G4ParticleDefinition* ANTIHe3;
   const G4ParticleDefinition* ANTIHe4;
+
+  G4int secID;  // Creator model ID
 };
 
 inline

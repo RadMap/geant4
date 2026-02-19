@@ -64,14 +64,15 @@ G4EmExtraParametersMessenger::G4EmExtraParametersMessenger(G4EmExtraParameters* 
   paiCmd->SetGuidance("  regName   : G4Region name");
   paiCmd->SetGuidance("  paiType   : PAI, PAIphoton");
   paiCmd->AvailableForStates(G4State_PreInit);
+  paiCmd->SetToBeBroadcasted(false);
 
-  G4UIparameter* part = new G4UIparameter("partName",'s',false);
+  auto part = new G4UIparameter("partName",'s',false);
   paiCmd->SetParameter(part);
 
-  G4UIparameter* pregName = new G4UIparameter("regName",'s',false);
+  auto pregName = new G4UIparameter("regName",'s',false);
   paiCmd->SetParameter(pregName);
 
-  G4UIparameter* ptype = new G4UIparameter("type",'s',false);
+  auto ptype = new G4UIparameter("type",'s',false);
   paiCmd->SetParameter(ptype);
   ptype->SetParameterCandidates("pai PAI PAIphoton");
 
@@ -80,19 +81,20 @@ G4EmExtraParametersMessenger::G4EmExtraParametersMessenger(G4EmExtraParameters* 
   mscoCmd->SetGuidance("  regName  : G4Region name");
   mscoCmd->SetGuidance("  emType   : G4EmStandard, G4EmStandard_opt1, ...");
   mscoCmd->AvailableForStates(G4State_PreInit);
+  mscoCmd->SetToBeBroadcasted(false);
 
-  G4UIparameter* mregName = new G4UIparameter("regName",'s',false);
+  auto mregName = new G4UIparameter("regName",'s',false);
   mscoCmd->SetParameter(mregName);
 
-  G4UIparameter* mtype = new G4UIparameter("mscType",'s',false);
+  auto mtype = new G4UIparameter("mscType",'s',false);
   mscoCmd->SetParameter(mtype);
   mtype->SetParameterCandidates("G4EmStandard G4EmStandard_opt1 G4EmStandard_opt2 G4EmStandard_opt3 G4EmStandard_opt4 G4EmStandardGS G4EmStandardSS G4EmLivermore G4EmPenelope G4RadioactiveDecay");
 
-  SubSecCmd = new G4UIcommand("/process/eLoss/subsec",this);
-  SubSecCmd->SetGuidance("Switch true/false the subcutoff generation per region.");
-  SubSecCmd->SetGuidance("  subSec   : true/false");
+  SubSecCmd = new G4UIcmdWithAString("/process/eLoss/subsecRegion",this);
+  SubSecCmd->SetGuidance("Enable subcut generation per region.");
   SubSecCmd->SetGuidance("  Region   : region name");
   SubSecCmd->AvailableForStates(G4State_PreInit);
+  SubSecCmd->SetToBeBroadcasted(false);
 
   StepFuncCmd = new G4UIcommand("/process/eLoss/StepFunction",this);
   StepFuncCmd->SetGuidance("Set the energy loss step limitation parameters for e+-.");
@@ -100,16 +102,17 @@ G4EmExtraParametersMessenger::G4EmExtraParametersMessenger(G4EmExtraParameters* 
   StepFuncCmd->SetGuidance("  finalRange: range for final step");
   StepFuncCmd->SetGuidance("  unit      : unit of finalRange");
   StepFuncCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  StepFuncCmd->SetToBeBroadcasted(false);
 
-  G4UIparameter* dRoverRPrm = new G4UIparameter("dRoverR",'d',false);
+  auto dRoverRPrm = new G4UIparameter("dRoverR",'d',false);
   dRoverRPrm->SetParameterRange("dRoverR>0. && dRoverR<=1.");
   StepFuncCmd->SetParameter(dRoverRPrm);
 
-  G4UIparameter* finalRangePrm = new G4UIparameter("finalRange",'d',false);
+  auto finalRangePrm = new G4UIparameter("finalRange",'d',false);
   finalRangePrm->SetParameterRange("finalRange>0.");
   StepFuncCmd->SetParameter(finalRangePrm);
 
-  G4UIparameter* unitPrm = new G4UIparameter("unit",'s',true);
+  auto unitPrm = new G4UIparameter("unit",'s',true);
   unitPrm->SetDefaultUnit("mm");
   StepFuncCmd->SetParameter(unitPrm);
 
@@ -118,24 +121,57 @@ G4EmExtraParametersMessenger::G4EmExtraParametersMessenger(G4EmExtraParameters* 
   StepFuncCmd1->SetGuidance("  dRoverR   : max Range variation per step");
   StepFuncCmd1->SetGuidance("  finalRange: range for final step");
   StepFuncCmd1->AvailableForStates(G4State_PreInit,G4State_Idle);
+  StepFuncCmd1->SetToBeBroadcasted(false);
 
-  G4UIparameter* dRoverRPrm1 = new G4UIparameter("dRoverRMuHad",'d',false);
+  auto dRoverRPrm1 = new G4UIparameter("dRoverRMuHad",'d',false);
   dRoverRPrm1->SetParameterRange("dRoverRMuHad>0. && dRoverRMuHad<=1.");
   StepFuncCmd1->SetParameter(dRoverRPrm1);
 
-  G4UIparameter* finalRangePrm1 = new G4UIparameter("finalRangeMuHad",'d',false);
+  auto finalRangePrm1 = new G4UIparameter("finalRangeMuHad",'d',false);
   finalRangePrm1->SetParameterRange("finalRangeMuHad>0.");
   StepFuncCmd1->SetParameter(finalRangePrm1);
 
-  G4UIparameter* unitPrm1 = new G4UIparameter("unit",'s',true);
+  auto unitPrm1 = new G4UIparameter("unit",'s',true);
   unitPrm1->SetDefaultValue("mm");
   StepFuncCmd1->SetParameter(unitPrm1);
 
-  G4UIparameter* subSec = new G4UIparameter("subSec",'s',false);
-  SubSecCmd->SetParameter(subSec);
+  StepFuncCmd2 = new G4UIcommand("/process/eLoss/StepFunctionLightIons",this);
+  StepFuncCmd2->SetGuidance("Set the energy loss step limitation parameters for light ions.");
+  StepFuncCmd2->SetGuidance("  dRoverR   : max Range variation per step");
+  StepFuncCmd2->SetGuidance("  finalRange: range for final step");
+  StepFuncCmd2->AvailableForStates(G4State_PreInit,G4State_Idle);
+  StepFuncCmd2->SetToBeBroadcasted(false);
 
-  G4UIparameter* subSecReg = new G4UIparameter("Region",'s',false);
-  SubSecCmd->SetParameter(subSecReg);
+  auto dRoverRPrm2 = new G4UIparameter("dRoverRLIons",'d',false);
+  dRoverRPrm2->SetParameterRange("dRoverRLIons>0. && dRoverRLIons<=1.");
+  StepFuncCmd2->SetParameter(dRoverRPrm2);
+
+  auto finalRangePrm2 = new G4UIparameter("finalRangeLIons",'d',false);
+  finalRangePrm2->SetParameterRange("finalRangeLIons>0.");
+  StepFuncCmd2->SetParameter(finalRangePrm2);
+
+  auto unitPrm2 = new G4UIparameter("unit",'s',true);
+  unitPrm2->SetDefaultValue("mm");
+  StepFuncCmd2->SetParameter(unitPrm2);
+
+  StepFuncCmd3 = new G4UIcommand("/process/eLoss/StepFunctionIons",this);
+  StepFuncCmd3->SetGuidance("Set the energy loss step limitation parameters for ions.");
+  StepFuncCmd3->SetGuidance("  dRoverR   : max Range variation per step");
+  StepFuncCmd3->SetGuidance("  finalRange: range for final step");
+  StepFuncCmd3->AvailableForStates(G4State_PreInit,G4State_Idle);
+  StepFuncCmd3->SetToBeBroadcasted(false);
+
+  auto dRoverRPrm3 = new G4UIparameter("dRoverRIons",'d',false);
+  dRoverRPrm3->SetParameterRange("dRoverRIons>0. && dRoverRIons<=1.");
+  StepFuncCmd3->SetParameter(dRoverRPrm3);
+
+  auto finalRangePrm3 = new G4UIparameter("finalRangeIons",'d',false);
+  finalRangePrm3->SetParameterRange("finalRangeIons>0.");
+  StepFuncCmd3->SetParameter(finalRangePrm3);
+
+  auto unitPrm3 = new G4UIparameter("unit",'s',true);
+  unitPrm3->SetDefaultValue("mm");
+  StepFuncCmd3->SetParameter(unitPrm3);
 
   bfCmd = new G4UIcommand("/process/em/setBiasingFactor",this);
   bfCmd->SetGuidance("Set factor for the process cross section.");
@@ -143,14 +179,15 @@ G4EmExtraParametersMessenger::G4EmExtraParametersMessenger(G4EmExtraParameters* 
   bfCmd->SetGuidance("  procFact   : factor");
   bfCmd->SetGuidance("  flagFact   : flag to change weight");
   bfCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  bfCmd->SetToBeBroadcasted(false);
 
-  G4UIparameter* procName = new G4UIparameter("procName",'s',false);
+  auto procName = new G4UIparameter("procName",'s',false);
   bfCmd->SetParameter(procName);
 
-  G4UIparameter* procFact = new G4UIparameter("procFact",'d',false);
+  auto procFact = new G4UIparameter("procFact",'d',false);
   bfCmd->SetParameter(procFact);
 
-  G4UIparameter* flagFact = new G4UIparameter("flagFact",'s',false);
+  auto flagFact = new G4UIparameter("flagFact",'s',false);
   bfCmd->SetParameter(flagFact);
 
   fiCmd = new G4UIcommand("/process/em/setForcedInteraction",this);
@@ -161,22 +198,23 @@ G4EmExtraParametersMessenger::G4EmExtraParametersMessenger(G4EmExtraParameters* 
   fiCmd->SetGuidance("  unitT      : length unit");
   fiCmd->SetGuidance("  tflag      : flag to change weight");
   fiCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  fiCmd->SetToBeBroadcasted(false);
 
-  G4UIparameter* procNam = new G4UIparameter("procNam",'s',false);
+  auto procNam = new G4UIparameter("procNam",'s',false);
   fiCmd->SetParameter(procNam);
 
-  G4UIparameter* regNam = new G4UIparameter("regNam",'s',false);
+  auto  regNam = new G4UIparameter("regNam",'s',false);
   fiCmd->SetParameter(regNam);
 
-  G4UIparameter* tlength = new G4UIparameter("tlength",'d',false);
+  auto tlength = new G4UIparameter("tlength",'d',false);
   tlength->SetParameterRange("tlength>0");
   fiCmd->SetParameter(tlength);
 
-  G4UIparameter* unitT = new G4UIparameter("unitT",'s',true);
+  auto unitT = new G4UIparameter("unitT",'s',true);
   unitT->SetDefaultUnit("mm");
   fiCmd->SetParameter(unitT);
 
-  G4UIparameter* flagT = new G4UIparameter("tflag",'b',true);
+  auto flagT = new G4UIparameter("tflag",'b',true);
   flagT->SetDefaultValue(true);
   fiCmd->SetParameter(flagT);
 
@@ -188,30 +226,33 @@ G4EmExtraParametersMessenger::G4EmExtraParametersMessenger(G4EmExtraParameters* 
   bsCmd->SetGuidance("  bEnergy  : max energy of a secondary for this biasing method");
   bsCmd->SetGuidance("  bUnit    : energy unit");
   bsCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  bsCmd->SetToBeBroadcasted(false);
 
-  G4UIparameter* bProcNam = new G4UIparameter("bProcNam",'s',false);
+  auto bProcNam = new G4UIparameter("bProcNam",'s',false);
   bsCmd->SetParameter(bProcNam);
 
-  G4UIparameter* bRegNam = new G4UIparameter("bRegNam",'s',false);
+  auto bRegNam = new G4UIparameter("bRegNam",'s',false);
   bsCmd->SetParameter(bRegNam);
 
-  G4UIparameter* bFactor = new G4UIparameter("bFactor",'d',false);
+  auto bFactor = new G4UIparameter("bFactor",'d',false);
   bsCmd->SetParameter(bFactor);
 
-  G4UIparameter* bEnergy = new G4UIparameter("bEnergy",'d',false);
+  auto bEnergy = new G4UIparameter("bEnergy",'d',false);
   bsCmd->SetParameter(bEnergy);
 
-  G4UIparameter* bUnit = new G4UIparameter("bUnit",'s',true);
+  auto bUnit = new G4UIparameter("bUnit",'s',true);
   bUnit->SetDefaultUnit("MeV");
   bsCmd->SetParameter(bUnit);
 
   dirSplitCmd = new G4UIcmdWithABool("/process/em/setDirectionalSplitting",this);
   dirSplitCmd->SetGuidance("Enable directional brem splitting");
   dirSplitCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  dirSplitCmd->SetToBeBroadcasted(false);
 
   qeCmd = new G4UIcmdWithABool("/process/em/QuantumEntanglement",this);
   qeCmd->SetGuidance("Enable quantum entanglement");
-  qeCmd->AvailableForStates(G4State_PreInit);
+  qeCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  qeCmd->SetToBeBroadcasted(false);
 
   dirSplitTargetCmd = new G4UIcmdWith3VectorAndUnit("/process/em/setDirectionalSplittingTarget",this);
   dirSplitTargetCmd->SetGuidance("Position of arget for directional splitting");
@@ -220,6 +261,7 @@ G4EmExtraParametersMessenger::G4EmExtraParametersMessenger(G4EmExtraParameters* 
   dirSplitRadiusCmd = new G4UIcmdWithADoubleAndUnit("/process/em/setDirectionalSplittingRadius",this);
   dirSplitRadiusCmd->SetGuidance("Radius of target for directional splitting");
   dirSplitRadiusCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  dirSplitRadiusCmd->SetToBeBroadcasted(false);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -235,6 +277,8 @@ G4EmExtraParametersMessenger::~G4EmExtraParametersMessenger()
   delete qeCmd;
   delete StepFuncCmd;
   delete StepFuncCmd1;
+  delete StepFuncCmd2;
+  delete StepFuncCmd3;
   delete dirSplitCmd;
   delete dirSplitTargetCmd;
   delete dirSplitRadiusCmd;
@@ -257,7 +301,7 @@ void G4EmExtraParametersMessenger::SetNewValue(G4UIcommand* command,
     std::istringstream is(newValue);
     is >> s1 >> s2;
     theParameters->AddPhysics(s1, s2);
-  } else if (command == StepFuncCmd || command == StepFuncCmd1) {
+  } else if (command == StepFuncCmd || command == StepFuncCmd1 || command == StepFuncCmd2 || command == StepFuncCmd3) {
     G4double v1,v2;
     G4String unt;
     std::istringstream is(newValue);
@@ -265,17 +309,16 @@ void G4EmExtraParametersMessenger::SetNewValue(G4UIcommand* command,
     v2 *= G4UIcommand::ValueOf(unt);
     if(command == StepFuncCmd) {
       theParameters->SetStepFunction(v1,v2);
-    } else {
+    } else if(command == StepFuncCmd1) {
       theParameters->SetStepFunctionMuHad(v1,v2);
+    } else if(command == StepFuncCmd2) {
+      theParameters->SetStepFunctionLightIons(v1,v2);
+    } else {
+      theParameters->SetStepFunctionIons(v1,v2);
     }
     physicsModified = true;
   } else if (command == SubSecCmd) {
-    G4String s1, s2;
-    std::istringstream is(newValue);
-    is >> s1 >> s2;
-    G4bool yes = false;
-    if(s1 == "true") { yes = true; }
-    theParameters->SetSubCutoff(yes,s2);
+    theParameters->SetSubCutRegion(newValue);
   } else if (command == bfCmd) {
     G4double v1(1.0);
     G4String s0(""),s1("");

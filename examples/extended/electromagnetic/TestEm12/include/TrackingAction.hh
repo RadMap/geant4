@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm12/include/TrackingAction.hh
+/// \file TrackingAction.hh
 /// \brief Definition of the TrackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef TrackingAction_h
 #define TrackingAction_h 1
@@ -40,16 +36,16 @@ class PrimaryGeneratorAction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class TrackingAction : public G4UserTrackingAction {
-
-  public:  
+class TrackingAction : public G4UserTrackingAction
+{
+  public:
     TrackingAction(PrimaryGeneratorAction*);
-   ~TrackingAction() {};
-   
-    virtual void PostUserTrackingAction(const G4Track*);
-    
+    ~TrackingAction() override = default;
+
+    void PostUserTrackingAction(const G4Track*) override;
+
   private:
-    PrimaryGeneratorAction* fPrimary;
+    PrimaryGeneratorAction* fPrimary = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

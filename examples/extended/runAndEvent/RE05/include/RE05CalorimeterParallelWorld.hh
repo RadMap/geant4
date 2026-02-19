@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file RE05/include/RE05CalorimeterParallelWorld.hh
+/// \file RE05CalorimeterParallelWorld.hh
 /// \brief Definition of the RE05CalorimeterParallelWorld class
-//
 
 #ifndef RE05CalorimeterParallelWorld_h
 #define RE05CalorimeterParallelWorld_h 1
@@ -35,17 +33,16 @@
 
 class RE05CalorimeterParallelWorld : public G4VUserParallelWorld
 {
-public:
-  RE05CalorimeterParallelWorld(G4String& parallelWorldName);
-  virtual ~RE05CalorimeterParallelWorld();
+  public:
+    RE05CalorimeterParallelWorld(G4String& parallelWorldName);
+    virtual ~RE05CalorimeterParallelWorld();
 
-public:
-  virtual void Construct();
-  virtual void ConstructSD();
+  public:
+    virtual void Construct();
+    virtual void ConstructSD();
 
-private:
+  private:
 #include "RE05DetectorParameterDef.hh"
-
 };
 
 #endif

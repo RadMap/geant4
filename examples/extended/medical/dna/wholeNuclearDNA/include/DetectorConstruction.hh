@@ -23,16 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file DetectorConstruction.hh
+/// \brief Definition of the DetectorConstruction class
+
 // This example is provided by the Geant4-DNA collaboration
-// Any report or published results obtained using the Geant4-DNA software 
-// and the DNA geometry given in the Geom_DNA example 
+// Any report or published results obtained using the Geant4-DNA software
+// and the DNA geometry given in the Geom_DNA example
 // shall cite the following Geant4-DNA collaboration publications:
 // [1] NIM B 298 (2013) 47-54
 // [2] Med. Phys. 37 (2010) 4692-4708
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
-/// \file DetectorConstruction.hh
-/// \brief Definition of the DetectorConstruction class
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
@@ -46,20 +47,18 @@ class G4Material;
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
+  public:
+    DetectorConstruction();
+    virtual ~DetectorConstruction();
+    virtual G4VPhysicalVolume* Construct();
 
-  DetectorConstruction();
-  virtual ~DetectorConstruction();
-  virtual G4VPhysicalVolume* Construct();
+  private:
+    void DefineMaterials();
+    G4VPhysicalVolume* ConstructDetector();
+    void LoadChromosome(const char* filename, G4VPhysicalVolume* physiBox,
+                        G4LogicalVolume* logicBoxros);
 
-private:
-  void DefineMaterials();
-  G4VPhysicalVolume* ConstructDetector();
-  void LoadChromosome(const char* filename,
-                      G4VPhysicalVolume* physiBox,
-                      G4LogicalVolume* logicBoxros);
-
-  G4bool fBuildChromatineFiber;
-  G4bool fBuildBases;
+    G4bool fBuildChromatineFiber;
+    G4bool fBuildBases;
 };
 #endif

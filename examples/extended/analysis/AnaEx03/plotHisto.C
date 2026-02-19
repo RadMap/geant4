@@ -1,20 +1,27 @@
 {
   gROOT->Reset();
-  
-  // Draw histos filled by Geant4 simulation 
-  //   
-  TFile f = TFile("AnaEx03.root");  
+
+  // Draw histos filled by Geant4 simulation
+  //
+  TFile f = TFile("e-.root");
   TCanvas* c1 = new TCanvas("c1", "  ");
-  
-  TH1D* hist1 = (TH1D*)f.Get("1");
+  c1->Divide(2,2);
+
+  TDirectory* dir = (TDirectory*)f.Get("histo");
+
+  c1->cd(1);
+  TH1D* hist1 = (TH1D*)dir->Get("EAbs");
   hist1->Draw("HIST");
-  
-  TH1D* hist2 = (TH1D*)f.Get("2");
+
+  c1->cd(2);
+  TH1D* hist2 = (TH1D*)dir->Get("EGap");
   hist2->Draw("HIST");
-  
-  TH1D* hist3 = (TH1D*)f.Get("3");
-  c1->SetLogy(1);
-  c1->cd();
-  c1->Update(); 
-  hist3->Draw("HIST");    
-}  
+
+  c1->cd(3);
+  TH1D* hist3 = (TH1D*)dir->Get("LAbs");
+  hist3->Draw("HIST");
+
+  c1->cd(4);
+  TH1D* hist4 = (TH1D*)dir->Get("LGap");
+  hist4->Draw("HIST");
+}

@@ -25,7 +25,7 @@
 //
 // Implementation for G4ReflectedSolid class
 //
-// Author: Vladimir Grichine, 23.07.01  (Vladimir.Grichine@cern.ch)
+// Author: Vladimir Grichine (CERN), 23.07.2001 - Created
 // --------------------------------------------------------------------
 
 #include "G4ReflectedSolid.hh"
@@ -104,7 +104,7 @@ G4ReflectedSolid& G4ReflectedSolid::operator=(const G4ReflectedSolid& rhs)
 
 G4GeometryType G4ReflectedSolid::GetEntityType() const 
 {
-  return G4String("G4ReflectedSolid");
+  return {"G4ReflectedSolid"};
 }
 
 const G4ReflectedSolid* G4ReflectedSolid::GetReflectedSolidPtr() const   
@@ -218,7 +218,7 @@ G4ReflectedSolid::CalculateExtent( const EAxis pAxis,
   // Separation of transformations. Calculation of the extent is done
   // in a reflection of the global space. In such way, the voxel is
   // reflected, but the solid is transformed just by G4AffineTransform.
-  // It allows to use CalculateExtent() of the solid.
+  // It allows one to use CalculateExtent() of the solid.
 
   // Reflect voxel limits in Z
   //
@@ -350,6 +350,24 @@ G4ReflectedSolid::ComputeDimensions(       G4VPVParameterisation*,
 
 //////////////////////////////////////////////////////////////
 //
+// Return volume
+
+G4double G4ReflectedSolid::GetCubicVolume()
+{
+  return fPtrSolid->GetCubicVolume();
+}
+
+//////////////////////////////////////////////////////////////
+//
+// Return surface area
+
+G4double G4ReflectedSolid::GetSurfaceArea()
+{
+  return fPtrSolid->GetSurfaceArea();
+}
+
+//////////////////////////////////////////////////////////////
+//
 // Return a point (G4ThreeVector) randomly and uniformly selected
 // on the solid surface
 
@@ -357,6 +375,25 @@ G4ThreeVector G4ReflectedSolid::GetPointOnSurface() const
 {
   G4ThreeVector p  =  fPtrSolid->GetPointOnSurface();
   return (*fDirectTransform3D)*G4Point3D(p);
+}
+
+//////////////////////////////////////////////////////////////
+//
+// Return the number of constituents used for construction
+// of the solid
+
+G4int G4ReflectedSolid::GetNumOfConstituents() const
+{
+  return fPtrSolid->GetNumOfConstituents();
+}
+
+//////////////////////////////////////////////////////////////
+//
+// Return true if the reflected solid has only planar faces
+
+G4bool G4ReflectedSolid::IsFaceted() const
+{
+  return fPtrSolid->IsFaceted();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -367,7 +404,6 @@ G4VSolid* G4ReflectedSolid::Clone() const
 {
   return new G4ReflectedSolid(*this);
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -418,16 +454,13 @@ G4ReflectedSolid::CreatePolyhedron () const
     polyhedron->Transform(*fDirectTransform3D);
     return polyhedron;
   }
-  else
-  {
-    std::ostringstream message;
-    message << "Solid - " << GetName()
-            << " - original solid has no" << G4endl
-            << "corresponding polyhedron. Returning NULL!";
-    G4Exception("G4ReflectedSolid::CreatePolyhedron()",
-                "GeomMgt1001", JustWarning, message);
-    return nullptr;
-  }
+  std::ostringstream message;
+  message << "Solid - " << GetName()
+          << " - original solid has no" << G4endl
+          << "corresponding polyhedron. Returning NULL!";
+  G4Exception("G4ReflectedSolid::CreatePolyhedron()",
+              "GeomMgt1001", JustWarning, message);
+  return nullptr;
 }
 
 /////////////////////////////////////////////////////////
@@ -440,9 +473,9 @@ G4ReflectedSolid::GetPolyhedron () const
   if ((fpPolyhedron == nullptr) || fRebuildPolyhedron ||
       (fpPolyhedron->GetNumberOfRotationStepsAtTimeOfCreation() !=
        fpPolyhedron->GetNumberOfRotationSteps()))
-    {
-      fpPolyhedron = CreatePolyhedron();
-      fRebuildPolyhedron = false;
-    }
+  {
+    fpPolyhedron = CreatePolyhedron();
+    fRebuildPolyhedron = false;
+  }
   return fpPolyhedron;
 }

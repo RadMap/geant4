@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/phonon/include/XPrimaryGeneratorAction.hh
+/// \file XPrimaryGeneratorAction.hh
 /// \brief Definition of the XPrimaryGeneratorAction class
-//
-//
 
 #ifndef XPrimaryGeneratorAction_h
 #define XPrimaryGeneratorAction_h 1
@@ -38,9 +36,9 @@ class G4Event;
 
 class XPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
-  XPrimaryGeneratorAction();    
-  virtual ~XPrimaryGeneratorAction();
+  public:
+    XPrimaryGeneratorAction();
+    virtual ~XPrimaryGeneratorAction();
 
   public:
     virtual void GeneratePrimaries(G4Event*);
@@ -49,7 +47,4 @@ public:
     G4ParticleGun* fParticleGun;
 };
 
-
 #endif
-
-

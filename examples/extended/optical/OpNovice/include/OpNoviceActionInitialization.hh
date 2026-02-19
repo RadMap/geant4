@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file OpNoviceActionInitialization.hh
 /// \brief Definition of the OpNoviceActionInitialization class
 
@@ -32,19 +31,14 @@
 
 #include "G4VUserActionInitialization.hh"
 
-class B4DetectorConstruction;
-
-/// Action initialization class.
-///
-
 class OpNoviceActionInitialization : public G4VUserActionInitialization
 {
   public:
-    OpNoviceActionInitialization();
-    virtual ~OpNoviceActionInitialization();
+    OpNoviceActionInitialization() = default;
+    ~OpNoviceActionInitialization() override = default;
 
-    virtual void BuildForMaster() const;
-    virtual void Build() const;
+    void BuildForMaster() const override;
+    void Build() const override;
 };
 
 #endif

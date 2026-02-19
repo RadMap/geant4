@@ -23,34 +23,24 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file F02ActionInitialization.cc
 /// \brief Implementation of the F02ActionInitialization class
 
 #include "F02ActionInitialization.hh"
+
+#include "F02DetectorConstruction.hh"
 #include "F02PrimaryGeneratorAction.hh"
 #include "F02SteppingVerbose.hh"
 
-#include "F02DetectorConstruction.hh"
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-F02ActionInitialization::F02ActionInitialization
-                            (F02DetectorConstruction* detConstruction)
- : G4VUserActionInitialization(),
-   fDetConstruction(detConstruction)
+F02ActionInitialization::F02ActionInitialization(F02DetectorConstruction* detConstruction)
+  : fDetConstruction(detConstruction)
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-F02ActionInitialization::~F02ActionInitialization()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void F02ActionInitialization::BuildForMaster() const
-{
-}
+void F02ActionInitialization::BuildForMaster() const {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

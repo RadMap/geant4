@@ -23,52 +23,53 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// This example is provided by the Geant4-DNA collaboration
-// Any report or published results obtained using the Geant4-DNA software 
-// shall cite the following Geant4-DNA collaboration publications:
-// Phys. Med. 31 (2015) 861-874
-// Med. Phys. 37 (2010) 4692-4708
-// The Geant4-DNA web site is available at http://geant4-dna.org
-//
 /// \file DetectorConstruction.hh
 /// \brief Definition of the DetectorConstruction class
+
+// This example is provided by the Geant4-DNA collaboration
+// Any report or published results obtained using the Geant4-DNA software
+// shall cite the following Geant4-DNA collaboration publications:
+// Med. Phys. 45 (2018) e722-e739
+// Phys. Med. 31 (2015) 861-874
+// Med. Phys. 37 (2010) 4692-4708
+// Int. J. Model. Simul. Sci. Comput. 1 (2010) 157–178
+// The Geant4-DNA web site is available at http://geant4-dna.org
+//
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
 
 #include "G4VUserDetectorConstruction.hh"
 
+#include <CLHEP/Units/SystemOfUnits.h>
+#include <memory>
+
 class G4Material;
 class DetectorMessenger;
-
-/// Detector construction class to define materials, geometry
-/// and global uniform magnetic field.
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
     DetectorConstruction();
-    virtual ~DetectorConstruction();
+    ~DetectorConstruction() override;
 
-    virtual G4VPhysicalVolume* Construct();
-    virtual void ConstructSDandField();
-    
-    void SetTrackingCut(G4double);
-    void SetMaxStepSize(G4double);
+    G4VPhysicalVolume* Construct() override;
+    void ConstructSDandField() override;
+
+    void SetTrackingCut(const G4double&);
+    void SetMaxStepSize(const G4double&);
     void PrintParameters() const;
-  
+    void SetTrackerSDRadius(const G4double&);
+
   private:
     void DefineMaterials();
     G4VPhysicalVolume* DefineVolumes();
-  
-    DetectorMessenger* fDetectorMessenger;
-    
-    G4Material* fpWaterMaterial;
-    G4double fpTrackingCut;
-    G4double fpMaxStepSize;
+    std::unique_ptr<DetectorMessenger> fDetectorMessenger;
 
+    G4Material* fpWaterMaterial = nullptr;
+    G4double fpTrackingCut = 11. * CLHEP::eV;
+    G4double fpMaxStepSize = DBL_MAX;
+    G4double fRadius = 0.;
 };
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif

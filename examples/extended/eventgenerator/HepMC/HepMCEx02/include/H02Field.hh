@@ -23,23 +23,22 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/HepMCEx02/include/H02Field.hh
+/// \file H02Field.hh
 /// \brief Definition of the H02Field class
-//
-//
+
 #ifndef H02_FIELD_H
 #define H02_FIELD_H
 
-#include "globals.hh"
 #include "G4MagneticField.hh"
+#include "globals.hh"
 
-class H02Field : public G4MagneticField {
-public:
-  H02Field() : G4MagneticField() { }
-  ~H02Field() { }
+class H02Field : public G4MagneticField
+{
+  public:
+    H02Field() : G4MagneticField() {}
+    ~H02Field() {}
 
-  virtual void GetFieldValue(const  G4double Point[3],  G4double* Bfield ) const;
-
+    virtual void GetFieldValue(const G4double Point[3], G4double* Bfield) const;
 };
 
 #endif

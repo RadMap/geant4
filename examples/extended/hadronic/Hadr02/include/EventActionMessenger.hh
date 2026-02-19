@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/include/EventActionMessenger.hh
+/// \file EventActionMessenger.hh
 /// \brief Definition of the EventActionMessenger class
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // EventActionMessenger
@@ -42,8 +41,8 @@
 #ifndef EventActionMessenger_h
 #define EventActionMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class EventAction;
 class G4UIcmdWithAString;
@@ -51,21 +50,18 @@ class G4UIcmdWithAnInteger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class EventActionMessenger: public G4UImessenger
+class EventActionMessenger : public G4UImessenger
 {
-public:
+  public:
+    EventActionMessenger(EventAction*);
+    virtual ~EventActionMessenger();
 
-  EventActionMessenger(EventAction*);
-  virtual ~EventActionMessenger();
-    
-  virtual void SetNewValue(G4UIcommand*, G4String);
-    
-private:
+    virtual void SetNewValue(G4UIcommand*, G4String);
 
-  EventAction*          fEventAction;   
-  G4UIcmdWithAString*   fIonCmd;
-  G4UIcmdWithAnInteger* fDebugCmd;    
-
+  private:
+    EventAction* fEventAction;
+    G4UIcmdWithAString* fIonCmd;
+    G4UIcmdWithAnInteger* fDebugCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/HepMCEx01/include/ExN04EventAction.hh
+/// \file ExN04EventAction.hh
 /// \brief Definition of the ExN04EventAction class
-//
-//
 
 #ifndef ExN04EventAction_h
 #define ExN04EventAction_h 1
@@ -34,18 +32,19 @@
 #include "G4UserEventAction.hh"
 #include "globals.hh"
 
-class ExN04EventAction : public G4UserEventAction {
-public:
-  ExN04EventAction();
-  ~ExN04EventAction();
+class ExN04EventAction : public G4UserEventAction
+{
+  public:
+    ExN04EventAction();
+    ~ExN04EventAction();
 
-  virtual void BeginOfEventAction(const G4Event*);
-  virtual void EndOfEventAction(const G4Event*);
+    virtual void BeginOfEventAction(const G4Event*);
+    virtual void EndOfEventAction(const G4Event*);
 
-private:
-  G4int ftrackerCollID;
-  G4int fcalorimeterCollID;
-  G4int fmuonCollID;
+  private:
+    G4int ftrackerCollID;
+    G4int fcalorimeterCollID;
+    G4int fmuonCollID;
 };
 
 #endif

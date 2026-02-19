@@ -25,7 +25,7 @@
 // 
 // Implementation for G4UPara wrapper class
 //
-// 13.09.13 G.Cosmo, CERN/PH
+// 13.09.13 G.Cosmo, CERN
 // --------------------------------------------------------------------
 
 #include "G4Para.hh"
@@ -106,7 +106,7 @@ G4UPara::G4UPara( const G4String& pName,
     if (discrepancy > 0.1*kCarTolerance)
     {
       std::ostringstream message;
-      G4int oldprc = message.precision(16);
+      G4long oldprc = message.precision(16);
       message << "Invalid vertice coordinates for Solid: " << GetName()
               << "\nVertix #" << i << ", discrepancy = " << discrepancy
               << "\n  original   : " << pt[i]
@@ -117,26 +117,6 @@ G4UPara::G4UPara( const G4String& pName,
 
     }
   }
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Fake default constructor - sets only member data and allocates memory
-//                            for usage restricted to object persistency
-
-G4UPara::G4UPara( __void__& a )
-  : Base_t(a)
-{
-  SetAllParameters(1., 1., 1., 0., 0., 0.);
-  fRebuildPolyhedron = false;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Destructor
-
-G4UPara::~G4UPara()
-{
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -188,7 +168,7 @@ G4double G4UPara::GetYHalfLength() const
 }
 G4double G4UPara::GetXHalfLength() const
 {
-  return GetZ();
+  return GetX();
 }
 G4ThreeVector G4UPara::GetSymAxis() const
 {
@@ -197,6 +177,22 @@ G4ThreeVector G4UPara::GetSymAxis() const
 G4double G4UPara::GetTanAlpha() const
 {
   return fTalpha;
+}
+
+G4double G4UPara::GetPhi() const       
+{
+   return std::atan2(fTthetaSphi,fTthetaCphi);
+}
+
+G4double G4UPara::GetTheta() const
+{
+   return std::atan(std::sqrt(fTthetaCphi*fTthetaCphi
+                              +fTthetaSphi*fTthetaSphi));
+}
+
+G4double G4UPara::GetAlpha() const
+{
+  return std::atan(fTalpha);
 }
 
 void G4UPara::SetXHalfLength(G4double val)
@@ -407,7 +403,7 @@ G4bool G4UPara::CalculateExtent( const EAxis pAxis,
 #endif
   if (bbox.BoundingBoxVsVoxelLimits(pAxis,pVoxelLimit,pTransform,pMin,pMax))
   {
-    return exist = (pMin < pMax) ? true : false;
+    return exist = pMin < pMax;
   }
 
   // Set bounding envelope (benv) and calculate extent

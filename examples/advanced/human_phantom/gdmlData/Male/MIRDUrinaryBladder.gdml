@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
  <define> 
   <constant name="PI" value="1.*pi" />
   <constant name="TWOPI" value="2.*pi"/>
@@ -110,7 +110,7 @@
  </materials>
 
  <solids>
-  <ellipsoid aunit="cm" lunit="cm" name="UrinaryBladder" ax="4.27" by="3.38" cz="3.11" zcut1="-3.11" zcut2="3.11" />
+  <ellipsoid lunit="cm" name="UrinaryBladder" ax="4.27" by="3.38" cz="3.11" zcut1="-3.11" zcut2="3.11" />
  </solids>
  <structure>
   <volume name="UrinaryBladderVolume" >

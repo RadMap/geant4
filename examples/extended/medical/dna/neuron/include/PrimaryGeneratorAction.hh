@@ -23,47 +23,45 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PrimaryGeneratorAction.hh
+/// \brief Definition of the PrimaryGeneratorAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
 // Med. Phys. 37 (2010) 4692-4708
 // and papers
 // M. Batmunkh et al. J Radiat Res Appl Sci 8 (2015) 498-507
-// O. Belov et al. Physica Medica 32 (2016) 1510-1520 
+// O. Belov et al. Physica Medica 32 (2016) 1510-1520
 // The Geant4-DNA web site is available at http://geant4-dna.org
-// 
+//
 // -------------------------------------------------------------------
 // November 2016
 // -------------------------------------------------------------------
 //
-/// \file PrimaryGeneratorAction.hh
-/// \brief Definition of the PrimaryGeneratorAction class
 
 #ifndef PrimaryGeneratorAction_h
 #define PrimaryGeneratorAction_h 1
 
-#include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4ParticleGun.hh"
+#include "G4VUserPrimaryGeneratorAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
+  public:
+    PrimaryGeneratorAction();
+    ~PrimaryGeneratorAction() override;
 
-  PrimaryGeneratorAction();    
-  virtual ~PrimaryGeneratorAction();
-  
-  virtual void GeneratePrimaries(G4Event*);
-//
-  G4ParticleGun* GetParticleGun() {return fpParticleGun;};
-  G4double GetGunArea() {return fGunArea;} ;
-  
-private:
+    void GeneratePrimaries(G4Event*) override;
 
-  G4ParticleGun* fpParticleGun;
-  G4double fGunArea;
+    G4ParticleGun* GetParticleGun() const { return fpParticleGun; }
+    G4double GetGunArea() const { return fGunArea; }
 
+  private:
+    G4ParticleGun* fpParticleGun;
+    G4double fGunArea;
 };
 
 #endif

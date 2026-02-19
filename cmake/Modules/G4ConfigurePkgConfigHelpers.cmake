@@ -60,7 +60,7 @@ function(get_system_include_dirs _dirs)
   # Only for GCC, Clang and Intel
   if("${CMAKE_CXX_COMPILER_ID}" MATCHES GNU OR "${CMAKE_CXX_COMPILER_ID}" MATCHES Clang OR "${CMAKE_CXX_COMPILER_ID}" MATCHES Intel)
     # Proceed
-    file(WRITE "${CMAKE_BINARY_DIR}/CMakeFiles/g4dummy" "\n")
+    file(WRITE "${PROJECT_BINARY_DIR}/CMakeFiles/g4dummy" "\n")
 
     # Save locale, them to "C" english locale so we can parse in English
     set(_orig_lc_all      $ENV{LC_ALL})
@@ -72,12 +72,12 @@ function(get_system_include_dirs _dirs)
     set(ENV{LANG}        C)
 
     execute_process(COMMAND ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ARG1} -v -E -x c++ -dD g4dummy
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/CMakeFiles
+      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/CMakeFiles
       ERROR_VARIABLE _cxxOutput
       OUTPUT_VARIABLE _cxxStdout
       )
 
-    file(REMOVE "${CMAKE_BINARY_DIR}/CMakeFiles/g4dummy")
+    file(REMOVE "${PROJECT_BINARY_DIR}/CMakeFiles/g4dummy")
 
     # Parse and extract search dirs
     set(_resultIncludeDirs )
@@ -104,11 +104,17 @@ endfunction()
 #-----------------------------------------------------------------------
 # Only create script if we have a global library build...
 #
-if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
+#if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
+if(NOT GEANT4_BUILD_GRANULAR_LIBS)
   # Get implicit search paths
   get_system_include_dirs(_cxx_compiler_dirs)
 
   # Setup variables needed for expansion in configuration file
+  # - C++ Filesystem, if needed
+  if(GEANT4_CXX_FILESYSTEM_LIBRARY)
+    set(G4_LINK_CXX_FILESYSTEM "-l${GEANT4_CXX_FILESYSTEM_LIBRARY}")
+  endif()
+
   # - Static libs
   if(BUILD_STATIC_LIBS)
     set(G4_BUILTWITH_STATICLIBS "yes")
@@ -121,6 +127,13 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
     set(G4_BUILTWITH_MULTITHREADING "yes")
   else()
     set(G4_BUILTWITH_MULTITHREADING "no")
+  endif()
+
+  # - PHP_AS_HP
+  if(GEANT4_BUILD_PHP_AS_HP)
+    set(G4_BUILTWITH_PHP_AS_HP "yes")
+  else()
+    set(G4_BUILTWITH_PHP_AS_HP "no")
   endif()
 
   # - Smart Stack
@@ -167,12 +180,21 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
     set(G4_BUILTWITH_ZLIB "yes")
   endif()
 
+  # - PTL
+  if(GEANT4_USE_SYSTEM_PTL)
+    set(G4_BUILTWITH_PTL "no")
+  else()
+    set(G4_BUILTWITH_PTL "yes")
+  endif()
+
   # - GDML
   if(GEANT4_USE_GDML)
     set(G4_BUILTWITH_GDML "yes")
     set(G4_XERCESC_INCLUDE_DIRS ${XercesC_INCLUDE_DIR})
     list(REMOVE_DUPLICATES G4_XERCESC_INCLUDE_DIRS)
-    list(REMOVE_ITEM G4_XERCESC_INCLUDE_DIRS ${_cxx_compiler_dirs})
+    if(_cxx_compiler_dirs)
+      list(REMOVE_ITEM G4_XERCESC_INCLUDE_DIRS ${_cxx_compiler_dirs})
+    endif()
 
     set(G4_XERCESC_CFLAGS )
     foreach(_dir ${G4_XERCESC_INCLUDE_DIRS})
@@ -192,14 +214,13 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
   # - USolids
   if(GEANT4_USE_USOLIDS OR GEANT4_USE_PARTIAL_USOLIDS)
     set(G4_BUILTWITH_USOLIDS "yes")
-    set(G4_USOLIDS_INCLUDE_DIRS "${USOLIDS_INCLUDE_DIRS} ${VECGEOM_EXTERNAL_INCLUDES}")
+    get_target_property(G4_USOLIDS_INCLUDE_DIRS VecGeom::vecgeom INTERFACE_INCLUDE_DIRECTORIES)
     list(REMOVE_DUPLICATES G4_USOLIDS_INCLUDE_DIRS)
-    list(REMOVE_ITEM G4_USOLIDS_INCLUDE_DIRS ${_cxx_compiler_dirs})
-
-    string(REPLACE ";" " " G4_USOLIDS_CFLAGS "${VECGEOM_DEFINITIONS}")
     foreach(_dir ${G4_USOLIDS_INCLUDE_DIRS})
       set(G4_USOLIDS_CFLAGS "${G4_USOLIDS_CFLAGS} -I${_dir}")
     endforeach()
+    # NB: should ALSO account for VecGeom having compile_options, but
+    # this is better handled through proper pkg-config support
   else()
     set(G4_BUILTWITH_USOLIDS "no")
   endif()
@@ -211,7 +232,7 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
     set(G4_BUILTWITH_FREETYPE "no")
   endif()
 
-  # - Freetype
+  # - HDF5
   if(GEANT4_USE_HDF5)
     set(G4_BUILTWITH_HDF5 "yes")
   else()
@@ -221,37 +242,32 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
   # - Qt
   if(GEANT4_USE_QT)
     set(G4_BUILTWITH_QT "yes")
-    if(QT4_FOUND)
-      set(G4_QT_INCLUDE_DIRS ${QT_QTCORE_INCLUDE_DIR} ${QT_QTGUI_INCLUDE_DIR} ${QT_QTOPENGL_INCLUDE_DIR})
-    else()
-      set(G4_QT_INCLUDE_DIRS ${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} ${Qt5PrintSupport_INCLUDE_DIRS})
+    set(_qtcomps Core Gui Widgets OpenGL)
+    if(QT_VERSION_MAJOR VERSION_GREATER_EQUAL 5.15)
+      list(APPEND _qtcomp 3DCore 3DExtras 3DRender)
     endif()
 
+    set(G4_QT_INCLUDE_DIRS )
+    foreach(_qtc ${_qtcomps})
+      list(APPEND G4_QT_INCLUDE_DIRS ${Qt${QT_VERSION_MAJOR}${_qtc}_INCLUDE_DIRS})
+    endforeach()
+
     list(REMOVE_DUPLICATES G4_QT_INCLUDE_DIRS)
-    list(REMOVE_ITEM G4_QT_INCLUDE_DIRS ${_cxx_compiler_dirs})
+    if(_cxx_compiler_dirs)
+      list(REMOVE_ITEM G4_QT_INCLUDE_DIRS ${_cxx_compiler_dirs})
+    endif()
 
     set(G4_QT_CFLAGS )
     foreach(_dir ${G4_QT_INCLUDE_DIRS})
       set(G4_QT_CFLAGS "${G4_QT_CFLAGS} -I${_dir}")
     endforeach()
 
+    if(APPLE AND G4_QT_CFLAGS MATCHES "QtCore\.framework")
+      set(G4_QT_CFLAGS "${G4_QT_CFLAGS} -F${G4QTLIBPATH}")
+    endif()
   else()
     set(G4_BUILTWITH_QT "no")
   endif()
-
-  # - Wt
-  #if(GEANT4_USE_WT)
-  #  set(G4_BUILTWITH_WT "yes")
-  #  set(G4_WT_INCLUDE_DIRS ${Wt_INCLUDE_DIR} ${Boost_INCLUDE_DIR} )
-
-  #  set(G4_WT_CFLAGS )
-  #  foreach(_dir ${G4_WT_INCLUDE_DIRS})
-  #    set(G4_WT_CFLAGS "${G4_WT_CFLAGS} -I${_dir}")
-  #  endforeach()
-
-  #else()
-  #  set(G4_BUILTWITH_WT "no")
-  #endif()
 
   # - Motif
   if(GEANT4_USE_XM)
@@ -284,12 +300,21 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
     set(G4_BUILTWITH_INVENTOR "no")
   endif()
 
+  # - VTK
+  if(GEANT4_USE_VTK)
+    set(G4_BUILTWITH_VTK "yes")
+  else()
+    set(G4_BUILTWITH_VTK "no")
+  endif()
+
   # If we have a module that uses X11, We have to play with the X11
   # paths to get a clean set suitable for inclusion
   if(G4_CONFIG_NEEDS_X11)
     set(_raw_x11_includes ${X11_INCLUDE_DIR})
     list(REMOVE_DUPLICATES _raw_x11_includes)
-    list(REMOVE_ITEM _raw_x11_includes ${_cxx_compiler_dirs})
+    if(_cxx_compiler_dirs)
+      list(REMOVE_ITEM _raw_x11_includes ${_cxx_compiler_dirs})
+    endif()
     set(G4_X11_CFLAGS )
     foreach(_p ${_raw_x11_includes})
       set(G4_X11_CFLAGS "-I${_p} ${G4_X11_CFLAGS}")
@@ -319,34 +344,20 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
   geant4_export_datasets(BUILD GEANT4_CONFIG_DATASET_DESCRIPTIONS)
 
   # Configure the build tree script
-  # If we're on CMake 2.8 and above, we try to use file(COPY) to create an
-  # executable script
-  # Not sure if version check is o.k., but I'll be shocked if we ever see
-  # a CMake 2.7 in the wild...
-  if(${CMAKE_VERSION} VERSION_GREATER 2.7)
-    configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/Templates/geant4-config.in
-      ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/geant4-config
-      @ONLY
-      )
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/cmake/Templates/geant4-config.in
+    ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/geant4-config
+    @ONLY
+    )
 
-    file(COPY
-      ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/geant4-config
-      DESTINATION ${PROJECT_BINARY_DIR}
-      FILE_PERMISSIONS
-        OWNER_READ OWNER_WRITE OWNER_EXECUTE
-        GROUP_READ GROUP_EXECUTE
-        WORLD_READ WORLD_EXECUTE
-      )
-  else()
-    # Changing permissions is awkward, so just configure and document
-    # that you have to do 'sh geant4-config' in this case.
-    configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/Templates/geant4-config.in
-      ${PROJECT_BINARY_DIR}/geant4-config
-      @ONLY
-      )
-  endif()
+  file(COPY
+    ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/geant4-config
+    DESTINATION ${PROJECT_BINARY_DIR}
+    FILE_PERMISSIONS
+      OWNER_READ OWNER_WRITE OWNER_EXECUTE
+      GROUP_READ GROUP_EXECUTE
+      WORLD_READ WORLD_EXECUTE
+    )
 
   # - Install Tree
   # Much easier :-)
@@ -375,7 +386,7 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
 
   # Configure the install tree script
   configure_file(
-    ${CMAKE_SOURCE_DIR}/cmake/Templates/geant4-config.in
+    ${PROJECT_SOURCE_DIR}/cmake/Templates/geant4-config.in
     ${PROJECT_BINARY_DIR}/InstallTreeFiles/geant4-config
     @ONLY
     )
@@ -389,5 +400,24 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
       WORLD_READ WORLD_EXECUTE
     COMPONENT Development
     )
-endif()
 
+  # Win32 helper file geant4-config.cmd
+  if(WIN32)
+    # No configuration just a copy
+    configure_file(
+      ${PROJECT_SOURCE_DIR}/cmake/Templates/geant4-config-cmd.in
+      ${PROJECT_BINARY_DIR}/InstallTreeFiles/geant4-config.cmd
+      @ONLY
+      )
+
+    # Install helper
+    install(FILES ${PROJECT_BINARY_DIR}/InstallTreeFiles/geant4-config.cmd
+      DESTINATION ${CMAKE_INSTALL_BINDIR}
+      PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE
+      COMPONENT Development
+      )
+endif()
+endif()

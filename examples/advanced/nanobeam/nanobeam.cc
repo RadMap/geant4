@@ -27,12 +27,7 @@
 // Nucl.Instrum.Meth.B260:20-27, 2007
 
 #include "G4Types.hh"
-
-#ifdef G4MULTITHREADED
-  #include "G4MTRunManager.hh"
-#else
-  #include "G4RunManager.hh"
-#endif
+#include "G4RunManagerFactory.hh"
 
 #include "G4UImanager.hh"
 
@@ -40,27 +35,18 @@
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
 
-int main(int argc,char** argv) {
-
-  // Choose the Random engine
-
-  G4Random::setTheEngine(new CLHEP::RanecuEngine);
-
+int main(int argc,char** argv) 
+{
   // Construct the default run manager
 
-#ifdef G4MULTITHREADED
-  G4MTRunManager* runManager = new G4MTRunManager;
+  auto* runManager = G4RunManagerFactory::CreateRunManager();
+  G4int nThreads = 1;
+  runManager->SetNumberOfThreads(nThreads);
 
   // Use only one thread for aberration coefficient calculation ("coef*" macros)
   //
   // For high statistics (no aberration coefficient calculation, "image*" & "grid*" macros),
   // switch to more threads
-
-  runManager->SetNumberOfThreads(1);
-
-#else
-  G4RunManager* runManager = new G4RunManager;
-#endif
 
   // Set mandatory initialization classes
 

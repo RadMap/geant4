@@ -23,11 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm9/include/EmAcceptance.hh
+/// \file EmAcceptance.hh
 /// \brief Definition of the EmAcceptance class
-//
-//
-//
 
 #ifndef EmAcceptance_h
 #define EmAcceptance_h 1
@@ -38,27 +35,22 @@
 
 class EmAcceptance
 {
+  public:
+    EmAcceptance();
+    ~EmAcceptance();
 
-public:
+    void BeginOfAcceptance(const G4String& title, G4int stat);
+    void EndOfAcceptance();
 
-  EmAcceptance();
-  ~EmAcceptance();
+    void EmAcceptanceGauss(const G4String& title, G4int stat, G4double avr, G4double avr0,
+                           G4double rms, G4double limit);
 
-  void BeginOfAcceptance(const G4String& title, G4int stat);
-  void EndOfAcceptance();
+  private:
+    // hide assignment operator
+    EmAcceptance& operator=(const EmAcceptance& right);
+    EmAcceptance(const EmAcceptance&);
 
-  void EmAcceptanceGauss(const G4String& title, G4int stat, 
-                               G4double avr, G4double avr0, 
-                               G4double rms, G4double limit);
-
-private:
-
-  // hide assignment operator
-  EmAcceptance & operator=(const EmAcceptance &right);
-  EmAcceptance(const EmAcceptance&);
-
-  G4bool fIsAccepted;
-
+    G4bool fIsAccepted;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

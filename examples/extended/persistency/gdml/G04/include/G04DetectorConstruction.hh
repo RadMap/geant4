@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G04/include/G04DetectorConstruction.hh
+/// \file G04DetectorConstruction.hh
 /// \brief Definition of the G04DetectorConstruction class
-//
-//
-//
-//
 
 #ifndef _G04DETECTORCONSTRUCTION_H_
 #define _G04DETECTORCONSTRUCTION_H_
@@ -41,12 +37,12 @@ class G4GDMLParser;
 
 class G04DetectorConstruction : public G4VUserDetectorConstruction
 {
-  public: 
+  public:
     G04DetectorConstruction(const G4GDMLParser& parser);
 
-    virtual G4VPhysicalVolume *Construct();  
+    virtual G4VPhysicalVolume* Construct();
     virtual void ConstructSDandField();
-  
+
   private:
     const G4GDMLParser& fParser;
 };

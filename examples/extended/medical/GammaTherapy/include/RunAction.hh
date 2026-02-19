@@ -23,49 +23,41 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file medical/GammaTherapy/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
+
 #ifndef RunAction_h
 #define RunAction_h 1
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#include "G4UserRunAction.hh"
 #include "G4Run.hh"
+#include "G4UserRunAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 class Run;
 class DetectorConstruction;
-class PrimaryGeneratorAction;
 class HistoManager;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-
 class RunAction : public G4UserRunAction
 {
-public: 
+  public:
+    RunAction(DetectorConstruction*);
+    virtual ~RunAction();
 
-  RunAction(DetectorConstruction*, PrimaryGeneratorAction* prim);
-  virtual  ~RunAction();
- 
-  virtual G4Run* GenerateRun();    
+    virtual G4Run* GenerateRun();
 
-  void BeginOfRunAction(const G4Run*);
-  void EndOfRunAction(const G4Run*);
+    void BeginOfRunAction(const G4Run*);
+    void EndOfRunAction(const G4Run*);
 
-private:
-
-  DetectorConstruction*   fDetector;
-  PrimaryGeneratorAction* fPrimary;
-  Run*                    fRun;        
-  HistoManager*           fHistoManager;
-
+  private:
+    DetectorConstruction* fDetector;
+    Run* fRun;
+    HistoManager* fHistoManager;
 };
 
 #endif
-

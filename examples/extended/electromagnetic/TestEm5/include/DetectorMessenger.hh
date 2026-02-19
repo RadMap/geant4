@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm5/include/DetectorMessenger.hh
+/// \file DetectorMessenger.hh
 /// \brief Definition of the DetectorMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef DetectorMessenger_h
 #define DetectorMessenger_h 1
@@ -45,33 +41,31 @@ class G4UIcmdWithoutParameter;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class DetectorMessenger: public G4UImessenger
+class DetectorMessenger : public G4UImessenger
 {
   public:
-    DetectorMessenger(DetectorConstruction* );
-   ~DetectorMessenger();
-    
-    virtual void SetNewValue(G4UIcommand*, G4String);
-    
+    DetectorMessenger(DetectorConstruction*);
+    ~DetectorMessenger() override;
+
+    void SetNewValue(G4UIcommand*, G4String) override;
+
   private:
-    DetectorConstruction*      fDetector;
-    
-    G4UIdirectory*             fTestemDir;
-    G4UIdirectory*             fDetDir;
+    DetectorConstruction* fDetector = nullptr;
 
-    G4UIcmdWithAString*        fAbsMaterCmd;
-    G4UIcmdWithADoubleAndUnit* fAbsThickCmd;
-    G4UIcmdWithADoubleAndUnit* fAbsSizYZCmd;
+    G4UIdirectory* fTestemDir = nullptr;
+    G4UIdirectory* fDetDir = nullptr;
 
-    G4UIcmdWithADoubleAndUnit* fAbsXposCmd;
+    G4UIcmdWithAString* fAbsMaterCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fAbsThickCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fAbsSizYZCmd = nullptr;
 
-    G4UIcmdWithAString*        fWorldMaterCmd;
-    G4UIcmdWithADoubleAndUnit* fWorldXCmd;
-    G4UIcmdWithADoubleAndUnit* fWorldYZCmd;
+    G4UIcmdWithADoubleAndUnit* fAbsXposCmd = nullptr;
 
+    G4UIcmdWithAString* fWorldMaterCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fWorldXCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fWorldYZCmd = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

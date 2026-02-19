@@ -58,9 +58,12 @@
 #include "CLHEP/Random/DoubConv.h"
 #include "CLHEP/Utility/atomic_int.h"
 
-#include <string.h>	// for strcmp
+#include <atomic>
 #include <cstdlib>	// for std::abs(int)
+#include <iostream>
 #include <limits>       // for numeric_limits
+#include <string.h>	// for strcmp
+#include <vector>
 
 namespace CLHEP {
 
@@ -249,7 +252,7 @@ void Ranlux64Engine::update() {
 
   // Now when we return, there are 12 fresh usable numbers in s[11] ... s[0]
 
-  index = 11;
+  index = 12;
 
 } // update()
 
@@ -447,7 +450,8 @@ void Ranlux64Engine::setSeed(long seed, int lux) {
 
   carry = 0.0;
   if ( randoms[11] == 0. ) carry = twoToMinus_48();
-  index = 11;
+  // Perform an update before returning the first random number.
+  index = -1;
 
 } // setSeed()
 
@@ -520,7 +524,8 @@ void Ranlux64Engine::setSeeds(const long * seeds, int lux) {
 
   carry = 0.0;
   if ( randoms[11] == 0. ) carry = twoToMinus_48();
-  index = 11;
+  // Perform an update before returning the first random number.
+  index = -1;
 
 }
 
@@ -702,9 +707,9 @@ bool Ranlux64Engine::getState (const std::vector<unsigned long> & v) {
   }
   t[0] = v[25]; t[1] = v[26];
   carry    = DoubConv::longs2double(t);
-  index    = v[27];
-  luxury   = v[28];
-  pDiscard = v[29]; 
+  index    = (int)v[27];
+  luxury   = (int)v[28];
+  pDiscard = (int)v[29]; 
   return true;
 }
 

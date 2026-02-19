@@ -23,16 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field04/include/F04EventAction.hh
+/// \file F04EventAction.hh
 /// \brief Definition of the F04EventAction class
-//
 
 #ifndef F04EventAction_h
 #define F04EventAction_h 1
 
-#include "globals.hh"
 #include "G4UserEventAction.hh"
+#include "globals.hh"
 
 class F04RunAction;
 class F04EventActionMessenger;
@@ -40,24 +38,21 @@ class F04EventActionMessenger;
 class F04EventAction : public G4UserEventAction
 {
   public:
-
-    F04EventAction(F04RunAction* );
-    virtual ~F04EventAction();
+    F04EventAction(F04RunAction*);
+    ~F04EventAction() override;
 
   public:
-
-    virtual void BeginOfEventAction(const G4Event*);
-    virtual void   EndOfEventAction(const G4Event*);
+    void BeginOfEventAction(const G4Event*) override;
+    void EndOfEventAction(const G4Event*) override;
 
     G4int GetEventNo();
     void SetEventVerbose(G4int);
- 
+
   private:
+    F04RunAction* fRunaction = nullptr;
+    F04EventActionMessenger* fEventMessenger = nullptr;
 
-    F04RunAction* fRunaction;
-    F04EventActionMessenger* fEventMessenger;
-
-    G4int fVerboseLevel;
+    G4int fVerboseLevel = 0;
 };
 
 #endif

@@ -59,18 +59,17 @@
 using namespace std;
  
 G4eBremsstrahlung::G4eBremsstrahlung(const G4String& name):
-  G4VEnergyLossProcess(name), 
-  isInitialised(false)
+  G4VEnergyLossProcess(name)
 {
   SetProcessSubType(fBremsstrahlung);
   SetSecondaryParticle(G4Gamma::Gamma());
   SetIonisation(false);
+  SetCrossSectionType(fEmTwoPeaks);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4eBremsstrahlung::~G4eBremsstrahlung()
-{}
+G4eBremsstrahlung::~G4eBremsstrahlung() = default;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -88,24 +87,22 @@ G4eBremsstrahlung::InitialiseEnergyLossProcess(const G4ParticleDefinition*,
   if(!isInitialised) {
     G4EmParameters* param = G4EmParameters::Instance();
 
-    G4double emin = param->MinKinEnergy();
     G4double emax = param->MaxKinEnergy();
     G4VEmFluctuationModel* fm = nullptr;
 
-    if (!EmModel(0)) { SetEmModel(new G4SeltzerBergerModel()); }
-    EmModel(0)->SetLowEnergyLimit(emin);
-    G4double energyLimit = std::min(EmModel(0)->HighEnergyLimit(), GeV);
+    if (nullptr == EmModel(0)) { SetEmModel(new G4SeltzerBergerModel()); }
+    G4double energyLimit = std::min(EmModel(0)->HighEnergyLimit(), CLHEP::GeV);
     EmModel(0)->SetHighEnergyLimit(energyLimit);
     EmModel(0)->SetSecondaryThreshold(param->BremsstrahlungTh());
-    EmModel(0)->SetLPMFlag(false);
     AddEmModel(1, EmModel(0), fm);
 
     if(emax > energyLimit) {
-      if (!EmModel(1)) { SetEmModel(new G4eBremsstrahlungRelModel()); }
+      if (nullptr == EmModel(1)) { 
+	SetEmModel(new G4eBremsstrahlungRelModel());
+      }
       EmModel(1)->SetLowEnergyLimit(energyLimit);
       EmModel(1)->SetHighEnergyLimit(emax); 
       EmModel(1)->SetSecondaryThreshold(param->BremsstrahlungTh());
-      EmModel(1)->SetLPMFlag(param->LPM());
       AddEmModel(1, EmModel(1), fm);
     }
     isInitialised = true;
@@ -116,7 +113,7 @@ G4eBremsstrahlung::InitialiseEnergyLossProcess(const G4ParticleDefinition*,
 
 void G4eBremsstrahlung::StreamProcessInfo(std::ostream& out) const
 {
-  if(EmModel(0)) {
+  if(nullptr != EmModel(0)) {
     G4EmParameters* param = G4EmParameters::Instance();
     G4double eth = param->BremsstrahlungTh(); 
     out << "      LPM flag: " << param->LPM() << " for E > " 

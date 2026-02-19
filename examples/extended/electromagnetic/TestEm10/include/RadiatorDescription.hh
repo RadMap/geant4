@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm10/include/DetectorConstruction.hh
-/// \brief Definition of the DetectorConstruction class
-//
-//
-//
-//
+/// \file RadiatorDescription.hh
+/// \brief Definition of the RadiatorDescription class
 
 #ifndef RadiatorDescription_h
 #define RadiatorDescription_h 1
@@ -40,18 +36,21 @@ class G4Material;
 
 struct RadiatorDescription
 {
-  RadiatorDescription()
-    : fLogicalVolume(0), fFoilMaterial(0), fGasMaterial(0), 
-      fFoilThickness(0.), fGasThickness(0.), fFoilNumber(0) {}
+    RadiatorDescription()
+      : fLogicalVolume(0),
+        fFoilMaterial(0),
+        fGasMaterial(0),
+        fFoilThickness(0.),
+        fGasThickness(0.),
+        fFoilNumber(0)
+    {}
 
-  G4LogicalVolume*  fLogicalVolume;
-  G4Material*       fFoilMaterial;
-  G4Material*       fGasMaterial;
-  G4double          fFoilThickness;
-  G4double          fGasThickness;
-  G4int             fFoilNumber;
+    G4LogicalVolume* fLogicalVolume;
+    G4Material* fFoilMaterial;
+    G4Material* fGasMaterial;
+    G4double fFoilThickness;
+    G4double fGasThickness;
+    G4int fFoilNumber;
 };
 
 #endif
-
-

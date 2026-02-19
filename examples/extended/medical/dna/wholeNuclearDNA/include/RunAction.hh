@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file RunAction.hh
+/// \brief Definition of the RunAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // and the DNA geometry given in the Geom_DNA example
@@ -31,8 +34,6 @@
 // [2] Med. Phys. 37 (2010) 4692-4708
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
-/// \file RunAction.hh
-/// \brief Definition of the RunAction class
 
 #ifndef RunAction_h
 #define RunAction_h 1
@@ -45,45 +46,42 @@ class G4Run;
 
 class RunAction : public G4UserRunAction
 {
-public:
-  
-  RunAction();
-  virtual ~RunAction();
+  public:
+    RunAction();
+    virtual ~RunAction();
 
-  virtual void BeginOfRunAction(const G4Run*);
-  virtual void EndOfRunAction(const G4Run*);
+    virtual void BeginOfRunAction(const G4Run*);
+    virtual void EndOfRunAction(const G4Run*);
 
-private:
+  private:
+    /////////////////
+    // Ntuple & Histogramming
+    //
+    void CreateNtuple();
+    void WriteNtuple();
 
-  /////////////////
-  // Ntuple & Histogramming
-  //
-  void CreateNtuple();
-  void WriteNtuple();
+    /////////////////
+    // Worker
+    //
+    void BeginMaster(const G4Run*);
+    void EndMaster(const G4Run*);
 
-  /////////////////
-  // Worker
-  //
-  void BeginMaster(const G4Run*);
-  void EndMaster(const G4Run*);
+    /////////////////
+    // Worker
+    //
+    void InitializeWorker(const G4Run*);
+    void BeginWorker(const G4Run*);
+    void EndWorker(const G4Run*);
 
-  /////////////////
-  // Worker
-  //
-  void InitializeWorker(const G4Run*);
-  void BeginWorker(const G4Run*);
-  void EndWorker(const G4Run*);
+    /////////////////
+    // Print Info
+    //
+    void PrintRunInfo(const G4Run* run);
 
-  /////////////////
-  // Print Info
-  //
-  void PrintRunInfo(const G4Run* run);
-
-  /////////////////
-  // Attributes
-  //
-  bool fInitialized;
-  bool fDebug;
-
+    /////////////////
+    // Attributes
+    //
+    bool fInitialized;
+    bool fDebug;
 };
 #endif

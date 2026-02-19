@@ -29,9 +29,9 @@
 #include "globals.hh"
 
 #include "G4HadronElasticProcess.hh"
-#include "G4HadronFissionProcess.hh"
-#include "G4HadronCaptureProcess.hh"
-#include "G4NeutronInelasticProcess.hh"
+#include "G4NeutronFissionProcess.hh"
+#include "G4NeutronCaptureProcess.hh"
+#include "G4HadronInelasticProcess.hh"
 #include "G4VNeutronBuilder.hh"
 
 #include "G4ParticleHPElasticData.hh"
@@ -40,20 +40,20 @@
 #include "G4ParticleHPInelasticData.hh"
 #include "G4ParticleHPFission.hh"
 #include "G4ParticleHPFissionData.hh"
-#include "G4ParticleHPCapture.hh"
-#include "G4ParticleHPCaptureData.hh"
+#include "G4NeutronRadCaptureHP.hh"
+#include "G4NeutronHPCaptureData.hh"
 
 class G4NeutronPHPBuilder : public G4VNeutronBuilder
 {
   public: 
     G4NeutronPHPBuilder();
-    virtual ~G4NeutronPHPBuilder() {}
+    ~G4NeutronPHPBuilder() override = default;
 
   public: 
     virtual void Build(G4HadronElasticProcess * aP) final override;
-    virtual void Build(G4HadronFissionProcess * aP) final override;
-    virtual void Build(G4HadronCaptureProcess * aP) final override;
-    virtual void Build(G4NeutronInelasticProcess * aP) final override;
+    virtual void Build(G4NeutronFissionProcess * aP) final override;
+    virtual void Build(G4NeutronCaptureProcess * aP) final override;
+    virtual void Build(G4HadronInelasticProcess * aP) final override;
 
     virtual void SetMinEnergy(G4double aM) final override
     {
@@ -89,8 +89,8 @@ class G4NeutronPHPBuilder : public G4VNeutronBuilder
     G4ParticleHPInelasticData * theHPInelasticData;
     G4ParticleHPFission * theHPFission;
     G4ParticleHPFissionData * theHPFissionData;
-    G4ParticleHPCapture * theHPCapture;
-    G4ParticleHPCaptureData * theHPCaptureData;
+    G4NeutronRadCaptureHP* theHPCapture;
+    G4NeutronHPCaptureData* theHPCaptureData;
 
 };
 

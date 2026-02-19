@@ -84,10 +84,13 @@ public:
                        G4double radius = -1,
                        G4int atomsNumber = -1,
                        G4double lifetime = -1,
-                       G4String aType = "",
+                       const G4String& aType = "",
                        G4FakeParticleID ID = G4FakeParticleID::Create());
 
-  virtual ~G4MoleculeDefinition();
+  ~G4MoleculeDefinition() override;
+
+  G4MoleculeDefinition(const G4MoleculeDefinition&) = delete;
+  G4MoleculeDefinition& operator=(const G4MoleculeDefinition&) = delete;
 
   // Set the electronic configuration at ground level
   void SetLevelOccupation(G4int,
@@ -174,10 +177,6 @@ public:
 
 protected:
   G4MoleculeDefinition();
-  G4MoleculeDefinition(const G4MoleculeDefinition&);
-
-private:
-  const G4MoleculeDefinition & operator=(const G4MoleculeDefinition &right);
 
 private:
   G4int fCharge;
@@ -261,7 +260,7 @@ inline const G4String& G4MoleculeDefinition::GetType() const
 
 inline G4int G4MoleculeDefinition::GetNbElectrons() const
 {
-  if (fElectronOccupancy)
+  if (fElectronOccupancy != nullptr)
   {
     return fElectronOccupancy->GetTotalOccupancy();
   }
@@ -272,7 +271,7 @@ inline G4int G4MoleculeDefinition::GetNbElectrons() const
 
 inline G4int G4MoleculeDefinition::GetNbMolecularShells() const
 {
-  if (fElectronOccupancy)
+  if (fElectronOccupancy != nullptr)
   {
     return fElectronOccupancy->GetSizeOfOrbit();
   }

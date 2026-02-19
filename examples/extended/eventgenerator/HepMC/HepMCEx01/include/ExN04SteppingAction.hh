@@ -23,23 +23,22 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/HepMCEx01/include/ExN04SteppingAction.hh
+/// \file ExN04SteppingAction.hh
 /// \brief Definition of the ExN04SteppingAction class
-//
-//
 
 #ifndef ExN04SteppingAction_H
 #define ExN04SteppingAction_H 1
 
-#include "globals.hh"
 #include "G4UserSteppingAction.hh"
+#include "globals.hh"
 
-class ExN04SteppingAction : public G4UserSteppingAction {
-public:
-  ExN04SteppingAction();
-  virtual ~ExN04SteppingAction();
+class ExN04SteppingAction : public G4UserSteppingAction
+{
+  public:
+    ExN04SteppingAction();
+    virtual ~ExN04SteppingAction();
 
-  virtual void UserSteppingAction(const G4Step*);
+    virtual void UserSteppingAction(const G4Step*);
 };
 
 #endif

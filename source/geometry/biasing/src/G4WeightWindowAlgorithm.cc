@@ -40,10 +40,6 @@ G4WeightWindowAlgorithm(G4double upperLimitFactor,
 {
 }
 
-G4WeightWindowAlgorithm::~G4WeightWindowAlgorithm()
-{
-}
-
 G4Nsplit_Weight 
 G4WeightWindowAlgorithm::Calculate(G4double init_w,
                                    G4double lowerWeightBound) const
@@ -62,7 +58,7 @@ G4WeightWindowAlgorithm::Calculate(G4double init_w,
     // splitting
     //
     G4double temp_wi_ws = init_w/upperWeight;
-    G4int split_i = static_cast<G4int>(temp_wi_ws);
+    auto  split_i = static_cast<G4int>(temp_wi_ws);
     if(split_i != temp_wi_ws)  { ++split_i; }
     G4double wi_ws = init_w/split_i;
 

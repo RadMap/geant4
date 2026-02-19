@@ -83,13 +83,14 @@
 #include "G4GMocrenTouchable.hh"
 #include "G4GMocrenFileCTtoDensityMap.hh"
 #include "G4PhantomParameterisation.hh"
-#include "G4PhysicalVolumeSearchScene.hh"
 
 #include "G4ScoringManager.hh"
 #include "G4ScoringBox.hh"
 
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
+
+#include <utility>
 
 //----- constants
 const char  GDD_FILE_HEADER      [] = "g4_";
@@ -142,7 +143,7 @@ G4GMocrenFileSceneHandler::G4GMocrenFileSceneHandler(G4GMocrenFile& system,
 		 std::strlen(DEFAULT_GDD_FILE_NAME)+1);   // filename
   } else {
     const char * env = std::getenv("G4GMocrenFile_DEST_DIR");
-    int len = std::strlen(env);
+    G4int len = (G4int)std::strlen(env);
     if(len > 256) {
       G4Exception("G4GMocrenFileSceneHandler::G4GMocrenFileSceneHandler(*)",
                   "gMocren1000", FatalException,
@@ -1194,9 +1195,9 @@ void G4GMocrenFileSceneHandler::AddSolid( const G4Box& box )
         ;
       }
       
-      kNestedVolumeDimension[0] = phantomPara->GetNoVoxelX();
-      kNestedVolumeDimension[1] = phantomPara->GetNoVoxelY();
-      kNestedVolumeDimension[2] = phantomPara->GetNoVoxelZ();
+      kNestedVolumeDimension[0] = (G4int)phantomPara->GetNoVoxelsX();
+      kNestedVolumeDimension[1] = (G4int)phantomPara->GetNoVoxelsY();
+      kNestedVolumeDimension[2] = (G4int)phantomPara->GetNoVoxelsZ();
       kNestedVolumeDirAxis[0] = 0;
       kNestedVolumeDirAxis[1] = 1;
       kNestedVolumeDirAxis[2] = 2;
@@ -1714,7 +1715,7 @@ void G4GMocrenFileSceneHandler::AddCompound( const G4VHit & hit) {
 	    } else {
 	      std::map<Index3D, G4double> hits;
 	      hits.insert(std::map<Index3D, G4double>::value_type(id, value));
-	      kNestedHitsList[hitNames[i]] = hits;
+	      kNestedHitsList[hitNames[i]] = std::move(hits);
 	    }
 
 	    
@@ -1776,7 +1777,7 @@ void G4GMocrenFileSceneHandler::AddCompound(const G4THitsMap<G4double> & hits) {
 	} else {
 	  std::map<Index3D, G4double> hit;
 	  hit.insert(std::map<Index3D, G4double>::value_type(id, *(itr->second)));
-	  kNestedHitsList[scorername] = hit;
+	  kNestedHitsList[scorername] = std::move(hit);
 	}
       }
  
@@ -1848,7 +1849,7 @@ void G4GMocrenFileSceneHandler::AddCompound(const G4THitsMap<G4StatDouble> & hit
 	} else {
 	  std::map<Index3D, G4double> hit;
 	  hit.insert(std::map<Index3D, G4double>::value_type(id, itr->second->sum_wx()));
-	  kNestedHitsList[scorername] = hit;
+	  kNestedHitsList[scorername] = std::move(hit);
 	}
       }
  

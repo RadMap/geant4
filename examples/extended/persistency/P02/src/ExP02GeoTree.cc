@@ -23,9 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P02/src/ExP02GeoTree.cc
+/// \file ExP02GeoTree.cc
 /// \brief Implementation of the ExP02GeoTree class
-//
+
 // Include files
 
 // local
@@ -37,11 +37,9 @@
 // 2005-05-26 : Witold POKORSKI
 //-----------------------------------------------------------------------------
 
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ExP02GeoTree::ExP02GeoTree(  )
- : fTopV(0), fEltab(0)
+ExP02GeoTree::ExP02GeoTree() : fTopV(0), fEltab(0)
 {
   fEltab = G4Element::GetElementTable();
 }
@@ -54,8 +52,7 @@ ExP02GeoTree::ExP02GeoTree(G4VPhysicalVolume* vol, const G4ElementTable* et)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ExP02GeoTree::~ExP02GeoTree() {} 
-
+ExP02GeoTree::~ExP02GeoTree() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

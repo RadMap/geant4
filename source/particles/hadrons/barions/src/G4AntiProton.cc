@@ -23,9 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
 // ----------------------------------------------------------------------
 //      GEANT 4 class implementation file
 //
@@ -37,60 +34,60 @@
 // ----------------------------------------------------------------
 
 #include "G4AntiProton.hh"
-#include "G4PhysicalConstants.hh"
-#include "G4SystemOfUnits.hh"
+
 #include "G4ParticleTable.hh"
+#include "G4PhysicalConstants.hh"
+#include "G4String.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4Types.hh"
 
-// ######################################################################
-// ###                       ANTIPROTON                               ###
-// ######################################################################
-
-G4AntiProton* G4AntiProton::theInstance = 0;
+G4AntiProton* G4AntiProton::theInstance = nullptr;
 
 G4AntiProton* G4AntiProton::Definition()
 {
-  if (theInstance !=0) return theInstance;
+  if (theInstance != nullptr) return theInstance;
   const G4String name = "anti_proton";
   // search in particle table]
   G4ParticleTable* pTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* anInstance = pTable->FindParticle(name);
-  if (anInstance ==0)
-  {
-  // create particle
-  //
-  //    Arguments for constructor are as follows
-  //               name             mass          width         charge
-  //             2*spin           parity  C-conjugation
-  //          2*Isospin       2*Isospin3       G-parity
-  //               type    lepton number  baryon number   PDG encoding
-  //             stable         lifetime    decay table
-  //             shortlived      subType    anti_encoding
-  // use constants in CLHEP
-  //  static const double   proton_mass_c2 = 938.27231 * MeV;
+  if (anInstance == nullptr) {
+    // create particle
+    //
+    //    Arguments for constructor are as follows
+    //               name             mass          width         charge
+    //             2*spin           parity  C-conjugation
+    //          2*Isospin       2*Isospin3       G-parity
+    //               type    lepton number  baryon number   PDG encoding
+    //             stable         lifetime    decay table
+    //             shortlived      subType    anti_encoding
+    // use constants in CLHEP
+    //  static const double   proton_mass_c2 = 938.27231 * MeV;
 
+    // clang-format off
    anInstance = new G4ParticleDefinition(
                  name,  proton_mass_c2,       0.0*MeV,  -1.0*eplus, 
 		    1,              +1,             0,         
 		    1,              -1,             0,             
 	     "baryon",               0,            -1,       -2212,
-		 true,            -1.0,          NULL,
+		 true,            -1.0,          nullptr,
 		 false,      "nucleon",          2212
               );
+    // clang-format on
+
     // Magnetic Moment
-    G4double mN = eplus*hbar_Planck/2./(proton_mass_c2 /c_squared);
-    anInstance->SetPDGMagneticMoment( -2.792847351 * mN);
+    G4double mN = eplus * hbar_Planck / 2. / (proton_mass_c2 / c_squared);
+    anInstance->SetPDGMagneticMoment(-2.792847351 * mN);
   }
-  theInstance = reinterpret_cast<G4AntiProton*>(anInstance);
+  theInstance = static_cast<G4AntiProton*>(anInstance);
   return theInstance;
 }
 
-G4AntiProton*  G4AntiProton::AntiProtonDefinition()
+G4AntiProton* G4AntiProton::AntiProtonDefinition()
 {
   return Definition();
 }
 
-G4AntiProton*  G4AntiProton::AntiProton()
+G4AntiProton* G4AntiProton::AntiProton()
 {
   return Definition();
 }
-

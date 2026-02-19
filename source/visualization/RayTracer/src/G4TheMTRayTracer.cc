@@ -44,6 +44,9 @@
 #include "G4UImanager.hh"
 #include "G4UIcommand.hh"
 #include "G4VVisManager.hh"
+#include "G4RunManagerFactory.hh"
+
+#define G4warn G4cout
 
 G4TheMTRayTracer* G4TheMTRayTracer::theInstance = nullptr;
 
@@ -60,6 +63,23 @@ G4TheMTRayTracer::G4TheMTRayTracer(G4VFigureFileMaker* figMaker,
   theRTWorkerInitialization = 0;
   theUserRunAction = 0;
   theRTRunAction = 0;
+}
+
+G4TheMTRayTracer* G4TheMTRayTracer::Instance()
+{
+  if (theInstance) return theInstance;
+  else return new G4TheMTRayTracer;
+}
+
+G4TheMTRayTracer* G4TheMTRayTracer::Instance
+(G4VFigureFileMaker* figMaker,G4VRTScanner* scanner)
+{
+  if (theInstance) {
+    theFigMaker=figMaker;
+    theScanner=scanner;
+    return theInstance;
+  }
+  else return new G4TheMTRayTracer(figMaker,scanner);
 }
 
 G4TheMTRayTracer::~G4TheMTRayTracer()
@@ -82,14 +102,14 @@ void G4TheMTRayTracer::Trace(const G4String& fileName)
   G4ApplicationState currentState = theStateMan->GetCurrentState();
   if(currentState!=G4State_Idle)
   {
-    G4cerr << "Illegal application state <" << theStateMan->GetStateString(currentState)
+    G4warn << "Illegal application state <" << theStateMan->GetStateString(currentState)
            << "> - Trace() ignored. " << G4endl;
     return;
   }
 
   if(!theFigMaker)
   {
-    G4cerr << "Figure file maker class is not specified - Trace() ignored." << G4endl;
+    G4warn << "Figure file maker class is not specified - Trace() ignored." << G4endl;
     return;
   }
 
@@ -117,8 +137,8 @@ void G4TheMTRayTracer::Trace(const G4String& fileName)
   if(succeeded)
   { CreateFigureFile(fileName); }
   else
-  { G4cerr << "Could not create figure file" << G4endl;
-    G4cerr << "You might set the eye position outside of the world volume" << G4endl; }
+  { G4warn << "Could not create figure file" << G4endl;
+    G4warn << "You might set the eye position outside of the world volume" << G4endl; }
 
   G4String str = "/tracking/storeTrajectory " + G4UIcommand::ConvertToString(storeTrajectory);
   UI->ApplyCommand(str);
@@ -129,8 +149,8 @@ void G4TheMTRayTracer::Trace(const G4String& fileName)
 }
 
 void G4TheMTRayTracer::StoreUserActions()
-{ 
-  G4MTRunManager* mrm = G4MTRunManager::GetMasterRunManager();
+{
+  G4MTRunManager* mrm         = G4RunManagerFactory::GetMTMasterRunManager();
   theUserWorkerInitialization = mrm->GetUserWorkerInitialization();
   theUserRunAction = mrm->GetUserRunAction();
 
@@ -143,8 +163,9 @@ void G4TheMTRayTracer::StoreUserActions()
 
 void G4TheMTRayTracer::RestoreUserActions()
 {
-  G4MTRunManager* mrm = G4MTRunManager::GetMasterRunManager();
-  mrm->SetUserInitialization(const_cast<G4UserWorkerInitialization*>(theUserWorkerInitialization));
+  G4MTRunManager* mrm = G4RunManagerFactory::GetMTMasterRunManager();
+  mrm->SetUserInitialization(
+    const_cast<G4UserWorkerInitialization*>(theUserWorkerInitialization));
   mrm->SetUserAction(const_cast<G4UserRunAction*>(theUserRunAction));
 }
 
@@ -154,12 +175,25 @@ G4bool G4TheMTRayTracer::CreateBitMap()
   visMan->IgnoreStateChanges(true);
   StoreUserActions();
 
-// Event loop
-  G4MTRunManager* mrm = G4MTRunManager::GetMasterRunManager();
+  G4MTRunManager* mrm = G4RunManagerFactory::GetMTMasterRunManager();
+
+  // Keep, then switch off any printing requests
+  auto runVerbosity      = mrm->GetVerboseLevel();
+  auto runPrintProgress  = mrm->GetPrintProgress();
+  G4UImanager::GetUIpointer()->ApplyCommand("/run/verbose 0");
+  G4UImanager::GetUIpointer()->ApplyCommand("/run/printProgress 0");
+
+  // Event loop
   G4int nEvent = nRow*nColumn;
 ////  mrm->BeamOn(nEvent);
 ////  Temporary work-around until direct invokation of G4RunManager::BeamOn() works.
   G4String str = "/run/beamOn " + G4UIcommand::ConvertToString(nEvent);
+  G4UImanager::GetUIpointer()->ApplyCommand(str);
+
+  // Restore printing requests
+  str = "/run/verbose " + G4UIcommand::ConvertToString(runVerbosity);
+  G4UImanager::GetUIpointer()->ApplyCommand(str);
+  str = "/run/printProgress " + G4UIcommand::ConvertToString(runPrintProgress);
   G4UImanager::GetUIpointer()->ApplyCommand(str);
 
   RestoreUserActions();

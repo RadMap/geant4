@@ -25,10 +25,6 @@
 //
 /// \file TrackingAction.hh
 /// \brief Definition of the TrackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef TrackingAction_h
 #define TrackingAction_h 1
@@ -40,19 +36,18 @@ class EventAction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class TrackingAction : public G4UserTrackingAction {
-
-  public:  
+class TrackingAction : public G4UserTrackingAction
+{
+  public:
     TrackingAction(EventAction*);
-   ~TrackingAction();
+    ~TrackingAction() override = default;
 
-    virtual void  PreUserTrackingAction(const G4Track*);   
-    virtual void PostUserTrackingAction(const G4Track*);
+    void PreUserTrackingAction(const G4Track*) override;
+    void PostUserTrackingAction(const G4Track*) override;
 
   private:
-    EventAction*        fEventAction;
-
-    G4double fTimeBirth,  fTimeEnd;
+    EventAction* fEventAction = nullptr;
+    G4double fTimeBirth = 0., fTimeEnd = 0.;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

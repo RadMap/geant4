@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file field/BlineTracer/include/G4BlineEventAction.hh
+/// \file G4BlineEventAction.hh
 /// \brief Definition of the G4BlineEventAction class
-//
-//
-//
-// 
+
 // --------------------------------------------------------------------
 //
 // G4BlineEventAction
@@ -46,11 +43,11 @@
 //         Created - 2003-10-06
 // --------------------------------------------------------------------
 #ifndef G4BlineEventAction_h
-#define G4BlineEventAction_h 1 
+#define G4BlineEventAction_h 1
 
+#include "G4Colour.hh"
 #include "G4UserEventAction.hh"
 #include "G4VisAttributes.hh"
-#include "G4Colour.hh"
 
 class G4Event;
 class G4Polyline;
@@ -60,42 +57,37 @@ class G4BlineTracer;
 class G4BlineEventAction : public G4UserEventAction
 {
   public:  // with description
-
     G4BlineEventAction(G4BlineTracer* aBlineTool);
-    virtual ~G4BlineEventAction();
+    ~G4BlineEventAction() override;
 
-    virtual void BeginOfEventAction(const G4Event*);
-    virtual void EndOfEventAction(const G4Event*);
+    void BeginOfEventAction(const G4Event*) override;
+    void EndOfEventAction(const G4Event*) override;
 
-    void DrawFieldLines(G4double zoom, G4double theta, G4double phi); 
+    void DrawFieldLines(G4double zoom, G4double theta, G4double phi);
     void ResetVectorObjectToBeDrawn();
 
   public:  // with description
-
     inline void SetDrawColour(G4Colour aColour) { fDrawColour = aColour; }
-    inline void SetDrawBline(G4bool aBool) { fDrawBline=aBool; }
-    inline void SetDrawPoints(G4bool aBool) { fDrawPoints=aBool; }
-    inline void SetPointSize(G4double aVal) { fPointSize=aVal; }
+    inline void SetDrawBline(G4bool aBool) { fDrawBline = aBool; }
+    inline void SetDrawPoints(G4bool aBool) { fDrawPoints = aBool; }
+    inline void SetPointSize(G4double aVal) { fPointSize = aVal; }
     inline G4bool GetDrawBline() { return fDrawBline; }
 
   public:  // without description
-
-    // inline void SetDrawLineWidth(G4double aVal)
-    //   { fTrajectoryVisAttributes.SetLineWidth(aVal); }
-    // inline void SetDrawLineStyle(G4VisAttributes::LineStyle aStyle)
-    //   { fTrajectoryVisAttributes.SetLineStyle(aStyle); }
-      // Future implementation...
-
+           // inline void SetDrawLineWidth(G4double aVal)
+           //   { fTrajectoryVisAttributes.SetLineWidth(aVal); }
+           // inline void SetDrawLineStyle(G4VisAttributes::LineStyle aStyle)
+           //   { fTrajectoryVisAttributes.SetLineStyle(aStyle); }
+           // Future implementation...
   private:
-  
-   G4BlineTracer* fBlineTool;   
-   G4Colour fDrawColour;
-   G4bool fDrawBline;
-   G4bool fDrawPoints;
-   G4double fPointSize;
-   std::vector<G4VisAttributes*> fTrajectoryVisAttributes;
-   std::vector<G4Polyline> fTrajectoryPolyline;
-   std::vector<G4Polymarker> fTrajectoryPoints;
+    G4BlineTracer* fBlineTool = nullptr;
+    G4Colour fDrawColour;
+    G4bool fDrawBline = false;
+    G4bool fDrawPoints = false;
+    G4double fPointSize = 1;
+    std::vector<G4VisAttributes*> fTrajectoryVisAttributes;
+    std::vector<G4Polyline> fTrajectoryPolyline;
+    std::vector<G4Polymarker> fTrajectoryPoints;
 };
 
 #endif

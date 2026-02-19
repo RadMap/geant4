@@ -1,39 +1,287 @@
--------------------------------------------------------------------
+# Category geom-specific History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                      Sub-Category History file
-                      -------------------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all directory-tags.
-It DOES NOT substitute the log-message one should put at every
-committal in the source repository !
+-------------------------------------------------------------------------------
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2025-11-12 Gabriele Cosmo (geom-specific-V11-03-11)
+- Fixed potential thread-safety issue in GetCubicVolume() and GetSurfaceArea()
+  on all solids in case those functions are called from worker threads.
 
-17-January-2020 E.Tcherniaev       (geom-specific-V10-05-22)
+## 2025-09-25 Gabriele Cosmo (geom-specific-V11-03-10)
+- Reorganised and enriched comments in headers to follow Doxygen style.
+- Removed virtual specifications from utility class G4ClippablePolygon.
+- Removed static protected functions in G4Hype and made them private.
+- Removed unneeded static data/specifications in G4Voxelizer.
+- Moved inline methods definitions of G4TriangularFacet, G4QuadrangularFacet,
+  G4SurfBits, G4TwistBoxSide, G4TwistTrapParallelSide and G4TwistTrapAlphaSide
+  to .icc files.
+
+## 2025-08-31 Evgueni Tcherniaev (geom-specific-V11-03-09)
+- G4GenericTrap: improved estimation of safety distance by adopting
+  Lipschitz-based implementation.
+  Contribution by Nazar Misyats (ENS, Rennes), CERN summer student 2025.
+
+## 2025-08-26 Gabriele Cosmo (geom-specific-V11-03-08)
+- Applied clang-tidy fixes: basic, modernize-loop-convert,
+  modernize-use-default-member-init, readability-redundant-member-init,
+  readability-implicit-bool-conversion, readability-braces-around-statements,
+  readability-else-after-return.
+
+## 2025-08-21 Andrei Gheata (geom-specific-V11-03-07)
+- G4UGenericTrap.cc: Using a backward-compatible different interface to
+  retrieve vertices from VecGeom, allowing for some arrays cleanup.
+
+## 2025-03-13 Evgueni Tcherniaev (geom-specific-V11-03-06)
+- G4PolyPhiFace.cc, G4PolyconeSide.cc, G4PolyhedraSide.cc, G4TwistedTubs.cc,
+  G4VCSGfaceted.cc, G4VTwistedFaceted.cc: used G4QuickRand()
+- G4EllipticalCone.cc, G4EllipticalTube.cc, G4Voxelizer.cc:
+  removed unnecessary headers
+
+## 2025-03-07 Soon Yung Jun (geom-specific-V11-03-05)
+- G4Polyhedra, G4UPolyhedra: Verify the validity of the delta phi to restore
+  visualization of HepPolyhedronPgon
+
+## 2025-02-23 Evgueni Tcherniaev (geom-specific-V11-03-04)
+- G4Ellipsoid, G4EllipticalTibe: Code optimization in GetPointOnSurface().
+- G4TessellatedSolid, G4TriangularFacet, G4QuadrangularFacet:
+  use G4QuickRand().
+
+## 2025-02-19 Evgueni Tcherniaev (geom-specific-V11-03-03)
+- G4EllipticalCone: Code optimization in GetPointOnSurface();
+  SetSemiAxis(), SetZCut() moved to *.cc
+- G4Hype: Code optimization in GetPointOnSurface().
+
+## 2025-02-16 Evgueni Tcherniaev (geom-specific-V11-03-02)
+- G4Paraboloid: Implemented uniform sampling of random points.
+
+## 2025-02-03 Gabriele Cosmo (geom-specific-V11-03-01)
+- Removed fake default constructor from G4U* wrappers, clearing compilation
+  warnings on gcc-14.
+
+## 2025-01-25 Evgueni Tcherniaev (geom-specific-V11-03-00)
+- G4Hype: Revised surface area calculation and random point sampling.
+
+## 2024-10-01 Evgueni Tcherniaev (geom-specific-V11-02-08)
+- G4GenericTrap: Fixed minor defect reported by Coverity.
+
+## 2024-07-18 Alvaro Tolosa-Delgado (geom-specific-V11-02-07)
+- Remove internal state of G4TwistedTubs and G4VTwistedFaceted.
+
+## 2024-07-10 Evgueni Tcherniaev (geom-specific-V11-02-06)
+- G4ExtrudedSolid: Fixed defects reported by Coverity
+
+## 2024-07-08 Gabriele Cosmo (geom-specific-V11-02-05)
+- Fixed reported Coverity defect; in G4Voxelizer, use std::move instead of
+  plain vector copy in methods BuildReduceVoxels(..), BuildReduceVoxels2(..),
+  BuildBoundaries() and CreateMiniVoxels(..).
+
+## 2024-05-29 Evgueni Tcherniaev (geom-specific-V11-02-04)
+- Added new methods GetNumOfConstituents() and IsFaceted().
+
+## 2024-05-27 Evgueni Tcherniaev (geom-specific-V11-02-03)
+- Completely revised G4GeneriTrap, it addresses the problem report #2547
+
+## 2024-05-26 Evgueni Tcherniaev (geom-specific-V11-02-02)
+- New testG4GenericTrap.cc
+
+## 2024-04-02 Gabriele Cosmo (geom-specific-V11-02-01)
+- Applied trivial clang-tidy fixes to classes, i.e. use of 'override' and
+  'default' keywords.
+
+## 2024-02-01 Gabriele Cosmo (geom-specific-V11-02-00)
+- Use std::size_t for array sizes in G4PolyhedraSide and G4PolyPhiFace.
+
+## 2023-07-10 Evgueni Tcherniaev (geom-specific-V11-01-06)
+- Fixed bounding box calculation in G4VTwistedFaceted::BoundingLimits().
+
+## 2023-06-16 Stephan Hageboeck (geom-specific-V11-01-05)
+- Fix an uninitialised value in G4VCSGfaceted::SurfaceNormal().
+
+## 2023-06-12 Gabriele Cosmo (geom-specific-V11-01-04)
+- Use const iterator in G4Voxelizer::GetPointVoxel().
+- Fixed use of index in G4Tet::GetPointOnSurface().
+
+## 2023-05-10 Gabriele Cosmo (geom-specific-V11-01-03)
+- Applied clang-tidy fixes (readability, modernization, performance, ...).
+
+## 2023-03-20 Gabriele Cosmo (geom-specific-V11-01-02)
+- Fixed more potential uninitialised values in G4PolyconeSide,
+  G4SolidExtentList and G4VTwistSurface.
+
+## 2023-03-13 Gabriele Cosmo (geom-specific-V11-01-01)
+- Fixed potential uninitialised value for boundary type in
+  G4VTwistSurface::GetBoundaryAtPZ().
+
+## 2023-01-02 Evgueni Tcherniaev (geom-specific-V11-01-00)
+- G4QuadrangularFacet: Fixed warning message
+
+## 2022-11-10 Gabriele Cosmo (geom-specific-V11-00-10)
+- Fixed compilation warnings for implicit type conversions on macOS/XCode 14.1.
+
+## 2022-10-05 Gabriele Cosmo (geom-specific-V11-00-09)
+- Fixed compilation warnings in Intel/icx compiler for variables set
+  but never used.
+
+## 2022-04-03 Evgueni Tcherniaev (geom-specific-V11-00-08)
+- G4GenericTrap.cc, G4UGenericTrap.cc, G4UExtrudedSolid.cc,
+  G4TessellatedSolid.cc, G4TessellatedSolid.cc:
+  revision of CreatePolyhedron()
+
+## 2022-02-04 Evgueni Tcherniaev (geom-specific-V11-00-07)
+- G4VTwistedFaceted: used numerical evaluation of a single
+  integral to calculate lateral face surface area
+
+## 2022-02-01 Evgueni Tcherniaev (geom-specific-V11-00-06)
+- G4ExtrudedSolid, G4UExtrudedSolid: added default values for
+  parameters in the constructor with two z-sections
+- G4ExtrudedSolid::ZSection, G4UExtrudedSolid::ZSection:
+  added default constructor
+
+## 2022-01-26 Evgueni Tcherniaev (geom-specific-V11-00-05)
+- G4GenericTrap::GetCubicVolume(): calculation of volume
+  using analytical expression; removed private function
+  GetFaceCubicVolume();
+- G4GenericTrap::GetSurfaceArea(): improved calculation
+  of the area of lateral faces; private functions
+  GetFaceSurfaceArea(), GetTwistedFaceSurfaceArea()
+  replaced with private function GetLateralFaceArea()
+
+## 2022-01-21 Evgueni Tcherniaev (geom-specific-V11-00-04)
+- G4Ellipsoid::LateralSurfaceArea(): Enhanced calculation of
+  the lateral surface area
+
+## 2022-01-11 Evgueni Tcherniaev (geom-specific-V11-00-03)
+- G4VTwistedFaceted: fCubicVolume, fSurfaceArea made protected,
+  GetCubicVolume(), GetSurfaceArea() moved to *.cc
+- G4VTwistedFaceted, G4TwistedBox, G4TwistedTrd: optimized
+  calculation of volume and surface area
+
+## 2022-01-06 Evgueni Tcherniaev (geom-specific-V11-00-02)
+- G4TwistedTubs: Implemented GetSurfaceArea() based on
+  analytical expressions; added private functions
+  GetLateralArea() and GetPhiCutArea()
+
+## 2021-12-19 Evgueni Tcherniaev (geom-specific-V11-00-01)
+- G4Hype: Used analytical expression in GetCubicVolume()
+  and GetSurfaceArea()
+
+## 2021-12-10 Ben Morgan (geom-specific-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+03-December-2021 E.Tcherniaev      (geom-specific-V10-07-13)
+- G4TwistedTubs: Accurate calculation of the bounding box in
+  BoundingLimits() and GetExtent(), fixing measured performance
+  penalty. Addressing problem report #2450.
+- G4TwistedTubs, G4VTwistedFaceted: Fixed GetCubicVolume()
+
+15-October-2021 E.Tcherniaev       (geom-specific-V10-07-12)
+- G4Tet, G4UTet: Added SetBoundingLimits()
+
+06-October-2021 E.Tcherniaev       (geom-specific-V10-07-11)
+- G4Tet: some changes in calculation of bounding box
+- G4UTet: added CheckDegeneracy() and SetVertices()
+
+27-September-2021 E.Tcherniaev     (geom-specific-V10-07-10)
+- Added degeneracyFlag to the list of parameters of G4Tet::SetVertices(),
+  it addresses first part of the problem report #2427
+
+24-September-2021 E.Tcherniaev     (geom-specific-V10-07-09)
+- Implemented G4TesselatedSolid::GetFacetIndex(p)
+
+10-September-2021 E.Tcherniaev     (geom-specific-V10-07-08)
+- Implemented G4TesselatedSolid::CheckStructure()
+- Optimisation in G4TessellatedSolid::SetExtremeFacets():
+  shuffle of vertices and checking of six extreme vertices
+
+21-July-2021 E.Tcherniaev          (geom-specific-V10-07-07)
+- More accurate calculation of distance from point to triangle
+  in G4TriangularFacet, it addresses problem report #2401
+
+25-June-2021 G.Cosmo               (geom-specific-V10-07-06)
+- Added missing accessor in G4UTet.
+
+12-May-2021 E.Tcherniaev           (geom-specific-V10-07-05)
+- Reimplemented	CreatePolyhedron() in
+  G4Polyhedra, G4Polycone, G4GenericPolycone,
+  G4UPolyhedra, G4UPolycone, G4UGenericPolycone
+
+30-April-2021 G.Cosmo              (geom-specific-V10-07-04)
+- Fixed use of conversion factor in G4UPolyhedra wrapper for "generic"
+  polyhedra constructs.
+
+19-April-2021 E.Tcherniaev         (geom-specific-V10-07-03)
+- G4Polyhedra, G4Polycone: Fix calculation of endPhi for the case
+  of negative phiStart, it addresses also problem report #2362
+
+30-March-2021 B.Morgan             (geom-specific-V10-07-02)
+- Migrate sources.cmake to modular build API
+
+18-March-2021 E.Tcherniaev         (geom-specific-V10-07-01)
+- Fix calculation of bounding box position in G4Voxelizer::BuildVoxelLimits(),
+  it addresses problem report #2301
+
+13-January-2021 G.Cosmo            (geom-specific-V10-07-00)
+- Reduce cases of bad speculation in G4PolyhedraSide::Inside() and
+  G4PolyPhiFace::InsideEdges(), based on report in profiling analysis
+  by G.Amadio.
+
+30-October-2020 E.Tcherniaev       (geom-specific-V10-06-10)
+- G4Polycone: Revised GetPointOnSurface();
+  Added protected auxiliary method SetSurfaceElements();
+  Removed GetPointOnCone(), GetPointOnTubs(), GetPointOnCut(), GetPointOnRing();
+- G4GenericPolycone: Revised GetPointOnSurface();
+  Added protected auxiliary method SetSurfaceElements();
+- G4Polyhedra: Revised GetPointOnSurface();
+  Added protected auxiliary method SetSurfaceElements();
+  Removed GetPointOnPlane(), GetPointOnTriangle();
+
+01-October-2020 E.Tcherniaev       (geom-specific-V10-06-09)
+- G4Polycone, G4GenericPolycone, G4Polyhedra:
+  implemented GetSurfaceArea(), GetCubicVolume().
+
+May  21, 2020 Guilherme Lima       (geom-specific-V10-06-08)
+----------------------------
+- Fix constructor signatures in G4UExtrudedSolid wrappers, to match those in G4 version.
+  There were missing const and reference qualifiers in non-POD parameters.
+
+30-April-2020 G.Cosmo              (geom-specific-V10-06-07)
+- Adopt new convention for location of headers in VecGeom for all wrappers.
+
+09-April-2020 E.Tcherniaev         (geom-specific-V10-06-06)
+- Added G4GenericTrap::GetTwistedFaceSurfaceArea().
+- testG4GenericTrap.cc: fixed test for calculation of surface area.
+- testG4ExtrudedSolid.cc: fixed assert statements for cases where
+  point flys along the surface (DistanceToIn() returns kInfinity).
+
+17-January-2020 E.Tcherniaev       (geom-specific-V10-06-05)
 - Implemented G4Tet::SetVertices(), it addresses request made
   at Geant4 Technical Forum.
 
-14-January-2020 Gabriele Cosmo
+14-January-2020 Gabriele Cosmo     (geom-specific-V10-06-04)
 - Added protection in G4VFacet header for double definition of global
   symbols from Windows Kits code.
 
-08-January-2020 E.Tcherniaev
+08-January-2020 E.Tcherniaev       (geom-specific-V10-06-03)
 - Complete revision of G4Tet, speed up, new testG4Tet.cc.
   It also fixes issues spotted by new unit test.
 
-16-December-2019 E.Tcherniaev
+16-December-2019 E.Tcherniaev      (geom-specific-V10-06-02)
 - Complete revision of G4Ellipsoid, it fixes issues with former
   implementation, in particular it addresses problem report #2206.
-  30%-70% speed-up in all main methods 
+  30%-70% speed-up in all main methods.
 
-10-December-2019 G.Cosmo
+11-December-2019 B.Morgan          (geom-specific-V10-06-01)
+- Cleanup CMake build, removing obsolete granular library options and
+  explicit include_directories.
+
+10-December-2019 G.Cosmo           (geom-specific-V10-06-00)
 - Re-established parameterisation mechanism for G4Tet and G4UTet which was
   removed by mistake. Addressing problem report #2209.
 
@@ -174,7 +422,7 @@ committal in the source repository !
 - Enabled VecGeom wrappers for G4ExtrudedSolid and G4Hype.
 
 13-December-2017  E.Tcherniaev     (geom-specific-V10-04-01)
-- Removed redundant data initialistion in G4ExtrudedSolid constructors. 
+- Removed redundant data initialistion in G4ExtrudedSolid constructors.
 
 11-December-2017  E.Tcherniaev     (geom-specific-V10-04-00)
 - Added missing initialisation of two data-members in copy-ctor and
@@ -453,8 +701,8 @@ committal in the source repository !
 - Renamed DistanceAwayForInside() to DistanceAway() and use polymorphism.
 
 26-Jan-2015  T.Nikitina            (geom-specific-V10-01-03, 02)
-- Added special method for Inside 'DistanceAwayForInside()' in order to fix 
-  precision problem of calculation of DistanceToSide() in G4PolyconeSide. 
+- Added special method for Inside 'DistanceAwayForInside()' in order to fix
+  precision problem of calculation of DistanceToSide() in G4PolyconeSide.
 
 21-Jan-2015  T.Nikitina            (geom-specific-V10-01-01)
 - Fixed triangularisation method AddGeneralPOlygoneFacets() in
@@ -495,7 +743,7 @@ committal in the source repository !
 
 12-Feb-2014  G.Cosmo               (geom-specific-V10-00-04)
 - Simply reset polyhedron pointer to zero for modifiers of G4U* wrappers
-  in parameterisation. Resolves crash in MT visualization when using USolids. 
+  in parameterisation. Resolves crash in MT visualization when using USolids.
 
 12-Feb-2014  G.Cosmo               (geom-specific-V10-00-03 [and -02])
 - Added correct cloning mechanism in G4U* wrappers.
@@ -536,10 +784,10 @@ committal in the source repository !
 
 12-Nov-2013  G.Cosmo               (geom-specific-V09-06-28)
 - Correction to USolids switch mechanism for G4Polycone.
-    
+
 08-Nov-2013  J.Apostolakis         (geom-specific-V09-06-27)
 - G4SolidsWorkspace: cleanup of verbosity.
-  Reduced verbosity by making it optional.  
+  Reduced verbosity by making it optional.
   Added Set/Get Verbose methods to toggle and view it.
   Added parameter to constructor for verbosity (default=off).
 
@@ -572,7 +820,7 @@ committal in the source repository !
 
 16-Oct-2013  J.Apostolakis/A.Dotti (geom-specific-V09-06-20)
 - Created G4SolidsWorkspacePool class, to manage Workspaces
-  Fixed Singleton G4SolidsWorkspacePool for thread safe creation of object. 
+  Fixed Singleton G4SolidsWorkspacePool for thread safe creation of object.
 
 04-Oct-2013  J.Apostolakis (geom-specific-V09-06-19)
 - Retagged.
@@ -612,9 +860,9 @@ committal in the source repository !
 22-Apr-2013  J.Apostolakis (geom-specific-V09-06-11)
 - Revised G4ExtrudedSolid::IsSameLine to use the perpendicular
   distance to a line when deciding - not the y-intercept difference.
-  ( Issue responsible for a problem in Subtraction Solid in Atlas.  
+  ( Issue responsible for a problem in Subtraction Solid in Atlas.
      Tatiana & Ivana contributed to debugging. )
-- Changed GNUmakefile in test directory to work with Cmake and granular 
+- Changed GNUmakefile in test directory to work with Cmake and granular
   builds.
 
 16-Apr-2013  T.Nikitina (geom-specific-V09-06-10)
@@ -866,7 +1114,7 @@ committal in the source repository !
 - Use INT_MAX as initialisation for max limits in G4SolidExtentList.
 
 12-Jul-2010  G.Cosmo (geom-specific-V09-03-09)
-- Added dummy initialization to members in struct 
+- Added dummy initialization to members in struct
   G4PolyPhiFace::G4PolyPhiFaceEdge, struct G4ReduciblePolygon::ABVertex.
   G4Ellipsoid, G4EllipticalTube, G4EnclosingCylinder, G4ExtrudedSolid, G4Hype,
   G4IntersectingCone, G4Paraboloid, G4PolyPhiFace, G4Polycone, G4PolyconeSide,
@@ -1077,7 +1325,7 @@ committal in the source repository !
 02-Feb-2008, I.Hrivnacova (geom-specific-V09-01-01)
 - Corrected triangularization of polygon, now correctly handling case
   of concave shapes.
-- Corrected order of arguments in G4Paraboloid constructor.  
+- Corrected order of arguments in G4Paraboloid constructor.
 
 16-Jan-2008, I.Hrivnacova (geom-specific-V09-01-00)
 - In G4ExtrudedSolid::MakeFacets(), now adding triangular facets before quadrangular
@@ -1119,7 +1367,7 @@ committal in the source repository !
     p on the surface.
   o DistanceToOut(p,v): now returning positive solution or zero when crossing
     the elliptical surface.
-  o Fix in DistanceToOut(p) which was giving always zero. 
+  o Fix in DistanceToOut(p) which was giving always zero.
   o Corrected visualisation error of solid in graphics_reps.
   o Added some formulas on how to pre-calculate 'SemiAxis' and 'zheight'.
   o Added checkDistanceToOut() method to unit test.
@@ -1319,7 +1567,7 @@ committal in the source repository !
   o added GetPointOnSurface() method
 - G4Hype:
   o corrected surface area calculation used in GetPointOnSurface()
-  
+
 17-Nov-2005, G.Cosmo (geom-specific-V07-01-09)
 - More fixes required for direct object persistency to G4Polycone,
   G4polyhedra and related utility classes.
@@ -1423,7 +1671,7 @@ committal in the source repository !
 - Added G4TwistedBox  - a twisted box with twist angle alpha,
                         length a/2,b/2,L/2.
 - Added G4TwistedTrap - a twisted trapezoid (still in debug state)
-- Changed in G4VSurface.icc: 
+- Changed in G4VSurface.icc:
     - GetNeighbours(): corrected axiscode (was returning the wrong neighbours)
     - SetNeighbours(): fixed problem #685 (index out of range)
 - Added tests for G4TwistedBox and G4TwistedTrap in specific/test.
@@ -1543,7 +1791,7 @@ committal in the source repository !
 - Migration to STL vector:
   o In G4ClippablePolygon, migrated G4ThreeVectorList typedef and
     made private to class.
-    
+
 03-Apr-2001, D.Williams  (geom-solids-specific-V03-00-01)
 -----------------------
 - G4IntersectingCone.cc: make small adjustment to help with roundoff error

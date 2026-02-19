@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G03/include/G03DetectorMessenger.hh
+/// \file G03DetectorMessenger.hh
 /// \brief Definition of the G03DetectorMessenger class
-//
-//
-//
+
 // Class G03DetectorMessenger
 //
 // Utility messenger for defining run-time commands relative to the example.
@@ -37,8 +35,8 @@
 #ifndef G03DetectorMessenger_h
 #define G03DetectorMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class G03DetectorConstruction;
 class G4UIdirectory;
@@ -46,21 +44,18 @@ class G4UIcmdWithAString;
 
 /// Detector messenger for the GDML extensions example
 
-class G03DetectorMessenger: public G4UImessenger
+class G03DetectorMessenger : public G4UImessenger
 {
-
   public:
+    G03DetectorMessenger(G03DetectorConstruction*);
+    ~G03DetectorMessenger();
 
-    G03DetectorMessenger( G03DetectorConstruction* );
-   ~G03DetectorMessenger();
-    
-    virtual void SetNewValue( G4UIcommand*, G4String );
+    virtual void SetNewValue(G4UIcommand*, G4String);
 
   private:
-
-    G03DetectorConstruction      *fTheDetector;
-    G4UIdirectory             *fTheDetectorDir;
-    G4UIcmdWithAString        *fTheReadCommand, *fTheWriteCommand;
+    G03DetectorConstruction* fTheDetector;
+    G4UIdirectory* fTheDetectorDir;
+    G4UIcmdWithAString *fTheReadCommand, *fTheWriteCommand;
 };
 
 // ----------------------------------------------------------------------------

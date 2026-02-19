@@ -25,7 +25,7 @@
 //
 // G4Mag_EqRhs implementation
 //
-// Created: J.Apostolakis, CERN - 13.01.1997
+// Author: John Apostolakis (CERN), 13.01.1997
 // --------------------------------------------------------------------
 
 #include "G4MagneticField.hh"
@@ -39,10 +39,6 @@ const G4double G4Mag_EqRhs::fUnitConstant = 0.299792458 * (GeV/(tesla*m));
 G4Mag_EqRhs::G4Mag_EqRhs( G4MagneticField* magField ) 
   : G4EquationOfMotion(magField)
 { 
-}
-
-G4Mag_EqRhs::~G4Mag_EqRhs()
-{
 }
 
 void  

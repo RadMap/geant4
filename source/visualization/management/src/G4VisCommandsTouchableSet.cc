@@ -38,6 +38,8 @@
 
 #include <sstream>
 
+#define G4warn G4cout
+
 ////////////// /vis/touchable/set/colour ///////////////////////////////////////
 
 G4VisCommandsTouchableSet::G4VisCommandsTouchableSet()
@@ -82,18 +84,6 @@ G4VisCommandsTouchableSet::G4VisCommandsTouchableSet()
   fpCommandSetForceAuxEdgeVisible->SetParameterName("forceAuxEdgeVisible", omitable = true);
   fpCommandSetForceAuxEdgeVisible->SetDefaultValue(true);
 
-  fpCommandSetLineSegmentsPerCircle = new G4UIcmdWithAnInteger
-  ("/vis/touchable/set/lineSegmentsPerCircle", this);
-  fpCommandSetLineSegmentsPerCircle->SetGuidance
-    ("For current touchable, set number of line segments per circle, the"
-     "\nprecision with which a curved line or surface is represented by a"
-     "\npolygon or polyhedron, regardless of the view parameters."
-     "\nNegative to pick up G4Polyhedron default value.");
-  fpCommandSetLineSegmentsPerCircle->SetGuidance
-  ("Use \"/vis/set/touchable\" to set current touchable.");
-  fpCommandSetLineSegmentsPerCircle->SetParameterName("lineSegmentsPerCircle", omitable = true);
-  fpCommandSetLineSegmentsPerCircle->SetDefaultValue(0);
-  
   fpCommandSetForceCloud = new G4UIcmdWithABool
   ("/vis/touchable/set/forceCloud", this);
   fpCommandSetForceCloud->SetGuidance
@@ -121,6 +111,18 @@ G4VisCommandsTouchableSet::G4VisCommandsTouchableSet()
   fpCommandSetForceWireframe->SetParameterName("forceWireframe", omitable = true);
   fpCommandSetForceWireframe->SetDefaultValue(true);
 
+  fpCommandSetLineSegmentsPerCircle = new G4UIcmdWithAnInteger
+  ("/vis/touchable/set/lineSegmentsPerCircle", this);
+  fpCommandSetLineSegmentsPerCircle->SetGuidance
+    ("For current touchable, set number of line segments per circle, the"
+     "\nprecision with which a curved line or surface is represented by a"
+     "\npolygon or polyhedron, regardless of the view parameters."
+     "\nNegative to pick up G4Polyhedron default value.");
+  fpCommandSetLineSegmentsPerCircle->SetGuidance
+  ("Use \"/vis/set/touchable\" to set current touchable.");
+  fpCommandSetLineSegmentsPerCircle->SetParameterName("lineSegmentsPerCircle", omitable = true);
+  fpCommandSetLineSegmentsPerCircle->SetDefaultValue(0);
+
   fpCommandSetLineStyle = new G4UIcmdWithAString
   ("/vis/touchable/set/lineStyle", this);
   fpCommandSetLineStyle->SetGuidance("Set line style of current touchable drawing.");
@@ -141,13 +143,11 @@ G4VisCommandsTouchableSet::G4VisCommandsTouchableSet()
   fpCommandSetNumberOfCloudPoints = new G4UIcmdWithAnInteger
   ("/vis/touchable/set/numberOfCloudPoints", this);
   fpCommandSetNumberOfCloudPoints->SetGuidance
-  ("For current touchable, set number of line segments per circle, the"
-   "\nprecision with which a curved line or surface is represented by a"
-   "\npolygon or polyhedron, regardless of the view parameters."
-   "\nNegative to pick up G4Polyhedron default value.");
+  ("For current touchable, set number of cloud points for cloud drawing."
+   "\n<= 0 means under control of viewer.");
   fpCommandSetNumberOfCloudPoints->SetGuidance
   ("Use \"/vis/set/touchable\" to set current touchable.");
-  fpCommandSetNumberOfCloudPoints->SetParameterName("lineSegmentsPerCircle", omitable = true);
+  fpCommandSetNumberOfCloudPoints->SetParameterName("numberOfCloudPoints", omitable = true);
   fpCommandSetNumberOfCloudPoints->SetDefaultValue(0);
 
   fpCommandSetVisibility = new G4UIcmdWithABool
@@ -186,7 +186,7 @@ void G4VisCommandsTouchableSet::SetNewValue
   G4VViewer* currentViewer = fpVisManager->GetCurrentViewer();
   if (!currentViewer) {
     if (verbosity >= G4VisManager::errors) {
-      G4cerr <<
+      G4warn <<
       "ERROR: G4VisCommandsTouchableSet::SetNewValue: no current viewer."
       << G4endl;
     }
@@ -309,11 +309,25 @@ void G4VisCommandsTouchableSet::SetNewValue
      (workingVisAtts,
       G4ModelingParameters::VASVisibility,
       fCurrentTouchableProperties.fTouchablePath));
+    if (verbosity >= G4VisManager::warnings) {
+      static G4bool first = true;
+      if (first) {
+        first = false;
+        G4warn << "WARNING: If \"/vis/touchable/set/visibility\" does not appear to"
+        "\n  work, check that opacity (4th component of colour) is non-zero." << G4endl;
+        G4warn << "ALSO: The volume must be in a requested physical volume tree,"
+        "\n  not in the \"base path\". E.g., if"
+        "\n    /vis/drawVolume volume-name"
+        "\n  there is no way to make a parent of volume-name visible except by"
+        "\n  explicitly adding the parent:"
+        "\n    /vis/scene/add/volume parent-name" << G4endl;
+      }
+    }
   }
   
   else {
     if (verbosity >= G4VisManager::errors) {
-      G4cerr <<
+      G4warn <<
       "ERROR: G4VisCommandsTouchableSet::SetNewValue: unrecognised command."
       << G4endl;
     }

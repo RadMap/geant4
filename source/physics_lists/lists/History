@@ -1,19 +1,179 @@
--------------------------------------------------------------------
+# Category phys-lists History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                  Hadronic physics-list/lists History
-                  -----------------------------
-This file should be used  to briefly summarize all major modifications
-introduced in the code and keeptrack of all tags.
+-------------------------------------------------------------------------------
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2025-11-12 Vladimir Ivanchenko (phys-list-V11-03-05)
+- G4PhysListFactory - for HP physics use the default EM constructor as it was
+    in Geant4 11.3.
 
-15-January-2020  Alberto Ribon (phys-lists-V10-05-05)
+## 2025-10-30 Vladimir Ivanchenko (phys-list-V11-03-04)
+- G4PhysListFactory - allowed definition of EM  physics Opt0 on top of
+    any reference Physics Lists (currently this provides more simple EM physics
+    together with HP), improved printout for the HP case - now EMZ option is
+    printed in the name.
+
+## 2025-04-23 Alberto Ribon (phys-lists-V11-03-03)
+- FTFP_BERT_ATL : removed the special FTF tune for ATLAS (introduced in
+  phys-lists-V11-01-05 to overcome the problem of too optimistic (i.e. narrow)
+  pion shower energy resolution).
+  In this way, FTFP_BERT_ATL will use the default FTF parameters, as all other
+  reference physics lists.
+  In order to enable the special FTF tune for ATLAS, one can either use the
+  following C++ call in user code:
+    G4FTFTunings::Instance()->SetTuneApplicabilityState( 4, 1 );
+  or the UI command (before run-initialization):
+    /process/had/models/ftf/selectTuneByIndex 4
+
+## 2025-04-15 Vladimir Ivanchenko (phys-list-V11-03-02)
+- QBBC - added G4ChargeExchangePhysics
+
+## 2025-03-03 Dmitri Konstantinov (phys-list-V11-03-01)
+- G4PhysListFactory: Prevent fallback to default physics list
+  when an invalid name is provided. Now, if a user specifies an unknown physics list,
+  Geant4 will throw a fatal error instead of silently using FTFP_BERT.
+  This ensures that users are aware of incorrect configurations and
+  helps prevent unintended simulation results.
+
+## 2024-12-10 Douglas M Wright (phys-list-V11-03-00)
+- Shielding: Simplify logic tree for inelastic models 
+  and move all LEND hadronic inelastic processes to G4HadronPhysicsLEND
+
+## 2024-11-04 Vladimir Ivantchenko (phys-list-V11-02-03)
+- G4PhysListFactory - use std::size_t
+
+## 2024-08-09 Gabriele Cosmo (phys-list-V11-02-02)
+- G4PhysListRegistry: fixed compilation on XCode for implicit type conversion.
+  Minor code cleanup (use of nullptr, G4bool, std::size_t, singleton instance
+  initialisation). Initialise the instance only the first time it gets created.
+
+## 2024-07-03 Robert Hatcher (phys-list-V11-02-01)
+- Add "HPT" extension to support adding G4ThermalNeutrons to extensible physlist factory.
+- Changed how base phylist matching is done in G4PhysListRegistry in order to support
+  "_HP" lists and new "_HPT" extension; requires match to be exact or the remaining part
+  start with "_" or "+"
+
+## 2024-06-05 Alberto Ribon (phys-lists-V11-02-00)
+- G4PhysListFactory : added three new variants of the physics list `Shielding`,
+  which use the model G4LightIonQMDReaction : `ShieldingLIQMD`,
+  `ShieldingLIQMD_HP` and `ShieldingLIQMD_HPT`.
+  Note that `ShieldingLIQMD` and `ShieldingLIQMD_HP` are the same: the latter
+  is introduced only for consistency.
+
+## 2023-11-09 Yoshihide Sato (phys-lists-V11-01-07)
+- Add a option for `Shielding` to use G4LightIonQMDPhysics, 
+  which is the constructor of light ion qmd.
+
+## 2023-11-06 Vladimir Ivantchenko (phys-lists-V11-01-06)
+- G4PhysListFactoryMessenger - added UI commands to enable neutrino and 
+    charge exchange physics
+
+## 2023-10-26 Alberto Ribon (phys-lists-V11-01-05)
+- FTFP_BERT_ATL : use a specific FTF tune meant to overcome the problem of
+  too optimistic (i.e. narrow) pion shower energy resolutions in ATLAS
+  calorimeters with respect to test-beam data.
+
+
+## 2023-10-15 Vladimir Ivantchenko (phys-lists-V11-01-04)
+- QGSP_BERT_HP - use alternative HP models and cross sections
+- QGSP_BERT_AllHP - use default HP elastic builder
+
+## 2023-05-15 Alberto Ribon (phys-lists-V11-01-03)
+- Use the new class G4StoppingPhysicsWithINCLXX (instead of G4StoppingPhysics)
+  in INCLXXPhysicsListHelper : all the INCLXX-based physics lists use INCLXX
+  for the antiproton annihilation at rest.
+
+## 2023-05-10 Alberto Ribon (phys-lists-V11-01-02)
+- G4PhysListFactory : introduced the new physics list names `Shielding_HP` and
+  `ShieldingM_HP` as alias of, respectively, `Shielding` and `ShieldingM`;
+  replaced `Shielding_T` and `ShieldingM_T` with, respectively, `Shielding_HPT`
+  and `ShieldingM_HPT`.
+  These new aliases allow to have a consistent notation `_HPT` for all the
+  HP-based physics lists when the special elastic scattering treatment of
+  thermal neutrons is enabled.
+- Shielding : inform the user that the new physics list names (to be used
+  with the physics list factory) `Shielding_HP` and `ShieldingM_HP` are
+  equivalent to, respectively, `Shielding` and `ShieldingM`.
+
+## 2023-04-19 Alberto Ribon (phys-lists-V11-01-01)
+- Created the new class QBBC_ABLA, which is similar to QBBC, except that for
+  hadron inelastic the constructor G4HadronInelasticQBBC_ABLA is used
+  (instead of G4HadronInelasticQBBC): this means that the physics list
+  QBBC_ABLA behaves as QBBC, with the only difference that for the final-state
+  of nuclear inelastic interactions of charged pions and nucleons projectiles,
+  the ABLA model (instead of the usual Precompound/de-excitation) is utilized
+  for nuclear de-excitation.
+
+## 2023-04-13 Alberto Ribon (phys-lists-V11-01-00)
+- Created the new class QGSP_BIC_HPT, which is similar to QGSP_BIC_HP, but with
+  special treatment of elastic scattering of thermal neutrons activated.
+- G4PhysListFactory : added 6 new physics lists, corresponding to "HPT" variants
+  (i.e. with special treatment of elastic scattering of thermal neutrons) of
+  physics lists with "HP" already present (FTFP_BERT_HPT, QGSP_BERT_HPT,
+  FTFP_INCLXX_HPT, QGSP_INCLXX_HPT, QGSP_BIC_HPT, QGSP_BIC_AllHPT,
+  Shielding_T, ShieldingM_T). Of these, only one (QGSP_BIC_HPT) corresponds
+  to a concrete new physics list, whereas the others are obtained from the
+  "HP" physics lists by adding the physics constructor G4ThermalNeutrons.
+- G4PhysListFactoryMessenger : added the new UI command
+  "/physics_lists/factory/addThermal" to enable the special treatment of
+  elastic scattering of thermal neutrons for HP-based physics lists.
+
+## 2021-12-10 Ben Morgan (phys-lists-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+25-October-2021 B.Morgan (phys-lists-V10-07-10)
+- Use G4StrUtil functions replacing deprecated G4String member functions
+
+25-August-2021 Dennis Wright (phys-lists-V10-07-09)
+- LBE.cc: replace G4RadioactiveDecayBase with G4RadioactiveDecay
+  see top level History file
+ 
+28-April-2021 R. Hatcher (phys-lists-V10-07-08)
+- corresponding changes to G4PhysListFactoryAlt ctor to maintain drop-in
+  compatibility with older factory.
+
+24-April-2021 V.Ivanchenko  (phys-lists-V10-07-07)
+- in all Physics List protect banners by verbosity level
+- G4PhysListFactory add verbosity level to constructor and 
+  propagate to constructed Physics List
+
+16-April-2021 Ben Morgan (phys-lists-V10-07-06)
+- Migrate build to modular CMake API
+
+13-April-2021  Alberto Ribon (phys-lists-V10-07-05)
+-  GNUmakefile, sources.cmake : removed dependency on hadronic/model/util
+   and hadronic/model/management (that have been now deleted, with their
+   classes moved to hadronic/util and hadronic/management).
+
+18-March-2021  Alberto Ribon (phys-lists-V10-07-04)
+ - LBE.cc : renamed G4HadronCaptureProcess as G4NeutronCaptureProcess.
+
+04-March-2021  Alberto Ribon (phys-lists-V10-07-03)
+ - LBE.cc : replaced particle-specific hadronic inelastic processes
+   (that have been deleted) with G4HadronInelasticProcess.
+
+24-February-2021 Daren Sawkey (phys-lists-V10-07-02)
+ - LBE.cc. Remove deprecated optical commands.
+
+17-February-2021  Robert Hatcher (phys-lists-V10-07-01)
+ - Update list of EM extension shorthands known to extensible factory to
+   match old factory
+
+24-November-2020  Alberto Ribon (phys-lists-V10-06-02)
+ - LBE : added G4ShortLivedConstructor (to avoid crashes, e.g. when rho0
+   is produced by the decay of eta_prime).
+
+30-April-2020 Ben Morgan       (phys-lists-V10-06-01)
+ - Remove obsolete GRANULAR_DEPENDENCIES entries
+
+15-January-2020  Alberto Ribon (phys-lists-V10-06-00)
  - LBE : updated cross sections to avoid crashes caused by the removal of
    default Gheisha cross sections, and to have consistency between elastic
    and inelastic cross sections.
@@ -22,7 +182,7 @@ introduced in the code and keeptrack of all tags.
  - FTFP_BERT_HP, QGSP_BERT_HP, INCLXXPhysicsListHelper : added (consistently)
    RadioactiveDecay to all physics lists which use NeutronHP (the rationale
    is that precision is more valuable than speed for these physics lists;
-   note that, among the reference physics lists with NeutronHP, only 
+   note that, among the reference physics lists with NeutronHP, only
    FTFP_BERT_HP, QGSP_BERT_HP, FTFP_INCLXX_HP and QGSP_INCLXX_HP did not have
    RadioactiveDecay activated by default).
 
@@ -36,21 +196,21 @@ introduced in the code and keeptrack of all tags.
 31-July-2019  Gunter Folger (phys-lists-V10-05-02)
  - Code clean-up
    - remove template mechanism
-      - except for G4GenericPhysicsList, G4PhysListStamper, 
+      - except for G4GenericPhysicsList, G4PhysListStamper,
         and INCLXXPhysicsListHelper
    - delete copy ctor and assigmnet operator
-   - for empty dtor, use =default	
+   - for empty dtor, use =default
    - move include/x.icc to src/x.cc for lists without template
    - remove SetCuts() implementation where not specialised
    - remove version number from lists
    - remove G4DataQuestionaire
-   
+
 
 25-June-2019  Dennis Wright (phys-lists-V10-05-01)
 - replace G4RadioactiveDecay with G4RadioactiveDecayBase in LBE.icc
 
 18-March-2019 V.Ivanchenko  (phys-lists-V10-05-00)
-- Shielding, QGSP_BIC_HP, QGSP_BIC_AllHP - cut for proton is set 
+- Shielding, QGSP_BIC_HP, QGSP_BIC_AllHP - cut for proton is set
     to zero (problem #2150) and code clean-up
 
 21-November-2018 A. Ribon  (phys-lists-V10-04-07)

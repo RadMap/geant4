@@ -23,28 +23,21 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm8/src/StackingAction.cc
+/// \file StackingAction.cc
 /// \brief Implementation of the StackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "StackingAction.hh"
 
 #include "Run.hh"
 #include "StackingMessenger.hh"
 
-#include "G4Track.hh"
-#include "G4Step.hh"
 #include "G4RunManager.hh"
+#include "G4Step.hh"
+#include "G4Track.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 StackingAction::StackingAction()
-  : G4UserStackingAction(),
-    fKillSecondary(false),
-    fStackMessenger(0)
 {
   fStackMessenger = new StackingMessenger(this);
 }
@@ -58,25 +51,25 @@ StackingAction::~StackingAction()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4ClassificationOfNewTrack
-StackingAction::ClassifyNewTrack(const G4Track* aTrack)
+G4ClassificationOfNewTrack StackingAction::ClassifyNewTrack(const G4Track* aTrack)
 {
-  //stack or delete secondaries
+  // stack or delete secondaries
   G4ClassificationOfNewTrack status = fUrgent;
 
-  //keep primary particle
-  if (aTrack->GetParentID() == 0 || !fKillSecondary) { return status; }
-  
-  Run* run
-    = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+  // keep primary particle
+  if (aTrack->GetParentID() == 0 || !fKillSecondary) {
+    return status;
+  }
+
+  Run* run = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
 
   // charged tracks are killed only inside sensitive volumes
-  if(aTrack->GetVolume()->GetLogicalVolume()->GetSensitiveDetector() &&
-     aTrack->GetDefinition()->GetPDGCharge() != 0.0) 
-    {
-      run->AddEnergy(aTrack->GetKineticEnergy(), 0); 
-      status = fKill;    
-    }
+  if (aTrack->GetVolume()->GetLogicalVolume()->GetSensitiveDetector()
+      && aTrack->GetDefinition()->GetPDGCharge() != 0.0)
+  {
+    run->AddEnergy(aTrack->GetKineticEnergy(), 0);
+    status = fKill;
+  }
   return status;
 }
 

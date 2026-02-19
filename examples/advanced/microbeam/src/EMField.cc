@@ -39,13 +39,8 @@
 #include "G4Exp.hh"
 #include "G4SystemOfUnits.hh"
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-
 EMField::EMField() 
 {}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void EMField::GetFieldValue(const double point[4], double *Bfield ) const
 { 
@@ -72,8 +67,7 @@ void EMField::GetFieldValue(const double point[4], double *Bfield ) const
 // ***********************
   
   // MAGNETIC FIELD VALUE FOR 3 MeV ALPHAS
-  //  G4double switchingField = 0.0589768635 * tesla ;
-  G4double switchingField =   0.0590201 * tesla ;
+  G4double switchingField = 0.0589768635 * tesla ;
   
   // BEAM START
   G4double beamStart = -10*m;
@@ -529,7 +523,5 @@ if (z>=-1400*mm && z <-200*mm)
       Bfield[4] = electricFieldPlate2;
       Bfield[5] = 0;
   }
-
-//
 
 }

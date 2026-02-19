@@ -23,11 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G04/include/G04SensitiveDetector.hh
+/// \file G04SensitiveDetector.hh
 /// \brief Definition of the G04SensitiveDetector class
-//
-//
-//
 
 #ifndef G04SensitiveDetector_h
 #define G04SensitiveDetector_h 1
@@ -41,16 +38,14 @@ class G4Step;
 class G04SensitiveDetector : public G4VSensitiveDetector
 {
   public:
-      G04SensitiveDetector(const G4String&);
-     ~G04SensitiveDetector();
+    G04SensitiveDetector(const G4String&);
+    ~G04SensitiveDetector();
 
-      virtual void Initialize(G4HCofThisEvent*);
-      virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*);
-      virtual void EndOfEvent(G4HCofThisEvent*);
+    virtual void Initialize(G4HCofThisEvent*);
+    virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*);
+    virtual void EndOfEvent(G4HCofThisEvent*);
 
   private:
-
 };
 
 #endif
-

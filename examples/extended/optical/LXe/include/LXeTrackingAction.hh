@@ -23,29 +23,25 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/LXe/include/LXeTrackingAction.hh
+/// \file LXeTrackingAction.hh
 /// \brief Definition of the LXeTrackingAction class
-//
-//
+
 #ifndef LXeTrackingAction_h
 #define LXeTrackingAction_h 1
 
 #include "G4UserTrackingAction.hh"
 #include "globals.hh"
 
-class LXeTrackingAction : public G4UserTrackingAction {
-
+class LXeTrackingAction : public G4UserTrackingAction
+{
   public:
+    LXeTrackingAction() = default;
+    ~LXeTrackingAction() = default;
 
-    LXeTrackingAction();
-    virtual ~LXeTrackingAction() {};
-
-    virtual void PreUserTrackingAction(const G4Track*);
-    virtual void PostUserTrackingAction(const G4Track*);
+    void PreUserTrackingAction(const G4Track*) override;
+    void PostUserTrackingAction(const G4Track*) override;
 
   private:
-
 };
 
 #endif

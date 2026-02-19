@@ -1,55 +1,10 @@
-#------------------------------------------------------------------------------
-# sources.cmake
-# Module : G4RayTracer
-# Package: Geant4.src.G4visualization.G4RayTracer
-#
-# Sources description for a library.
-# Lists the sources and headers of the code explicitely.
-# Lists include paths needed.
-# Lists the internal granular and global dependencies of the library.
-# Source specific properties should be added at the end.
-#
-# Generated on : 24/9/2010
-#
-#
-#------------------------------------------------------------------------------
+# - G4RayTracer module build definition
 
-# List external includes needed.
-include_directories(${CLHEP_INCLUDE_DIRS})
-include_directories(${USOLIDS_INCLUDE_DIRS})
-
-# List internal includes needed.
-include_directories(${CMAKE_SOURCE_DIR}/source/digits_hits/detector/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/digits_hits/digits/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/digits_hits/hits/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/event/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/geometry/management/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/geometry/navigation/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/geometry/volumes/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/geometry/magneticfield/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/global/HEPGeometry/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/global/HEPRandom/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/global/management/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/graphics_reps/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/intercoms/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/materials/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/particles/bosons/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/particles/management/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/processes/cuts/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/processes/management/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/processes/scoring/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/run/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/track/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/tracking/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/visualization/management/include)
-include_directories(${CMAKE_SOURCE_DIR}/source/visualization/modeling/include)
-
-
-#
-# Module has optional sources
-#
-# List those always built
-set(G4VIS_RAYTRACER_MODULE_HEADERS
+# Define the Geant4 Module.
+geant4_add_module(G4RayTracer
+  PUBLIC_HEADERS 
+    G4RayTracer.hh
+  PRIVATE_HEADERS
     G4RTJpeg.hh
     G4RTJpegCoder.hh
     G4RTJpegCoderTables.hh
@@ -63,7 +18,6 @@ set(G4VIS_RAYTRACER_MODULE_HEADERS
     G4RTSteppingAction.hh
     G4RTTrackingAction.hh
     G4RTWorkerInitialization.hh
-    G4RayTracer.hh
     G4RayTracerFeatures.hh
     G4RayTracerSceneHandler.hh
     G4RayTracerViewer.hh
@@ -72,9 +26,8 @@ set(G4VIS_RAYTRACER_MODULE_HEADERS
     G4TheMTRayTracer.hh
     G4TheRayTracer.hh
     G4VFigureFileMaker.hh
-    G4VRTScanner.hh)
-
-set(G4VIS_RAYTRACER_MODULE_SOURCES
+    G4VRTScanner.hh
+  SOURCES
     G4RTJpegCoder.cc
     G4RTJpegMaker.cc
     G4RTMessenger.cc
@@ -95,79 +48,69 @@ set(G4VIS_RAYTRACER_MODULE_SOURCES
     G4TheRayTracer.cc
     G4VRTScanner.cc)
 
-set(G4VIS_RAYTRACER_MODULE_LINK_LIBRARIES )
+geant4_module_compile_definitions(G4RayTracer PRIVATE G4RAYTRACER_ALLOC_EXPORT)
 
-#
+geant4_module_link_libraries(G4RayTracer
+  PUBLIC
+    G4vis_management
+  PRIVATE
+    G4bosons
+    G4cuts
+    G4detector
+    G4event
+    G4globman
+    G4graphics_reps
+    G4geometrymng
+    G4hepgeometry
+    G4hits
+    G4intercoms
+    G4modeling
+    G4partman
+    G4procman
+    G4run
+    G4scoring
+    G4track
+    G4tracking
+    G4navigation)
+
 # X11 RayTracer only if selected
-#
 if(GEANT4_USE_RAYTRACER_X11)
-    list(APPEND G4VIS_RAYTRACER_MODULE_HEADERS
-        G4RayTracerX.hh
-        G4RayTracerXViewer.hh
-        G4RTXScanner.hh)
 
-    list(APPEND G4VIS_RAYTRACER_MODULE_SOURCES
-        G4RayTracerX.cc
-        G4RayTracerXViewer.cc
-        G4RTXScanner.cc)
+  geant4_module_sources(G4RayTracer
+    PUBLIC_HEADERS
+      G4RayTracerX.hh
+    PRIVATE_HEADERS
+      G4RayTracerXViewer.hh
+      G4RTXScanner.hh
+    SOURCES
+      G4RayTracerX.cc
+      G4RayTracerXViewer.cc
+      G4RTXScanner.cc)
 
-    #
-    # Add source properties and additional LINK_LIBRARIES here
-    #
-    # Must use G4VIS_BUILD_RAYTRACERX_DRIVER define
-    GEANT4_ADD_COMPILE_DEFINITIONS(SOURCES ${G4VIS_RAYTRACER_MODULE_SOURCES}
-        COMPILE_DEFINITIONS G4VIS_BUILD_RAYTRACERX_DRIVER)
+  geant4_module_compile_definitions(G4RayTracer PUBLIC G4VIS_USE_RAYTRACERX)
 
-    # The X11 Libraries
-    list(APPEND G4VIS_RAYTRACER_MODULE_LINK_LIBRARIES X11::SM X11::ICE X11::X11 X11::Xext X11::Xmu)
+  geant4_module_link_libraries(G4RayTracer PRIVATE X11::SM X11::ICE X11::X11 X11::Xext X11::Xmu)
+
 endif()
 
-#
-# Define the Geant4 Module.
-#
-include(Geant4MacroDefineModule)
-GEANT4_DEFINE_MODULE(NAME G4RayTracer
-    HEADERS
-        ${G4VIS_RAYTRACER_MODULE_HEADERS}
+# Qt RayTracer only if selected
+if(GEANT4_USE_RAYTRACER_QT)
+
+  geant4_module_sources(G4RayTracer
+    PUBLIC_HEADERS
+      G4RayTracerQt.hh
+    PRIVATE_HEADERS
+      G4RayTracerQtViewer.hh
+      G4RTQtScanner.hh
     SOURCES
-        ${G4VIS_RAYTRACER_MODULE_SOURCES}
-    GRANULAR_DEPENDENCIES
-        G4bosons
-        G4cuts
-        G4detector
-        G4digits
-        G4event
-        G4geometrymng
-        G4globman
-        G4graphics_reps
-        G4hits
-        G4intercoms
-        G4materials
-        G4modeling
-        G4navigation
-        G4partman
-        G4procman
-        G4track
-        G4tracking
-        G4vis_management
-        G4volumes
-    GLOBAL_DEPENDENCIES
-        G4digits_hits
-        G4event
-        G4geometry
-        G4global
-        G4graphics_reps
-        G4intercoms
-        G4materials
-        G4modeling
-        G4particles
-        G4processes
-        G4track
-        G4tracking
-        G4vis_management
-    LINK_LIBRARIES
-        ${G4VIS_RAYTRACER_MODULE_LINK_LIBRARIES}
-)
+      G4RayTracerQt.cc
+      G4RayTracerQtViewer.cc
+      G4RTQtScanner.cc)
 
-# List any source specific properties here
+  geant4_module_compile_definitions(G4RayTracer PUBLIC G4VIS_USE_RAYTRACER_QT)
 
+  geant4_module_link_libraries(G4RayTracer PRIVATE G4UIimplementation
+    Qt${QT_VERSION_MAJOR}::Gui
+    Qt${QT_VERSION_MAJOR}::Widgets)
+
+endif()

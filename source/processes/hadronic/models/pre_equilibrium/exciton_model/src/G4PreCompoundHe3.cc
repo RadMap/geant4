@@ -41,55 +41,37 @@
 //
  
 #include "G4PreCompoundHe3.hh"
-#include "G4SystemOfUnits.hh"
+#include "G4CoulombBarrier.hh"
 #include "G4He3.hh"
+#include "G4DeexPrecoUtility.hh"
 
 G4PreCompoundHe3::G4PreCompoundHe3()
-  : G4PreCompoundIon(G4He3::He3(), &theHe3CoulombBarrier)
-{}
-
-G4PreCompoundHe3::~G4PreCompoundHe3()
+  : G4PreCompoundIon(G4He3::He3(), new G4CoulombBarrier(3, 2))
 {}
 
 G4double G4PreCompoundHe3::FactorialFactor(G4int N, G4int P) const
 {
-  return G4double((N-3)*(P-2)*(N-2)*(P-1)*(N-1)*P)/12.0; 
+  return static_cast<G4double>(((N-3)*(P-2)*(N-2))*((P-1)*(N-1)*P))
+    /6.0;
 }
   
 G4double G4PreCompoundHe3::CoalescenceFactor(G4int A) const
 {
-  return 243.0/G4double(A*A);
+  return 243.0/static_cast<G4double>(A*A);
 }    
 
 G4double G4PreCompoundHe3::GetRj(G4int nParticles, G4int nCharged) const
 {
   G4double rj = 0.0;
   if(nCharged >=2 && (nParticles-nCharged) >= 1) {
-    G4double denominator = G4double(nParticles*(nParticles-1)*(nParticles-2));
-    rj = G4double(3*nCharged*(nCharged-1)*(nParticles-nCharged))/denominator;  
+    G4double denominator = (G4double)(nParticles*(nParticles-1)*(nParticles-2));
+    rj = (3*nCharged*(nCharged-1)*(nParticles-nCharged))/denominator;  
   }
   return rj;
 }
 
 G4double G4PreCompoundHe3::GetAlpha() const
 {
-  G4double C = 0.0;
-  if (theFragZ <= 30) 
-    {
-      C = 0.10;
-    }
-  else if (theFragZ <= 50) 
-    {
-      C = 0.1 - (theFragZ - 30)*0.001;
-    } 
-  else if (theFragZ < 70) 
-    {
-      C = 0.08 - (theFragZ - 50)*0.001;
-    }
-  else 
-    {
-      C = 0.06;
-    }
-  return 1.0 + C*(4.0/3.0);
+  return 1.0 + G4DeexPrecoUtility::AlphaCValue(theResZ)*4.0/3.0;
 }
 

@@ -29,7 +29,7 @@
 //
 // Wrapper class for G4TessellatedSolid to make use of VecGeom TessellatedSolid.
 
-// 11.01.18 G.Cosmo, CERN
+// Author: Gabriele Cosmo (CERN), 11.01.2018
 // --------------------------------------------------------------------
 #ifndef G4UTESSELLATEDSOLID_HH
 #define G4UTESSELLATEDSOLID_HH
@@ -38,62 +38,120 @@
 
 #if ( defined(G4GEOM_USE_USOLIDS) || defined(G4GEOM_USE_PARTIAL_USOLIDS) )
 
-#include <volumes/UnplacedTessellated.h>
+#include <VecGeom/volumes/UnplacedTessellated.h>
 
 #include "G4Polyhedron.hh"
 #include "G4VFacet.hh"
+
+/**
+ * @brief G4UTessellatedSolid is a wrapper class for G4TessellatedSolid
+ * to make use of VecGeom TessellatedSolid.
+ */
 
 class G4UTessellatedSolid : public G4UAdapter<vecgeom::UnplacedTessellated>
 {
   using Shape_t = vecgeom::UnplacedTessellated;
   using Base_t  = G4UAdapter<vecgeom::UnplacedTessellated>;
 
-  public:  // with description
+  public:
 
+    /**
+     * Default Constructor.
+     */
     G4UTessellatedSolid();
-    G4UTessellatedSolid(const G4String& pName);
-   ~G4UTessellatedSolid();
 
+    /**
+     * Constructor with solid's name.
+     *  @param[in] name The name of the solid.
+     */
+    G4UTessellatedSolid(const G4String& pName);
+
+    /**
+     * Destructor. Clearing all allocated facets and data.
+     */
+   ~G4UTessellatedSolid() override;
+
+    /**
+     * Methods for adding or retrieving a facet given an index.
+     */
     G4bool AddFacet(G4VFacet* aFacet);
     G4VFacet* GetFacet(G4int i) const;
 
+    /**
+     * Returns the total number of facets.
+     */
     G4int GetNumberOfFacets() const;
 
-    inline G4GeometryType GetEntityType() const;
+    /**
+     * Returns the type ID, "G4TessellatedSolid" of the solid.
+     */
+    inline G4GeometryType GetEntityType() const override;
 
+    /**
+     * Returns true as the solid has only planar faces.
+     */
+    inline G4bool IsFaceted() const override;
+
+    /**
+     * Modifier and accessor to close/finalise the solid.
+     */
     void SetSolidClosed(const G4bool t);
     G4bool GetSolidClosed() const;
 
+    /**
+     * Allowing to tune the maximum number of voxels to use for optimisation.
+     */
     void SetMaxVoxels(G4int);
 
+    /**
+     * Accessors.
+     */
     G4double GetMinXExtent() const;
     G4double GetMaxXExtent() const;
     G4double GetMinYExtent() const;
     G4double GetMaxYExtent() const;
     G4double GetMinZExtent() const;
     G4double GetMaxZExtent() const;
+
+    /**
+     * Loggers reporting the total allocated memory.
+     */
     G4int AllocatedMemoryWithoutVoxels();
     G4int AllocatedMemory();
     void DisplayAllocatedMemory();
 
-  public:  // without description
+    /**
+     * Computes the bounding limits of the solid.
+     *  @param[out] pMin The minimum bounding limit point.
+     *  @param[out] pMax The maximum bounding limit point.
+     */
+    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const override;
 
-    G4UTessellatedSolid(__void__&);
-      // Fake default constructor for usage restricted to direct object
-      // persistency for clients requiring preallocation of memory for
-      // persistifiable objects.
-
-    G4UTessellatedSolid( const G4UTessellatedSolid& source );
-    G4UTessellatedSolid& operator=(const G4UTessellatedSolid& source);
-      // Copy constructor and assignment operator.
-
-    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const;
+    /**
+     * Calculates the minimum and maximum extent of the solid, when under the
+     * specified transform, and within the specified limits.
+     *  @param[in] pAxis The axis along which compute the extent.
+     *  @param[in] pVoxelLimit The limiting space dictated by voxels.
+     *  @param[in] pTransform The internal transformation applied to the solid.
+     *  @param[out] pMin The minimum extent value.
+     *  @param[out] pMax The maximum extent value.
+     *  @returns True if the solid is intersected by the extent region.
+     */
     G4bool CalculateExtent(const EAxis pAxis,
                            const G4VoxelLimits& pVoxelLimit,
                            const G4AffineTransform& pTransform,
-                                 G4double& pMin, G4double& pMax) const;  
+                                 G4double& pMin, G4double& pMax) const override;  
 
-    G4Polyhedron* CreatePolyhedron() const;
+    /**
+     * Returns a generated polyhedron as graphical representations.
+     */
+    G4Polyhedron* CreatePolyhedron() const override;
+
+    /**
+     * Copy constructor and assignment operator.
+     */
+    G4UTessellatedSolid( const G4UTessellatedSolid& source );
+    G4UTessellatedSolid& operator=(const G4UTessellatedSolid& source);
 
   private:
 
@@ -108,6 +166,11 @@ class G4UTessellatedSolid : public G4UAdapter<vecgeom::UnplacedTessellated>
 inline G4GeometryType G4UTessellatedSolid::GetEntityType() const
 {
   return "G4TessellatedSolid";
+}
+
+inline G4bool G4UTessellatedSolid::IsFaceted() const
+{
+  return true;
 }
 
 #endif  // G4GEOM_USE_USOLIDS

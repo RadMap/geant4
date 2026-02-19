@@ -23,57 +23,73 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm3/src/EventAction.cc
+/// \file EventAction.cc
 /// \brief Implementation of the EventAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "EventAction.hh"
 
-#include "Run.hh"
 #include "HistoManager.hh"
+#include "Run.hh"
 
-#include "G4RunManager.hh"
 #include "G4Event.hh"
+#include "G4RunManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-EventAction::EventAction(DetectorConstruction* det)
-:G4UserEventAction(),fDetector(det)
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-EventAction::~EventAction()
-{ }
+EventAction::EventAction(DetectorConstruction* det) : fDetector(det) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void EventAction::BeginOfEventAction(const G4Event*)
-{       
-  //initialize EnergyDeposit per event
+{
+  // initialize EnergyDeposit per event
   //
-  for (G4int k=0; k<kMaxAbsor; k++) {
-    fEnergyDeposit[k] = fTrackLengthCh[k] = 0.0;   
+  for (G4int k = 0; k < kMaxAbsor; k++) {
+    fEnergyDeposit[k] = fTrackLengthCh[k] = 0.0;
   }
+  // initialize EnergyLeakage per event
+  //
+  fEnergyLeak = 0.0;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void EventAction::SumEnergy(G4int k, G4double de, G4double dl)
+{
+  fEnergyDeposit[k] += de;
+  fTrackLengthCh[k] += dl;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void EventAction::SumEnergyLeak(G4double eleak)
+{
+  fEnergyLeak += eleak;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void EventAction::EndOfEventAction(const G4Event*)
 {
-  //get Run
-  Run* run = static_cast<Run*>(
-             G4RunManager::GetRunManager()->GetNonConstCurrentRun());
-             
-  for (G4int k=1; k<=fDetector->GetNbOfAbsor(); k++) {
-     run->FillPerEvent(k,fEnergyDeposit[k],fTrackLengthCh[k]);
-     if (fEnergyDeposit[k] > 0.)
-             G4AnalysisManager::Instance()->FillH1(k, fEnergyDeposit[k]);
+  // get Run
+  Run* run = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+
+  G4double EdepTot = 0.;
+  for (G4int k = 1; k <= fDetector->GetNbOfAbsor(); k++) {
+    run->FillPerEvent(k, fEnergyDeposit[k], fTrackLengthCh[k]);
+    if (fEnergyDeposit[k] > 0.) G4AnalysisManager::Instance()->FillH1(k, fEnergyDeposit[k]);
+    EdepTot += fEnergyDeposit[k];
   }
+
+  run->SumEnergies(EdepTot, fEnergyLeak);
+
+  // histograms
+  G4AnalysisManager* analysis = G4AnalysisManager::Instance();
+  analysis->FillH1(kMaxAbsor, EdepTot);
+  G4int id = 2 * kMaxAbsor + 3;
+  analysis->FillH1(id, fEnergyLeak);
+  G4double ETot = EdepTot + fEnergyLeak;
+  analysis->FillH1(++id, ETot);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

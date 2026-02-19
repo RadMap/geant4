@@ -22,21 +22,27 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflashPrimaryGeneratorAction.cc
 /// \brief Implementation of the ExGflashPrimaryGeneratorAction class
-//
+
 #include "ExGflashPrimaryGeneratorAction.hh"
 
-#include "G4GeneralParticleSource.hh"
+#include "G4Electron.hh"
 #include "G4Event.hh"
+#include "G4GeneralParticleSource.hh"
+#include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 ExGflashPrimaryGeneratorAction::ExGflashPrimaryGeneratorAction()
- : G4VUserPrimaryGeneratorAction(), fParticleGun(0)
 {
-  fParticleGun=new G4GeneralParticleSource;
+  fParticleGun = new G4GeneralParticleSource;
+  //  fParticleGun->SetVerbosity(2);
+  auto cursrc = fParticleGun->GetCurrentSource();
+  cursrc->SetParticleDefinition(G4Electron::Definition());
+  cursrc->GetAngDist()->SetParticleMomentumDirection(G4ParticleMomentum(0., 0., 1.));
+  cursrc->GetEneDist()->SetMonoEnergy(50.0 * GeV);
+  // fParticleGun->ListSource();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -49,7 +55,7 @@ ExGflashPrimaryGeneratorAction::~ExGflashPrimaryGeneratorAction()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void ExGflashPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
-{ 
+{
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }
 

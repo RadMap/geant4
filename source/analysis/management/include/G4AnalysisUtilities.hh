@@ -29,68 +29,162 @@
 #ifndef G4AnalysisUtilities_h
 #define G4AnalysisUtilities_h 1
 
+#include "G4Exception.hh"
 #include "globals.hh"
 
 #include <vector>
 #include <memory>
+#include <string_view>
 
 // Enumeration for definition of available output types
 
 enum class G4AnalysisOutput {
   kCsv,
-#ifdef TOOLS_USE_HDF5
   kHdf5,
-#endif
   kRoot,
   kXml,
   kNone
-};  
+};
 
-namespace G4Analysis 
+namespace G4Analysis
 {
 
 // Constant expressions
-//	
-// constexpr G4int kX = 0;  // not yet supported on vc12
-// constexpr G4int kY = 1;  // not yet supported on vc12
-// constexpr G4int kZ = 2;  // not yet supported on vc12
-const G4int kX = 0;  // not yet supported on vc12
-const G4int kY = 1;  // not yet supported on vc12
-const G4int kZ = 2;  // not yet supported on vc12
+//
+constexpr G4int kX { 0 };
+constexpr G4int kY { 1 };
+constexpr G4int kZ { 2 };
+constexpr G4int kInvalidId { -1 };
+constexpr G4int kVL0 { 0 };
+constexpr G4int kVL1 { 1 };
+constexpr G4int kVL2 { 2 };
+constexpr G4int kVL3 { 3 };
+constexpr G4int kVL4 { 4 };
+constexpr unsigned int kDim1 { 1 };
+constexpr unsigned int kDim2 { 2 };
+constexpr unsigned int kDim3 { 3 };
+constexpr unsigned int kMaxDim { kDim3 };
+constexpr unsigned int kDefaultBasketSize { 32000 };
+constexpr unsigned int kDefaultBasketEntries {4000 };
+constexpr std::string_view kNamespaceName { "G4Analysis" };
 
-// Invalid object Id
-// 
-// constexpr G4int kInvalidId = -1;  // not yet supported on vc12
-const G4int kInvalidId = -1;  // not yet supported on vc12
+// Warning
+//
+void Warn(const G4String& message,
+          const std::string_view inClass,
+          const std::string_view inFunction);
 
-// Utility functions for checking input parameters
-G4bool CheckNbins(G4int nbins);
-G4bool CheckMinMax(G4double xmin, G4double xmax,
-                   const G4String& fcnName = "none",
-                   const G4String& binSchemeName = "linear");
-G4bool CheckEdges(const std::vector<G4double>& edges);
-G4bool CheckName(const G4String& name, const G4String& objectType);
-
-// Get unit value with added handling of "none" 
+// Get unit value with added handling of "none"
 G4double GetUnitValue(const G4String& unit);
 
-// Add unit & fcn to the title
-void UpdateTitle(G4String& title, 
-                 const G4String& unitName, const G4String& fcnName);
-                 
-// Tokenizer with taking into account composed strings within ""               
+// Tokenizer with taking into account composed strings within ""
 void Tokenize(const G4String& line, std::vector<G4String>& tokens);
 
-// make-unique utility, not yet availabla in C++11
-template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args)
+// Get output type from name
+G4AnalysisOutput GetOutput(const G4String& outputName, G4bool warn = true);
+size_t GetOutputId(const G4String& outputName, G4bool warn = true);
+G4String GetOutputName(G4AnalysisOutput outputType);
+
+// Get short hnType from the tools object
+template <typename HT>
+G4String GetHnType()
 {
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+  // tools::histo::h1d etc.
+  G4String hnTypeLong = HT::s_class();
+
+  // tools::histo::h1d -> h1 etc.
+  std::size_t lastColon = hnTypeLong.rfind(":");
+  if (lastColon != G4String::npos && lastColon + 1 < hnTypeLong.length()) {
+    G4String potentialType = hnTypeLong.substr(lastColon + 1);
+    if (potentialType.length() >= 2 &&
+        (potentialType.substr(0, 1) == "h" || potentialType.substr(0, 1) == "p")) {
+      return potentialType.substr(0, 2);
+    }
+  }
+  G4cerr << "Warning: Could not extract short hnType for " << hnTypeLong << G4endl;
+  return "";
 }
 
-// get output type from name
-G4AnalysisOutput GetOutput(const G4String& outputName, G4bool warn = true);
-G4String GetOutputName(G4AnalysisOutput outputType);
+template <typename HT>
+G4bool IsProfile()
+{
+  // tools::histo::h1d etc.
+  G4String hnTypeLong = HT::s_class();
+  std::size_t length = hnTypeLong.length();
+  return (length >= 3 && hnTypeLong.substr(length - 3) == "p1d") ||
+         (length >= 3 && hnTypeLong.substr(length - 3) == "p2d");
+}
+
+// String conversion
+template <typename T>
+inline
+std::string ToString(const T& value)
+{ return std::to_string(value); }
+
+template <>
+inline
+std::string ToString<std::string>(const std::string& value)
+{ return value; }
+
+// File names utilities
+
+// Get file base name (without dot)
+G4String GetBaseName(const G4String& fileName);
+
+// Get file base extension (without dot)
+G4String GetExtension(const G4String& fileName,
+            const G4String& defaultExtension = "");
+
+// Compose and return the histogram or profile specific file name:
+// - add _hn_hnName suffix to the file base name
+// - add file extension if not present
+G4String GetHnFileName(
+            const G4String& fileName,
+            const G4String& fileType,
+            const G4String& hnType,
+            const G4String& hnName);
+
+// Update Hn file name:
+// - add _vN  suffix to the base namer if cycle > 0
+G4String GetHnFileName(
+            const G4String& fileName,
+            const G4String& fileType,
+            G4int cycle = 0);
+
+// Compose and return the ntuple specific file name:
+// - add _nt_ntupleName suffix to the file base name
+// - add _vN  suffix if cycle > 0
+// - add _tN suffix if called on thread worker
+// - add file extension if not present
+G4String GetNtupleFileName(
+            const G4String& fileName,
+            const G4String& fileType,
+            const G4String& ntupleName,
+            G4int cycle = 0);
+
+// Compose and return the ntuple specific file name:
+// - add _mFN suffix to the file base name where FN = ntupleFileNumber
+// - add _vN  suffix if cycle > 0
+// - add file extension if not present
+G4String GetNtupleFileName(
+            const G4String& fileName,
+            const G4String& fileType,
+            G4int ntupleFileNumber,
+            G4int cycle = 0);
+
+// Update file base name with the thread suffix:
+// - add _vN  suffix if cycle > 0
+// - add _tN suffix if called on thread worker
+// - add file extension if not present
+G4String GetTnFileName(
+            const G4String& fileName,
+            const G4String& fileType,
+            G4int cycle = 0);
+
+// Generate plot file name for an output file name
+G4String GetPlotFileName(const G4String& fileName);
+
+}
 
 /*
 // make possible to print enumerators in class enum as integer
@@ -102,10 +196,5 @@ auto as_integer(Enumeration const value)
 }
 */
 
-}
-
 #endif
-
-
-
 

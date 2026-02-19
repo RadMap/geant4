@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file RunAction.cc
+/// \brief Implementation of the RunAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,31 +34,26 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file RunAction.cc
-/// \brief Implementation of the RunAction class
 
 #include "RunAction.hh"
-#include "PrimaryGeneratorAction.hh"
-#include "Run.hh"
-#include "DetectorConstruction.hh"
 
+#include "G4DNAChemistryManager.hh"
 #include "G4Run.hh"
 #include "G4RunManager.hh"
-#include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4UnitsTable.hh"
+
+#include "DetectorConstruction.hh"
+#include "PrimaryGeneratorAction.hh"
+#include "Run.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::RunAction()
- : G4UserRunAction()
-{
-}
+RunAction::RunAction() : G4UserRunAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::~RunAction()
-{
-}
+RunAction::~RunAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -69,6 +67,10 @@ G4Run* RunAction::GenerateRun()
 
 void RunAction::BeginOfRunAction(const G4Run* run)
 {
+  // ensure that the chemistry is notified!
+  if (G4DNAChemistryManager::GetInstanceIfExists() != nullptr)
+    G4DNAChemistryManager::GetInstanceIfExists()->BeginOfRunAction(run);
+
   G4cout << "### Run " << run->GetRunID() << " starts." << G4endl;
 
   // informs the runManager to save random number seed
@@ -79,50 +81,38 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 
 void RunAction::EndOfRunAction(const G4Run* run)
 {
+  // ensure that the chemistry is notified!
+  if (G4DNAChemistryManager::GetInstanceIfExists() != nullptr)
+    G4DNAChemistryManager::GetInstanceIfExists()->EndOfRunAction(run);
+
   G4int nofEvents = run->GetNumberOfEvent();
   if (nofEvents == 0) return;
-  
+
   // results
   //
   const Run* chem4Run = static_cast<const Run*>(run);
-  G4double sumDose   = chem4Run->GetSumDose();
-  
-    //print
-    //
-    if (IsMaster())
-    {
-        G4cout
-         << G4endl
-         << "--------------------End of Global Run-----------------------"
-         << G4endl
-         << "  The run has " << nofEvents << " events "
-         << G4endl;
+  G4double sumDose = chem4Run->GetSumDose();
 
-        ScoreSpecies* masterScorer=
-         dynamic_cast<ScoreSpecies*>(chem4Run->GetPrimitiveScorer());
+  // print
+  //
+  if (IsMaster()) {
+    G4cout << G4endl << "--------------------End of Global Run-----------------------" << G4endl
+           << "  The run has " << nofEvents << " events " << G4endl;
 
-        G4cout << "Number of events recorded by the species scorer = "
-               << masterScorer->GetNumberOfRecordedEvents()
-               << G4endl;
-      
-        masterScorer->OutputAndClear();
-    }
-    else
-    {
-        G4cout
-        << G4endl
-        << "--------------------End of Local Run------------------------"
-        << G4endl
-        << "  The run has " << nofEvents << " events"
-        << G4endl;
-    }
-  
-    G4cout
-     << " Total energy deposited in the world volume : " << sumDose/eV << " eV"
-     << G4endl
-     << " ------------------------------------------------------------"
-     << G4endl
-     << G4endl;
+    ScoreSpecies* masterScorer = dynamic_cast<ScoreSpecies*>(chem4Run->GetPrimitiveScorer());
+
+    G4cout << "Number of events recorded by the species scorer = "
+           << masterScorer->GetNumberOfRecordedEvents() << G4endl;
+
+    masterScorer->OutputAndClear();
+  }
+  else {
+    G4cout << G4endl << "--------------------End of Local Run------------------------" << G4endl
+           << "  The run has " << nofEvents << " events" << G4endl;
+  }
+
+  G4cout << " Total energy deposited in the world volume : " << sumDose / eV << " eV" << G4endl
+         << " ------------------------------------------------------------" << G4endl << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -23,28 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/OpNovice2/src/ActionInitialization.cc
+/// \file ActionInitialization.cc
 /// \brief Implementation of the ActionInitialization class
 
 #include "ActionInitialization.hh"
+
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 #include "SteppingAction.hh"
 #include "TrackingAction.hh"
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-ActionInitialization::ActionInitialization()
- : G4VUserActionInitialization()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-ActionInitialization::~ActionInitialization()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void ActionInitialization::BuildForMaster() const
 {
@@ -55,7 +42,7 @@ void ActionInitialization::BuildForMaster() const
 
 void ActionInitialization::Build() const
 {
-  PrimaryGeneratorAction* primary = new PrimaryGeneratorAction();
+  auto primary = new PrimaryGeneratorAction();
   SetUserAction(primary);
   SetUserAction(new RunAction(primary));
   SetUserAction(new SteppingAction());
@@ -63,4 +50,3 @@ void ActionInitialization::Build() const
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

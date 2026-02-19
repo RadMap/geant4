@@ -73,6 +73,7 @@ namespace G4INCL {
     const G4double effectivePionMass = 138.0;
     const G4double effectiveLambdaMass = 1115.683;
     const G4double effectiveSigmaMass = 1197.45; // max value
+    const G4double effectiveXiMass = 1321.71; // max value
     const G4double effectiveKaonMass = 497.614; // max value
     const G4double effectiveAntiKaonMass = 497.614; // max value
     const G4double effectiveEtaMass = 547.862;
@@ -103,6 +104,9 @@ namespace G4INCL {
 
     /// \brief Get the native INCL name of the ion
     std::string getName(const G4int A, const G4int Z);
+
+    /// \brief Get the native INCL name of the ion
+    std::string getName(const G4int A, const G4int Z, const G4int S);
 
     /// \brief Get the short INCL name of the ion
     std::string getShortName(const G4int A, const G4int Z);
@@ -184,12 +188,30 @@ namespace G4INCL {
 
     /// \brief Getter for neutronSeparationEnergy
     G4double getNeutronSeparationEnergy();
+ 
+    /// \brief Getter for antiprotonSeparationEnergy
+    G4double getantiProtonSeparationEnergy();
+
+    /// \brief Getter for antineutronSeparationEnergy
+    G4double getantiNeutronSeparationEnergy();
+
+     /// \brief Getter for antilambdaSeparationEnergy
+    G4double getantiLambdaSeparationEnergy();
+
+     /// \brief Getter for lambdaSeparationEnergy
+    G4double getLambdaSeparationEnergy();
 
     /// \brief Setter for protonSeparationEnergy
     void setProtonSeparationEnergy(const G4double s);
 
     /// \brief Setter for protonSeparationEnergy
     void setNeutronSeparationEnergy(const G4double s);
+ 
+     /// \brief Setter for lambdaSeparationEnergy
+    void setLambdaSeparationEnergy(const G4double s);
+
+    /// \brief Setter for antilambdaSeparationEnergy
+    void setantiLambdaSeparationEnergy(const G4double s);
 
     /// \brief Get the name of the element from the atomic number
     std::string getElementName(const G4int Z);
@@ -264,6 +286,12 @@ namespace G4INCL {
      * \return the value of the r-p correlation coefficient
      */
     G4double getRPCorrelationCoefficient(const ParticleType t);
+ 
+    /// \brief Get the configuration of src-pair correlations
+    G4bool getsrcPairConfig();
+    
+    /// \brief Get the distance between src nucleons
+    G4float getsrcPairDistance();
 
     /// \brief Get the thickness of the neutron skin
     G4double getNeutronSkin();
@@ -282,12 +310,24 @@ namespace G4INCL {
 
     /// \brief Get the type of sigma
     ParticleType getSigmaType(const G4int isosp);
-
+    
     /// \brief Get the type of kaon
     ParticleType getKaonType(const G4int isosp);
 
     /// \brief Get the type of antikaon
     ParticleType getAntiKaonType(const G4int isosp);
+       
+    /// \brief Get the type of xi
+    ParticleType getXiType(const G4int isosp);
+    
+    /// \brief Get the type of antinucleon
+    ParticleType getAntiNucleonType(const G4int isosp);
+
+    /// \brief Get the type of antidelta
+    ParticleType getAntiXiType(const G4int isosp);
+
+    /// \brief Get the type of antisigma
+    ParticleType getAntiSigmaType(const G4int isosp); 
 
     /// \brief Get particle width (in s)
     G4double getWidth(const ParticleType t);

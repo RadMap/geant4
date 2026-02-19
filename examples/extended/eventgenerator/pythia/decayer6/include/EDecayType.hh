@@ -23,45 +23,44 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file eventgenerator/pythia/decayer6/include/EDecayType.hh
-/// \brief Definition of the EDecayType enumeration
+/// \file EDecayType.hh
+/// \brief Definition of the EDecayType class
 
 #ifndef E_DECAY_TYPE_H
-#define E_DECAY_TYPE_H 
+#define E_DECAY_TYPE_H
 
 /// Enum of decay mode types
 ///
 /// According to EDecayType enum in TPythia6Decayer class in Root:
-/// http://root.cern.ch/
-/// see http://root.cern.ch/root/License.html
+/// http://root.cern/
+/// see http://root.cern/root/License.html
 /// ----------------------------------------------------------------------------
 
 enum EDecayType
 {
-   kSemiElectronic,    
-   kDiElectron,
-   kSemiMuonic,
-   kDiMuon,
-   kBJpsiDiMuon,
-   kBJpsiDiElectron,
-   kBPsiPrimeDiMuon,
-   kBPsiPrimeDiElectron,
-   kPiToMu,
-   kKaToMu,
-   kNoDecay,
-   kHadronicD,
-   kOmega,
-   kPhiKK,
-   kAll,
-   kNoDecayHeavy,
-   kHardMuons,
-   kBJpsi,
-   kWToMuon,
-   kWToCharm,
-   kWToCharmToMuon,
-   kZDiMuon,
-   kMaxDecay
+  kSemiElectronic,
+  kDiElectron,
+  kSemiMuonic,
+  kDiMuon,
+  kBJpsiDiMuon,
+  kBJpsiDiElectron,
+  kBPsiPrimeDiMuon,
+  kBPsiPrimeDiElectron,
+  kPiToMu,
+  kKaToMu,
+  kNoDecay,
+  kHadronicD,
+  kOmega,
+  kPhiKK,
+  kAll,
+  kNoDecayHeavy,
+  kHardMuons,
+  kBJpsi,
+  kWToMuon,
+  kWToCharm,
+  kWToCharmToMuon,
+  kZDiMuon,
+  kMaxDecay
 };
 
 // ----------------------------------------------------------------------------

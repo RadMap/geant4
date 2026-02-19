@@ -23,19 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/fanoCavity/include/SteppingAction.hh
+/// \file SteppingAction.hh
 /// \brief Definition of the SteppingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef SteppingAction_h
 #define SteppingAction_h 1
 
+#include "G4ThreeVector.hh"
 #include "G4UserSteppingAction.hh"
 #include "globals.hh"
-#include "G4ThreeVector.hh"
 
 class DetectorConstruction;
 
@@ -48,20 +44,20 @@ class G4VPhysicalVolume;
 class SteppingAction : public G4UserSteppingAction
 {
   public:
-    SteppingAction(DetectorConstruction*,TrackingAction*);
-   ~SteppingAction();
+    SteppingAction(DetectorConstruction*, TrackingAction*);
+    ~SteppingAction();
 
     virtual void UserSteppingAction(const G4Step*);
-    
+
   private:
     DetectorConstruction* fDetector;
-    TrackingAction*       fTrackAction;        
-    
-    G4VPhysicalVolume*    fWall;
-    G4VPhysicalVolume*    fCavity;
-    G4bool                first; 
-    G4double              fTrackSegm;
-    G4ThreeVector         fDirectionIn;        
+    TrackingAction* fTrackAction;
+
+    G4VPhysicalVolume* fWall;
+    G4VPhysicalVolume* fCavity;
+    G4bool first;
+    G4double fTrackSegm;
+    G4ThreeVector fDirectionIn;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

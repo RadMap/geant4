@@ -24,125 +24,124 @@
 // ********************************************************************
 //
 //
-// 080721 Create adjust_final_state method by T. Koi  
+// 080721 Create adjust_final_state method by T. Koi
 // 080801 Introduce theNDLDataA,Z which has A and Z of NDL data by T. Koi
 //
 // P. Arce, June-2014 Conversion neutron_hp to particle_hp
+// V. Ivanchenko, July-2023 Basic revision of particle HP classes
 //
+
 #ifndef G4ParticleHPFinalState_h
 #define G4ParticleHPFinalState_h
 
-#include "G4ParticleHPManager.hh"
-#include "G4Material.hh"
-#include "G4FastVector.hh"
+#include "G4Cache.hh"
 #include "G4HadFinalState.hh"
+#include "G4HadProjectile.hh"
+#include "G4Material.hh"
+#include "G4Neutron.hh"
+#include "G4IonTable.hh"
+#include "G4ParticleHPManager.hh"
 #include "G4ParticleHPNames.hh"
 #include "G4ParticleHPVector.hh"
-#include "G4HadProjectile.hh"
-#include "G4Neutron.hh"
-#include "G4Cache.hh"
 
 class G4ParticleDefinition;
 
 class G4ParticleHPFinalState
 {
-public:
+  public:
 
-  G4ParticleHPFinalState()
-  { 
-    hasFSData = true; 
-    hasXsec = true;
-    hasAnyData = true;
-    theBaseZ = 0;
-    theBaseA = 0;
-    theBaseM = 0;
+    G4ParticleHPFinalState();
+    virtual ~G4ParticleHPFinalState();
 
-    theNDLDataZ = 0;
-    theNDLDataA = 0;
-    theNDLDataM = 0;
+    inline void Init(G4double A, G4double Z, const G4String& dirName,
+                     const G4String& aFSType, G4ParticleDefinition* p)
+    {
+      theProjectile = p;
+      Init(A, Z, 0, dirName, aFSType, p);
+    }
+    virtual void Init(G4double A, G4double Z, G4int M, const G4String& dirName,
+                      const G4String& aFSType, G4ParticleDefinition*) = 0;
 
-    adjustResult = true;
-    if ( std::getenv( "G4PHP_DO_NOT_ADJUST_FINAL_STATE" ) ) adjustResult = false;
+    virtual G4HadFinalState* ApplyYourself(const G4HadProjectile&)
+    {
+      throw G4HadronicException(
+        __FILE__, __LINE__,
+        "G4ParticleHPFinalState::ApplyYourself(..) needs implementation");
+      return nullptr;
+    }
 
-    theProjectile = G4Neutron::Neutron();
+    // this would better be done templating G4ParticleHPChannel...,
+    //
+    virtual G4ParticleHPFinalState* New() = 0;
 
-    theResult.Put( 0 );
-  }
-  
-  virtual ~G4ParticleHPFinalState()
-  {
-    if (theResult.Get() != 0) delete theResult.Get();
-  }
+    inline G4bool HasXsec() const { return hasXsec; }
+    inline G4bool HasFSData() const { return hasFSData; }
+    inline G4bool HasAnyData() const { return hasAnyData; }
 
-  void Init (G4double A, G4double Z, G4String & dirName, G4String & aFSType,
-             G4ParticleDefinition* projectile)
-  {
-    G4int M = 0;
-    Init ( A, Z, M, dirName, aFSType,const_cast<G4ParticleDefinition*>(projectile));
-  }
-  virtual void Init (G4double A, G4double Z, G4int M, G4String & dirName,
-                     G4String & aFSType, G4ParticleDefinition* ) = 0;
-  virtual G4HadFinalState * ApplyYourself(const G4HadProjectile & ) 
-  {
-    throw G4HadronicException(__FILE__, __LINE__, "G4HadFinalState * ApplyYourself(const G4HadProjectile & theTrack) needs implementation");
-    return 0;
-  }
-  
-  // this would better be done templating G4ParticleHPChannel..., 
-  // 
-  virtual G4ParticleHPFinalState * New() = 0;
-  
-  G4bool HasXsec() { return hasXsec; }
-  G4bool HasFSData() { return hasFSData; }
-  G4bool HasAnyData() { return hasAnyData; }
-  
-  virtual G4double GetXsec(G4double ) { return 0; }
-  virtual G4ParticleHPVector * GetXsec() { return 0; }
-  
-  void     SetA_Z(G4double anA, G4double aZ, G4int aM=0) {theBaseA = anA; theBaseZ = aZ; theBaseM=aM; }
-  G4double GetZ() { return theBaseZ; }
-  G4double GetN() { return theBaseA; }
-  G4double GetA() { return theBaseA; }
-  G4int GetM() { return theBaseM; }
+    virtual G4double GetXsec(G4double) const { return 0.; }
+    virtual G4ParticleHPVector* GetXsec() const { return nullptr; }
 
-  void SetAZMs(G4double anA, G4double aZ, G4int aM, G4ParticleHPDataUsed used) 
-  {
-    theBaseA = anA; theBaseZ = aZ; theBaseM=aM; 
-    theNDLDataA=(G4int)used.GetA();
-    theNDLDataZ=(G4int)used.GetZ();
-    theNDLDataM=used.GetM();
-  }
-  
-  void SetProjectile( G4ParticleDefinition* projectile )
-  {
-    theProjectile = projectile;
-  }
+    void SetA_Z(G4double anA, G4double aZ, G4int aM = 0)
+    {
+      theBaseA = G4lrint(anA);
+      theBaseZ = G4lrint(aZ);
+      theBaseM = aM;
+    }
+    G4double GetZ() const { return theBaseZ; }
+    G4double GetN() const { return theBaseA; }
+    G4double GetA() const { return theBaseA; }
+    G4int GetM() const { return theBaseM; }
 
-protected:
-  
-    void adjust_final_state ( G4LorentzVector );
-    G4bool DoNotAdjustFinalState();
+    inline void SetAZMs(const G4ParticleHPDataUsed& used)
+    {
+      theNDLDataA = G4lrint(used.GetA());
+      theNDLDataZ = G4lrint(used.GetZ());
+      theNDLDataM = used.GetM();
+    }
 
-protected:
-  
-    G4bool hasXsec;
-    G4bool hasFSData;
-    G4bool hasAnyData;
+    inline void SetAZMs(G4double anA, G4double aZ, G4int aM, const G4ParticleHPDataUsed& used)
+    {
+      theBaseA = G4lrint(anA);
+      theBaseZ = G4lrint(aZ);
+      theBaseM = aM;
+      theNDLDataA = G4lrint(used.GetA());
+      theNDLDataZ = G4lrint(used.GetZ());
+      theNDLDataM = used.GetM();
+    }
+
+    inline void SetProjectile(G4ParticleDefinition* projectile)
+    {
+      theProjectile = projectile;
+    }
+
+    G4ParticleHPFinalState& operator=(const G4ParticleHPFinalState& right) = delete;
+    G4ParticleHPFinalState(const G4ParticleHPFinalState&) = delete;
+
+  protected:
+
+    void adjust_final_state(G4LorentzVector);
+
+    G4ParticleDefinition* theProjectile{nullptr};
+    G4ParticleHPManager* fManager;
+    G4IonTable* ionTable;
+
+    G4int theBaseA{0};
+    G4int theBaseZ{0};
+    G4int theBaseM{0};
+    G4int theNDLDataZ{0};
+    G4int theNDLDataA{0};
+    G4int theNDLDataM{0};
+
+    G4int secID{-1};
+    // Creator model ID for the secondaries created by this class or derived ones
+
+    G4bool hasXsec{true};
+    G4bool hasFSData{true};
+    G4bool hasAnyData{true};
     G4ParticleHPNames theNames;
-  
-    G4Cache< G4HadFinalState* > theResult;
-    G4ParticleDefinition* theProjectile;
-  
-    G4double theBaseA;
-    G4double theBaseZ;
-    G4int theBaseM;
 
-    G4int theNDLDataZ;
-    G4int theNDLDataA;
-    G4int theNDLDataM;
+    G4Cache<G4HadFinalState*> theResult;
 
-private:
-
-    G4bool adjustResult;
 };
+
 #endif

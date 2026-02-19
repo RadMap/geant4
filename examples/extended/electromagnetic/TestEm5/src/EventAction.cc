@@ -23,67 +23,68 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm5/src/EventAction.cc
+/// \file EventAction.cc
 /// \brief Implementation of the EventAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "EventAction.hh"
 
-#include "Run.hh"
 #include "HistoManager.hh"
+#include "Run.hh"
 
-#include "G4RunManager.hh"
 #include "G4Event.hh"
+#include "G4RunManager.hh"
+#include "G4VProcess.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-EventAction::EventAction()
-:G4UserEventAction(),
- fEnergyDeposit(0.),
- fTrakLenCharged(0.), fTrakLenNeutral(0.),
- fNbStepsCharged(0), fNbStepsNeutral(0),
- fTransmitFlag(0), fReflectFlag(0)
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-EventAction::~EventAction()
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void EventAction::BeginOfEventAction(const G4Event* )
+void EventAction::BeginOfEventAction(const G4Event*)
 {
- // initialisation per event
- fEnergyDeposit  = 0.;
- fTrakLenCharged = fTrakLenNeutral = 0.; 
- fNbStepsCharged = fNbStepsNeutral = 0;
- fTransmitFlag   = fReflectFlag    = 0;    
+  // initialisation per event
+  fEnergyDeposit = fTrakLenCharged = fTrakLenNeutral = 0.;
+  fNbStepsCharged = fNbStepsNeutral = fTransmitFlag = fReflectFlag = 0;
+  fTypes[0] = fTypes[1] = fTypes[2] = fTypes[3] = 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void EventAction::EndOfEventAction(const G4Event*)
 {
-  Run* run = static_cast<Run*>(
-             G4RunManager::GetRunManager()->GetNonConstCurrentRun());
-              
- run->AddEnergy(fEnergyDeposit);
- run->AddTrakLenCharg(fTrakLenCharged);
- run->AddTrakLenNeutr(fTrakLenNeutral);
+  Run* run = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
 
- run->CountStepsCharg(fNbStepsCharged);
- run->CountStepsNeutr(fNbStepsNeutral);
+  run->AddEnergy(fEnergyDeposit);
+  run->AddTrakLenCharg(fTrakLenCharged);
+  run->AddTrakLenNeutr(fTrakLenNeutral);
 
- run->CountTransmit (fTransmitFlag);
- run->CountReflect  (fReflectFlag);
- 
- if (fEnergyDeposit > 0.)
-    G4AnalysisManager::Instance()->FillH1(1,fEnergyDeposit);
+  run->CountStepsCharg(fNbStepsCharged);
+  run->CountStepsNeutr(fNbStepsNeutral);
+
+  run->CountTransmit(fTransmitFlag);
+  run->CountReflect(fReflectFlag);
+  run->CountGammaProcesses(fTypes);
+
+  if (fEnergyDeposit > 0.) G4AnalysisManager::Instance()->FillH1(1, fEnergyDeposit);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+void EventAction::CountStepsNeutr(const G4VProcess* ptr)
+{
+  ++fNbStepsNeutral;
+  if (nullptr != ptr) {
+    G4int type = ptr->GetProcessSubType();
+    if (type == 11) {
+      ++fTypes[3];
+    }
+    else if (type == 12) {
+      ++fTypes[0];
+    }
+    else if (type == 13) {
+      ++fTypes[1];
+    }
+    else if (type == 14) {
+      ++fTypes[2];
+    }
+  }
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -23,14 +23,11 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm18/src/StackingAction.cc
+/// \file StackingAction.cc
 /// \brief Implementation of the StackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "StackingAction.hh"
+
 #include "StackingMessenger.hh"
 
 #include "G4Track.hh"
@@ -38,7 +35,6 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 StackingAction::StackingAction()
-:G4UserStackingAction(), fTrackSecondaries(false)
 {
   fStackMessenger = new StackingMessenger(this);
 }
@@ -47,16 +43,17 @@ StackingAction::StackingAction()
 
 StackingAction::~StackingAction()
 {
-  ///delete fStackMessenger;
+  delete fStackMessenger;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4ClassificationOfNewTrack
-StackingAction::ClassifyNewTrack(const G4Track* track)
+G4ClassificationOfNewTrack StackingAction::ClassifyNewTrack(const G4Track* track)
 {
-  if ((track->GetTrackID() == 1) || (fTrackSecondaries)) return fUrgent;
-  else return fKill;
+  if ((track->GetTrackID() == 1) || (fTrackSecondaries))
+    return fUrgent;
+  else
+    return fKill;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

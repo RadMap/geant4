@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/MCTruth/include/MCTruthTrackingAction.hh
+/// \file MCTruthTrackingAction.hh
 /// \brief Definition of the MCTruthTrackingAction class
-//
-//
-//
-//
+
 // --------------------------------------------------------------
 //      GEANT 4 - MCTruthTrackingAction class
 // --------------------------------------------------------------
@@ -37,28 +34,26 @@
 // Date  : 2005-08-24
 //
 // --------------------------------------------------------------
-#ifndef INCLUDE_MCTRUTHTRACKINGACTION_H 
+#ifndef INCLUDE_MCTRUTHTRACKINGACTION_H
 #define INCLUDE_MCTRUTHTRACKINGACTION_H 1
 
-#include "G4UserTrackingAction.hh"
 #include "MCTruthManager.hh"
+
+#include "G4UserTrackingAction.hh"
 
 class MCTruthTrackingAction : public G4UserTrackingAction
 {
-public: 
+  public:
+    MCTruthTrackingAction();
 
-  MCTruthTrackingAction( ); 
+    virtual ~MCTruthTrackingAction();
 
-  virtual ~MCTruthTrackingAction( );
-  
-  virtual void PreUserTrackingAction(const G4Track*);
-  virtual void PostUserTrackingAction(const G4Track*);
+    virtual void PreUserTrackingAction(const G4Track*);
+    virtual void PostUserTrackingAction(const G4Track*);
 
-private:
-
-  G4LorentzVector fmom;
-  G4bool TrackToBeStored(const G4Track*);
-
+  private:
+    G4LorentzVector fmom;
+    G4bool TrackToBeStored(const G4Track*);
 };
 
-#endif // INCLUDE_MCTRUTHTRACKINGACTION_H
+#endif  // INCLUDE_MCTRUTHTRACKINGACTION_H

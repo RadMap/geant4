@@ -22,7 +22,9 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
+/// @file G4MPIhistoMerger.hh
+/// @brief Histo merger
+
 // Merge G4analysis histogram objects via MPI
 //
 // History:
@@ -35,24 +37,24 @@
 
 class G4VAnalysisManager;
 
-class G4MPIhistoMerger {
-public:
-  G4MPIhistoMerger();
-  G4MPIhistoMerger(G4VAnalysisManager* mgr,
-              G4int destination = G4MPImanager::kRANK_MASTER,
-              G4int verbosity = 0);
+class G4MPIhistoMerger
+{
+  public:
+    G4MPIhistoMerger();
+    G4MPIhistoMerger(G4VAnalysisManager* mgr, G4int destination = G4MPImanager::kRANK_MASTER,
+                     G4int verbosity = 0);
 
-  //Get/set methods
-  void SetDestinationRank( G4int i ) { destination = i; }
-  void SetScoringManager( G4VAnalysisManager* mgr ) { manager = mgr; }
-  void SetVerbosity( G4int ver ) { verboseLevel = ver; }
+    // Get/set methods
+    void SetDestinationRank(G4int i) { destination = i; }
+    void SetScoringManager(G4VAnalysisManager* mgr) { manager = mgr; }
+    void SetVerbosity(G4int ver) { verboseLevel = ver; }
 
-  void Merge();
+    void Merge();
 
-private:
-  G4VAnalysisManager* manager;
-  G4int destination;
-  G4int verboseLevel;
+  private:
+    G4VAnalysisManager* manager;
+    G4int destination;
+    G4int verboseLevel;
 };
 
-#endif //G4MPIHISTOMERGERNEW_HH
+#endif  // G4MPIHISTOMERGERNEW_HH

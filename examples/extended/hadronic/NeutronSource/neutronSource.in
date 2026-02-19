@@ -10,9 +10,14 @@
 ##/testhadr/det/setAbsorLength 60 mm
 ##/testhadr/det/setContThick  2.4 mm
 #
+/process/em/verbose 0
+/process/had/verbose 1
+#
 /run/initialize
 #
-/process/list
+# Set a very high time threshold to allow all decays to happen
+/process/had/rdm/thresholdForVeryLongDecayTime 1.0e+60 year
+#
 /process/inactivate hadElastic
 #
 /gun/particle ion
@@ -23,5 +28,4 @@
 ##/analysis/h1/set 6  60  0. 12.  MeV #neutrons
 #
 /run/printProgress 1000
-#
 /run/beamOn 10000

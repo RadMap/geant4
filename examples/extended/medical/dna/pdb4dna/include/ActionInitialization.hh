@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file ActionInitialization.hh
+/// \brief Definition of the ActionInitialization class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -33,25 +36,24 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file ActionInitialization.hh
-/// \brief Definition of the ActionInitialization class
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef ActionInitialization_h
-#define ActionInitialization_h 1
+#  define ActionInitialization_h 1
 
-#include "DetectorConstruction.hh"
-#include "G4VUserActionInitialization.hh"
+#  include "DetectorConstruction.hh"
+
+#  include "G4VUserActionInitialization.hh"
 
 class ActionInitialization : public G4VUserActionInitialization
 {
-public:
-  ActionInitialization();
-  virtual ~ActionInitialization();
+  public:
+    ActionInitialization();
+    virtual ~ActionInitialization();
 
-  virtual void BuildForMaster() const;
-  virtual void Build() const;
+    virtual void BuildForMaster() const;
+    virtual void Build() const;
 };
 
 #endif

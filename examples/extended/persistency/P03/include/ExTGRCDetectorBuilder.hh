@@ -23,17 +23,16 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P03/include/ExTGRCDetectorBuilder.hh
+/// \file ExTGRCDetectorBuilder.hh
 /// \brief Definition of the ExTGRCDetectorBuilder class
-//
 
 #ifndef ExTGRCDetectorBuilder_h
 #define ExTGRCDetectorBuilder_h
 
-#include "globals.hh"
 #include "G4tgbDetectorBuilder.hh"
+#include "globals.hh"
 
-//---------------------------------------------------------------------------- 
+//----------------------------------------------------------------------------
 
 class ExTGRCLineProcessor;
 
@@ -43,16 +42,15 @@ class ExTGRCLineProcessor;
 /// \author:    P. Arce
 
 class ExTGRCDetectorBuilder : public G4tgbDetectorBuilder
-{ 
-  public:  
-
+{
+  public:
     ExTGRCDetectorBuilder();
-   ~ExTGRCDetectorBuilder();
+    ~ExTGRCDetectorBuilder();
 
     const G4tgrVolume* ReadDetector();
-    virtual G4VPhysicalVolume* ConstructDetector( const G4tgrVolume* tgrVoltop);
-  private:
+    virtual G4VPhysicalVolume* ConstructDetector(const G4tgrVolume* tgrVoltop);
 
+  private:
     ExTGRCLineProcessor* fTlproc;
 };
 

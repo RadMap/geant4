@@ -29,7 +29,7 @@
 //
 // Wrapper class for G4GenericTrap to make use of VecGeom GenericTrap.
 
-// 30.10.13 G.Cosmo, CERN
+// Author: Gabriele Cosmo (CERN), 30.10.2013
 // --------------------------------------------------------------------
 #ifndef G4UGENERICTRAP_HH
 #define G4UGENERICTRAP_HH
@@ -38,23 +38,40 @@
 
 #if ( defined(G4GEOM_USE_USOLIDS) || defined(G4GEOM_USE_PARTIAL_USOLIDS) )
 
-#include <volumes/UnplacedGenTrap.h>
+#include <VecGeom/volumes/UnplacedGenTrap.h>
 #include "G4TwoVector.hh"
 
 #include "G4Polyhedron.hh"
+
+/**
+ * @brief G4UGenericTrap is a wrapper class for G4GenericTrap
+ * to make use of VecGeom GenericTrap.
+ */
 
 class G4UGenericTrap : public G4UAdapter<vecgeom::UnplacedGenTrap> 
 {
   using Shape_t = vecgeom::UnplacedGenTrap;
   using Base_t  = G4UAdapter<vecgeom::UnplacedGenTrap>;
 
-  public:  // with description
+  public:
 
+    /**
+     * Constructs an generic trapezoid, given its vertices.
+     *  @param[in] name The solid name.
+     *  @param[in] halfZ Half length in Z.
+     *  @param[in] vertices The (x,y) coordinates of the vertices.
+     */
     G4UGenericTrap(const G4String& name, G4double halfZ,
                    const std::vector<G4TwoVector>& vertices);
 
-   ~G4UGenericTrap();
+    /**
+     * Default destructor.
+     */
+    ~G4UGenericTrap() override = default;
 
+    /**
+     * Accessors.
+     */
     G4double    GetZHalfLength() const;
     G4int       GetNofVertices() const;
     G4TwoVector GetVertex(G4int index) const;
@@ -62,31 +79,62 @@ class G4UGenericTrap : public G4UAdapter<vecgeom::UnplacedGenTrap>
     G4double    GetTwistAngle(G4int index) const;
     G4bool      IsTwisted() const;
     G4int       GetVisSubdivisions() const;
+
+    /**
+     * Modifiers.
+     */
     void        SetVisSubdivisions(G4int subdiv);
     void        SetZHalfLength(G4double);
-    void Initialise(const std::vector<G4TwoVector>& v);
 
-    inline G4GeometryType GetEntityType() const;
+    /**
+     * Returns the type ID, "G4GenericTrap" of the solid.
+     */
+    inline G4GeometryType GetEntityType() const override;
 
-  public:  // without description
+    /**
+     * Returns true as the solid has only planar faces.
+     */
+    inline G4bool IsFaceted() const override;
 
-    G4UGenericTrap(__void__&);
-      // Fake default constructor for usage restricted to direct object
-      // persistency for clients requiring preallocation of memory for
-      // persistifiable objects.
+    /**
+     * Computes the bounding limits of the solid.
+     *  @param[out] pMin The minimum bounding limit point.
+     *  @param[out] pMax The maximum bounding limit point.
+     */
+    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const override;
 
-    G4UGenericTrap( const G4UGenericTrap& source );
-    G4UGenericTrap& operator=(const G4UGenericTrap& source);
-      // Copy constructor and assignment operator.
-
-    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const;
-
+    /**
+     * Calculates the minimum and maximum extent of the solid, when under the
+     * specified transform, and within the specified limits.
+     *  @param[in] pAxis The axis along which compute the extent.
+     *  @param[in] pVoxelLimit The limiting space dictated by voxels.
+     *  @param[in] pTransform The internal transformation applied to the solid.
+     *  @param[out] pMin The minimum extent value.
+     *  @param[out] pMax The maximum extent value.
+     *  @returns True if the solid is intersected by the extent region.
+     */
     G4bool CalculateExtent(const EAxis pAxis,
                            const G4VoxelLimits& pVoxelLimit,
                            const G4AffineTransform& pTransform,
-                                 G4double& pMin, G4double& pMax) const;
+                                 G4double& pMin, G4double& pMax) const override;
 
-    G4Polyhedron* CreatePolyhedron() const;
+    /**
+     * Returns a generated polyhedron as graphical representations.
+     */
+    G4Polyhedron* CreatePolyhedron() const override;
+
+    /**
+     * Copy constructor and assignment operator.
+     */
+    G4UGenericTrap( const G4UGenericTrap& source );
+    G4UGenericTrap& operator=(const G4UGenericTrap& source);
+
+  private:
+
+    /**
+     * Initialises data. Used in constructor.
+     */
+    void Initialise(const std::vector<G4TwoVector>& v);
 
   private:
 
@@ -102,6 +150,11 @@ class G4UGenericTrap : public G4UAdapter<vecgeom::UnplacedGenTrap>
 inline G4GeometryType G4UGenericTrap::GetEntityType() const
 {
   return "G4GenericTrap";
+}
+
+inline G4bool G4UGenericTrap::IsFaceted() const
+{
+  return true;
 }
 
 #endif  // G4GEOM_USE_USOLIDS

@@ -25,10 +25,6 @@
 //
 /// \file SteppingAction.hh
 /// \brief Definition of the SteppingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef SteppingAction_h
 #define SteppingAction_h 1
@@ -44,14 +40,14 @@ class EventAction;
 class SteppingAction : public G4UserSteppingAction
 {
   public:
-    SteppingAction(DetectorConstruction*,EventAction*);
-   ~SteppingAction();
+    SteppingAction(DetectorConstruction*, EventAction*);
+    ~SteppingAction() override = default;
 
-    virtual void UserSteppingAction(const G4Step*);
-    
+    void UserSteppingAction(const G4Step*) override;
+
   private:
-    DetectorConstruction* fDetector;
-    EventAction*          fEventAction;
+    DetectorConstruction* fDetector = nullptr;
+    EventAction* fEventAction = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

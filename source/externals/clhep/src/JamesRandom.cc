@@ -41,9 +41,13 @@
 #include "CLHEP/Random/DoubConv.h"
 #include "CLHEP/Utility/atomic_int.h"
 
-#include <string.h>	// for strcmp
+#include <atomic>
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
+#include <string.h>	// for strcmp
+#include <string>
+#include <vector>
 
 namespace CLHEP {
 
@@ -397,7 +401,7 @@ bool HepJamesRandom::getState (const std::vector<unsigned long> & v) {
   t[0] = v[195]; t[1] = v[196]; c  = DoubConv::longs2double(t);
   t[0] = v[197]; t[1] = v[198]; cd = DoubConv::longs2double(t);
   t[0] = v[199]; t[1] = v[200]; cm = DoubConv::longs2double(t);
-  j97  = v[201];
+  j97  = (int)v[201];
   i97  = (64+j97)%97; 
   return true;
 }

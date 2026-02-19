@@ -49,39 +49,32 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-G4PSFlatSurfaceFlux3D::G4PSFlatSurfaceFlux3D(G4String name, G4int direction,
-					     G4int ni, G4int nj, G4int nk,
-					     G4int di, G4int dj, G4int dk)
-    :G4PSFlatSurfaceFlux(name,direction),
-     fDepthi(di),fDepthj(dj),fDepthk(dk)
+G4PSFlatSurfaceFlux3D::G4PSFlatSurfaceFlux3D(const G4String& name, G4int direction,
+                                             G4int ni, G4int nj, G4int nk,
+                                             G4int di, G4int dj, G4int dk)
+  : G4PSFlatSurfaceFlux(name, direction)
+  , fDepthi(di)
+  , fDepthj(dj)
+  , fDepthk(dk)
 {
-  fNi=ni;
-  fNj=nj;
-  fNk=nk;
+  SetNijk(ni, nj, nk);
 }
 
-G4PSFlatSurfaceFlux3D::G4PSFlatSurfaceFlux3D(G4String name, G4int direction,
-					     const G4String& unit,
-					     G4int ni, G4int nj, G4int nk,
-					     G4int di, G4int dj, G4int dk)
-    :G4PSFlatSurfaceFlux(name,direction),
-     fDepthi(di),fDepthj(dj),fDepthk(dk)
+G4PSFlatSurfaceFlux3D::G4PSFlatSurfaceFlux3D(const G4String& name, G4int direction,
+                                             const G4String& unit, G4int ni,
+                                             G4int nj, G4int nk, G4int di,
+                                             G4int dj, G4int dk)
+  : G4PSFlatSurfaceFlux3D(name, direction, ni, nj, nk, di, dj, dk)
 {
-  fNi=ni;
-  fNj=nj;
-  fNk=nk;
   SetUnit(unit);
 }
-
-G4PSFlatSurfaceFlux3D::~G4PSFlatSurfaceFlux3D()
-{;}
 
 G4int G4PSFlatSurfaceFlux3D::GetIndex(G4Step* aStep)
 {
   const G4VTouchable* touchable = aStep->GetPreStepPoint()->GetTouchable();
-  G4int i = touchable->GetReplicaNumber(fDepthi);
-  G4int j = touchable->GetReplicaNumber(fDepthj);
-  G4int k = touchable->GetReplicaNumber(fDepthk);
-  
-  return i*fNj*fNk+j*fNk+k;
+  G4int i                       = touchable->GetReplicaNumber(fDepthi);
+  G4int j                       = touchable->GetReplicaNumber(fDepthj);
+  G4int k                       = touchable->GetReplicaNumber(fDepthk);
+
+  return i * fNj * fNk + j * fNk + k;
 }

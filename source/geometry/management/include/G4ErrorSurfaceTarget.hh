@@ -29,36 +29,59 @@
 //
 // Base class for G4ErrorTarget classes that are surfaces.
 
-// Created: P.Arce, September 2004
+// Author: Pedro Arce (CIEMAT), September 2004
 // --------------------------------------------------------------------
-
-#ifndef G4ErrorSurfaceTarget_hh
-#define G4ErrorSurfaceTarget_hh
+#ifndef G4ERRORSURFACETARGET_HH
+#define G4ERRORSURFACETARGET_HH
 
 #include "globals.hh"
 #include "G4ThreeVector.hh"
 #include "G4ErrorTanPlaneTarget.hh"
 #include "G4Plane3D.hh"
 
+/**
+ * @brief G4ErrorSurfaceTarget is a base class for G4ErrorTarget classes
+ * that are surfaces.
+ */
+
 class G4ErrorSurfaceTarget : public G4ErrorTanPlaneTarget
 {
-  public:  // with description
+  public:
 
-    G4ErrorSurfaceTarget();
-    virtual ~G4ErrorSurfaceTarget();
+    /**
+     * Default Constructor and Destructor.
+     */
+    G4ErrorSurfaceTarget() = default;
+    ~G4ErrorSurfaceTarget() override = default;
 
-    virtual double GetDistanceFromPoint( const G4ThreeVector& point,
-                                         const G4ThreeVector& direc ) const = 0;
-      // Distance from a point to the surface in a given direction
+    /**
+     * Computes the distance from a point to the surface in a given direction.
+     *  @param[in] point The point of reference.
+     *  @param[in] direc The direction vector.
+     *  @returns The distance value.
+     */
+    G4double GetDistanceFromPoint( const G4ThreeVector& point,
+                                   const G4ThreeVector& direc ) const override = 0;
 
-    virtual double GetDistanceFromPoint( const G4ThreeVector& point ) const = 0;
-      // Minimal distance from a point to the surface in any direction
+    /**
+     * Computes the minimal distance from a point to the surface in any
+     * direction.
+     *  @param[in] point The point of reference.
+     *  @returns The distance value.
+     */
+    G4double GetDistanceFromPoint( const G4ThreeVector& point ) const override = 0;
 
-    virtual G4Plane3D GetTangentPlane( const G4ThreeVector& point ) const = 0;
-      // Get tangent plane at point
+    /**
+     * Computes the plane tangent to surface at a given point.
+     *  @param[in] point The point of reference.
+     *  @returns The tangent plane.
+     */
+    G4Plane3D GetTangentPlane( const G4ThreeVector& point ) const override = 0;
 
-    virtual void Dump( const G4String& msg ) const = 0;
-      // Dump surface
+    /**
+     * Dumps to standard output the surface parameters.
+     */
+    void Dump( const G4String& msg ) const override = 0;
 };
 
 #endif

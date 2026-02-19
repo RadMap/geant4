@@ -1,10 +1,17 @@
+Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Forcing G4RunManager type...
 
         ############################################
         !!! WARNING - FPE detection is activated !!!
         ############################################
 
+
+          ################################
+          !!! G4Backtrace is activated !!!
+          ################################
+
+
 **************************************************************
- Geant4 version Name: geant4-10-06-patch-01    (14-February-2020)
+ Geant4 version Name: geant4-11-04-ref-00    (5-December-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -16,40 +23,47 @@
 ======                 Electromagnetic Physics Parameters      ========
 =======================================================================
 LPM effect enabled                                 1
-Spline of EM tables enabled                        1
 Enable creation and use of sampling tables         0
 Apply cuts on all EM processes                     0
-Use integral approach for tracking                 1
+Use combined TransportationWithMsc                 Disabled
 Use general process                                0
 Enable linear polarisation for gamma               0
+Enable photoeffect sampling below K-shell          1
 Enable sampling of quantum entanglement            0
 X-section factor for integral approach             0.8
 Min kinetic energy for tables                      10 eV 
 Max kinetic energy for tables                      10 TeV
-Number of bins in tables                           120
 Number of bins per decade of a table               10
 Verbose level                                      0
 Verbose level for worker thread                    0
 Bremsstrahlung energy threshold above which 
-  primary is added to the list of secondary        100 TeV
+  primary e+- is added to the list of secondary    100 TeV
+Bremsstrahlung energy threshold above which primary
+  muon/hadron is added to the list of secondary    100 TeV
+Positron annihilation at rest model                SimplePositronium
+Enable 3 gamma annihilation on fly                 0
 Lowest triplet kinetic energy                      1 MeV
 Enable sampling of gamma linear polarisation       0
 5D gamma conversion model type                     0
 5D gamma conversion model on isolated ion          0
+Use RiGe 5D e+e- pair production model by muons    0
+Livermore data directory                           epics_2017
 =======================================================================
 ======                 Ionisation Parameters                   ========
 =======================================================================
 Step function for e+-                              (0.2, 1 mm)
 Step function for muons/hadrons                    (0.2, 0.1 mm)
+Step function for light ions                       (0.2, 0.1 mm)
+Step function for general ions                     (0.2, 0.1 mm)
 Lowest e+e- kinetic energy                         1 keV
 Lowest muon/hadron kinetic energy                  1 keV
-Fluctuations of dE/dx are enabled                  1
 Use ICRU90 data                                    0
-Use built-in Birks satuaration                     0
+Fluctuations of dE/dx are enabled                  1
+Type of fluctuation model for leptons and hadrons  Universal
+Use built-in Birks saturation                      0
 Build CSDA range enabled                           0
 Use cut as a final range enabled                   0
 Enable angular generator interface                 0
-Factor of cut reduction for sub-cutoff method      1
 Max kinetic energy for CSDA tables                 1 GeV
 Max kinetic energy for NIEL computation            0 eV 
 Linear loss limit                                  0.01
@@ -62,7 +76,6 @@ Type of msc step limit algorithm for muons/hadrons 0
 Msc lateral displacement for e+- enabled           1
 Msc lateral displacement for muons and hadrons     0
 Urban msc model lateral displacement alg96         1
-Msc lateral displacement beyond geometry safety    0
 Range factor for msc step limit for e+-            0.04
 Range factor for msc step limit for muons/hadrons  0.2
 Geometry factor for msc step limitation of e+-     2.5
@@ -75,6 +88,7 @@ Factor used for dynamic computation of angular
 Fixed angular limit between single 
   and multiple scattering                          3.1416 rad
 Upper energy limit for e+- multiple scattering     100 MeV
+Type of electron single scattering model           0
 Type of nuclear form-factor                        1
 Screening factor                                   1
 =======================================================================
@@ -122,6 +136,7 @@ physicsList->setCut() start.
 
 GammaToMuPair:  gamma->mu+mu- Bethe Heitler process, SubType= 15
         good cross section parametrization from 211.317 MeV to 1e+12 GeV for all Z.
+        cross section factor: 1
 
 Region <DefaultRegionForTheWorld> --  -- appears in <Water> world volume
  This region is in the mass world.
@@ -136,22 +151,25 @@ Region <DefaultRegionForParallelWorld> --  -- is not associated to any world.
  Materials : 
  Production cuts :   gamma 1 mm      e- 1 mm      e+ 1 mm  proton 1 mm 
 
-========= Table of registered couples ==============================
+========= Table of registered couples ============================
 
 Index : 0     used in the geometry : Yes
  Material : Water
  Range cuts        :  gamma  1 mm     e-  1 mm     e+  1 mm  proton 1 mm 
- Energy thresholds :  gamma  2.93991 keV    e-  349.408 keV    e+  341.455 keV proton 100 keV
+ Energy thresholds :  gamma  2.93516 keV    e-  351.334 keV    e+  341.625 keV proton 100 keV
  Region(s) which use this couple : 
     DefaultRegionForTheWorld
 
-====================================================================
+==================================================================
 
 Start closing geometry.
-G4GeometryManager::ReportVoxelStats -- Voxel Statistics
+--------------------------------------------------------------------------------
+G4VoxelisationHelper::ReportVoxelStats -- Voxel Statistics
 
     Total memory consumed for geometry optimisation:   0 kByte
     Total CPU time elapsed for geometry optimisation: 0 seconds
+--------------------------------------------------------------------------------
+
 ### Run 0 starts.
 
 --------- Ranecu engine status ---------
@@ -171,26 +189,26 @@ G4GeometryManager::ReportVoxelStats -- Voxel Statistics
  Run terminated.
 Run Summary
   Number of events processed : 1000000
-  User=3.490000s Real=3.547021s Sys=0.000000s
+  User=2.030000s Real=2.039563s Sys=0.000000s
 
  ======================== run summary ======================
 
  The run is: 1000000 gamma of 100 keV through 100 m   of Water (density: 1 g/cm3 )
 
- Process calls frequency --->	compt = 983656	phot = 16344
+ Process calls frequency --->	Rayl = 31729	compt = 952523	phot = 15748
 
- MeanFreePath:	6.0662 cm  +- 6.0668 cm 	massic: 6.0662 g/cm2 
- CrossSection:	0.16485 cm^-1 			massic: 16.485 mm2/g 
+ MeanFreePath:	5.8773 cm  +- 5.8715 cm 	massic: 5.8773 g/cm2 
+ CrossSection:	0.17014 cm^-1 			massic: 17.014 mm2/g 
 
- mean energy of charged secondaries: 15.197 keV
-     ---> mass_energy_transfer coef: 2.5052 mm2/g 
+ mean energy of charged secondaries: 14.711 keV
+     ---> mass_energy_transfer coef: 2.503 mm2/g 
 
  Verification : crossSections from G4EmCalculator 
-   compt= 16.23 mm2/g    phot= 268.53 um2/mg   total= 16.499 mm2/g 
+   Rayl= 534.01 um2/mg   compt= 16.23 mm2/g    phot= 268.53 um2/mg   total= 17.033 mm2/g 
 
 --------- Ranecu engine status ---------
  Initial seed (index) = 0
- Current couple of seeds = 1937641209, 57071983
+ Current couple of seeds = 1155111439, 149055422
 ----------------------------------------
 #
 /gun/particle e-
@@ -211,22 +229,22 @@ Region <DefaultRegionForParallelWorld> --  -- is not associated to any world.
  Materials : 
  Production cuts :   gamma 1 mm      e- 1 mm      e+ 1 mm  proton 1 mm 
 
-========= Table of registered couples ==============================
+========= Table of registered couples ============================
 
 Index : 0     used in the geometry : Yes
  Material : Water
  Range cuts        :  gamma  1 mm     e-  1 mm     e+  1 mm  proton 1 mm 
- Energy thresholds :  gamma  2.93991 keV    e-  349.408 keV    e+  341.455 keV proton 100 keV
+ Energy thresholds :  gamma  2.93516 keV    e-  351.334 keV    e+  341.625 keV proton 100 keV
  Region(s) which use this couple : 
     DefaultRegionForTheWorld
 
-====================================================================
+==================================================================
 
 ### Run 1 starts.
 
 --------- Ranecu engine status ---------
  Initial seed (index) = 0
- Current couple of seeds = 1937641209, 57071983
+ Current couple of seeds = 1155111439, 149055422
 ----------------------------------------
 --> Event 0 starts.
 --> Event 100000 starts.
@@ -241,38 +259,43 @@ Index : 0     used in the geometry : Yes
  Run terminated.
 Run Summary
   Number of events processed : 1000000
-  User=3.300000s Real=3.315051s Sys=0.000000s
+  User=1.720000s Real=1.723133s Sys=0.000000s
 
  ======================== run summary ======================
 
  The run is: 1000000 e- of 100 MeV through 100 m   of Water (density: 1 g/cm3 )
 
- Process calls frequency --->	eBrem = 608555	eIoni = 391445
+ Process calls frequency --->	eBrem = 609990	eIoni = 390010
 
- MeanFreePath:	1.6102 cm  +- 1.6103 cm 	massic: 1.6102 g/cm2 
- CrossSection:	0.62103 cm^-1 			massic: 62.103 mm2/g 
+ MeanFreePath:	1.6123 cm  +- 1.6124 cm 	massic: 1.6123 g/cm2 
+ CrossSection:	0.62023 cm^-1 			massic: 62.023 mm2/g 
 
- mean energy of charged secondaries: 743.85 keV
-     ---> mass_energy_transfer coef: 461.95 um2/mg
+ mean energy of charged secondaries: 743.47 keV
+     ---> mass_energy_transfer coef: 461.13 um2/mg
 
  Verification : crossSections from G4EmCalculator 
-   eBrem= 37.788 mm2/g    eIoni= 24.337 mm2/g    total= 62.125 mm2/g 
+   eBrem= 37.79 mm2/g    eIoni= 24.204 mm2/g    total= 61.994 mm2/g 
 
 --------- Ranecu engine status ---------
  Initial seed (index) = 0
- Current couple of seeds = 419401041, 1685305101
+ Current couple of seeds = 484143605, 1973228044
 ----------------------------------------
 G4 kernel has come to Quit state.
-UserDetectorConstruction deleted.
-UserPhysicsList deleted.
-UserActionInitialization deleted.
+Deleting G4Run (id:1) 
+UserDetectorConstruction deleted 0x1d16f10
+UserPhysicsList deleted 0x1fce150
+UserActionInitialization deleted 0x214fc10
+UserWorkerInitialization deleted 0
+UserWorkerThreadInitialization deleted 0
 UserRunAction deleted.
 UserPrimaryGenerator deleted.
 RunManager is deleting RunManagerKernel.
+G4SDManager deleted.
 EventManager deleted.
 Units table cleared.
 TransportationManager deleted.
 Total navigation history collections cleaned: 5
+G4RNGHelper object is deleted.
 ================== Deleting memory pools ===================
 Pool ID '20G4NavigationLevelRep', size : 0.00481 MB
 Pool ID '24G4ReferenceCountedHandleIvE', size : 0.000961 MB
@@ -290,3 +313,4 @@ G4Allocator objects are deleted.
 UImanager deleted.
 StateManager deleted.
 RunManagerKernel is deleted. Good bye :)
+RunManager is deleted.

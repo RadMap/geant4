@@ -25,10 +25,6 @@
 //
 /// \file DetectorMessenger.hh
 /// \brief Definition of the DetectorMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef DetectorMessenger_h
 #define DetectorMessenger_h 1
@@ -43,30 +39,27 @@ class G4UIcmdWithADoubleAndUnit;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class DetectorMessenger: public G4UImessenger
+class DetectorMessenger : public G4UImessenger
 {
   public:
-  
-    DetectorMessenger(DetectorConstruction* );
-   ~DetectorMessenger();
-    
-    virtual void SetNewValue(G4UIcommand*, G4String);
-    
+    DetectorMessenger(DetectorConstruction*);
+    ~DetectorMessenger() override;
+
+    void SetNewValue(G4UIcommand*, G4String) override;
+
   private:
-  
-    DetectorConstruction*      fDetector;
-    
-    G4UIdirectory*             fRdecayDir;
-    G4UIdirectory*             fDetDir;
-    G4UIcmdWithAString*        fTargMatCmd;
-    G4UIcmdWithAString*        fDetectMatCmd;
-    G4UIcmdWithADoubleAndUnit* fTargRadiusCmd;
-    G4UIcmdWithADoubleAndUnit* fDetectThicknessCmd;
-    G4UIcmdWithADoubleAndUnit* fTargLengthCmd;
-    G4UIcmdWithADoubleAndUnit* fDetectLengthCmd;    
+    DetectorConstruction* fDetector = nullptr;
+
+    G4UIdirectory* fRdecayDir = nullptr;
+    G4UIdirectory* fDetDir = nullptr;
+    G4UIcmdWithAString* fTargMatCmd = nullptr;
+    G4UIcmdWithAString* fDetectMatCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fTargRadiusCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fDetectThicknessCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fTargLengthCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fDetectLengthCmd = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

@@ -24,54 +24,31 @@
 // ********************************************************************
 //
 // This example is provided by the Geant4-DNA collaboration
-// Any report or published results obtained using the Geant4-DNA software 
+// Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
 // Med. Phys. 37 (2010) 4692-4708
 // The Geant4-DNA web site is available at http://geant4-dna.org
-// 
+//
 // If you use this example, please cite the following publication:
 // Rad. Prot. Dos. 133 (2009) 2-11
+//
+#include "RunAction.hh"
 
 #include "G4UImanager.hh"
+#include "G4AnalysisManager.hh"
 #include "Randomize.hh"
 
-#include "RunAction.hh"
-#include "Analysis.hh"
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-RunAction::RunAction(const DetectorConstruction* det) 
+RunAction::RunAction(const DetectorConstruction* det)
 :fDetector(det)
-{   
-  fSaveRndm = 0;  
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-RunAction::~RunAction()
 {
-  delete[] fDose3DDose;
-  delete[] fMapVoxels;
-}
+  fSaveRndm = 0;
+  fDose3DDose = nullptr;
+  fMapVoxels =  nullptr;
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-void RunAction::BeginOfRunAction(const G4Run*)
-{  
-  // Read phantom - Singleton
-  CellParameterisation* fMyCellParameterisation = CellParameterisation::Instance(); 
-  
-  // Histograms
-  // Get/create analysis manager
-  G4cout << "##### Create analysis manager " << "  " << this << G4endl;
-  
-  G4AnalysisManager* man = G4AnalysisManager::Instance();
-  
-  G4cout << "Using " << man->GetType() << " analysis manager" << G4endl;
-
-  // Open an output file
-  man->OpenFile("microbeam");
+  auto man = G4AnalysisManager::Instance();
   man->SetFirstNtupleId(1);
+  man->SetDefaultFileType("root");
+  man->SetNtupleMerging(true);
 
   //Declare ntuples
   //
@@ -124,24 +101,42 @@ void RunAction::BeginOfRunAction(const G4Run*)
 
   G4cout << "All Ntuples have been created " << G4endl;
 
+
+}
+
+RunAction::~RunAction()
+{
+  if (fDose3DDose) delete[] fDose3DDose;
+  if (fMapVoxels) delete[] fMapVoxels;
+}
+
+void RunAction::BeginOfRunAction(const G4Run*)
+{
+  // Read phantom - Singleton
+  CellParameterisation* fMyCellParameterisation = CellParameterisation::Instance();
+
+  // Histograms
+  auto man = G4AnalysisManager::Instance();
+  man->OpenFile("microbeam");
+
   // save Rndm status
   if (fSaveRndm > 0)
-  { 
+  {
     CLHEP::HepRandom::showEngineStatus();
     CLHEP::HepRandom::saveEngineStatus("beginOfRun.rndm");
   }
- 
+
   fNumEvent = 0;
   fNbOfHitsGas = 0;
-    
+
   // ABSORBED DOSES INITIALIZATION
   fDoseN = 0;
   fDoseC = 0;
-    
+
   fMassCytoplasm = fDetector->GetMassCytoplasm();
   fMassNucleus   = fDetector->GetMassNucleus();
   fNbOfPixels = fDetector->GetNbOfPixelsInPhantom();
-  
+
   fMapVoxels = new G4ThreeVector[fNbOfPixels];
   fDose3DDose = new G4double[fNbOfPixels];
 
@@ -150,24 +145,21 @@ void RunAction::BeginOfRunAction(const G4Run*)
     fMapVoxels [i]=fMyCellParameterisation->GetVoxelThreeVector(i);
     fDose3DDose[i]=0;
   }
-  
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
 void RunAction::EndOfRunAction(const G4Run* /*aRun*/)
-{     
+{
   G4AnalysisManager* man = G4AnalysisManager::Instance();
-  
+
   // save Rndm status
   if (fSaveRndm == 1)
-  { 
+  {
     CLHEP::HepRandom::showEngineStatus();
     CLHEP::HepRandom::saveEngineStatus("endOfRun.rndm");
-  }   
-  
-  for (G4int i=0; i<fNbOfPixels; i++) 
-  {  
+  }
+
+  for (G4int i=0; i<fNbOfPixels; i++)
+  {
     if (fDose3DDose[i]>0)
     {
       G4ThreeVector v;
@@ -179,15 +171,14 @@ void RunAction::EndOfRunAction(const G4Run* /*aRun*/)
       man->AddNtupleRow(5);
     }
   }
-   
-  G4cout << "-> Total number of particles detected by the gas detector : " << GetNbOfHitsGas() << G4endl;  
-  G4cout << G4endl;    
-  
-  //save histograms      
+
+  G4cout << "-> Total number of particles detected by the gas detector : " << GetNbOfHitsGas() << G4endl;
+  G4cout << G4endl;
+
+  //save histograms
   man->Write();
   man->CloseFile();
-  
-  // Complete clean-up
-  delete G4AnalysisManager::Instance();
 
+  // Complete clean-up
+  man->Clear();
 }

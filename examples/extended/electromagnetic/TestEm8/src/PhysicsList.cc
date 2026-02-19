@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm8/src/PhysicsList.cc
+/// \file PhysicsList.cc
 /// \brief Implementation of the PhysicsList class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName:   PhysicsList
@@ -42,55 +41,50 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "PhysicsList.hh"
-#include "PhysicsListMessenger.hh"
 
+#include "DetectorConstruction.hh"
+#include "PhysicsListMessenger.hh"
+#include "StepMax.hh"
+
+#include "G4DecayPhysics.hh"
+#include "G4Electron.hh"
+#include "G4EmConfigurator.hh"
+#include "G4EmLivermorePhysics.hh"
+#include "G4EmLowEPPhysics.hh"
+#include "G4EmParameters.hh"
+#include "G4EmPenelopePhysics.hh"
 #include "G4EmStandardPhysics.hh"
+#include "G4EmStandardPhysicsGS.hh"
+#include "G4EmStandardPhysicsSS.hh"
+#include "G4EmStandardPhysicsWVI.hh"
 #include "G4EmStandardPhysics_option1.hh"
 #include "G4EmStandardPhysics_option2.hh"
 #include "G4EmStandardPhysics_option3.hh"
 #include "G4EmStandardPhysics_option4.hh"
-#include "G4EmStandardPhysicsGS.hh"
-#include "G4EmStandardPhysicsSS.hh"
-#include "G4EmStandardPhysicsWVI.hh"
-#include "G4EmLivermorePhysics.hh"
-#include "G4EmPenelopePhysics.hh"
-#include "G4EmLowEPPhysics.hh"
-#include "G4DecayPhysics.hh"
-
+#include "G4Gamma.hh"
+#include "G4LossTableManager.hh"
 #include "G4PAIModel.hh"
 #include "G4PAIPhotModel.hh"
-
-#include "G4Gamma.hh"
-#include "G4Electron.hh"
-#include "G4Positron.hh"
-#include "G4Proton.hh"
-
-#include "G4UnitsTable.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4LossTableManager.hh"
-#include "G4ProductionCutsTable.hh"
-#include "G4EmConfigurator.hh"
-#include "G4EmParameters.hh"
-
-#include "StepMax.hh"
-
-#include "G4ProcessManager.hh"
-#include "G4ParticleTypes.hh"
 #include "G4ParticleTable.hh"
-#include "DetectorConstruction.hh"
+#include "G4ParticleTypes.hh"
+#include "G4Positron.hh"
+#include "G4ProcessManager.hh"
+#include "G4ProductionCutsTable.hh"
+#include "G4Proton.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4UnitsTable.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PhysicsList::PhysicsList(DetectorConstruction* ptr) 
-  : G4VModularPhysicsList(), fDetectorConstruction(ptr)
+PhysicsList::PhysicsList(DetectorConstruction* ptr) : fDetectorConstruction(ptr)
 {
-  // set verbosity for zero to avoid double printout 
+  // set verbosity for zero to avoid double printout
   // on physics verbosity should be restored to 1 when cuts
   // are set
   G4EmParameters::Instance()->SetVerbose(0);
 
-  SetDefaultCutValue(1*mm);
- 
+  SetDefaultCutValue(1 * mm);
+
   fMessenger = new PhysicsListMessenger(this);
 
   // Decay Physics is always defined
@@ -133,90 +127,77 @@ void PhysicsList::ConstructProcess()
 
 void PhysicsList::AddPhysicsList(const G4String& name)
 {
-  if (verboseLevel>1) {
+  if (verboseLevel > 1) {
     G4cout << "PhysicsList::AddPhysicsList: <" << name << ">" << G4endl;
   }
 
   if (name == fEmName) {
     return;
-
-  } else if (name == "emstandard_opt0") {
-
+  }
+  else if (name == "emstandard_opt0") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmStandardPhysics(0);
-
-  } else if (name == "emstandard_opt1") {
-
+  }
+  else if (name == "emstandard_opt1") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmStandardPhysics_option1(0);
-
-  } else if (name == "emstandard_opt2") {
-
+  }
+  else if (name == "emstandard_opt2") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmStandardPhysics_option2(0);
-
-  } else if (name == "emstandard_opt3") {
-
+  }
+  else if (name == "emstandard_opt3") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmStandardPhysics_option3(0);
-
-  } else if (name == "emstandard_opt4") {
-
+  }
+  else if (name == "emstandard_opt4") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmStandardPhysics_option4(0);
-
-  } else if (name == "emstandardWVI") {
-
+  }
+  else if (name == "emstandardWVI") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmStandardPhysicsWVI(0);
-
-  } else if (name == "emstandardSS") {
-
+  }
+  else if (name == "emstandardSS") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmStandardPhysicsSS(0);
-
-  } else if (name == "emstandardGS") {
-
+  }
+  else if (name == "emstandardGS") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmStandardPhysicsGS(0);
-
-  } else if (name == "pai") {
-    G4EmParameters::Instance()->AddPAIModel("all","world","pai");
-
-  } else if (name == "pai_photon") {
-    G4EmParameters::Instance()->AddPAIModel("all","world","pai_photon");
-
-  } else if (name == "emlivermore") {
-
+  }
+  else if (name == "pai") {
+    G4EmParameters::Instance()->AddPAIModel("all", "world", "pai");
+  }
+  else if (name == "pai_photon") {
+    G4EmParameters::Instance()->AddPAIModel("all", "world", "pai_photon");
+  }
+  else if (name == "emlivermore") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmLivermorePhysics(0);
-
-  } else if (name == "empenelope") {
-
+  }
+  else if (name == "empenelope") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmPenelopePhysics(0);
-
-  } else if (name == "emlowenergy") {
-
+  }
+  else if (name == "emlowenergy") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmLowEPPhysics(0);
-
-  } else {
-
+  }
+  else {
     G4cout << "PhysicsList::AddPhysicsList: <" << name << ">"
-           << " is not defined"
-           << G4endl;
+           << " is not defined" << G4endl;
   }
 }
 
@@ -227,15 +208,13 @@ void PhysicsList::AddStepMax()
   // Step limitation seen as a process
   StepMax* stepMaxProcess = new StepMax(fDetectorConstruction);
 
-  auto particleIterator=GetParticleIterator();
+  auto particleIterator = GetParticleIterator();
   particleIterator->reset();
-  while ((*particleIterator)())
-  {
+  while ((*particleIterator)()) {
     G4ParticleDefinition* particle = particleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
 
-    if (stepMaxProcess->IsApplicable(*particle))
-    {
+    if (stepMaxProcess->IsApplicable(*particle)) {
       pmanager->AddDiscreteProcess(stepMaxProcess);
     }
   }
@@ -245,9 +224,10 @@ void PhysicsList::AddStepMax()
 
 void PhysicsList::SetCuts()
 {
-  G4ProductionCutsTable::GetProductionCutsTable()->SetEnergyRange(25.*eV,1e5);
-  if ( verboseLevel > 0 ) { DumpCutValuesTable(); }
+  G4ProductionCutsTable::GetProductionCutsTable()->SetEnergyRange(25. * eV, 1e5);
+  if (verboseLevel > 0) {
+    DumpCutValuesTable();
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

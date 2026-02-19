@@ -25,9 +25,6 @@
 //
 /// \file UserTrackInformation.hh
 /// \brief Definition of the UserTrackInformation class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef UserTrackInformation_h
 #define UserTrackInformation_h 1
@@ -39,17 +36,14 @@
 
 class UserTrackInformation : public G4VUserTrackInformation
 {
-
   public:
     UserTrackInformation();
     virtual ~UserTrackInformation();
 
     void SetSplitTrackID(G4int splitTrackID);
     G4int GetSplitTrackID();
- 
+
   private:
     G4int fSplitTrackID;
-
 };
 #endif
-

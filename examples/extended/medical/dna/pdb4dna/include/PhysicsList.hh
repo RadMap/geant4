@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PhysicsList.hh
+/// \brief Definition of the PhysicsList class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -33,27 +36,24 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file PhysicsList.hh
-/// \brief Definition of the PhysicsList class
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysicsList_h
-#define PhysicsList_h 1
+#  define PhysicsList_h 1
 
-#include "G4VModularPhysicsList.hh"
-#include "globals.hh"
+#  include "G4VModularPhysicsList.hh"
+#  include "globals.hh"
 
 class G4VPhysicsConstructor;
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
-public:
-  PhysicsList();
-  virtual ~PhysicsList();
+  public:
+    PhysicsList();
+    virtual ~PhysicsList();
 };
 
 #endif
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

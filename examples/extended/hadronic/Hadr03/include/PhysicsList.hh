@@ -25,8 +25,6 @@
 //
 /// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
-//
-//
 
 #ifndef PhysicsList_h
 #define PhysicsList_h 1
@@ -36,15 +34,15 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
-public:
-  PhysicsList();
- ~PhysicsList();
+  public:
+    PhysicsList();
+    ~PhysicsList() = default;
 
-public:
-  virtual void ConstructParticle();
-  virtual void SetCuts();
+  public:
+    void ConstructParticle() override;
+    void SetCuts() override;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

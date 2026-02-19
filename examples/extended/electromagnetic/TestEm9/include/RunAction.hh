@@ -23,45 +23,35 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm9/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-//
+
 #ifndef RunAction_h
 #define RunAction_h 1
 
-// -------------------------------------------------------------
-//
-//      GEANT4 
-//
-// 
-// -------------------------------------------------------------
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#include "G4UserRunAction.hh"
 #include "G4Run.hh"
+#include "G4UserRunAction.hh"
 #include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 class RunAction : public G4UserRunAction
 {
-public: // Without description
+  public:
+    RunAction();
+    ~RunAction() override = default;
 
-  RunAction();
-  virtual ~RunAction();
+    void BeginOfRunAction(const G4Run*) override;
+    // In this method histogramms are booked
 
-public: // With description
- 
-  virtual void BeginOfRunAction(const G4Run*);
-  // In this method histogramms are booked
+    void EndOfRunAction(const G4Run*) override;
+    // In this method histogramms are stored
 
-  virtual void EndOfRunAction(const G4Run*);
-  // In this method BookHisto method is called in which histogramms are filled
-
+    RunAction& operator=(const RunAction& right) = delete;
+    RunAction(const RunAction&) = delete;
 };
 
 #endif
-

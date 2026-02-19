@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr01/src/CheckVolumeSD.cc
+/// \file CheckVolumeSD.cc
 /// \brief Implementation of the CheckVolumeSD class
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // CheckVolumeSD
@@ -37,31 +36,20 @@
 // 04.06.2006 Adoptation of Hadr01 (V.Ivanchenko)
 //
 ////////////////////////////////////////////////////////////////////////
-// 
+//
 
 #include "CheckVolumeSD.hh"
+
 #include "HistoManager.hh"
-#include "G4HCofThisEvent.hh"
-#include "G4TouchableHistory.hh"
+
 #include "G4Step.hh"
+#include "G4TouchableHistory.hh"
 #include "G4Track.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 CheckVolumeSD::CheckVolumeSD(const G4String& name)
- :G4VSensitiveDetector(name), fHisto(0)
-{
-  fHisto = HistoManager::GetPointer();
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-CheckVolumeSD::~CheckVolumeSD()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void CheckVolumeSD::Initialize(G4HCofThisEvent*)
+  : G4VSensitiveDetector(name), fHisto(HistoManager::GetPointer())
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -69,25 +57,10 @@ void CheckVolumeSD::Initialize(G4HCofThisEvent*)
 G4bool CheckVolumeSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
   const G4Track* track = aStep->GetTrack();
-  if(track->GetTrackID() > 1) { fHisto->AddLeakingParticle(track); }
+  if (track->GetTrackID() > 1) {
+    fHisto->AddLeakingParticle(track);
+  }
   return true;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void CheckVolumeSD::EndOfEvent(G4HCofThisEvent*)
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void CheckVolumeSD::clear()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void CheckVolumeSD::PrintAll()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-

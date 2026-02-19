@@ -23,21 +23,21 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/HepMCEx02/include/H02SteppingAction.hh
+/// \file H02SteppingAction.hh
 /// \brief Definition of the H02SteppingAction class
-//
-//
+
 #ifndef H02_STEPPING_ACTION_H
 #define H02_STEPPING_ACTION_H
 
 #include "G4UserSteppingAction.hh"
 
-class H02SteppingAction : public G4UserSteppingAction {
-public:
-  H02SteppingAction();
-  virtual ~H02SteppingAction();
+class H02SteppingAction : public G4UserSteppingAction
+{
+  public:
+    H02SteppingAction();
+    virtual ~H02SteppingAction();
 
-  virtual void UserSteppingAction(const G4Step* astep);
+    virtual void UserSteppingAction(const G4Step* astep);
 };
 
 #endif

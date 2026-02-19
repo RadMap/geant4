@@ -33,44 +33,110 @@
 #ifndef G4RootMpiPNtupleDescription_h
 #define G4RootMpiPNtupleDescription_h 1
 
+#include "tools/impi"
+#include "tools/ntuple_booking"
+#include "tools/wroot/impi_ntuple"
+#include "tools/wroot/ntuple"
+
+#include "G4RootFileDef.hh"
+#include "G4TNtupleDescription.hh"
 #include "globals.hh"
 
-#include "tools/ntuple_booking"
-#include "tools/impi"
-#include "tools/wroot/impi_ntuple"
-
-namespace tools {
-namespace wroot {
+namespace tools
+{
+namespace wroot
+{
 class branch;
 class base_pntuple;
-}
-}
+}  // namespace wroot
+}  // namespace tools
 
-struct G4RootMpiPNtupleDescription
+using RootNtupleDescription = G4TNtupleDescription<tools::wroot::ntuple, G4RootFile>;
+
+class G4RootMpiPNtupleDescription
 {
-  G4RootMpiPNtupleDescription() 
-    :  fNtuple(nullptr),
-       fBasePNtuple(nullptr),
-       fMainBranches(),
-       fNtupleBooking(),
-       fMainNtupleRank(0),
-       fImpi(nullptr),       
-       fActivation(true),
-       fIsNtupleOwner(true) {}
+  public:
+    G4RootMpiPNtupleDescription(G4NtupleBooking* g4NtupleBooking) : fDescription(g4NtupleBooking) {}
 
-  ~G4RootMpiPNtupleDescription()
-      {
-         if ( fIsNtupleOwner ) delete fNtuple;
-      }    
+    ~G4RootMpiPNtupleDescription()
+    {
+      if (fDescription.GetIsNtupleOwner()) delete fNtuple;
+    }
 
-  tools::wroot::impi_ntuple* fNtuple;
-  tools::wroot::base_pntuple* fBasePNtuple;
-  std::vector<tools::wroot::branch*> fMainBranches; 
-  tools::ntuple_booking fNtupleBooking; 
-  G4int  fMainNtupleRank;
-  tools::impi* fImpi;
-  G4bool fActivation;
-  G4bool fIsNtupleOwner;
+    // Set methods
+    void SetNtuple(tools::wroot::impi_ntuple* intuple);
+    void SetBasePNtuple(tools::wroot::base_pntuple* basePNtuple);
+    void SetMainNtupleRank(G4int value);
+    void SetImpi(tools::impi* value);
+    void Reset();
+
+    // Get methods
+    RootNtupleDescription& GetDescription();
+    tools::wroot::impi_ntuple* GetNtuple() const;
+    tools::wroot::base_pntuple* GetBasePNtuple() const;
+    std::vector<tools::wroot::branch*>& GetMainBranches();
+    G4int GetMainNtupleRank() const;
+
+  private:
+    RootNtupleDescription fDescription;
+    tools::wroot::impi_ntuple* fNtuple{nullptr};
+    tools::wroot::base_pntuple* fBasePNtuple{nullptr};
+    std::vector<tools::wroot::branch*> fMainBranches;
+    G4int fMainNtupleRank{0};
+    tools::impi* fImpi{nullptr};
 };
 
-#endif  
+// inline function
+
+inline void G4RootMpiPNtupleDescription::SetNtuple(tools::wroot::impi_ntuple* intuple)
+{
+  fNtuple = intuple;
+}
+
+inline void G4RootMpiPNtupleDescription::SetBasePNtuple(tools::wroot::base_pntuple* basePNtuple)
+{
+  fBasePNtuple = basePNtuple;
+}
+
+inline void G4RootMpiPNtupleDescription::SetMainNtupleRank(G4int value)
+{
+  fMainNtupleRank = value;
+}
+
+inline void G4RootMpiPNtupleDescription::SetImpi(tools::impi* value)
+{
+  fImpi = value;
+}
+
+inline void G4RootMpiPNtupleDescription::Reset()
+{
+  if (fDescription.GetIsNtupleOwner()) delete fNtuple;
+  fNtuple = nullptr;
+}
+
+inline RootNtupleDescription& G4RootMpiPNtupleDescription::GetDescription()
+{
+  return fDescription;
+}
+
+inline tools::wroot::impi_ntuple* G4RootMpiPNtupleDescription::GetNtuple() const
+{
+  return fNtuple;
+}
+
+inline tools::wroot::base_pntuple* G4RootMpiPNtupleDescription::GetBasePNtuple() const
+{
+  return fBasePNtuple;
+}
+
+inline std::vector<tools::wroot::branch*>& G4RootMpiPNtupleDescription::GetMainBranches()
+{
+  return fMainBranches;
+}
+
+inline G4int G4RootMpiPNtupleDescription::GetMainNtupleRank() const
+{
+  return fMainNtupleRank;
+}
+
+#endif

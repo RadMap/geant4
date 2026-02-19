@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
  <define> 
   <constant name="PI" value="1.*pi" />
   <constant name="TWOPI" value="2.*pi"/>
@@ -108,7 +108,7 @@
 
  <solids>
   <cone aunit="radian" lunit="cm" name="Leg1" z="78.0" rmax1="4.0" rmax2="17.25" startphi="0." deltaphi="TWOPI"/>
-  <eltube aunit="cm" lunit="cm" name="Trunk" dx="17.25" dy="9.80" dz="78."/>
+  <eltube lunit="cm" name="Trunk" dx="17.25" dy="9.80" dz="78."/>
   <intersection name="Legs">
    <first ref="Leg1"/> 
    <second ref="Trunk"/>

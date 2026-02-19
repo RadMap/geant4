@@ -40,17 +40,13 @@
 #include "G4Nucleus.hh"
 #include "G4ProcessManager.hh"
 #include "G4CrossSectionDataStore.hh"
-#include "G4HadronElasticDataSet.hh" //???
 #include "G4ProductionCutsTable.hh"
 #include "G4HadronicException.hh"
-#include "G4HadronicDeprecate.hh"
 #include "G4HadronicInteraction.hh"
 #include "G4VCrossSectionRatio.hh"
 #include "G4VDiscreteProcess.hh"
 
 #include "G4NeutrinoElectronTotXsc.hh"
-//#include "G4NeutrinoElectronCcModel.hh"
-//#include "G4NeutrinoElectronNcModel.hh"
 
 #include "G4RotationMatrix.hh"
 #include "G4ThreeVector.hh"
@@ -65,24 +61,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-G4NeutrinoElectronProcess::G4NeutrinoElectronProcess( G4String anEnvelopeName, const G4String& pName)
-  : G4HadronicProcess( pName, fHadronElastic ), isInitialised(false), fBiased(true)  // fHadronElastic???
+G4NeutrinoElectronProcess::G4NeutrinoElectronProcess(const G4String& anEnvelopeName, const G4String& pName)
+  : G4HadronicProcess( pName, fNuElectron )
 {
-  // AddDataSet(new G4HadronElasticDataSet); //???
   lowestEnergy = 1.*keV;
-  fEnvelope  = nullptr;
   fEnvelopeName = anEnvelopeName;
-  fTotXsc = nullptr; // new G4NeutrinoElectronTotXsc();
-  fNuEleCcBias=1.;
-  fNuEleNcBias=1.;
-  fNuEleTotXscBias=1.;
+  fTotXsc = new G4NeutrinoElectronTotXsc();
   safetyHelper = G4TransportationManager::GetTransportationManager()->GetSafetyHelper();
   safetyHelper->InitialiseHelper();
-}
-
-G4NeutrinoElectronProcess::~G4NeutrinoElectronProcess()
-{
-  // if( fTotXsc ) delete fTotXsc;
 }
 
 ///////////////////////////////////////////////////////
@@ -90,20 +76,25 @@ G4NeutrinoElectronProcess::~G4NeutrinoElectronProcess()
 void G4NeutrinoElectronProcess::SetBiasingFactor(G4double bf)
 {
   fNuEleTotXscBias = bf;
-
-  fTotXsc = new G4NeutrinoElectronTotXsc();
-  // fTotXsc->SetBiasingFactor(bf);
 }
 
 ///////////////////////////////////////////////////////
 
 void G4NeutrinoElectronProcess::SetBiasingFactors(G4double bfCc, G4double bfNc)
 {
-  fNuEleCcBias=bfCc;
-  fNuEleNcBias=bfNc;
+  fNuEleCcBias = bfCc;
+  fNuEleNcBias = bfNc;
+  fNuEleTotXscBias = std::max( fNuEleCcBias, fNuEleNcBias );
+}
 
-  fTotXsc = new G4NeutrinoElectronTotXsc();
-  fTotXsc->SetBiasingFactors(bfCc, bfNc);
+///////////////////////////////////////////////
+
+G4double G4NeutrinoElectronProcess::PostStepGetPhysicalInteractionLength( const G4Track& track,
+                                      G4double previousStepSize,
+                                      G4ForceCondition* condition )
+{
+  return G4VDiscreteProcess::PostStepGetPhysicalInteractionLength(  track,
+                                       previousStepSize,  condition );
 }
 
 //////////////////////////////////////////////////
@@ -114,29 +105,13 @@ GetMeanFreePath(const G4Track &aTrack, G4double, G4ForceCondition *)
   //G4cout << "GetMeanFreePath " << aTrack.GetDefinition()->GetParticleName()
   //	 << " Ekin= " << aTrack.GetKineticEnergy() << G4endl;
   G4String rName = aTrack.GetStep()->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName();
-  G4double totxsc(0.);
-  try
-  {
-    if( rName == fEnvelopeName && fNuEleTotXscBias > 1.)    
-    {
-      totxsc = fNuEleTotXscBias*
-	GetCrossSectionDataStore()->ComputeCrossSection(aTrack.GetDynamicParticle(),
+  G4double totxsc =
+    GetCrossSectionDataStore()->ComputeCrossSection(aTrack.GetDynamicParticle(),
 						    aTrack.GetMaterial());
-    }
-    else
-    {
-      totxsc = GetCrossSectionDataStore()->ComputeCrossSection(aTrack.GetDynamicParticle(),
-						    aTrack.GetMaterial());
-    }
-  }
-  catch(G4HadronicException & aR)
+
+  if ( rName == fEnvelopeName )
   {
-    G4ExceptionDescription ed;
-    aR.Report(ed);
-    DumpState(aTrack,"GetMeanFreePath",ed);
-    ed << " Cross section is not available" << G4endl;
-    G4Exception("G4NeutrinoElectronProcess::GetMeanFreePath", "had002", FatalException,
-		ed);
+    totxsc *= fNuEleTotXscBias;
   }
   G4double res = (totxsc>0.0) ? 1.0/totxsc : DBL_MAX;
   //G4cout << "         xsection= " << totxsc << G4endl;
@@ -147,11 +122,9 @@ GetMeanFreePath(const G4Track &aTrack, G4double, G4ForceCondition *)
 
 void G4NeutrinoElectronProcess::ProcessDescription(std::ostream& outFile) const
 {
-
-    outFile << "G4NeutrinoElectronProcess handles the scattering of \n"
-            << "neutrino on electrons by invoking the following  model(s) and \n"
-            << "cross section(s).\n";
-
+  outFile << "G4NeutrinoElectronProcess handles the scattering of \n"
+	  << "neutrino on electrons by invoking the following  model(s) and \n"
+	  << "cross section(s).\n";
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -159,9 +132,6 @@ void G4NeutrinoElectronProcess::ProcessDescription(std::ostream& outFile) const
 G4VParticleChange* 
 G4NeutrinoElectronProcess::PostStepDoIt(const G4Track& track, const G4Step& step)
 {
-  // track.GetVolume()->GetLogicalVolume()->GetName()
-  // if( track.GetVolume()->GetLogicalVolume() != fEnvelope )
- 
   G4String rName = track.GetStep()->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName();
 
   if( rName != fEnvelopeName ) 
@@ -222,8 +192,6 @@ G4NeutrinoElectronProcess::PostStepDoIt(const G4Track& track, const G4Step& step
   const G4DynamicParticle* aParticle = track.GetDynamicParticle();
   G4ThreeVector      position  = pPostStepPoint->GetPosition(), newPosition=position;
   G4ParticleMomentum direction = aParticle->GetMomentumDirection();
-  G4double           startTime = pPostStepPoint->GetGlobalTime();
-
   
   if( fNuEleCcBias > 1.0 ||  fNuEleNcBias > 1.0) // = true, if fBiasingfactor != 1., i.e. xsc is biased
   {
@@ -247,16 +215,11 @@ G4NeutrinoElectronProcess::PostStepDoIt(const G4Track& track, const G4Step& step
 
     G4double range = -backward+G4UniformRand()*distance;
 
-    G4double delta = range - backward;
-
-    startTime += delta/track.GetVelocity();
-
     newPosition = position + range*direction;
 
     safetyHelper->ReLocateWithinVolume(newPosition);
 
     theTotalResult->ProposePosition(newPosition); // G4Exception : GeomNav1002
-    // theTotalResult->ProposeGlobalTime(startTime); // time is updated for 'elastic' only
   }
   G4HadProjectile theProj( track );
   G4HadronicInteraction* hadi = nullptr;
@@ -264,7 +227,6 @@ G4NeutrinoElectronProcess::PostStepDoIt(const G4Track& track, const G4Step& step
 
   // Select element
   const G4Element* elm = nullptr;
-  G4int ZZ=1;
 
   try
   {
@@ -280,10 +242,7 @@ G4NeutrinoElectronProcess::PostStepDoIt(const G4Track& track, const G4Step& step
       G4Exception("G4NeutrinoElectronProcess::PostStepDoIt", "had003", 
 		  FatalException, ed);
   }
-  if( elm ) ZZ = elm->GetZ();
 
-  G4double xsc = fTotXsc->GetElementCrossSection(dynParticle, ZZ, material);
-  xsc *= 1.;
   G4double ccTotRatio = fTotXsc->GetCcRatio();
 
   if( G4UniformRand() < ccTotRatio )  // Cc-model
@@ -436,16 +395,6 @@ G4NeutrinoElectronProcess::PostStepDoIt(const G4Track& track, const G4Step& step
     result->Clear();
   }
   return theTotalResult;
-}
-
-void 
-G4NeutrinoElectronProcess::PreparePhysicsTable(const G4ParticleDefinition& part)
-{
-  if(!isInitialised) {
-    isInitialised = true;
-    if(G4Neutron::Neutron() == &part) { lowestEnergy = 1.e-6*eV; }
-  }
-  G4HadronicProcess::PreparePhysicsTable(part);
 }
 
 void 

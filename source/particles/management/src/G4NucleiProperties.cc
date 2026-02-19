@@ -23,27 +23,19 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4NucleiProperties class implementation
 //
-//
-// 
-// ------------------------------------------------------------
-//	GEANT 4 class header file 
-//
-// ------------------------------------------------------------
-//
-// Hadronic Process: Nuclear De-excitations
-// by V. Lara (Oct 1998)
-// Migrate into particles category by H.Kurashige (17 Nov. 98)
-// Added Shell-Pairing corrections to the Cameron mass 
-// excess formula by V.Lara (9 May 99)
-// 090331 Migrate to AME03 by Koi, Tatsumi 
+// Author: V.Lara, October 1998
+// History:
+// - 17.11.1998, H.Kurashige - Migrated into particles category
+// - 31.03.2009, T.Koi - Migrated to AME03
+// --------------------------------------------------------------------
 
 #include "G4NucleiProperties.hh"
 
 #include "G4NucleiPropertiesTableAME12.hh"
 #include "G4NucleiPropertiesTheoreticalTable.hh"
 #include "G4ParticleTable.hh"
-
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 
@@ -56,85 +48,93 @@ G4ThreadLocal G4double G4NucleiProperties::mass_He3 = -1.;
 
 G4double G4NucleiProperties::GetNuclearMass(const G4double A, const G4double Z)
 {
-  G4double mass =0.0;
+  G4double mass = 0.0;
 
   if (std::fabs(A - G4int(A)) > 1.e-10) {
-    mass = NuclearMass(A,Z);
- 
-  } else {
+    mass = NuclearMass(A, Z);
+  }
+  else {
     // use mass table
-    G4int iZ = G4int(Z);
-    G4int iA = G4int(A);
-    mass =GetNuclearMass(iA,iZ);
+    auto iZ = G4int(Z);
+    auto iA = G4int(A);
+    mass = GetNuclearMass(iA, iZ);
   }
   return mass;
 }
 
-
 G4double G4NucleiProperties::GetNuclearMass(const G4int A, const G4int Z)
 {
-  if (mass_proton  <= 0.0 ) {
-    const G4ParticleDefinition * nucleus = nullptr;
-    nucleus = G4ParticleTable::GetParticleTable()->FindParticle("neutron"); // neutron 
-    if (nucleus!=nullptr) mass_neutron = nucleus->GetPDGMass();
+  if (mass_proton <= 0.0) {
+    const G4ParticleDefinition* nucleus = nullptr;
+    nucleus = G4ParticleTable::GetParticleTable()->FindParticle("neutron");
+    if (nucleus != nullptr) mass_neutron = nucleus->GetPDGMass();
 
-    nucleus = G4ParticleTable::GetParticleTable()->FindParticle("deuteron"); // deuteron 
-    if (nucleus!=nullptr) mass_deuteron = nucleus->GetPDGMass();
+    nucleus = G4ParticleTable::GetParticleTable()->FindParticle("deuteron");
+    if (nucleus != nullptr) mass_deuteron = nucleus->GetPDGMass();
 
-    nucleus = G4ParticleTable::GetParticleTable()->FindParticle("triton"); // triton 
-    if (nucleus!=nullptr) mass_triton = nucleus->GetPDGMass();
+    nucleus = G4ParticleTable::GetParticleTable()->FindParticle("triton");
+    if (nucleus != nullptr) mass_triton = nucleus->GetPDGMass();
 
-    nucleus = G4ParticleTable::GetParticleTable()->FindParticle("alpha"); // alpha 
-    if (nucleus!=nullptr) mass_alpha = nucleus->GetPDGMass();
+    nucleus = G4ParticleTable::GetParticleTable()->FindParticle("alpha");
+    if (nucleus != nullptr) mass_alpha = nucleus->GetPDGMass();
 
-    nucleus = G4ParticleTable::GetParticleTable()->FindParticle("He3"); // He3 
-    if (nucleus!=nullptr) mass_He3 = nucleus->GetPDGMass();
+    nucleus = G4ParticleTable::GetParticleTable()->FindParticle("He3");
+    if (nucleus != nullptr) mass_He3 = nucleus->GetPDGMass();
 
-    nucleus = G4ParticleTable::GetParticleTable()->FindParticle("proton"); // proton 
-    if (nucleus!=nullptr) mass_proton = nucleus->GetPDGMass();
+    nucleus = G4ParticleTable::GetParticleTable()->FindParticle("proton");
+    if (nucleus != nullptr) mass_proton = nucleus->GetPDGMass();
   }
 
   if (A < 1 || Z < 0 || Z > A) {
 #ifdef G4VERBOSE
-    if (G4ParticleTable::GetParticleTable()->GetVerboseLevel()>0) {
-      G4cout << "G4NucleiProperties::GetNuclearMass: Wrong values for A = " << A 
-	     << " and Z = " << Z << G4endl;
+    if (G4ParticleTable::GetParticleTable()->GetVerboseLevel() > 0) {
+      G4cout << "G4NucleiProperties::GetNuclearMass: Wrong values for A = " << A << " and Z = " << Z
+             << G4endl;
     }
-#endif    
+#endif
     return 0.0;
   }
-  
-  G4double mass= -1.;
-  if ( (Z<=2) ) {
+
+  G4double mass = -1.;
+  if ((Z <= 2)) {
     // light nuclei
-    if ( (Z==1)&&(A==1) ) {
+    if ((Z == 1) && (A == 1)) {
       mass = mass_proton;
-    } else if ( (Z==0)&&(A==1) ) {
+    }
+    else if ((Z == 0) && (A == 1)) {
       mass = mass_neutron;
-    } else if ( (Z==1)&&(A==2) ) {
+    }
+    else if ((Z == 1) && (A == 2)) {
       mass = mass_deuteron;
-    } else if ( (Z==1)&&(A==3) ) {
+    }
+    else if ((Z == 1) && (A == 3)) {
       mass = mass_triton;
-    } else if ( (Z==2)&&(A==4) ) {
+    }
+    else if ((Z == 2) && (A == 4)) {
       mass = mass_alpha;
-    } else if ( (Z==2)&&(A==3) ) {
+    }
+    else if ((Z == 2) && (A == 3)) {
       mass = mass_He3;
     }
   }
-  
+
   if (mass < 0.) {
-    if ( G4NucleiPropertiesTableAME12::IsInTable(Z,A) ) {
+    if (G4NucleiPropertiesTableAME12::IsInTable(Z, A)) {
       // AME table
-      mass = G4NucleiPropertiesTableAME12::GetNuclearMass(Z,A);
-    } else if (G4NucleiPropertiesTheoreticalTable::IsInTable(Z,A)){
+      mass = G4NucleiPropertiesTableAME12::GetNuclearMass(Z, A);
+    }
+    else if (G4NucleiPropertiesTheoreticalTable::IsInTable(Z, A)) {
       // Theoretical table
-      mass = G4NucleiPropertiesTheoreticalTable::GetNuclearMass(Z,A);
-    } else if ( Z == A ) {
-      mass = A*mass_proton;
-    } else if( 0 == Z ) {
-      mass = A*mass_neutron;
-    } else {
-      mass = NuclearMass(G4double(A),G4double(Z));
+      mass = G4NucleiPropertiesTheoreticalTable::GetNuclearMass(Z, A);
+    }
+    else if (Z == A) {
+      mass = A * mass_proton;
+    }
+    else if (0 == Z) {
+      mass = A * mass_neutron;
+    }
+    else {
+      mass = NuclearMass(G4double(A), G4double(Z));
     }
   }
 
@@ -144,167 +144,162 @@ G4double G4NucleiProperties::GetNuclearMass(const G4int A, const G4int Z)
 
 G4bool G4NucleiProperties::IsInStableTable(const G4double A, const G4double Z)
 {
-  G4int iA = G4int(A);
-  G4int iZ = G4int(Z);
+  auto iA = G4int(A);
+  auto iZ = G4int(Z);
   return IsInStableTable(iA, iZ);
 }
 
-G4bool G4NucleiProperties::IsInStableTable(const G4int A, const int Z)
+G4bool G4NucleiProperties::IsInStableTable(const G4int A, const G4int Z)
 {
   if (A < 1 || Z < 0 || Z > A) {
 #ifdef G4VERBOSE
-    if (G4ParticleTable::GetParticleTable()->GetVerboseLevel()>0) {
-      G4cout << "G4NucleiProperties::IsInStableTable: Wrong values for A = " 
-	     << A << " and Z = " << Z << G4endl;	
+    if (G4ParticleTable::GetParticleTable()->GetVerboseLevel() > 0) {
+      G4cout << "G4NucleiProperties::IsInStableTable: Wrong values for A = " << A
+             << " and Z = " << Z << G4endl;
     }
-#endif 
+#endif
     return false;
-  } 
+  }
 
-  return G4NucleiPropertiesTableAME12::IsInTable(Z,A);
+  return G4NucleiPropertiesTableAME12::IsInTable(Z, A);
 }
 
 G4double G4NucleiProperties::GetMassExcess(const G4double A, const G4double Z)
 {
-  G4int iA = G4int(A);
-  G4int iZ = G4int(Z);
-  return GetMassExcess(iA,iZ);
+  auto iA = G4int(A);
+  auto iZ = G4int(Z);
+  return GetMassExcess(iA, iZ);
 }
 
 G4double G4NucleiProperties::GetMassExcess(const G4int A, const G4int Z)
 {
   if (A < 1 || Z < 0 || Z > A) {
 #ifdef G4VERBOSE
-    if (G4ParticleTable::GetParticleTable()->GetVerboseLevel()>0) {
-      G4cout << "G4NucleiProperties::GetMassExccess: Wrong values for A = " 
-	     << A << " and Z = " << Z << G4endl;
+    if (G4ParticleTable::GetParticleTable()->GetVerboseLevel() > 0) {
+      G4cout << "G4NucleiProperties::GetMassExccess: Wrong values for A = " << A << " and Z = " << Z
+             << G4endl;
     }
-#endif    
+#endif
     return 0.0;
-    
-  } else {
-
-    if ( G4NucleiPropertiesTableAME12::IsInTable(Z,A) ){
-      // AME table
-      return G4NucleiPropertiesTableAME12::GetMassExcess(Z,A);
-    } else if (G4NucleiPropertiesTheoreticalTable::IsInTable(Z,A)){
-      return G4NucleiPropertiesTheoreticalTable::GetMassExcess(Z,A);
-    } else {
-      return MassExcess(A,Z);
-    }
   }
 
+  if (G4NucleiPropertiesTableAME12::IsInTable(Z, A)) {
+    // AME table
+    return G4NucleiPropertiesTableAME12::GetMassExcess(Z, A);
+  }
+  if (G4NucleiPropertiesTheoreticalTable::IsInTable(Z, A)) {
+    return G4NucleiPropertiesTheoreticalTable::GetMassExcess(Z, A);
+  }
+  return MassExcess(A, Z);
 }
-
 
 G4double G4NucleiProperties::GetAtomicMass(const G4double A, const G4double Z)
 {
   if (A < 1 || Z < 0 || Z > A) {
 #ifdef G4VERBOSE
-    if (G4ParticleTable::GetParticleTable()->GetVerboseLevel()>0) {
-      G4cout << "G4NucleiProperties::GetAtomicMass: Wrong values for A = " 
-	     << A << " and Z = " << Z << G4endl;	
+    if (G4ParticleTable::GetParticleTable()->GetVerboseLevel() > 0) {
+      G4cout << "G4NucleiProperties::GetAtomicMass: Wrong values for A = " << A << " and Z = " << Z
+             << G4endl;
     }
-#endif 
+#endif
     return 0.0;
-
-  } else if (std::fabs(A - G4int(A)) > 1.e-10) {
-    return AtomicMass(A,Z);
-
-  } else {
-    G4int iA = G4int(A);
-    G4int iZ = G4int(Z);
-    if ( G4NucleiPropertiesTableAME12::IsInTable(Z,A) ) {
-      return G4NucleiPropertiesTableAME12::GetAtomicMass(Z,A);
-    } else if (G4NucleiPropertiesTheoreticalTable::IsInTable(iZ,iA)){
-      return G4NucleiPropertiesTheoreticalTable::GetAtomicMass(iZ,iA);
-    } else {
-      return AtomicMass(A,Z);
-    }
   }
+  if (std::fabs(A - G4int(A)) > 1.e-10) {
+    return AtomicMass(A, Z);
+  }
+
+  auto iA = G4int(A);
+  auto iZ = G4int(Z);
+  if (G4NucleiPropertiesTableAME12::IsInTable(Z, A)) {
+    return G4NucleiPropertiesTableAME12::GetAtomicMass(Z, A);
+  }
+  if (G4NucleiPropertiesTheoreticalTable::IsInTable(iZ, iA)) {
+    return G4NucleiPropertiesTheoreticalTable::GetAtomicMass(iZ, iA);
+  }
+  return AtomicMass(A, Z);
 }
 
 G4double G4NucleiProperties::GetBindingEnergy(const G4double A, const G4double Z)
 {
-  G4int iA = G4int(A);
-  G4int iZ = G4int(Z);
-  return GetBindingEnergy(iA,iZ);
+  auto iA = G4int(A);
+  auto iZ = G4int(Z);
+  return GetBindingEnergy(iA, iZ);
 }
 
 G4double G4NucleiProperties::GetBindingEnergy(const G4int A, const G4int Z)
 {
   if (A < 1 || Z < 0 || Z > A) {
 #ifdef G4VERBOSE
-    if (G4ParticleTable::GetParticleTable()->GetVerboseLevel()>0) {
-      G4cout << "G4NucleiProperties::GetMassExccess: Wrong values for A = " 
-	     << A << " and Z = " << Z << G4endl;
+    if (G4ParticleTable::GetParticleTable()->GetVerboseLevel() > 0) {
+      G4cout << "G4NucleiProperties::GetMassExccess: Wrong values for A = " << A << " and Z = " << Z
+             << G4endl;
     }
 #endif
     return 0.0;
-
-  } else {
-    if ( G4NucleiPropertiesTableAME12::IsInTable(Z,A) ) {
-      return G4NucleiPropertiesTableAME12::GetBindingEnergy(Z,A);
-    } else if (G4NucleiPropertiesTheoreticalTable::IsInTable(Z,A)) {
-      return G4NucleiPropertiesTheoreticalTable::GetBindingEnergy(Z,A);
-    }else {
-      return BindingEnergy(A,Z);
-    }
   }
+
+  if (G4NucleiPropertiesTableAME12::IsInTable(Z, A)) {
+    return G4NucleiPropertiesTableAME12::GetBindingEnergy(Z, A);
+  }
+  if (G4NucleiPropertiesTheoreticalTable::IsInTable(Z, A)) {
+    return G4NucleiPropertiesTheoreticalTable::GetBindingEnergy(Z, A);
+  }
+  return BindingEnergy(A, Z);
 }
 
-
-G4double G4NucleiProperties::MassExcess(G4double A, G4double Z) 
+G4double G4NucleiProperties::MassExcess(G4double A, G4double Z)
 {
-  return GetAtomicMass(A,Z) - A*amu_c2;
+  return GetAtomicMass(A, Z) - A * amu_c2;
 }
 
-G4double  G4NucleiProperties::AtomicMass(G4double A, G4double Z)
+G4double G4NucleiProperties::AtomicMass(G4double A, G4double Z)
 {
   G4double hydrogen_mass_excess;
-  G4double neutron_mass_excess;  
-  hydrogen_mass_excess = G4NucleiPropertiesTableAME12::GetMassExcess(1,1);
-  neutron_mass_excess = G4NucleiPropertiesTableAME12::GetMassExcess(0,1);
+  G4double neutron_mass_excess;
+  hydrogen_mass_excess = G4NucleiPropertiesTableAME12::GetMassExcess(1, 1);
+  neutron_mass_excess = G4NucleiPropertiesTableAME12::GetMassExcess(0, 1);
   G4double mass =
-      (A-Z)*neutron_mass_excess + Z*hydrogen_mass_excess - BindingEnergy(A,Z) + A*amu_c2;
-
+    (A - Z) * neutron_mass_excess + Z * hydrogen_mass_excess - BindingEnergy(A, Z) + A * amu_c2;
   return mass;
 }
 
-G4double  G4NucleiProperties::NuclearMass(G4double A, G4double Z)
+G4double G4NucleiProperties::NuclearMass(G4double A, G4double Z)
 {
   if (A < 1 || Z < 0 || Z > A) {
 #ifdef G4VERBOSE
-    if (G4ParticleTable::GetParticleTable()->GetVerboseLevel()>0) {
-      G4cout << "G4NucleiProperties::NuclearMass: Wrong values for A = " 
-	     << A << " and Z = " << Z << G4endl;
+    if (G4ParticleTable::GetParticleTable()->GetVerboseLevel() > 0) {
+      G4cout << "G4NucleiProperties::NuclearMass: Wrong values for A = " << A << " and Z = " << Z
+             << G4endl;
     }
-#endif 
+#endif
     return 0.0;
   }
 
-  G4double mass = AtomicMass(A,Z);
-  // atomic mass is converted to nuclear mass according formula in  AME03 and 12
-  mass -= Z*electron_mass_c2;
-  mass += ( 14.4381*std::pow ( Z , 2.39 ) + 1.55468*1e-6*std::pow ( Z , 5.35 ) )*eV;      
+  G4double mass = AtomicMass(A, Z);
+
+  // atomic mass is converted to nuclear mass according to
+  // formula in  AME03 and 12
+  //
+  mass -= Z * electron_mass_c2;
+  mass += (14.4381 * std::pow(Z, 2.39) + 1.55468 * 1e-6 * std::pow(Z, 5.35)) * eV;
 
   return mass;
 }
 
-G4double  G4NucleiProperties::BindingEnergy(G4double A, G4double Z)
-{ 
+G4double G4NucleiProperties::BindingEnergy(G4double A, G4double Z)
+{
   //
   // Weitzsaecker's Mass formula
   //
-  G4int Npairing = G4int(A-Z)%2;                  // pairing
-  G4int Zpairing = G4int(Z)%2;
-  G4double binding =
-      - 15.67*A                           // nuclear volume
-      + 17.23*std::pow(A,2./3.)                // surface energy
-      + 93.15*((A/2.-Z)*(A/2.-Z))/A       // asymmetry
-      + 0.6984523*Z*Z*std::pow(A,-1./3.);      // coulomb
-  if( Npairing == Zpairing ) binding += (Npairing+Zpairing-1) * 12.0 / std::sqrt(A);  // pairing
+  G4int Npairing = G4int(A - Z) % 2;  // pairing
+  G4int Zpairing = G4int(Z) % 2;
+  G4double binding = -15.67 * A  // nuclear volume
+                     + 17.23 * std::pow(A, 2. / 3.)  // surface energy
+                     + 93.15 * ((A / 2. - Z) * (A / 2. - Z)) / A  // asymmetry
+                     + 0.6984523 * Z * Z * std::pow(A, -1. / 3.);  // coulomb
+  if (Npairing == Zpairing) {
+    binding += (Npairing + Zpairing - 1) * 12.0 / std::sqrt(A);  // pairing
+  }
 
-  return -binding*MeV;
+  return -binding * MeV;
 }
-

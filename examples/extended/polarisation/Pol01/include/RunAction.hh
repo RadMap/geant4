@@ -23,20 +23,16 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file polarisation/Pol01/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef RunAction_h
 #define RunAction_h 1
 
+#include "G4AnalysisManager.hh"
 #include "G4UserRunAction.hh"
-#include "ProcessesCount.hh"
+#include "G4VAccumulable.hh"
 #include "globals.hh"
-#include "g4root.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -49,59 +45,54 @@ class G4ParticleDefinition;
 
 class RunAction : public G4UserRunAction
 {
-  class ParticleStatistics {
+    class ParticleStatistics : public G4VAccumulable
+    {
+      public:
+        ParticleStatistics(const G4String& name);
+        ~ParticleStatistics();
+        void EventFinished();
+        void FillData(G4double kinEnergy, G4double costheta, G4double longitudinalPolarization);
+        void PrintResults(G4int totalNumberOfEvents);
+
+        void Reset() override;
+        void Merge(const G4VAccumulable& other) override;
+
+      private:
+        G4int fCurrentNumber;
+        G4int fTotalNumber, fTotalNumber2;
+        G4double fSumEnergy, fSumEnergy2;
+        G4double fSumPolarization, fSumPolarization2;
+        G4double fSumCosTheta, fSumCosTheta2;
+    };
+
   public:
-    ParticleStatistics();
-    ~ParticleStatistics();
+    RunAction(DetectorConstruction*, PrimaryGeneratorAction* = nullptr);
+    virtual ~RunAction();
+
+    virtual void BeginOfRunAction(const G4Run*);
+    virtual void EndOfRunAction(const G4Run*);
+
+    void CountProcesses(G4String&);
+
+    void FillData(const G4ParticleDefinition* particle, G4double kinEnergy, G4double costheta,
+                  G4double phi, G4double longitudinalPolarization);
+
     void EventFinished();
-    void FillData(G4double kinEnergy, G4double costheta,
-                  G4double longitudinalPolarization);
-    void PrintResults(G4int totalNumberOfEvents);
-    void Clear();
+
   private:
-    G4int fCurrentNumber;
-    G4int fTotalNumber, fTotalNumber2;
-    G4double fSumEnergy, fSumEnergy2;
-    G4double fSumPolarization, fSumPolarization2;
-    G4double fSumCosTheta, fSumCosTheta2;
-  };
+    void BookHisto();
+    void SaveHisto(G4int nevents);
 
-public:
+    const G4ParticleDefinition* fGamma;
+    const G4ParticleDefinition* fElectron;
+    const G4ParticleDefinition* fPositron;
 
-  RunAction(DetectorConstruction*, PrimaryGeneratorAction*);
-  virtual ~RunAction();
+    DetectorConstruction* fDetector;
+    PrimaryGeneratorAction* fPrimary;
 
-  virtual void BeginOfRunAction(const G4Run*);
-  virtual void   EndOfRunAction(const G4Run*);
+    G4AnalysisManager* fAnalysisManager;
 
-  void CountProcesses(G4String);
-
-  void FillData(const G4ParticleDefinition* particle,
-                G4double kinEnergy, G4double costheta, G4double phi,
-                G4double longitudinalPolarization);
-
-  void EventFinished();
-                                     
-private:
-
-  void BookHisto();
-  void SaveHisto(G4int nevents);
-
-  const G4ParticleDefinition* fGamma;
-  const G4ParticleDefinition* fElectron;
-  const G4ParticleDefinition* fPositron;
-
-  DetectorConstruction*   fDetector;
-  PrimaryGeneratorAction* fPrimary;
-  ProcessesCount*         fProcCounter;
-
-  G4AnalysisManager*      fAnalysisManager;
-  
-  G4int fTotalEventCount;
-
-  ParticleStatistics fPhotonStats;
-  ParticleStatistics fElectronStats;
-  ParticleStatistics fPositronStats;
+    G4int fTotalEventCount;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

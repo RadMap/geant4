@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file ActionInitialization.cc
+/// \brief Implementation of the ActionInitialization class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,26 +34,23 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file ActionInitialization.cc
-/// \brief Implementation of the ActionInitialization class
 
 #include "ActionInitialization.hh"
+
 #include "PrimaryGeneratorAction.hh"
 #include "StackingAction.hh"
-#include "G4DNAChemistryManager.hh"
 #include "TimeStepAction.hh"
+
+#include "G4DNAChemistryManager.hh"
 #include "G4Scheduler.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::ActionInitialization() : G4VUserActionInitialization()
-{
-}
+ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::~ActionInitialization()
-{}
+ActionInitialization::~ActionInitialization() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -61,7 +61,7 @@ void ActionInitialization::Build() const
   SetUserAction(new StackingAction());
 
   // Chemistry part
-  if(G4DNAChemistryManager::IsActivated()){
+  if (G4DNAChemistryManager::IsActivated()) {
     G4Scheduler::Instance()->SetVerbose(1);
     G4Scheduler::Instance()->SetUserAction(new TimeStepAction());
 
@@ -70,4 +70,4 @@ void ActionInitialization::Build() const
     // You may decide to stop the simulation after N steps
     //==========================================================================
   }
-}  
+}

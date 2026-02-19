@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/include/UrQMDPiKBuilder.hh
+/// \file UrQMDPiKBuilder.hh
 /// \brief Definition of the UrQMDPiKBuilder class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName:   UrQMDPiKBuilder
@@ -40,42 +39,29 @@
 #ifndef UrQMDPiKBuilder_h
 #define UrQMDPiKBuilder_h 1
 
-#include "globals.hh"
-#include "G4SystemOfUnits.hh"
-
 #include "G4HadronElasticProcess.hh"
-#include "G4HadronFissionProcess.hh"
-#include "G4HadronCaptureProcess.hh"
-#include "G4NeutronInelasticProcess.hh"
-#include "G4VPiKBuilder.hh"
-
+#include "G4HadronInelasticProcess.hh"
+#include "G4SystemOfUnits.hh"
 #include "G4UrQMD1_3Model.hh"
+#include "G4VPiKBuilder.hh"
+#include "globals.hh"
 
 class UrQMDPiKBuilder : public G4VPiKBuilder
 {
-public: 
+  public:
+    UrQMDPiKBuilder();
+    virtual ~UrQMDPiKBuilder();
 
-  UrQMDPiKBuilder();
-  virtual ~UrQMDPiKBuilder();
- 
-  virtual void Build(G4HadronElasticProcess * aP);
-  virtual void Build(G4PionPlusInelasticProcess * aP);
-  virtual void Build(G4PionMinusInelasticProcess * aP);
-  virtual void Build(G4KaonPlusInelasticProcess * aP);
-  virtual void Build(G4KaonMinusInelasticProcess * aP);
-  virtual void Build(G4KaonZeroLInelasticProcess * aP);
-  virtual void Build(G4KaonZeroSInelasticProcess * aP);
-    
-  inline void SetMinEnergy(G4double aM) {fMin = aM;}
-  inline void SetMaxEnergy(G4double aM) {fMax = aM;}
+    virtual void Build(G4HadronElasticProcess* aP);
+    virtual void Build(G4HadronInelasticProcess* aP);
 
-private:
+    inline void SetMinEnergy(G4double aM) { fMin = aM; }
+    inline void SetMaxEnergy(G4double aM) { fMax = aM; }
 
-  G4UrQMD1_3Model * fModel;
-  G4double fMin;
-  G4double fMax;
-
+  private:
+    G4UrQMD1_3Model* fModel;
+    G4double fMin;
+    G4double fMax;
 };
 
 #endif
-

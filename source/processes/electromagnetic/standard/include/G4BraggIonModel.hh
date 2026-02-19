@@ -47,8 +47,8 @@
 // Class Description:
 //
 // Implementation of energy loss and delta-electron production
-// by heavy slow charged particles using ICRU'49 and NIST evaluated data 
-// for He4 ions
+// by heavy slow charged particles using ICRU'49, NIST, and ICRU90 
+// evaluated data for alpha and protons
 
 // -------------------------------------------------------------------
 //
@@ -56,16 +56,11 @@
 #ifndef G4BraggIonModel_h
 #define G4BraggIonModel_h 1
 
-#include <CLHEP/Units/PhysicalConstants.h>
+#include "G4BraggModel.hh"
 
-#include "G4VEmModel.hh"
-#include "G4ASTARStopping.hh"
+class G4ASTARStopping;
 
-class G4ParticleChangeForLoss;
-class G4EmCorrections;
-class G4ICRU90StoppingData;
-
-class G4BraggIonModel : public G4VEmModel
+class G4BraggIonModel : public G4BraggModel
 {
 
 public:
@@ -73,127 +68,69 @@ public:
   explicit G4BraggIonModel(const G4ParticleDefinition* p = nullptr,
 			   const G4String& nam = "BraggIon");
 
-  virtual ~G4BraggIonModel();
+  ~G4BraggIonModel() override;
 
-  virtual void Initialise(const G4ParticleDefinition*, 
-			  const G4DataVector&) override;
+  void Initialise(const G4ParticleDefinition*, 
+		  const G4DataVector&) override;
 
-  virtual G4double MinEnergyCut(const G4ParticleDefinition*,
-				const G4MaterialCutsCouple* couple) override;
-
-  virtual G4double ComputeCrossSectionPerElectron(
-				 const G4ParticleDefinition*,
-				 G4double kineticEnergy,
-				 G4double cutEnergy,
-				 G4double maxEnergy);
-				 
-  virtual G4double ComputeCrossSectionPerAtom(
+  G4double ComputeCrossSectionPerAtom(
 				 const G4ParticleDefinition*,
 				 G4double kineticEnergy,
 				 G4double Z, G4double A,
 				 G4double cutEnergy,
 				 G4double maxEnergy) override;
-				 				 
-  virtual G4double CrossSectionPerVolume(const G4Material*,
+
+  G4double CrossSectionPerVolume(const G4Material*,
 				 const G4ParticleDefinition*,
 				 G4double kineticEnergy,
 				 G4double cutEnergy,
 				 G4double maxEnergy) override;
-				 
-  virtual G4double ComputeDEDXPerVolume(const G4Material*,
-				 const G4ParticleDefinition*,
-				 G4double kineticEnergy,
-				 G4double cutEnergy) override;
 
-  virtual void SampleSecondaries(std::vector<G4DynamicParticle*>*,
-				 const G4MaterialCutsCouple*,
-				 const G4DynamicParticle*,
-				 G4double tmin,
-				 G4double maxEnergy) override;
+  G4double ComputeDEDXPerVolume(const G4Material*,
+                                const G4ParticleDefinition*,
+                                G4double kineticEnergy,
+                                G4double cutEnergy) override;
 
-  // Compute ion charge 
-  virtual G4double GetChargeSquareRatio(const G4ParticleDefinition*,
-					const G4Material*,
-					G4double kineticEnergy) override;
-
-  virtual G4double GetParticleCharge(const G4ParticleDefinition* p,
-				     const G4Material* mat,
-				     G4double kineticEnergy) override;
+  // Compute ion charge not applied to alpha
+  G4double GetChargeSquareRatio(const G4ParticleDefinition*,
+				const G4Material*,
+				G4double kineticEnergy) override;
 
   // add correction to energy loss and ompute non-ionizing energy loss
-  virtual void CorrectionsAlongStep(const G4MaterialCutsCouple*,
-				    const G4DynamicParticle*,
-				    G4double& eloss,
-				    G4double& niel,
-				    G4double length) override;
-
-protected:
-
-  virtual G4double MaxSecondaryEnergy(const G4ParticleDefinition*,
-				      G4double kinEnergy) final;
-
-private:
-
-  void SetParticle(const G4ParticleDefinition* p);
-
-  G4double HeEffChargeSquare(G4double z, G4double kinEnergyInMeV) const;
+  void CorrectionsAlongStep(const G4Material*,
+			    const G4ParticleDefinition*,
+			    const G4double kinEnergy,
+			    const G4double cutEnergy,
+			    const G4double& length,
+			    G4double& eloss) override;
 
   // hide assignment operator
   G4BraggIonModel & operator=(const  G4BraggIonModel &right) = delete;
   G4BraggIonModel(const  G4BraggIonModel&) = delete;
 
-  void HasMaterial(const G4Material* material);
+private:
 
-  G4double StoppingPower(const G4Material* material,
-                               G4double kineticEnergy);
+  G4double HeEffChargeSquare(const G4double z, 
+                             const G4double kinEnergyInMeV) const;
 
-  G4double ElectronicStoppingPower(G4double z,
-                                   G4double kineticEnergy) const;
+  G4int HasMaterialForHe(const G4Material* material) const;
 
-  G4double DEDX(const G4Material* material, G4double kineticEnergy);
+  G4double HeStoppingPower(const G4double kinEnergy) const;
 
-  G4EmCorrections*            corr;
+  G4double HeElectronicStoppingPower(const G4int z, const G4double kinEnergy) const;
 
-  const G4ParticleDefinition* particle;
-  G4ParticleDefinition*       theElectron;
-  G4ParticleChangeForLoss*    fParticleChange;
+  G4double HeDEDX(const G4Material* material, const G4double kinEnergy);
 
-  static G4ASTARStopping*     fASTAR;
-  G4ICRU90StoppingData*       fICRU90;
+  static G4ASTARStopping* fASTAR;
 
-  const G4Material*           currentMaterial;
-  const G4Material*           baseMaterial;
-
-  G4double mass;
-  G4double spin;
-  G4double chargeSquare;
-  G4double massRate;
-  G4double ratio;
-  G4double lowestKinEnergy;
+  G4double heChargeSquare = 4.0;
   G4double HeMass;
   G4double massFactor;
-  G4double corrFactor;
-  G4double rateMassHe2p;
-  G4double theZieglerFactor;
 
-  G4int    iMolecula;          // index in the molecula's table
-  G4int    iASTAR;             // index in ASTAR
-  G4int    iICRU90;
-  G4bool   isIon;
+  G4int iASTAR = -1;    // index in ASTAR
+  G4bool isAlpha = false;
+  G4bool isFirstAlpha = false;
 };
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-inline void G4BraggIonModel::SetParticle(const G4ParticleDefinition* p)
-{
-  particle = p;
-  mass = particle->GetPDGMass();
-  spin = particle->GetPDGSpin();
-  G4double q   = particle->GetPDGCharge()/CLHEP::eplus;
-  chargeSquare = q*q;
-  massRate     = mass/CLHEP::proton_mass_c2;
-  ratio        = CLHEP::electron_mass_c2/mass;
-}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

@@ -25,17 +25,14 @@
 //
 /// \file EventAction.hh
 /// \brief Definition of the EventAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef EventAction_h
 #define EventAction_h 1
 
+#include "DetectorConstruction.hh"
+
 #include "G4UserEventAction.hh"
 #include "globals.hh"
-#include "DetectorConstruction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -43,22 +40,22 @@ class EventAction : public G4UserEventAction
 {
   public:
     EventAction(DetectorConstruction*);
-   ~EventAction();
+    ~EventAction() override = default;
 
   public:
-    virtual void BeginOfEventAction(const G4Event*);
-    virtual void   EndOfEventAction(const G4Event*);
-    
-    void AddEdep(G4int k, G4double edep) { fEdepAbsor[k] += edep; }
-    
-  private:
-    DetectorConstruction* fDetector;
+    void BeginOfEventAction(const G4Event*) override;
+    void EndOfEventAction(const G4Event*) override;
 
-    G4double  fEdepAbsor[kMaxAbsor];
+    void AddEdep(G4int k, G4double edep);
+    void AddEleak(G4double eleak);
+
+  private:
+    DetectorConstruction* fDetector = nullptr;
+
+    G4double fEdepAbsor[kMaxAbsor];
+    G4double fEnergyLeak = 0.;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-    

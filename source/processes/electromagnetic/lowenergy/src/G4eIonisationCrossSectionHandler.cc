@@ -68,8 +68,8 @@
 #include "G4Material.hh"
 #include "G4ProductionCutsTable.hh"
 
-
-G4eIonisationCrossSectionHandler::G4eIonisationCrossSectionHandler(
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+ G4eIonisationCrossSectionHandler::G4eIonisationCrossSectionHandler(
     const G4VEnergySpectrum* spec, G4VDataSetAlgorithm* alg,
     G4double emin, G4double emax, G4int nbin)
  :  G4VCrossSectionHandler(),
@@ -79,12 +79,14 @@ G4eIonisationCrossSectionHandler::G4eIonisationCrossSectionHandler(
   interp = new G4LinLogLogInterpolation();
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 G4eIonisationCrossSectionHandler::~G4eIonisationCrossSectionHandler()
 {
   delete interp;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 std::vector<G4VEMDataSet*>* G4eIonisationCrossSectionHandler::BuildCrossSectionsForMaterials(
                         const G4DataVector& energyVector,
@@ -98,19 +100,19 @@ std::vector<G4VEMDataSet*>* G4eIonisationCrossSectionHandler::BuildCrossSections
   G4DataVector* log_energies;
   G4DataVector* log_cs;
 
-  G4int nOfBins = energyVector.size();
+  std::size_t nOfBins = energyVector.size();
 
   const G4ProductionCutsTable* theCoupleTable=
         G4ProductionCutsTable::GetProductionCutsTable();
-  size_t numOfCouples = theCoupleTable->GetTableSize();
+  G4int numOfCouples = (G4int)theCoupleTable->GetTableSize();
 
-  for (size_t mLocal=0; mLocal<numOfCouples; mLocal++) {
+  for (G4int mLocal=0; mLocal<numOfCouples; ++mLocal) {
 
     const G4MaterialCutsCouple* couple = theCoupleTable->GetMaterialCutsCouple(mLocal);
     const G4Material* material= couple->GetMaterial();
     const G4ElementVector* elementVector = material->GetElementVector();
     const G4double* nAtomsPerVolume = material->GetAtomicNumDensityVector();
-    G4int nElements = material->GetNumberOfElements();
+    G4int nElements = (G4int)material->GetNumberOfElements();
 
     if(verbose > 0) 
       {
@@ -124,7 +126,7 @@ std::vector<G4VEMDataSet*>* G4eIonisationCrossSectionHandler::BuildCrossSections
     G4VDataSetAlgorithm* algo = interp->Clone();
     G4VEMDataSet* setForMat = new G4CompositeEMDataSet(algo,1.,1.);
 
-    for (G4int i=0; i<nElements; i++) {
+    for (G4int i=0; i<nElements; ++i) {
 
       G4int Z = (G4int) (*elementVector)[i]->GetZ();
       G4int nShells = NumberOfComponents(Z);
@@ -137,7 +139,7 @@ std::vector<G4VEMDataSet*>* G4eIonisationCrossSectionHandler::BuildCrossSections
 
       G4double density = nAtomsPerVolume[i];
 
-      for (G4int bin=0; bin<nOfBins; bin++) {
+      for (std::size_t bin=0; bin<nOfBins; ++bin) {
 
         G4double e = energyVector[bin];
         energies->push_back(e);
@@ -163,7 +165,6 @@ std::vector<G4VEMDataSet*>* G4eIonisationCrossSectionHandler::BuildCrossSections
                      << " Z= " << Z
                      << G4endl;
 	      }
-
 	  }
           if (value == 0.) value = 1e-300;
           log_value = std::log10(value);
@@ -172,9 +173,6 @@ std::vector<G4VEMDataSet*>* G4eIonisationCrossSectionHandler::BuildCrossSections
         log_cs->push_back(log_value);
       }
       G4VDataSetAlgorithm* algoLocal = interp->Clone();
-
-      //G4VEMDataSet* elSet = new G4EMDataSet(i,energies,cs,algoLocal,1.,1.);
-
       G4VEMDataSet* elSet = new G4EMDataSet(i,energies,cs,log_energies,log_cs,algoLocal,1.,1.);
 
       setForMat->AddComponent(elSet);
@@ -185,6 +183,8 @@ std::vector<G4VEMDataSet*>* G4eIonisationCrossSectionHandler::BuildCrossSections
   return set;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 G4double G4eIonisationCrossSectionHandler::GetCrossSectionAboveThresholdForElement(G4double energy,
 										   G4double cutEnergy,
 										   G4int Z)
@@ -193,7 +193,7 @@ G4double G4eIonisationCrossSectionHandler::GetCrossSectionAboveThresholdForEleme
   G4double value = 0.;
   if(energy > cutEnergy) 
     {
-      for (G4int n=0; n<nShells; n++) {
+      for (G4int n=0; n<nShells; ++n) {
 	G4double cross = FindValue(Z, energy, n);
 	G4double p = theParam->Probability(Z, cutEnergy, energy, energy, n);
 	value += cross * p;

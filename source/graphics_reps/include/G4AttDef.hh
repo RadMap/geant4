@@ -45,8 +45,7 @@
 // relevant Trajectory, Trajectory Point or Sensitive Detector Hit.
 // The association between the G4AttValue and the G4AttDef object is
 // made through the data member "name".
-// For details, see the HepRep home page at http://heprep.freehep.org
-//  
+//
 // @author M.Frailis 
 // @author R.Giannitrapani
 // @author J.Perl
@@ -77,8 +76,8 @@
       m_typeKey(typeKey)
     {};
 
-    G4AttDef(){};
-    virtual ~G4AttDef(){};
+    G4AttDef()= default;
+    virtual ~G4AttDef()= default;
     
     const G4String& GetName()const{return m_name;};
     const G4String& GetDesc()const{return m_desc;};
@@ -113,6 +112,7 @@
 // include this prototype will not cause a compilation error - it will merely
 // cause your code to use a default function that outputs the pointer as an
 // address.
+[[deprecated("Use pass-by-reference version instead.")]]
 std::ostream& operator<<
 (std::ostream& os, const std::map<G4String,G4AttDef>* definitions);
 

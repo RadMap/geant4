@@ -23,35 +23,30 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file OpNovice/include/OpNoviceStackingAction.hh
+/// \file OpNoviceStackingAction.hh
 /// \brief Definition of the OpNoviceStackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#ifndef OpNoviceStackingAction_H
-#define OpNoviceStackingAction_H 1
+#ifndef OpNoviceStackingAction_h
+#define OpNoviceStackingAction_h 1
 
-#include "globals.hh"
 #include "G4UserStackingAction.hh"
+#include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class OpNoviceStackingAction : public G4UserStackingAction
 {
   public:
-    OpNoviceStackingAction();
-    virtual ~OpNoviceStackingAction();
+    OpNoviceStackingAction() = default;
+    ~OpNoviceStackingAction() override = default;
 
-  public:
-    virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack);
-    virtual void NewStage();
-    virtual void PrepareNewEvent();
+    G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack) override;
+    void NewStage() override;
+    void PrepareNewEvent() override;
 
   private:
-    G4int fScintillationCounter;
-    G4int fCerenkovCounter;
+    G4int fScintillationCounter = 0;
+    G4int fCerenkovCounter = 0;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

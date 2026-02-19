@@ -3,8 +3,14 @@
         !!! WARNING - FPE detection is activated !!!
         ############################################
 
+
+          ################################
+          !!! G4Backtrace is activated !!!
+          ################################
+
+
 **************************************************************
- Geant4 version Name: geant4-10-06-patch-01    (14-February-2020)
+ Geant4 version Name: geant4-11-04-ref-00    (5-December-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -19,7 +25,7 @@
 /run/printProgress 10000
 /run/beamOn 100000
 
-========= Table of registered couples ==============================
+========= Table of registered couples ============================
 
 Index : 0     used in the geometry : Yes
  Material : G4_AIR
@@ -28,7 +34,7 @@ Index : 0     used in the geometry : Yes
  Region(s) which use this couple : 
     DefaultRegionForTheWorld
 
-====================================================================
+==================================================================
 
 ### Run 0 starts.
 --> Event 0 starts.
@@ -44,10 +50,8 @@ Index : 0     used in the geometry : Yes
  Run terminated.
 Run Summary
   Number of events processed : 100000
-  User=0.400000s Real=0.406575s Sys=0.010000s
-G4 kernel has come to Quit state.
+  User=0.170000s Real=0.173092s Sys=0.000000s
 ================== Deleting memory pools ===================
 Number of memory pools allocated: 9 of which, static: 0
 Dynamic pools deleted: 9 / Total memory freed: 0.013 MB
 ============================================================
-RunManagerKernel is deleted. Good bye :)

@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/src/UrQMDAntiBarionBuilder.cc
+/// \file UrQMDAntiBarionBuilder.cc
 /// \brief Implementation of the UrQMDAntiBarionBuilder class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName:   UrQMDAntiBarionBuilder
@@ -37,47 +36,45 @@
 //----------------------------------------------------------------------------
 //
 #ifdef G4_USE_URQMD
-#include "UrQMDAntiBarionBuilder.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4ParticleTable.hh"
-#include "G4ProcessManager.hh"
-#include "G4ComponentAntiNuclNuclearXS.hh"  // For anti-ions
-#include "G4CrossSectionInelastic.hh"
-#include "G4HadronicParameters.hh"
-#include "G4SystemOfUnits.hh"
+#  include "UrQMDAntiBarionBuilder.hh"
+
+#  include "G4ComponentAntiNuclNuclearXS.hh"  // For anti-ions
+#  include "G4CrossSectionInelastic.hh"
+#  include "G4HadronicParameters.hh"
+#  include "G4ParticleDefinition.hh"
+#  include "G4ParticleTable.hh"
+#  include "G4ProcessManager.hh"
+#  include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-UrQMDAntiBarionBuilder::UrQMDAntiBarionBuilder() 
+UrQMDAntiBarionBuilder::UrQMDAntiBarionBuilder()
 {
-  //Set-up UrQMD model
-  fMin =   0.0*MeV;
+  // Set-up UrQMD model
+  fMin = 0.0 * MeV;
   fMax = G4HadronicParameters::Instance()->GetMaxEnergy();
   fModel = new G4UrQMD1_3Model();
-  fModel->SetMinEnergy( fMin );
-  fModel->SetMaxEnergy( fMax );
-  fAntiNucleonXS=new G4ComponentAntiNuclNuclearXS();
+  fModel->SetMinEnergy(fMin);
+  fModel->SetMaxEnergy(fMax);
+  fAntiNucleonXS = new G4ComponentAntiNuclNuclearXS();
 
-  fAntiNucleonData = 
-    new G4CrossSectionInelastic(fAntiNucleonXS);
-
+  fAntiNucleonData = new G4CrossSectionInelastic(fAntiNucleonXS);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-UrQMDAntiBarionBuilder::~UrQMDAntiBarionBuilder() 
+UrQMDAntiBarionBuilder::~UrQMDAntiBarionBuilder()
 {
   delete fAntiNucleonXS;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void UrQMDAntiBarionBuilder::Build(G4HadronElasticProcess * ) 
-{}
+void UrQMDAntiBarionBuilder::Build(G4HadronElasticProcess*) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void UrQMDAntiBarionBuilder::Build(G4AntiProtonInelasticProcess * aP)
+void UrQMDAntiBarionBuilder::Build(G4HadronInelasticProcess* aP)
 {
   fModel->SetMinEnergy(fMin);
   fModel->SetMaxEnergy(fMax);
@@ -85,53 +82,4 @@ void UrQMDAntiBarionBuilder::Build(G4AntiProtonInelasticProcess * aP)
   aP->RegisterMe(fModel);
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void UrQMDAntiBarionBuilder::Build(G4AntiNeutronInelasticProcess * aP)
-{
-  fModel->SetMinEnergy(fMin);
-  fModel->SetMaxEnergy(fMax);
-  aP->AddDataSet(fAntiNucleonData);
-  aP->RegisterMe(fModel);
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void UrQMDAntiBarionBuilder::Build(G4AntiDeuteronInelasticProcess * aP)
-{
-  fModel->SetMinEnergy(fMin);
-  fModel->SetMaxEnergy(fMax);
-  aP->AddDataSet(fAntiNucleonData);
-  aP->RegisterMe(fModel);
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void UrQMDAntiBarionBuilder::Build(G4AntiTritonInelasticProcess * aP)
-{
-  fModel->SetMinEnergy(fMin);
-  fModel->SetMaxEnergy(fMax);
-  aP->AddDataSet(fAntiNucleonData);
-  aP->RegisterMe(fModel);
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void UrQMDAntiBarionBuilder::Build(G4AntiHe3InelasticProcess * aP)
-{
-  fModel->SetMinEnergy(fMin);
-  fModel->SetMaxEnergy(fMax);
-  aP->AddDataSet(fAntiNucleonData);
-  aP->RegisterMe(fModel);
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void UrQMDAntiBarionBuilder::Build(G4AntiAlphaInelasticProcess * aP)
-{
-  fModel->SetMinEnergy(fMin);
-  fModel->SetMaxEnergy(fMax);
-  aP->AddDataSet(fAntiNucleonData);
-  aP->RegisterMe(fModel);
-}
-#endif //G4_USE_URQMD
+#endif  // G4_USE_URQMD

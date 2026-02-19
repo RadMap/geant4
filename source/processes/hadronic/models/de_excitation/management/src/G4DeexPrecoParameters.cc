@@ -33,16 +33,17 @@
 #include "G4ApplicationState.hh"
 #include "G4StateManager.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4UnitsTable.hh"
 #include "G4PhysicsModelCatalog.hh"
 #include "G4DeexParametersMessenger.hh"
-
-#ifdef G4MULTITHREADED
-G4Mutex G4DeexPrecoParameters::deexPrecoMutex = G4MUTEX_INITIALIZER;
-#endif
+#include "G4HadronicParameters.hh"
+#include "G4Threading.hh"
 
 G4DeexPrecoParameters::G4DeexPrecoParameters() 
 {
-  SetDefaults();
+  fStateManager = G4StateManager::GetStateManager();
+  theMessenger = new G4DeexParametersMessenger(this);
+  Initialise();
 }
 
 G4DeexPrecoParameters::~G4DeexPrecoParameters() 
@@ -52,48 +53,54 @@ G4DeexPrecoParameters::~G4DeexPrecoParameters()
 
 void G4DeexPrecoParameters::SetDefaults()
 {
-#ifdef G4MULTITHREADED
-  G4MUTEXLOCK(&G4DeexPrecoParameters::deexPrecoMutex);
-#endif
-  fStateManager = G4StateManager::GetStateManager();
-  theMessenger = new G4DeexParametersMessenger(this);
+  if(!IsLocked()) { Initialise(); }
+}
 
+void G4DeexPrecoParameters::Initialise()
+{
+  // common parameters
+  fVerbose = 1;
   fLevelDensity = 0.075/CLHEP::MeV;
   fR0 = 1.5*CLHEP::fermi;
   fTransitionsR0 = 0.6*CLHEP::fermi;
-  fFBUEnergyLimit = 20.0*CLHEP::MeV; 
-  fFermiEnergy = 35.0*CLHEP::MeV; 
+
+  // preco parameters
   fPrecoLowEnergy = 0.1*CLHEP::MeV;
-  fPrecoHighEnergy = 30*CLHEP::MeV;
-  fPhenoFactor = 1.0; 
-  fMinExcitation = 10*CLHEP::eV;
-  fMaxLifeTime = 1000*CLHEP::second;
-  fMinExPerNucleounForMF = 200*CLHEP::GeV;
-  fMinZForPreco = 3;
-  fMinAForPreco = 5;
-  fPrecoType = 3;
-  fDeexType = 3;
-  fTwoJMAX = 10;
-  fMaxZ = 9;
-  fVerbose = 1;
+  fPrecoHighEnergy = 15*CLHEP::MeV;
+  fPhenoFactor = 1.0;
+
+  fPrecoType = 1;
+  fMinZForPreco = 9;
+  fMinAForPreco = 17;
+
   fNeverGoBack = false;
   fUseSoftCutoff = false;
   fUseCEM = true;
   fUseGNASH = false;
   fUseHETC = false;
-  fUseAngularGen = false;
+  fUseAngularGen = true;
   fPrecoDummy = false;
-  fCorrelatedGamma = false;
-  fStoreAllLevels = false;
-  fInternalConversion = true;
-  fLD = true;
-  fFD = false;
+
+  // de-exitation parameters 
+  fMinExcitation = 10*CLHEP::eV;
+  fNuclearLevelWidth = 0.2*CLHEP::MeV;
+  fFBUEnergyLimit = 20.0*CLHEP::MeV; 
+  fFermiEnergy = 35.0*CLHEP::MeV; 
+  fMaxLifeTime = 1*CLHEP::nanosecond;
+  fMinExPerNucleounForMF = 200*CLHEP::GeV;
+
   fDeexChannelType = fCombined;
-  fInternalConversionID = 
-    G4PhysicsModelCatalog::Register("e-InternalConvertion");
-#ifdef G4MULTITHREADED
-  G4MUTEXUNLOCK(&G4DeexPrecoParameters::deexPrecoMutex);
-#endif
+  fPreCompoundType = eDefault;
+  fFermiBreakUpType = bModelVI;
+  fDeexType = 3;
+  fTwoJMAX = 10;
+
+  fCorrelatedGamma = false;
+  fStoreAllLevels = true;
+  fInternalConversion = true;
+  fLD = true;  // use simple level density model 
+  fFD = false; // use transition to discrete level 
+  fIsomerFlag = true; // enable isomere production
 }
 
 void G4DeexPrecoParameters::SetLevelDensity(G4double val)
@@ -150,6 +157,12 @@ void G4DeexPrecoParameters::SetMinExcitation(G4double val)
   fMinExcitation = val;
 }
 
+void G4DeexPrecoParameters::SetNuclearLevelWidth(G4double val)
+{
+  if(IsLocked() || val < 0.0) { return; }
+  fNuclearLevelWidth = val;
+}
+
 void G4DeexPrecoParameters::SetMaxLifeTime(G4double val)
 {
   if(IsLocked() || val < 0.0) { return; }
@@ -190,12 +203,6 @@ void G4DeexPrecoParameters::SetTwoJMAX(G4int n)
 {
   if(IsLocked() || n < 0) { return; }
   fTwoJMAX = n;
-}
-
-void G4DeexPrecoParameters::SetUploadZ(G4int z)
-{
-  if(IsLocked() || z < 1) { return; }
-  fMaxZ = z;
 }
 
 void G4DeexPrecoParameters::SetVerbose(G4int n)
@@ -282,59 +289,95 @@ void G4DeexPrecoParameters::SetDiscreteExcitationFlag(G4bool val)
   fFD = val;
 }
 
+void G4DeexPrecoParameters::SetIsomerProduction(G4bool val)
+{
+  if(IsLocked()) { return; }
+  fIsomerFlag = val;
+}
+
 void G4DeexPrecoParameters::SetDeexChannelsType(G4DeexChannelType val)
 {
   if(IsLocked()) { return; }
   fDeexChannelType = val;
 }
 
+void G4DeexPrecoParameters::SetPreCompoundType(G4PreCompoundType val)
+{
+  if(IsLocked()) { return; }
+  fPreCompoundType = val;
+}
+
+void G4DeexPrecoParameters::SetFermiBreakUpType(G4FermiBreakUpType val)
+{
+  if(IsLocked()) { return; }
+  fFermiBreakUpType = val;
+}
+
 std::ostream& G4DeexPrecoParameters::StreamInfo(std::ostream& os) const
 {
   static const G4String namm[5] = {"Evaporation","GEM","Evaporation+GEM","GEMVI","Dummy"};
-  static const G4int nmm[5] = {8, 68, 68, 31, 0};
-  size_t idx = (size_t)fDeexChannelType;
+  static const G4int nmm[5] = {8, 68, 68, 83, 0};
+  static const G4String nfbu[3] = {"ModelVI", "ModelAN", "Dummy"};
+  G4int idx = fDeexChannelType;
+  G4int jdx = fFermiBreakUpType;
 
-  G4int prec = os.precision(5);
+  G4long prec = os.precision(5);
   os << "=======================================================================" << "\n";
-  os << "======       Pre-compound/De-excitation Physics Parameters     ========" << "\n";
+  os << "======       Geant4 Native Pre-compound Model Parameters       ========" << "\n";
   os << "=======================================================================" << "\n";
+  os << "Type of pre-compound model                          " << fPreCompoundType << "\n";
   os << "Type of pre-compound inverse x-section              " << fPrecoType << "\n";
   os << "Pre-compound model active                           " << (!fPrecoDummy) << "\n";
-  os << "Pre-compound excitation low energy (MeV)            " 
-     << fPrecoLowEnergy/CLHEP::MeV << "\n";
-  os << "Pre-compound excitation high energy (MeV)           " 
-     << fPrecoHighEnergy/CLHEP::MeV << "\n";
+  os << "Pre-compound excitation low energy                  "
+     << fPrecoLowEnergy/CLHEP::MeV << " MeV \n";
+  os << "Pre-compound excitation high energy                 "
+     << fPrecoHighEnergy/CLHEP::MeV << " MeV \n";
+  os << "Angular generator for pre-compound model            " << fUseAngularGen << "\n";
+  os << "Use NeverGoBack option for pre-compound model       " << fNeverGoBack << "\n";
+  os << "Use SoftCutOff option for pre-compound model        " << fUseSoftCutoff << "\n";
+  os << "Use CEM transitions for pre-compound model          " << fUseCEM << "\n";
+  os << "Use GNASH transitions for pre-compound model        " << fUseGNASH << "\n";
+  os << "Use HETC submodel for pre-compound model            " << fUseHETC << "\n";
+  os << "=======================================================================" << "\n";
+  os << "======       Nuclear De-excitation Module Parameters           ========" << "\n";
+  os << "=======================================================================" << "\n";
   os << "Type of de-excitation inverse x-section             " << fDeexType << "\n";
   os << "Type of de-excitation factory                       " << namm[idx] << "\n";
   os << "Number of de-excitation channels                    " << nmm[idx] << "\n";
-  os << "Min excitation energy (keV)                         " 
-     << fMinExcitation/CLHEP::keV << "\n";
-  os << "Min energy per nucleon for multifragmentation (MeV) " 
-     << fMinExPerNucleounForMF/CLHEP::MeV << "\n";
-  os << "Limit excitation energy for Fermi BreakUp (MeV)     " 
-     << fFBUEnergyLimit/CLHEP::MeV << "\n";
+  os << "Type of Fermi BreakUp model                         " << nfbu[jdx] << "\n";
+  os << "Min excitation energy                               "
+     << fMinExcitation/CLHEP::keV << " keV \n";
+  os << "Min energy per nucleon for multifragmentation       " 
+     << fMinExPerNucleounForMF/CLHEP::MeV << " MeV\n";
   os << "Level density (1/MeV)                               " 
      << fLevelDensity*CLHEP::MeV << "\n";
   os << "Use simple level density model                      " << fLD << "\n";
   os << "Use discrete excitation energy of the residual      " << fFD << "\n";
-  os << "Time limit for long lived isomeres (ns)             " 
-     << fMaxLifeTime/CLHEP::ns << "\n";
+  os << "Time limit for long lived isomeres                  " 
+     << fMaxLifeTime/CLHEP::ns << " ns \n";
+  os << "Isomer production flag                              " << fIsomerFlag << "\n";
   os << "Internal e- conversion flag                         " 
      << fInternalConversion << "\n";
   os << "Store e- internal conversion data                   " << fStoreAllLevels << "\n";
-  os << "Electron internal conversion ID                     " 
-     << fInternalConversionID << "\n";
   os << "Correlated gamma emission flag                      " << fCorrelatedGamma << "\n";
-  os << "Max 2J for sampling of angular correlations         " << fTwoJMAX << "\n";
-  os << "Upload data before 1st event for                Z < " << fMaxZ << "\n";
-  os << "=======================================================================" << "\n";
+  os << "Max 2J for sampling of angular correlations         " << fTwoJMAX << "\n";  
+  os << "=======================================================================" << G4endl;
   os.precision(prec);
   return os;
 }
 
-void G4DeexPrecoParameters::Dump() const
+G4int G4DeexPrecoParameters::GetVerbose() const
 {
-  if (G4Threading::IsMasterThread()) { StreamInfo(G4cout); }
+  G4int verb = G4HadronicParameters::Instance()->GetVerboseLevel();
+  return (verb > 0) ? std::max(fVerbose, verb) : verb;
+}
+
+void G4DeexPrecoParameters::Dump()
+{
+  if(!fIsPrinted && GetVerbose() > 0 && G4Threading::IsMasterThread()) {
+    StreamInfo(G4cout);
+    fIsPrinted = true;
+  }
 }
 
 std::ostream& operator<< (std::ostream& os, const G4DeexPrecoParameters& par)

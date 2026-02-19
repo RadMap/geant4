@@ -1,41 +1,28 @@
-#------------------------------------------------------------------------------
-# CMakeLists.txt
-# Module : G4particles
-# Package: Geant4.src.G4particles
-#
-# Top level CMakeLists.txt for a Geant4 Global Library
-# or collection of sublibraries
-#
-# Generated on : 24/9/2010
-#
-#
-#------------------------------------------------------------------------------
-
-# Add allocation export symbol for the particles category
+# - G4particles category build
 add_definitions(-DG4PARTICLES_ALLOC_EXPORT)
 
+# Compose library from subcategories
+foreach(modfile
+    adjoint/sources.cmake
+    bosons/sources.cmake
+    hadrons/barions/sources.cmake
+    hadrons/ions/sources.cmake
+    hadrons/mesons/sources.cmake
+    leptons/sources.cmake
+    management/sources.cmake
+    shortlived/sources.cmake
+    utils/sources.cmake)
+  include(${modfile})
+endforeach()
 
-add_subdirectory(adjoint)
-add_subdirectory(bosons)
-add_subdirectory(hadrons)
-add_subdirectory(leptons)
-add_subdirectory(management)
-add_subdirectory(shortlived)
-add_subdirectory(utils)
-
-if(NOT GEANT4_BUILD_GRANULAR_LIBS)
-    include(Geant4MacroLibraryTargets)
-    GEANT4_GLOBAL_LIBRARY_TARGET(NAME G4particles
-        COMPONENTS
-            adjoint/sources.cmake
-            bosons/sources.cmake
-            hadrons/barions/sources.cmake
-            hadrons/ions/sources.cmake
-            hadrons/mesons/sources.cmake
-            leptons/sources.cmake
-            management/sources.cmake
-            shortlived/sources.cmake
-            utils/sources.cmake
-)
-endif()
-
+geant4_add_category(G4particles
+  MODULES
+    G4partadj
+    G4bosons
+    G4baryons
+    G4ions
+    G4mesons
+    G4leptons
+    G4partman
+    G4shortlived
+    G4partutils )

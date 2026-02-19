@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm8/include/PhysicsList.hh
+/// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName:   PhysicsList
@@ -50,33 +49,33 @@ class DetectorConstruction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
-public:
+  public:
+    explicit PhysicsList(DetectorConstruction*);
+    ~PhysicsList() override;
 
-  PhysicsList(DetectorConstruction*);
-  virtual ~PhysicsList();
+    void ConstructParticle() override;
+    void ConstructProcess() override;
 
-  virtual void ConstructParticle();
-    
-  virtual void SetCuts();
-        
-  void AddPhysicsList(const G4String& name);
-  virtual void ConstructProcess();
-    
-  void AddStepMax(); 
+    void SetCuts() override;
 
-private:
+    void AddPhysicsList(const G4String& name);
 
-  G4VPhysicsConstructor*  fEmPhysicsList;
-  G4VPhysicsConstructor*  fDecayPhysicsList;
-  G4String fEmName;
-    
-  PhysicsListMessenger* fMessenger;
-  DetectorConstruction* fDetectorConstruction;
+    void AddStepMax();
+
+    PhysicsList& operator=(const PhysicsList& right) = delete;
+    PhysicsList(const PhysicsList&) = delete;
+
+  private:
+    G4VPhysicsConstructor* fEmPhysicsList;
+    G4VPhysicsConstructor* fDecayPhysicsList;
+    G4String fEmName;
+
+    PhysicsListMessenger* fMessenger;
+    DetectorConstruction* fDetectorConstruction;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

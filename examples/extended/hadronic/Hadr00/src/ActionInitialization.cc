@@ -23,17 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
+/// \file ActionInitialization.cc
+/// \brief Implementation of the ActionInitialization class
 
 #include "ActionInitialization.hh"
 
-#include "RunAction.hh"
+#include "DetectorConstruction.hh"
 #include "EventAction.hh"
 #include "PrimaryGeneratorAction.hh"
-#include "DetectorConstruction.hh"
+#include "RunAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -45,14 +43,12 @@ ActionInitialization::ActionInitialization(const DetectorConstruction* det)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::~ActionInitialization()
-{}
+ActionInitialization::~ActionInitialization() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void ActionInitialization::Build() const
 {
-
 #ifdef G4MULTITHREADED
   RunAction* run = new RunAction();
 #else

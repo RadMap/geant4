@@ -36,7 +36,6 @@
 #define G4PreCompoundHe3_h 1
 
 #include "G4PreCompoundIon.hh"
-#include "G4He3CoulombBarrier.hh"
 
 class G4PreCompoundHe3 : public G4PreCompoundIon
 {
@@ -44,26 +43,23 @@ public:
 
   G4PreCompoundHe3();
 
-  virtual ~G4PreCompoundHe3();
+  ~G4PreCompoundHe3() override = default;
 
-  virtual G4double GetRj(G4int NumberParticles, G4int NumberCharged) const;
-
-  virtual G4double FactorialFactor(G4int N, G4int P) const;
-
-  virtual G4double CoalescenceFactor(G4int A) const;
-
-  virtual G4double GetAlpha() const;
-  
-private:
-
-  // operators
-  G4PreCompoundHe3(const G4PreCompoundHe3 &right);
+  G4PreCompoundHe3(const G4PreCompoundHe3 &right) = delete;
   const G4PreCompoundHe3& 
-  operator= (const G4PreCompoundHe3 &right);
-  G4bool operator==(const G4PreCompoundHe3 &right) const;
-  G4bool operator!=(const G4PreCompoundHe3 &right) const;    
+  operator= (const G4PreCompoundHe3 &right) = delete;
+  G4bool operator==(const G4PreCompoundHe3 &right) const = delete;
+  G4bool operator!=(const G4PreCompoundHe3 &right) const = delete;
 
-  G4He3CoulombBarrier theHe3CoulombBarrier;
+protected:
+
+  G4double GetRj(G4int NumberParticles, G4int NumberCharged) const override;
+
+  G4double FactorialFactor(G4int N, G4int P) const override;
+
+  G4double CoalescenceFactor(G4int A) const override;
+
+  G4double GetAlpha() const override;
 };
 
 #endif

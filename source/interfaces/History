@@ -1,23 +1,540 @@
--------------------------------------------------------------------
+# Category interfaces History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                      Category History file
-                      ---------------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all category-tags.
-It DOES NOT substitute the  CVS log-message one should put at every
-committal in the CVS repository !
+-------------------------------------------------------------------------------
+## 2025-10-31 Andrea Barresi (interfaces-V11-03-12)
+-G4VInteractiveSession:
+  - Added UpdateDrawingStyle, UpdateProjectionStyle, UpdateTransparencySlider 
+    virtual methods to update the control widgets
+- G4UIQt:
+  - Added UpdateDrawingStyle, UpdateProjectionStyle, UpdateTransparencySlider 
+    methods to update the control widgets
+  - Moved transparency slider radio buttons to be class members
+  - Added icon for point cloud surface style 
+  - Added icon to reset target point
+  - Changed behavior of the icon "Reset camera" to avoid popup window with dedicated call back
+  - Improved picking behavior avoiding opening picking window when picking is enabled
+  - Fixed icons selection behaviour and syncronization
+  
+## 2025-10-24 Guy Barrand (interfaces-V11-03-11)
+- implementation/sources.cmake: handle "-DTOOLS_USE_GL_VERSION_3_2" in case "GEANT4_USE_VTK".
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2025-10-17 Guy Barrand (interfaces-V11-03-10)
+- G4Qt.cc: have "#ifdef TOOLS_USE_GL_VERSION_3_2" to set the "QSurfaceFormat to 3.2" if Vtk
+  did not did it first. Note that for Qt-5, we have to set the "QGLSurface" which is NOT set
+  by vtk (at I saw it on my Vtk-9.3-Qt5 on my Mac/intel and my virtual ubuntu).
 
-16 Jan 2020 Gabriele Cosmo (interfaces-V10-05-08)
+## 2025-09-16 John Allison (interfaces-V11-03-09)
+- G4UIQt:
+  - Fix link and add "Action" guidance table in "Useful tips".
+  - Tidy.
+
+## 2025-08-17 John Allison (interfaces-V11-03-08)
+- G4UIQt:
+  - Scene tree: simplify interaction for visibility of touchables.
+
+## 2025-08-07 John Allison (interfaces-V11-03-07)
+- G4UIQt:
+  - Intercept the case of "help" with argument:
+    - Write guidance to output window.
+    - Avoid undiagnosed crash with Qt6.
+
+## 2025-06-18 Andrea Barresi (interfaces-V11-03-06)
+- G4UIQt:
+  - Added icon to reset camera and improved base size of MainWindow
+  
+## 2025-05-12 Andrea Barresi (interfaces-V11-03-05)
+- G4UIQt:
+  - Improved pick info window size
+
+## 2025-04-15 John Allison (interfaces-V11-03-04)
+- G4UIQt:
+  - Simplify and improve touchable dump.
+    - Uses QScrollArea instead of QMessage.
+
+## 2025-03-22 John Allison (interfaces-V11-03-03)
+- G4UIQt:
+  - Thanks, Igor - I now understand lambda's better.
+  - Simplify with another use of capture by value (please test on MSVC).
+  - Tidy changes in previous tag.
+
+## 2025-03-20 Igor Semeniouk (interfaces-V11-03-02)
+- G4UIQt: Fix compilation problem with Windows MSVC compiler
+ - replace explicit variables lists with default capture in lambda's
+
+## 2025-03-06 John Allison (interfaces-V11-03-01)
+- G4UIQt:
+  - Introduce Time Window tab.
+  - This exploits generic time windowing recently introduced in modeling an
+    management.
+  - Try it with example B1. Hit “Prepare”, then “Go”. It is more spectacular
+    if you prepare, say, 100 events.
+  - However, it doesn’t work with OGL in Qt6. (Try it with Qt5 if you can.)
+    TSG works fine with both Qt5 and Qt6, except line width is not implemented.
+  - I have noticed that in Qt5, mouse events seem to processed in strict order.
+    Values of boxes don’t get updated until the windowing is finished. But with
+    Qt6, events seem to be processed in parallel. Values in other boxes are
+    continuously updated during time evolution. How do they do that? Is each
+    slot executed on a different thread? This could cause the problem with OGL,
+    but I don’t have sufficient knowledge of Qt protocols.
+  - Change "bar" to "toolbar" to avoid conflict with G4PhysicalConstants.
+
+## 2025-01-06 John Allison (interfaces-V11-03-00)
+- Co-works: visman-V11-03-00, modeling-V11-03-00, opengl-V11-03-00,
+  visQt3D-V11-03-00, vis_toolssg-V11-03-00, openinventor-V11-03-00,
+  greps-V11-03-00.
+- G4UIQt:
+  - Re-instate the transparency slider (see lengthy explanation in
+    visualization/management/History).
+  - Tidy.
+
+## 2024-10-25 John Allison (interfaces-V11-02-10)
+- G4UIQt.cc:
+  - G4UIQt::FilterOutput(): Fix compilation error, see Bug Report 2633.
+    - Use .data().
+
+## 2024-10-22 John Allison (interfaces-V11-02-09)
+- G4UIQt.cc:
+  - G4UIQt::NewSceneTreeItemTreeWidget::ActWithAnInteger:
+    - Allow larger integers in widget response.
+
+## 2024-10-17 John Allison (interfaces-V11-02-08)
+- G4UIQt.cc:
+  - Fix case of opacity==0 for touchables.
+    - Normally the sceneTreeItem will be updated when the scene is processed after the above
+      commands, but if the user sets the opacity to zero, G4PhysicalVolumeModel does not
+      transmit it (this is because some users set the opacity to zero to make a volume
+      invisible - perhaps they should use the visibility flag, but hey-ho).
+      By design, the sceneTreeItem remains, so it can still be interacted with, but
+      the colour will not be updated, so we do it here.
+  if (newColour.GetAlpha() == 0.) {
+    sceneTreeItem->AccessVisAttributes().SetColour(newColour);
+  }
+
+## 2024-07-15 Gabriele Cosmo (interfaces-V11-02-07)
+- Fixed reported Coverity defects, use consistently 'const G4String&' to
+  avoid implicit copy.
+
+## 2024-07-10 Guy Barrand (interfaces-V11-02-06)
+- G4UIWin32.cc: in ConvertNewLines(), replace:
+    str.replace(index, 2, "\r\n");
+  by:
+    str.replace(index, 1, "\r\n");
+  It fixes a "swallow of first character" bug in the G4cout output WS_EX_CLIENTEDGE widget.
+
+## 2024-05-30 Guy Barrand (interfaces-V11-02-05)
+- G4UIQt.cc: Qt6: modifications to avoid the G4QTabWidget::paintEvent logic
+  and have the "ApplyCommand(/vis/viewer/select)" logic done on the
+  "currentChanged signal/slot" mechanism.
+  Then have the "ApplyCommand(/vis/viewer/select)" done on the
+  G4UIQt::UpdateTabWidget() method. We commented out the usage of the
+  G4QTabWidget that does not look needed anymore.
+  These modifications, along the ones aroun G4OpenGL[Immediate,Stored]QtViewer::paintGL()
+  (see vis/OpenGL/History), permit to avoid crash and bad rendering behaviour on
+  most platforms, by using the Qt6/QOpenGLWidget. These modifications in G4UIQt are
+  also ok with the TSG, Qt3D, Vtk viewers used within the tab viewer widget.
+  Tested on macOS, Linux, Windows for the OGLI/OGLS, TSG, Qt3D viewer; and
+  macOS, Linux for the Vtk viewer.
+
+## 2024-05-08 Ben Morgan (interfaces-V11-02-04)
+- Remove use of no longer supported TiMemory
+
+## 2024-03-13 Gabriele Cosmo (interfaces-V11-02-03)
+- Fixed string assignments in G4Win32 and G4UIWin32, to support either UNICODE
+  or UTF-16 encoding on Windows. Addressing problem report #2599.
+  
+## 2024-02-02 Gabriele Cosmo (interfaces-V11-02-02)
+- Use std::size_t as arrays size in G4InteractorMessenger and G4UIArrayString.
+
+## 2024-01-22 John Allison (interfaces-V11-02-01)
+- Co-works with visman-V11-02-04, modeling-V11-02-01 and greps-V11-02-00.
+- G4UIQt.cc:
+  - Load tooltip with "further information", if any.
+    - Informs user if scene tree is suppressed because of too many touchables.
+
+## 2024-01-16 John Allison (interfaces-V11-02-00)
+- Co-works with visman-V11-02-02 and modeling-V11-02-00.
+- Improve identification of scene tree models - use full description, including
+  embedded blanks.
+- G4UIQt.cc: Now all models treated alike.
+
+## 2023-11-06 John Allison (interfaces-V11-01-31)
+- Requires visman-V11-01-31.
+- G4UIQt::SceneTreeItemClicked:
+  - Use text to identify text models.
+    - Allows one to distinguish multiple text models.
+
+## 2023-11-04 John Allison (interfaces-V11-01-30)
+- G4UIQt::SceneTreeItemClicked:
+  - Use PV name to identify PV model in scene tree.
+    - This allows multiple PV models in the scene and each to be separately
+      identified.
+  - Avoid setting daughtersInvisible flag if there are no daughters.
+
+## 2023-10-19 John Allison (interfaces-V11-01-29)
+- G4UIQt::BuildPVQTree:
+  - Reduce tooltip for a touchable to a simple two-lines:
+    - PVPath, e.g., "World 0 Envelope 0 Shape1 0"
+    - "To see properties, right-click/dump."  
+
+## 2023-10-17 John Allison (interfaces-V11-01-28)
+- G4UIQt::NewSceneTreeItemTreeWidget::ActWithoutParameter:
+  - Special case for right-click "dump":
+    - Pop up message window that may be suppressed.
+    - Message the first 1000 characters but suggest a full dump
+      to session output if desired, or close.
+      - The full dump is too much for a QMessageBox.
+
+## 2023-10-09 John Allison (interfaces-V11-01-27)
+- G4UIQt::SceneTreeItemClicked:
+  - Make daughters invisible when volume checked invisible.
+    - Pop up a window of explanation: "This action makes this volume and all
+      descendants invisible. To see descendants, right-click and select
+      daughtersInvisible/false and check visibility of descendants individually."
+    - This pop-up uses QMessageBox. In my opinion it's a little clumsy. I would
+      have preferred a more tailored window more closely associated with the
+      the scene tree item, so if any knows a better way...      
+
+## 2023-10-03 John Allison (interfaces-V11-01-26)
+- G4UIQt::CreateCommandWidget:
+  - Fix typo - "green" should be "blue".
+
+## 2023-09-05 Ben Morgan (interfaces-V11-01-25)
+- Set AUTOMOC property on module when Qt used.
+
+## 2023-09-03 John Allison (interfaces-V11-01-24)
+- G4UIQt.cc: Fix bug in SceneTreeItemClicked when invoking /vis/scene/activateModel.
+  - The description may have spaces - use substring up to first space.
+
+## 2023-07-03 Ben Morgan (interfaces-V11-01-23)
+- Fix Coverity reports 23063, 104864.
+- Workaround changes in QEvent globalPos/globalPosition for Qt5 and 6.
+
+## 2023-07-01 John Allison (interfaces-V11-01-22)
+- G4UIQt: Choose sub-set of commands suitable for the pop-up menu.
+
+## 2023-07-01 John Allison (interfaces-V11-01-21)
+- G4UIQt: Implement right-click pop-up menu for touchables in new scene tree.
+
+## 2023-06-07 John Allison (interfaces-V11-01-20)
+- Rework double-click using QTreeWidget::itemDoubleClicked.
+  - Was using QWidget::mouseDoubleClickEvent (I had not noticed the above - much better).
+
+## 2023-05-31 Ben Morgan (interfaces-V11-01-19)
+- Remove support for Qt < 5.9
+  - Clarify remaining version checks using QT_VERSION_CHECK instead of raw hex
+
+## 2023-05-30 John Allison (interfaces-V11-01-18)
+- G4UIQt: Fix implicit size to int precision loss warnings.
+
+## 2023-05-18 John Allison (interfaces-V11-01-17)
+- G4UIQt: Improve command - allow for leading space in pvpath.
+
+## 2023-05-18 John Allison (interfaces-V11-01-16)
+- G4UIQt: New scene tree: Add colour choice.
+  - Introduce G4UIQt::NewSceneTreeItemTreeWidget::mouseDoubleClickEvent.
+  - Some tidying.
+
+## 2023-05-09 John Allison (interfaces-V11-01-15)
+- Coworks: visman-V11-01-10 and greps-V11-01-04.
+- G4UIQt:
+  - Implement callbacks SceneTreeItemExpanded and SceneTreeItemCollapsed.
+
+## 2023-04-26 Ben Morgan (interfaces-V11-01-14)
+- Remove header no longer used in Qt5, which is also not present in Qt6
+
+## 2023-04-24 Guy Barrand (interfaces-V11-01-13)
+- G4UIQt: Fix QSplitter issue - necessary for Qt6.
+
+## 2023-04-23 John Allison (interfaces-V11-01-12)
+- G4UIQt.cc: Fix compilation warning - "set but not used".
+
+## 2023-04-14 John Allison (interfaces-V11-01-11)
+- Co-working: visman-V11-01-04, greps-V11-01-03, opengl-V11-01-06,
+  openinventor-V11-01-04, vis_toolssg-V11-01-05.
+- New Scene Tree Phase 2 - first implementation of a no-frills GUI-side
+  - See visualization/management/History for full description.
+- G4VInteractiveSession:
+  - Add virtual void UpdateSceneTree(const G4SceneTreeItem&).
+- G4UIQt:
+  - Instrument UpdateSceneTree.
+    - Hitherto it was empty - now it actually does something.
+  - Add further functions for the "new" scene tree:
+```
+  // Create the "mother" widget
+  QWidget* CreateSceneTreeWidget();
+  // Create and connect the actual tree widget
+  void CreateSceneTreeComponent();
+  // What to do if a scene tree item is clicked
+  void SceneTreeItemClicked(QTreeWidgetItem* item);
+  // Build Physical Volume tree of touchables
+  void BuildPVQTree(const G4SceneTreeItem& g4stItem, QTreeWidgetItem* qtwItem);
+```
+  - Add new data members:
+```
+  QWidget* fNewSceneTreeWidget;
+  QTreeWidget* fSceneTreeItemTreeWidget;
+```
+
+## 2023-03-28 John Allison (interfaces-V11-01-10)
+- G4UIQt: Introduce UpdateSceneTree(const G4SceneTreeItem&).
+  - Empty except for some commented out debug statements.
+- sources.cmake:
+  - Add G4graphics_reps to the PUBLIC section of geant4_module_link_libraries.
+
+## 2023-03-22 Ben Morgan (interfaces-V11-01-09)
+- Export public compile definitions to indicate availablity of specific UIs. Moves to
+  "use on link" model.
+
+## 2023-02-21 John Allison (interfaces-V11-01-08)
+- G4UIQt: Move "smart warning" code outside mutex lock to avoid double locking.
+
+## 2023-02-20 Igor Semeniouk (interfaces-V11-01-07)
+- G4UIQt : Replace G4int by int in QT signal/slots
+
+## 2023-02-16 John Allison (interfaces-V11-01-06)
+- G4UIQt (again!): Use the same mutex for all 3 output streams.
+  - I had an app that hammered all 3 output streams from 8 worker threads
+    and the vis sub-thread simultaneously and occasionally the output to
+    Qt UI output window was very strange. This MR fixed it for me.
+  
+## 2023-02-15 John Allison (interfaces-V11-01-05)
+- G4UIQt.cc: Fix mutex bug in implementation of G4UIQt::ReceiveG4debug.
+  - Move "workaround output" (std::cout) under control of mutex.
+  - Limit "workaround output" to master thread.
+    - This "workaround" is to make sure all flushed output appears on
+      the terminal after a crash, because even flushed output can
+      get lost in the Qt UI system.
+      But...it seems workers write to std::cout/cerr anyway (is that a bug?),
+      so limit this to the master thread
+    - See also interfaces-V10-06-08 and interfaces-V10-06-10.
+
+## 2023-02-07 Ben Morgan (interfaces-V11-01-04)
+- Apply clang-tidy, clang-format fixes together with public/protected/private ordering
+
+## 2023-01-30 Ben Morgan (interfaces-V11-01-03)
+- Refactor modules into G4UIcore and G4UIimplementation to isolate core/always on
+  functionality from concrete UIs requiring external libraries.
+  - Both modules are still built into a G4interfaces library, with no change to
+    user interface for applications. 
+
+## 2023-01-15 John Allison (interfaces-V11-01-02)
+- Tentative implementation of user-specified output styles - /gui/outputStyle.
+  - Output streams: cout cerr warn error debug.
+    - This extendible - see G4VInteractiveSession.hh.
+  - Only used by G4UIQt at present.
+  - Based on existing design in G4UIQt.
+    - Some is a little specific, such as highlight in cout, which, in G4UIQt,
+      highlights only echoed commands, i.e., commands echoed by
+      "/control/verbose 2".
+  - A general implementation of user specified styles - including, for
+    example, colour, font size, italics - would be a big job. Here
+    we implement just a few features that have proved to be useful.
+
+## 2023-01-09 Ben Morgan (interfaces-V11-01-01)
+- Implement ReceiveG4debug for concrete sessions.
+
+## 2022-12-12 Ben Morgan (interfaces-V11-01-00)
+- Remove obsolete GNUmakefile scripts
+
+## 2022-11-24 Gabriele Cosmo (interfaces-V11-00-10)
+- Fixed compilation warnings for implicit type conversions on macOS/XCode 14.1.
+
+## 2022-10-08 Gabriele Cosmo (interfaces-V11-00-09)
+- Avoid use of temporaries introduced in previous tag.
+
+## 2022-10-07 Gabriele Cosmo (interfaces-V11-00-08)
+- Fixed compilation warnings on Intel/icc for deprecated conversion of string
+  literal to char* in G4UIXm.
+
+## 2022-09-22 Ben Morgan (interfaces-V11-00-07)
+- Apply patch for MinGW from [GitHub PR 51](https://github.com/Geant4/geant4/pull/51)
+
+## 2022-05-03 Ben Morgan (interfaces-V11-00-06)
+- Preliminary build support for Qt5 and Qt6
+
+## 2022-04-13 Ben Morgan (interfaces-V11-00-05)
+- Add dependency on Qt5 Widgets to G4UIcommon
+
+## 2022-03-22 Ben Morgan (interfaces-V11-00-04)
+- Use geant4_module_sources to add optional sources
+- Add required G4VIS_USE_VTK_QT flag here instead of G4visVtk
+
+## 2022-02-09 Gabriele Cosmo (interfaces-V11-00-03)
+- Fixed compilation warning on Intel compiler for shadowing data.
+
+## 2022-01-30 John Allison (interfaces-V11-00-02)
+- `G4InteractorMessenger`: Prevent propagation of /gui/ commands to workers.
+
+## 2022-01-28 Ben Morgan (interfaces-V11-00-01)
+- Replace `geant4_global_library_target` with direct file inclusion and
+  call to `geant4_add_category` to define library build from source modules.
+
+## 2021-12-10 Ben Morgan (interfaces-V11-00-00)
+- Change to new Markdown History format.
+
+---
+
+# History entries prior to 11.0
+
+11 November 2021 - Koichi Murakami (interfaces-V10-07-23)
+- Add verbose setting in G4UIExecutive [BZ-2402]
+
+8 November 2021 - Ben Morgan (interfaces-V10-07-22)
+- Retire G4UI/G4INTY_... preprocessor symbols in toolkit build, only required
+  by obsolete GNUmake system
+
+02 November 2021 - Laurent Garnier (interfaces-V10-07-21)
+- Fix HTML links in Qt UI Start page
+
+28 October 2021 - John Allison (interfaces-V10-07-20)
+- G4UIQt.cc: Replace '<' by "&lt" in session output.
+
+25 October 2021 - Ben Morgan (interfaces-V10-07-19)
+- Use G4StrUtil functions replacing deprecated G4String member functions
+
+19 October 2021 - Ben Morgan (interfaces-V10-07-18)
+- Don't discard return value of G4String::strip.
+
+18 October 2021 - B. Morgan (interfaces-V10-07-17)
+- Use std::string member functions from G4String in place of synonyms
+
+04 October 2021 - Stewart Boogert / Laurie Nevay (interfaces-V10-07-16)
+- Add context for VtkQt visualisation driver
+
+1 October 2021 Ben Morgan (interfaces-V10-07-15)
+- Use proper enum interface for G4String::strip
+
+25 September 2021  Ben Morgan (interfaces-V10-07-14)
+- Remove no longer support GAG/Gain UI
+
+21 September 2021  Guilherme Amadio (interfaces-V10-07-13)
+- Fix C++20 warnings from GCC 11.2.0.
+
+12 Jujy 2021  Igor Semeniouk (interfaces-V10-07-12)
+- G4UIQt.hh: add fExitIcon pointer
+- G4UIQt.cc: "exit" icon and extension selection
+- G4InteractorMessenger.cc - allow use exit icon by user
+
+23 June 2021  Igor Semeniouk (interfaces-V10-07-11)
+- G4UIQt.cc: Fix "Viewer Properties" window opened on Startup
+  o "viewer" window must be constructed with setVisiable(false)
+
+22 April 2021 Ben Morgan (interfaces-V10-07-10)
+- G4UIQt.cc: Deal properly with creation and deletion of Viewer Properties
+
+19 April 2021 Ben Morgan (interfaces-V10-07-09)
+- Remove obsolete Wt code from source and use in G4UIexecutive
+
+1 April 2021 Ben Morgan (interfaces-V10-07-08)
+- Migrate build to modular CMake API
+
+18 March 2021  John Allison  (interfaces-V10-07-07)
+- G4UIQt::ReceiveG4cout/G4cerr:
+  o Trap empty string with empty() instead of using unary operator!
+    (The latter may work for std::string but G4String has a conversion
+    operator to char*, so ! is always false.)
+  o Fixes bug report #2347.
+
+11 March 2021  Gabriele Cosmo (interfaces-V10-07-06)
+- Extended G4UIWin32 driver with new features, based on contribution
+  by O.Pena-Rodrigues in GitHub PR#23.
+- Removed spurious moc data previously pushed by mistake.
+
+5 March 2021  Gabriele Cosmo (interfaces-V10-07-05)
+- Modified G4UIExecutive::SelectSessionByFile() to ensure that in Windows
+  the Win32 OpenGL driver is selected as the second choice by default.
+  Based on GitHub PR#20, contributed by Ovidio Pena Rodriguez.
+
+26 February 2021  Igor Semeniouk (interfaces-V10-07-04)
+- G4UIQt, G4InteractorMessenger, G4VInteractiveSession: introducing menu
+  bar style:
+  o /gui/nativeMenuBar [true|false]
+    Allow native menu bar when relevant ( MacOS, Ubuntu Unity), default true
+    Native menu enabled by defailt in G4UIQt
+  o /gui/clearMenu
+    Clear menu bar, remove all user defined menu entries.
+
+26 January 2021  John Allison (interfaces-V10-07-03)
+- G4UIQt.cc: Get colour and background from OS.
+  o Instead of fixed background <span style='background:#EEEEEE...
+    use <span style='background:" + pal.highlight().color().name()...
+  o This picks up colour from the OS and even allows for change of
+    OS display style, e.g., dark mode on MacOS.
+
+20 January 2021  John Allison (interfaces-V10-07-02)
+- G4UIQt.cc: Fix bug in command-line-echo highlighting whereby there
+  could be a crash in some circumstances.
+  o Use <span> instead of <div> in HTML wrappers.
+
+16 January 2021  John Allison (interfaces-V10-07-01)
+- Requires intercoms-V10-07-00.
+- Introduce choice of output styles:
+  o /gui/outputStyle
+    <cout|cerr|warnings|errors|all>
+    <fixed|proportional>
+    <highlight|no-highlight>
+  o Highlighting applies to the echoed command line if echoing is
+    requested with /control/verbose > 0.
+
+29 December 2020  John Allison (interfaces-V10-07-00)
+- G4UIQt.cc: Use 12pt Courier for G4UIQt output window.
+
+29 November 2020  Gabriele Cosmo (interfaces-V10-06-11)
+- G4UIQt.cc: protected MT code within G4MULTITHREADED in workaround
+  introduced previously.
+
+09 November 2020  John Allison (interfaces-V10-06-10)
+- G4UIQt.cc:
+  o Re "workaround" (interfaces-V10-06-08), it seems workers write
+    to std::cout/cerr anyway (is that a bug?) so limit this workaround
+    to the master thread.
+
+16 November 2020  Gabriele Cosmo (interfaces-V10-06-09)
+- Fixed typos in printed-out text. Addressing problem report #2285.
+
+09 November 2020  John Allison (interfaces-V10-06-08)
+- G4UIQt.cc:
+  o As a workaround to the problem of loss of output in the case of
+    a crash or G4Exception:
+    - Send G4cout/cerr also to std::cout/cerr so that output is not lost.
+
+21 September 2020  John Allison (interfaces-V10-06-07)
+- G4Qt.cc: Add the following to fix a problem with Windows - see
+  https://geant4-forum.web.cern.ch/t/blue-screen-when-running-b1-example-using-qt/3144
+#ifdef WIN32
+      qApp->setAttribute( Qt::AA_UseDesktopOpenGL );
+#endif
+
+28 August 2020 Ben Morgan (interfaces-V10-06-06)
+- GEANT4_USE_INVENTOR for SoXt activates use of Xm, so we do not
+  need to check for use of inventor in setting up Xt, only GEANT4_USE_XM.
+
+19 June 2020  John Allison  (interfaces-V10-06-05)
+- Fix Qt 5.15 deprecation warnings.
+
+31 May 2020 Ben Morgan (interfaces-V10-06-04)
+- Use add_definitions to set PRIVATE-level compile definitions
+  for compatibility between old/new CMake system
+- Use CMake AUTOMOC to automatically generate and compile Moc
+  sources
+
+16 Apr 2020 Ben Morgan (interfaces-V10-06-03)
+- Remove Qt4 support
+
+ 6 Apr 2020 Igor Semeniouk (interfaces-V10-06-02)
+-- G4UIQt.cc:
+ o replace setcolor with rich text html tags.
+
+16 Jan 2020 Gabriele Cosmo (interfaces-V10-06-01)
 - Fixed obsolete URLs in UIQt splash screen.
+
+11 Dec 2019 Ben Morgan (interfaces-V10-06-00)
+- Cleanup CMake build, removing obsolete granular library options and
+  explicit include_directories.
 
 30 Nov 2019 Igor Semeniouk (interfaces-V10-05-07)
 -- G4UIQt.cc:

@@ -23,46 +23,46 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/phonon/include/XAluminumElectrodeSensitivity.hh
+/// \file XAluminumElectrodeSensitivity.hh
 /// \brief Definition of the XAluminumElectrodeSensitivity class
-//
-//
+
 // 20150818  Improve MT compatibility; hits collection should not be static
 
 #ifndef XAluminumElectrodeSensitivity_h
 #define XAluminumElectrodeSensitivity_h 1
 
-#include "G4VSensitiveDetector.hh"
 #include "XAluminumElectrodeHit.hh"
+
+#include "G4VSensitiveDetector.hh"
+
 #include <iosfwd>
 
 class G4Step;
 class G4HCofThisEvent;
 class G4TouchableHistory;
 
+class XAluminumElectrodeSensitivity : public G4VSensitiveDetector
+{
+  public:
+    XAluminumElectrodeSensitivity(const G4String&);
+    virtual ~XAluminumElectrodeSensitivity();
 
-class XAluminumElectrodeSensitivity : public G4VSensitiveDetector {
-public:
-  XAluminumElectrodeSensitivity(const G4String&);
-  virtual ~XAluminumElectrodeSensitivity();
-  
-  virtual void Initialize(G4HCofThisEvent*);
-  virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
-  virtual void EndOfEvent(G4HCofThisEvent*);
-  
-  XAluminumElectrodeHitsCollection* GetHitsCollection();
+    virtual void Initialize(G4HCofThisEvent*);
+    virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*);
+    virtual void EndOfEvent(G4HCofThisEvent*);
 
-protected:
-  void WriteHitInfo(const XAluminumElectrodeHit* aHit);
+    XAluminumElectrodeHitsCollection* GetHitsCollection();
 
-private:
-  XAluminumElectrodeHitsCollection* fHitsCollection;
+  protected:
+    void WriteHitInfo(const XAluminumElectrodeHit* aHit);
 
-  static std::fstream* fWriter;         // For hit position output (temporary)
-  static std::fstream* fWriter2;        // For hit timing/energy (temporary)
-  
-  G4int fHCID;                // Index of collection in event
+  private:
+    XAluminumElectrodeHitsCollection* fHitsCollection;
+
+    static std::fstream* fWriter;  // For hit position output (temporary)
+    static std::fstream* fWriter2;  // For hit timing/energy (temporary)
+
+    G4int fHCID;  // Index of collection in event
 };
 
 #endif
-

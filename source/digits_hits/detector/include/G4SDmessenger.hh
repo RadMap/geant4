@@ -23,9 +23,20 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4SDmessenger
 //
+// Class description:
 //
-
+// This is a concrete class of G4UImessenger which handles the commands for
+// G4SDManager. This class has the following commands:
+//   /hits/
+//   /hits/list
+//   /hits/activate
+//   /hits/inactivate
+//   /hts/verbose
+//
+// Author: Makoto Asai
+// ---------------------------------------------------------------------
 #ifndef G4SDmessenger_h
 #define G4SDmessenger_h 1
 
@@ -37,35 +48,20 @@ class G4UIcmdWithoutParameter;
 class G4UIcmdWithAString;
 class G4UIcmdWithAnInteger;
 
-// class description:
-//
-//  This is a cncrete class of G4UImessenger which handles the commands for
-// G4SDManager. This class has the following commands:
-//   /hits/
-//   /hits/list
-//   /hits/activate
-//   /hits/inactivate
-//   /hts/verbose
-//
-
-class G4SDmessenger: public G4UImessenger
+class G4SDmessenger : public G4UImessenger
 {
-  public:
-    G4SDmessenger(G4SDManager * SDManager);
-    ~G4SDmessenger();
-    void SetNewValue(G4UIcommand * command,G4String newValues);
-  
-  private:
-    G4SDManager * fSDMan;
-    G4UIdirectory* hitsDir;
-    G4UIcmdWithoutParameter* listCmd;
-    G4UIcmdWithAString* activeCmd;
-    G4UIcmdWithAString* inactiveCmd;
-    G4UIcmdWithAnInteger* verboseCmd;
+ public:
+  G4SDmessenger(G4SDManager* SDManager);
+  ~G4SDmessenger() override;
+  void SetNewValue(G4UIcommand* command, G4String newValues) override;
+
+ private:
+  G4SDManager* fSDMan;
+  G4UIdirectory* hitsDir;
+  G4UIcmdWithoutParameter* listCmd;
+  G4UIcmdWithAString* activeCmd;
+  G4UIcmdWithAString* inactiveCmd;
+  G4UIcmdWithAnInteger* verboseCmd;
 };
 
-
-
-
 #endif
-

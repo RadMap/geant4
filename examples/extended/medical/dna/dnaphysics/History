@@ -1,9 +1,99 @@
-     =========================================================
- 		      Geant4 - dnaphysics example
-     =========================================================
+# Example dnaphysics History
 
-                       Package History file
-                       --------------------
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
+
+-------------------------------------------------------------------------------
+
+## 2025-11-10 Gabriele Cosmo (dnaphysics-V11-03-04)
+- Fixed coding conventions for long lines in SteppingAction source.
+
+## 2025-05-06 Sebastien Incerti (dnaphysics-V11-03-03)
+- Added UI command to record first step only; elastic.in updated accordingly
+
+## 2025-03-21 Sebastien Incerti (dnaphysics-V11-03-02)
+- Added elastic.in and plotElastic.C macros to show distribution of scattering angles
+
+## 2025-01-24 Sebastien Incerti (dnaphysics-V11-03-01)
+- Updated SteppingAction.cc with more comments & process identification
+
+## 2025-01-22 Sebastien Incerti (dnaphysics-V11-03-00)
+- Added possibility to simulate radioactive nuclei
+-- added radioactive.in and plotRadioactive.C
+-- modified PhysicsList.cc and SteppingAction.cc
+
+## 2024-10-29 Sebastien Incerti, Hoang Tran (dnaphysics-V11-02-04)
+- Fixed issue with visualization by setting default World size and material
+in DetectorConstruction.cc
+
+## 2024-10-05 Sebastien Incerti (dnaphysics-V11-02-03)
+- Updated README
+
+## 2024-09-27 Batmunkh Munkhbaatar, Sebastien Incerti (dnaphysics-V11-02-02)
+- update of README and dnaphysics.in
+- update DetectorConstructor and DetectorMessenger files with given
+    values of material density and World size
+- added messenger for World size change
+- added messenger for material density change
+
+## 2024-05-09 Sebastien Incerti (dnaphysics-V11-02-02)
+- Added plotDeexcitation.C and deexcitation.in
+
+## 2024-03-13 Sebastien Incerti (dnaphysics-V11-02-01)
+- Updated headers
+
+## 2024-02-05 Sebastien Incerti (dnaphysics-V11-02-00)
+- PhysicsList: switched to DNA physics constructors i/o model activator
+- Added new ntuple to collect track information
+
+## 2023-11-14 Vladimir Ivanchenko (dnaphysics-V11-01-03)
+- PhysicsList - more clear implementation of two cases: usage of a DNA
+    physics constructor or standard physics constructor + DNA model activator
+
+## 2023-11-09 H. Tran (dnaphysics-V11-01-02)
+- update README files and dnaphysics.in
+
+## 2023-11-09 H. Tran (dnaphysics-V11-01-01)
+- update README & TrackingCut for heavy ions
+
+## 2023-09-09 S. Incerti (dnaphysics-V11-01-00)
+- update README & SteppingAction file with units and addition of gamma processes
+
+## 2022-11-07 Hoang Tran (dnaphysics-V11-00-03)
+- update README file for radioactive decay
+
+## 2022-11-04 Vladimir Ivanchenko (dnaphysics-V11-00-02)
+- dnaphysics.cc, DetectorConstruction, DetectorMessenger - added
+    UI command to add different standard EM, DNA physics, and
+    radioactive decay
+- PhysicsList - added possibility to change DNA physics via UI
+    commands
+
+## 2022-02-28 Vladimir Ivanchenko (dnaphysics-V11-00-01)
+- dnaphysics.cc - enable visualisation only in interactive mode,
+    use G4RunManagerFactory
+- PhysicsList - added RadioactiveDecayPhysics
+
+## 2021-12-10 Ben Morgan (dnaphysics-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+06 Oct 21 I. Hrivnacova - tag dnaphysics-V10-07-01
+- Migration to new G4AnalysisManager.hh header;
+  define the default output file type (root),
+  removed Analysis.hh.
+
+19 Jul 21 I. Hrivnacova - tag dnaphysics-V10-07-00
+- Updated for changes in the analysis category:
+  removed deleting of the analysis manager,
+  as this is now done by the Geant4 kernel.
+
+10 Nov 20 B. Morgan - tag dnaphysics-V10-06-00
+- Migration to G4RunManagerFactory.
 
 12 Jan 19 S. Incerti - tag dnaphysics-V10-05-00
 - Updated README (test)
@@ -41,13 +131,13 @@
 16 Aug 2017 - tag dnaphysics-V10-03-11 - SI
 - updated numbering scheme
 
-12 Aug 2017 - tag dnaphysics-V10-03-10 - SI, VI 
+12 Aug 2017 - tag dnaphysics-V10-03-10 - SI, VI
 - updated plot.C with numbering
 
-11 Aug 2017 - tag dnaphysics-V10-03-09 - SI, VI 
+11 Aug 2017 - tag dnaphysics-V10-03-09 - SI, VI
 - retag
 
-10 Aug 2017 - tag dnaphysics-V10-03-08 - SI, VI 
+10 Aug 2017 - tag dnaphysics-V10-03-08 - SI, VI
 - fixed FPE, improved SteppingAction
 
 09 Aug 2017 - tag dnaphysics-V10-03-07 - S. Incerti
@@ -88,7 +178,7 @@
 - dnaphysics.cc: second arg is nb of threads
 
 02 June 2016 - tag dnaphysics-V10-02-01 - V. Ivanchenko
-- DetectorConstructor, DetectorMessenger - ensure that geometry 
+- DetectorConstructor, DetectorMessenger - ensure that geometry
     is created once, material may be changed for next runs
 - /run/initialise moved from the code to macro
 - DNA physics configuration is moved from the code to macro
@@ -151,30 +241,30 @@
 30 July 2013 - tag dnaphysics-V09-06-05 - A.Dotti
 - Bug fix for compilation warning with clang32
 
-10 June 2013 - tag dnaphysics-V09-06-04 - S. Incerti 
+10 June 2013 - tag dnaphysics-V09-06-04 - S. Incerti
 - Withdraw RunAction from ActionInitialization for master
 
-28 May 2013 - tag dnaphysics-V09-06-03 - S. Incerti 
+28 May 2013 - tag dnaphysics-V09-06-03 - S. Incerti
 - changed modified density
 - removed standard process tagging in SteppingAction
 - updated plot.C
 
-22 May 2013 - tag dnaphysics-V09-06-02 - M. Karamitros 
+22 May 2013 - tag dnaphysics-V09-06-02 - M. Karamitros
 - Migrated to MT
 
 13 April 2013 - tag dnaphysics-V09-06-01 - S. Incerti
 - Removed unused electron capture process
-- Changed process naming scheme as in the "microdosimetry" 
-advanced example 
+- Changed process naming scheme as in the "microdosimetry"
+advanced example
 
 15 February 2013 - tag dnaphysics-V09-06-00 - S. Incerti
-- Changed default water definition 
+- Changed default water definition
 
 3 November 2012 - tag dnaphysics-V09-05-07 - S. Incerti
-- Removed shadowing in SteppingAction 
+- Removed shadowing in SteppingAction
 
 26 October 2012 - tag dnaphysics-V09-05-06 - L. Pandola
-- Changed CMakeLists.txt to deal with VIS 
+- Changed CMakeLists.txt to deal with VIS
 
 26 October 2012 - tag dnaphysics-V09-05-05 - S. Incerti
 - Renamed executable.
@@ -182,20 +272,20 @@ advanced example
 11 October 2012 - tag dnaphysics-V09-05-04 - G. Cosmo
 - Explicit inclusion of units and constants headers
 
-09 October 2012- tag dnaphysics-V09-05-03 - S. Incerti  
+09 October 2012- tag dnaphysics-V09-05-03 - S. Incerti
 - cleaned main
 
-09 October 2012- tag dnaphysics-V09-05-02 - S. Incerti  
+09 October 2012- tag dnaphysics-V09-05-02 - S. Incerti
 - added more histogram variables
 
-15 August 2012- tag dnaphysics-V09-05-01 - S. Incerti  
+15 August 2012- tag dnaphysics-V09-05-01 - S. Incerti
 - added messenger for material change
 - switched to new analysis interface from Guy Barrand
 
-11 August 2012- tag dnaphysics-V09-05-00 - S. Incerti  
+11 August 2012- tag dnaphysics-V09-05-00 - S. Incerti
 - updated README and SteppingAction.cc files
 
-05 November 2011- tag dnaphysics-V09-04-08 - S. Incerti  
+05 November 2011- tag dnaphysics-V09-04-08 - S. Incerti
 - removed export=root option in HistoManager.cc
 
 24 August2011 - tag dnaphysics-V09-04-07 - S. Incerti
@@ -209,7 +299,7 @@ advanced example
 
 02 August 2011 - tag dnaphysics-V09-04-04 - S. Incerti
 - increased statistics in dna.mac as suggested by Gunter
-- added total energy deposits in ntuple 
+- added total energy deposits in ntuple
 
 05 April 2011 - tag dnaphysics-V09-04-03 - S. Incerti
 - added comment for use of variable density material

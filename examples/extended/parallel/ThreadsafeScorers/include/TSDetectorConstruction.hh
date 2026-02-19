@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file parallel/ThreadsafeScorers/include/TSDetectorConstruction.hh
+/// \file TSDetectorConstruction.hh
 /// \brief Definition of the TSDetectorConstruction class
-//
-//
-//
-//
+///
 /// Construction of a target material (default = boron) surrounded by a
 ///     casing material (default = water) and a vacuum world (default =
 ///     target and casing fill world). The target + casing is brick
@@ -36,12 +33,14 @@
 ///     in each dimension. The end sections in each dimension
 ///     is set to the casing. So a fTargetSections = G4ThreeVector(3, 3, 3)
 ///     would be one section of boron and 8 sections of water.
+///
 /// The idea behind this geometry is just to create a simple geometry that
 ///     scatters and produces a lot neutrons with a minimal number of sections
 ///     (i.e. coarse meshing) such that the contention in operating on
 ///     the atomic hits maps is higher and round-off errors in the
 ///     thread-local hits maps are detectable (printed out in TSRunAction)
 ///     from the sheer number of floating point sum operations.
+///
 /// Two scorers are implemented: EnergyDeposit and Number of steps
 ///     The energy deposit is to (possibly) show the round-off error seen
 ///     with thread-local hits maps. The # of steps scorer is to verify
@@ -51,14 +50,12 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-
 #ifndef tsdetectorconstruction_hh
 #define tsdetectorconstruction_hh 1
 
-
-#include "globals.hh"
-#include "G4VUserDetectorConstruction.hh"
 #include "G4ThreeVector.hh"
+#include "G4VUserDetectorConstruction.hh"
+#include "globals.hh"
 
 #include <map>
 #include <set>
@@ -72,31 +69,32 @@ class G4Material;
 
 class TSDetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
+  public:
     typedef std::map<G4String, G4Material*> MaterialCollection_t;
     typedef std::set<G4LogicalVolume*> ScoringVolumes_t;
 
-public:
+  public:
     TSDetectorConstruction();
     virtual ~TSDetectorConstruction();
 
     static TSDetectorConstruction* Instance();
 
-public:
+  public:
     G4VPhysicalVolume* Construct();
     inline const G4ThreeVector& GetWorldDimensions() const { return fWorldDim; }
-    inline const ScoringVolumes_t& GetScoringVolumes() const
-    { return fScoringVolumes; }
+    inline const ScoringVolumes_t& GetScoringVolumes() const { return fScoringVolumes; }
     inline const G4String& GetMFDName() const { return fMfdName; }
-    inline G4int GetTotalTargets() const 
-    { return fTargetSections.x() * fTargetSections.y() * fTargetSections.z(); }
+    inline G4int GetTotalTargets() const
+    {
+      return fTargetSections.x() * fTargetSections.y() * fTargetSections.z();
+    }
 
-protected:
+  protected:
     virtual MaterialCollection_t ConstructMaterials();
     virtual G4VPhysicalVolume* ConstructWorld(const MaterialCollection_t&);
     virtual void ConstructSDandField();
 
-private:
+  private:
     static TSDetectorConstruction* fgInstance;
     G4VPhysicalVolume* fWorldPhys;
     ScoringVolumes_t fScoringVolumes;

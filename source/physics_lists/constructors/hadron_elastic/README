@@ -13,7 +13,7 @@
  - charged pions:
    - cross section: Barashenkov-Glauber-Gribov
    - final-state:   Starkov's model (G4ElasticHadrNucleusHE) for all energies
- - kaons, hyperons, anti-hyperons
+ - kaons, hyperons, anti-hyperons, charm and bottom hadrons
    - cross section: Glauber-Gribov
    - final-state:   Gheisha
  - deuteron, triton, He3, alpha 
@@ -24,12 +24,26 @@
    - cross-section: Galoyan-Uzhinsky-Glauber-Gribov
    - final-state:   Galoyan-Uzhinsky model above 100 MeV/nucleon,
                     Gheisha below.
+ - charm and bottom hadrons, light hypernuclei
+   - cross section: Glauber-Gribov
+   - final-state:   Gheisha
+ - light anti-hypernuclei
+   - cross-section: Galoyan-Uzhinsky-Glauber-Gribov
+   - final-state:   Gheisha
 
  G4HadronElasticPhysicsHP
  ------------------------
  As G4HadronElasticPhysics, with the only difference that for neutrons
  below 20 MeV, NeutronHP elastic is used (for both cross section and
  final-state model).
+
+ G4HadronElasticPhysicsHPT
+ -------------------------
+ As G4HadronElasticPhysicsHP, with the only difference that for neutrons
+ below 4 eV, a special treatment of elastic scattering is activated.
+ This special treatment, called Thermal Scattering Law (TSL), is based on
+ the S(alpha, beta) approach, which relieas on both experimental measurements
+ and molecular dynamics calculations.
 
  G4HadronElasticPhysicsLEND
  --------------------------
@@ -45,16 +59,19 @@
  -----------------------
  - proton
    - cross section: Barashenkov-Glauber-Gribov
-   - final-state:   Diffuse model, except for Hydrogen where Chips is used
+   - final-state:   Diffuse model, except for Hydrogen where Chips is used,
+                    above 10 MeV, and Gheisha below
  - neutron:
    - cross section: G4NeutronElasticXS
-   - final-state:   Diffuse model, except for Hydrogen where Chips is used
+   - final-state:   Diffuse model, except for Hydrogen where Chips is used,
+                    above 10 MeV, and Gheisha below
  - charged pions:
    - cross section: Barashenkov-Glauber-Gribov
-   - final-state:   Diffuse model, except for Hydrogen where Chips is used
- - kaons, hyperons, anti-hyperons
+   - final-state:   Diffuse model, except for Hydrogen where Chips is used,
+                    above 10 MeV, and Gheisha below
+ - kaons, hyperons, anti-hyperons, charm and bottom hadrons
    - cross section: Glauber-Gribov
-   - final-state:   Chips
+   - final-state:   Gheisha
  - deuteron, triton, He3, alpha
    - cross section: Glauber-Gribov
    - final-state:   Gheisha
@@ -84,10 +101,8 @@
  - neutron:
    - cross section: G4NeutronElasticXS           
    - final-state:   Diffuse model where applicable, else Gheisha
- - kaons
-   - cross section: Glauber-Gribov
-   - final-state:   Diffuse model where applicable, else Gheisha
- - hyperons, anti-hyperons, deuteron, triton, He3, alpha
+ - kaons, hyperons, anti-hyperons, charm and bottom hadrons,
+   deuteron, triton, He3, alpha
    - cross section: Glauber-Gribov
    - final-state:   Gheisha
  - anti_proton, anti_neutron, anti_deuteron, anti_triton, anti_He3, 

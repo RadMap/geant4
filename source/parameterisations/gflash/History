@@ -1,20 +1,65 @@
--------------------------------------------------------------------
+# Category gflash History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                      Category History file
-                      ---------------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all category-tags.
-It DOES NOT substitute the  CVS log-message one should put at every
-committal in the CVS repository !
+-------------------------------------------------------------------------------
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2024-10-21 Igor Semeniouk (gflash-V11-02-01)
+- GFlashSamplingShowerParameterisation - add GetEffDensity function
+- correction of Es and sampling resolution function
+- Rossi approximation for Ec added as comment
+
+## 2024-09-10 Igor Semeniouk (gflash-V11-02-00)
+- clang-format for the files in parametrisation/gflash
+
+## 2023-10-19 Ben Morgan (gflash-V11-01-01)
+- Replace use of deprecated functions with modern equivalents
+
+## 2023-08-29 Ben Morgan (gflash-V11-01-00)
+- Fix Coverity warnings for uninitialized data members.
+
+## 2022-11-18 Gabriele Cosmo (gflash-V11-00-03)
+- Fixed compilation warnings for implicit type conversions on macOS/XCode 14.1.
+
+## 2022-10-07 Gabriele Cosmo (gflash-V11-00-02)
+- Fixed compilation warning on Intel/icx compiler for variable set
+  but not used in GFlashShowerModel::ElectronDoIt().
+
+## 2022-09-07 Makoto Asai (gflash-V11-00-01)
+- GFlashHitMaker : making compatible to command-based scorer
+  co-working with track-V11-00-08
+
+## 2021-12-10 Ben Morgan (gflash-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+October 25th, 2021, B.Morgan (gflash-V10-07-02)
+- Use G4StrUtil functions replacing deprecated G4String member functions
+
+Aug 31st, 2021, M. Verderi (gflash-V10-07-01)
+- many fixes in src/GFlashSamplingShowerParameterisation.cc in the parameters definition and just cosmetics in src/GFlashSamplingShowerParameterisation.cc
+
+Apr 1st, 2021, B. Morgan (gflash-V10-07-00)
+- Migrate build to modular CMake API
+
+Sep 23rd, 2020, B. Morgan (gflash-V10-06-02)
+- Remove no longer required include_directories
+
+Apr 17th, 2020, A. Zaborowska (gflash-V10-06-01)
+- Substitute Gamma calculation with STL following GitHub PR#3 from Marco Savelli.
+  Makes LnGamma calculation 1.4 times faster, and Gamma 1.9 times faster.
+
+Mar 26, 2020, I. Semeniouk (gflash-V10-06-00)
+- GFlashSamplingShowerParameterisation.cc : X0eff calculation
+- GFlashHomoShowerParameterisation, GVFlashHomoShowerTuning,
+  GFlashSamplingShowerParameterisation,GFlashSamplingShowerTuning:
+  GFlashXXXShowerTuning deleted locally in  Destractor
+  of GFlashXXXShowerParameterisation class
 
 Oct 30st, 2019, A. Zaborowska (gflash-V10-05-01)
 - Add possibility to use sensitive detector from parallel world.
@@ -92,7 +137,7 @@ Nov 28th, 2005 G.Cosmo (gflash-V07-01-01)
 ----------------------
 - Migration to <sstream> for GFlashShowerModelMessenger.
 
-Oct 4th, 2005 G.Cosmo (gflash-V07-01-00) 
+Oct 4th, 2005 G.Cosmo (gflash-V07-01-00)
 ---------------------
 - Corrected typo to name GFlashHomoShowerParamterisation, to become
   GFlashHomoShowerParameterisation. Replaced affected files.
@@ -100,26 +145,26 @@ Oct 4th, 2005 G.Cosmo (gflash-V07-01-00)
 - Fixed usage of random numbers in GFlashHomoShowerParameterisation
   to allow for event reproducibility.
 
-Jul 15th, 2005 J.Weng 
+Jul 15th, 2005 J.Weng
 ---------------------
 - Added overflow protection in method GenerateRadius() for
   GFlashHomoShowerParamterisation.
 
-Jun 22nd, 2005 G.Cosmo (gflash-V07-00-04) 
+Jun 22nd, 2005 G.Cosmo (gflash-V07-00-04)
 ----------------------
 - Corrected signature for IntegrateNspLongitudinal() to remove
   const qualifier. Problem detected on SUN-CC.
 
-Jun 9th, 2005 G.Cosmo (gflash-V07-00-03) 
+Jun 9th, 2005 G.Cosmo (gflash-V07-00-03)
 ---------------------
 - Fixed compilation warnings on SUN-CC for hiding of class attributes.
 
-Apr 22nd, 2005 G.Cosmo (gflash-V07-00-02) 
+Apr 22nd, 2005 G.Cosmo (gflash-V07-00-02)
 ----------------------
 - GFlashShowerModel.cc: fixed problem of possible undefined operation on
   'NlateralInside' and 'NSpotDeposited'. Compilation warning on gcc-4.0.
 
-Jan 13th, 2005 H.P.Wellisch (gflash-V07-00-01) 
+Jan 13th, 2005 H.P.Wellisch (gflash-V07-00-01)
 ---------------------------
 - Fix in GFlashHitMaker for treatment of detector sensitivity.
 

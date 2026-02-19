@@ -23,38 +23,30 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/wls/include/WLSEventActionMessenger.hh
+/// \file WLSEventActionMessenger.hh
 /// \brief Definition of the WLSEventActionMessenger class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef WLSEventActionMessenger_h
 #define WLSEventActionMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
 
-class EventAction;
-class G4UIcmdWithAString;
+class WLSEventAction;
+
 class G4UIcmdWithAnInteger;
 
-class WLSEventActionMessenger: public G4UImessenger
+class WLSEventActionMessenger : public G4UImessenger
 {
   public:
-
     WLSEventActionMessenger(WLSEventAction*);
-    virtual ~WLSEventActionMessenger();
+    ~WLSEventActionMessenger() override;
 
-    virtual void SetNewValue(G4UIcommand*, G4String);
+    void SetNewValue(G4UIcommand*, G4String) override;
 
   private:
+    WLSEventAction* fEventAction = nullptr;
 
-    WLSEventAction* fEventAction;
-
-    G4UIcmdWithAnInteger* fSetVerboseCmd;
+    G4UIcmdWithAnInteger* fSetVerboseCmd = nullptr;
 };
 
 #endif

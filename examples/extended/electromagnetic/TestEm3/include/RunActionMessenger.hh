@@ -23,18 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm3/include/RunActionMessenger.hh
+/// \file RunActionMessenger.hh
 /// \brief Definition of the RunActionMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef RunActionMessenger_h
 #define RunActionMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class RunAction;
 class G4UIdirectory;
@@ -43,20 +39,20 @@ class G4UIcmdWithABool;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class RunActionMessenger: public G4UImessenger
+class RunActionMessenger : public G4UImessenger
 {
-public:
-  RunActionMessenger(RunAction*);
-  virtual ~RunActionMessenger();
-    
-  void SetNewValue(G4UIcommand*, G4String);
-    
-private:
-  RunAction*          fRunAction;
-    
-  G4UIdirectory*      fRunDir;
-  G4UIcommand*        fAccCmd;
-  G4UIcmdWithABool*   fLimCmd;
+  public:
+    RunActionMessenger(RunAction*);
+    ~RunActionMessenger() override;
+
+    void SetNewValue(G4UIcommand*, G4String) override;
+
+  private:
+    RunAction* fRunAction = nullptr;
+
+    G4UIdirectory* fRunDir = nullptr;
+    G4UIcommand* fAccCmd = nullptr;
+    G4UIcmdWithABool* fLimCmd = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

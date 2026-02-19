@@ -23,36 +23,27 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field05/include/F05PhysicsList.hh
+/// \file F05PhysicsList.hh
 /// \brief Definition of the F05PhysicsList class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef F05PhysicsList_h
 #define F05PhysicsList_h 1
 
-#include "globals.hh"
 #include "G4VModularPhysicsList.hh"
+#include "globals.hh"
 
 class G4VPhysicsConstructor;
 
-class F05PhysicsList: public G4VModularPhysicsList
+class F05PhysicsList : public G4VModularPhysicsList
 {
-public:
-
+  public:
     F05PhysicsList();
-    virtual ~F05PhysicsList();
+    ~F05PhysicsList() override = default;
 
-    virtual void ConstructParticle();
-    virtual void ConstructProcess();
+    void ConstructParticle() override;
+    void ConstructProcess() override;
 
-    void SetCuts();
-
-private:
-
+    void SetCuts() override;
 };
 
 #endif

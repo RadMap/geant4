@@ -26,11 +26,11 @@
 //
 // Description:
 //
-//  Simple methods to extract vectors from arrays in conventions of
-//  the magnetic field integration.
+// Simple methods to extract vectors from arrays in conventions of
+// the magnetic field integration.
 
-// Author: Dmitry Sorokin, Google Summer of Code 2017
-// Supervision: John Apostolakis, CERN
+// Author: Dmitry Sorokin (CERN, Google Summer of Code 2017), 13.10.2017
+// Supervision: John Apostolakis (CERN)
 // --------------------------------------------------------------------
 #ifndef G4FIELD_UTILS_HH
 #define G4FIELD_UTILS_HH
@@ -39,11 +39,18 @@
 #include "G4Types.hh"
 #include "G4ThreeVector.hh"
 
+/**
+ * @brief field_utils is a helper namespace, including simple methods to extract
+ * vectors from arrays in conventions of the magnetic field integration.
+ */
+
 namespace field_utils
 {
-
   using State = G4double[G4FieldTrack::ncompSVEC];
 
+  template <unsigned int N>
+  using ShortState = G4double[N];
+   
   enum class Value3D
   {
     Position = 0,
@@ -98,15 +105,14 @@ namespace field_utils
                 TargetArray& trg, TargetArrays&... trgs);
 
   void copy(G4double dst[], const G4double src[],
-            size_t size = G4FieldTrack::ncompSVEC);
+            std::size_t size = G4FieldTrack::ncompSVEC);
 
   G4double inverseCurvatureRadius(G4double particleCharge,
                                   G4double momentum, G4double BField);
 
   template <typename T>
   T clamp(T value, T lo, T hi);
-
-} // field_utils
+}
 
 #include "G4FieldUtils.icc"
 

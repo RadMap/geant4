@@ -40,8 +40,8 @@ using namespace std;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4int G4BoldyshevTripletModel::maxZ = 99;
-G4LPhysicsFreeVector* G4BoldyshevTripletModel::data[] = {0};
+const G4int G4BoldyshevTripletModel::maxZ;
+G4PhysicsFreeVector* G4BoldyshevTripletModel::data[] = {nullptr};
 
 G4BoldyshevTripletModel::G4BoldyshevTripletModel(const G4ParticleDefinition*, const G4String& nam)
   :G4VEmModel(nam),smallEnergy(4.*MeV)
@@ -112,21 +112,21 @@ void G4BoldyshevTripletModel::Initialise(const G4ParticleDefinition*,
   if(IsMaster()) 
   {
     // Access to elements  
-    char* path = std::getenv("G4LEDATA");
+    const char* path = G4FindDataDir("G4LEDATA");
 
     G4ProductionCutsTable* theCoupleTable =
       G4ProductionCutsTable::GetProductionCutsTable();
   
-    G4int numOfCouples = theCoupleTable->GetTableSize();
+    G4int numOfCouples = (G4int)theCoupleTable->GetTableSize();
   
     for(G4int i=0; i<numOfCouples; ++i) 
     {
       const G4Material* material = 
         theCoupleTable->GetMaterialCutsCouple(i)->GetMaterial();
       const G4ElementVector* theElementVector = material->GetElementVector();
-      G4int nelm = material->GetNumberOfElements();
+      std::size_t nelm = material->GetNumberOfElements();
     
-      for (G4int j=0; j<nelm; ++j) 
+      for (std::size_t j=0; j<nelm; ++j) 
       {
         G4int Z = std::min((*theElementVector)[j]->GetZasInt(), maxZ);
         if(!data[Z]) { ReadData(Z, path); }
@@ -164,7 +164,7 @@ void G4BoldyshevTripletModel::ReadData(size_t Z, const char* path)
 
   if(!datadir) 
   {
-    datadir = std::getenv("G4LEDATA");
+    datadir = G4FindDataDir("G4LEDATA");
     if(!datadir) 
     {
       G4Exception("G4BoldyshevTripletModel::ReadData()",
@@ -174,7 +174,7 @@ void G4BoldyshevTripletModel::ReadData(size_t Z, const char* path)
     }
   }
   
-  data[Z] = new G4LPhysicsFreeVector();
+  data[Z] = new G4PhysicsFreeVector(0,/*spline=*/true);
   std::ostringstream ost;
   ost << datadir << "/livermore/tripdata/pp-trip-cs-" << Z <<".dat";
   std::ifstream fin(ost.str().c_str());
@@ -200,7 +200,7 @@ void G4BoldyshevTripletModel::ReadData(size_t Z, const char* path)
   } 
 
   // Activation of spline interpolation
-  data[Z]->SetSpline(true);    
+  data[Z]->FillSecondDerivatives();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -219,7 +219,7 @@ G4double G4BoldyshevTripletModel::ComputeCrossSectionPerAtom(
 
   G4double xs = 0.0;  
   G4int intZ = std::max(1, std::min(G4lrint(Z), maxZ));
-  G4LPhysicsFreeVector* pv = data[intZ];
+  G4PhysicsFreeVector* pv = data[intZ];
 
   // if element was not initialised
   // do initialisation safely for MT mode
@@ -278,7 +278,6 @@ void G4BoldyshevTripletModel::SampleSecondaries(
   }
 
   G4double logcostm = G4Log(cosThetaMax);
-  G4int nn = 0;
   do {
     cost = G4Exp(logcostm*rndmEngine->flat());
     G4double are = 1./(14.*cost*cost);
@@ -286,20 +285,15 @@ void G4BoldyshevTripletModel::SampleSecondaries(
     loga = G4Log((1.+ cost)/(1.- cost));
     f1_re = 1. - bre*loga;
     greject = (cost < costlim) ? are*f1_re : 1.0;
-    // G4cout << nn << ". step of the 1st loop greject= " << greject << G4endl;
-    ++nn;
   } while(greject < rndmEngine->flat());
       
   // Calculo de phi - elecron de recoil
   G4double sint2 = (1. - cost)*(1. + cost);
   G4double fp = 1. - sint2*loga/(2.*cost) ;
   G4double rt, phi_re;
-  nn = 0;
   do {
     phi_re = twopi*rndmEngine->flat();
     rt = (1. - std::cos(2.*phi_re)*fp/f1_re)/twopi;
-    //G4cout << nn << ". step of the 2nd loop greject= " << rt << G4endl;
-    ++nn;
   } while(rt < rndmEngine->flat());
 
   // Calculo de la energia - elecron de recoil - relacion momento maximo <-> angulo

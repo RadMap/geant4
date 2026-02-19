@@ -65,19 +65,19 @@ public :
     G4VDNAReactionModel& operator=(const G4VDNAReactionModel&) = delete;
     virtual ~G4VDNAReactionModel();
 
-    virtual void Initialise(const G4MolecularConfiguration*, const G4Track&) {;}
+    virtual void Initialise(const G4MolecularConfiguration*, const G4Track&) {}
     virtual void InitialiseToPrint(const G4MolecularConfiguration*) = 0 ;
     virtual G4double GetReactionRadius(const G4MolecularConfiguration*,
                                        const G4MolecularConfiguration*) = 0;
-    virtual G4double GetReactionRadius(int) = 0;
+    virtual G4double GetReactionRadius(const G4int&) = 0;
     virtual G4bool FindReaction(const G4Track&, const G4Track&,
                                 G4double /*reactionRadius*/,
-                                G4double& /*separationDistance*/,  // To be calculated
+                                G4double& /*separationDistance*/,
                                 G4bool /*hasReachedUserTimeLimit*/) = 0;
 
     void SetReactionTable(const G4DNAMolecularReactionTable*);
     const G4DNAMolecularReactionTable* GetReactionTable();
 
 protected :
-    const G4DNAMolecularReactionTable* fpReactionTable ;
+    const G4DNAMolecularReactionTable* fpReactionTable{nullptr} ;
 };

@@ -28,6 +28,7 @@
  *
  *  Created on: 1 févr. 2015
  *      Author: matkara
+ *      updated: HoangTran
  */
 
 #ifndef G4ITREACTIONINFO_HH_
@@ -40,53 +41,53 @@
 #include "G4Track.hh"
 #include <set>
 
-typedef G4shared_ptr< std::vector<G4Track*> > G4TrackVectorHandle;
+using G4TrackVectorHandle = G4shared_ptr< std::vector<G4Track*> >;
 
 #ifndef compTrackPerID__
 #define compTrackPerID__
-  struct compTrackPerID
+struct compTrackPerID
+{
+  G4bool operator()(G4Track* rhs, G4Track* lhs) const
   {
-    bool operator()(G4Track* rhs, G4Track* lhs) const
-    {
-      return rhs->GetTrackID() < lhs->GetTrackID();
-    }
-  };
+    return rhs->GetTrackID() < lhs->GetTrackID();
+  }
+};
 #endif
 
 class G4Track;
 class G4ITReactionSet;
 class G4ITReactionPerTrack;
 class G4ITReaction;
-typedef G4shared_ptr<G4ITReaction> G4ITReactionPtr;
-typedef G4shared_ptr<G4ITReactionPerTrack> G4ITReactionPerTrackPtr;
+using G4ITReactionPtr = G4shared_ptr<G4ITReaction>;
+using G4ITReactionPerTrackPtr = G4shared_ptr<G4ITReactionPerTrack>;
 
-typedef std::list<G4ITReactionPtr> G4ITReactionList;
-typedef std::map<G4Track*,
+using G4ITReactionList = std::list<G4ITReactionPtr>;
+using G4ITReactionPerTrackMap = std::map<G4Track*,
                  G4ITReactionPerTrackPtr,
-                 compTrackPerID> G4ITReactionPerTrackMap;
-typedef std::list<std::pair<G4ITReactionPerTrackPtr,
-                            G4ITReactionList::iterator> > G4ReactionPerTrackIt;
+                 compTrackPerID>;
+using G4ReactionPerTrackIt = std::list<std::pair<G4ITReactionPerTrackPtr,
+                            G4ITReactionList::iterator> >;
 
 struct compReactionPerTime
 {
-     bool operator()(G4ITReactionPtr rhs,
+     G4bool operator()(G4ITReactionPtr rhs,
                      G4ITReactionPtr lhs) const;
 };
 
-typedef std::multiset<G4ITReactionPtr, compReactionPerTime> G4ITReactionPerTime;
-typedef std::multiset<G4ITReactionPtr, compReactionPerTime>::iterator G4ITReactionPerTimeIt;
+using G4ITReactionPerTime = std::multiset<G4ITReactionPtr, compReactionPerTime>;
+using G4ITReactionPerTimeIt = std::multiset<G4ITReactionPtr, compReactionPerTime>::iterator;
 
 class G4ITReaction : public G4enable_shared_from_this<G4ITReaction>
 {
-  G4ITReaction(double time, G4Track*, G4Track*);
+  G4ITReaction(G4double time, G4Track*, G4Track*);
 public:
-  static G4ITReactionPtr New(double time, G4Track* trackA, G4Track* trackB)
+  static G4ITReactionPtr New(G4double time, G4Track* trackA, G4Track* trackB)
   {
     return G4ITReactionPtr(new G4ITReaction(time, trackA, trackB));
   }
   virtual ~G4ITReaction();
 
-  G4Track* GetReactant(G4Track* trackA)
+  G4Track* GetReactant(G4Track* trackA) const
   {
     if(fReactants.first != trackA) return fReactants.first;
     return fReactants.second;
@@ -94,14 +95,17 @@ public:
 
   std::pair<G4Track*, G4Track*> GetReactants() const{return fReactants;}
   std::size_t GetHash() const;
-  double GetTime() { return fTime; }
+  G4double GetTime() const
+  {
+    return fTime;
+  }
 
   void RemoveMe();
 
   void AddIterator(G4ITReactionPerTrackPtr reactionPerTrack,
                    G4ITReactionList::iterator it)
   {
-    fReactionPerTrack.push_back(std::make_pair(reactionPerTrack, it));
+    fReactionPerTrack.emplace_back(reactionPerTrack, it);
   }
 
   void AddIterator(G4ITReactionPerTimeIt it)
@@ -109,7 +113,7 @@ public:
     fReactionPerTimeIt = new G4ITReactionPerTimeIt(it);
   }
 
-  double fTime;
+  G4double fTime;
   std::pair<G4Track*, G4Track*> fReactants;
   G4ReactionPerTrackIt fReactionPerTrack;
   G4ITReactionPerTimeIt* fReactionPerTimeIt;
@@ -119,7 +123,7 @@ public:
 
 class G4ITReactionPerTrack  : public G4enable_shared_from_this<G4ITReactionPerTrack>
 {
-  G4ITReactionPerTrack(){}
+  G4ITReactionPerTrack() = default;
 public:
   static G4ITReactionPerTrackPtr New()
   {
@@ -133,7 +137,7 @@ public:
 
   void AddReaction(G4ITReactionPtr reaction)
   {
-    G4ITReactionList::iterator it =
+    auto it =
       fReactions.insert(fReactions.end(), reaction);
     reaction->AddIterator(this->shared_from_this(), it);
   }
@@ -143,13 +147,13 @@ public:
     fReactionSetIt.push_back(it);
   }
 
-  bool RemoveThisReaction(G4ITReactionList::iterator it);
+  G4bool RemoveThisReaction(G4ITReactionList::iterator it);
   void RemoveMe()
   {
     G4ITReactionPerTrackPtr backMeUp = this->shared_from_this();
 
     G4ITReactionList::iterator next;
-    for(G4ITReactionList::iterator it = fReactions.begin() ;
+    for(auto it = fReactions.begin() ;
         it !=  fReactions.end() ; it = next)
     {
       next = it;
@@ -177,7 +181,7 @@ protected:
 
 class G4ITReactionSet
 {
-  G4ITReactionSet() //: fReactionPerTime(compReactionPerTime())
+  G4ITReactionSet() : fReactionPerTime(compReactionPerTime())
   {
     fpInstance = this;
     fSortByTime = false;
@@ -191,29 +195,55 @@ public:
   
   static G4ITReactionSet* Instance()
   {
-    if(fpInstance == 0) new G4ITReactionSet();
+    if(fpInstance == nullptr) new G4ITReactionSet();
 
     return fpInstance;
   }
 
   //------------------------------------------------------------------------------------
 
-  void AddReaction(double time, G4Track* trackA, G4Track* trackB)
+  void AddReaction(G4double time, G4Track* trackA, G4Track* trackB)
   {
-    G4ITReactionPtr reaction(G4ITReaction::New(time, trackA, trackB));
-    AddReaction(trackA, reaction);
-    AddReaction(trackB, reaction);
-
-    if(fSortByTime)
+    if(CanAddThisReaction(trackA, trackB))
     {
-      G4ITReactionPerTime::iterator it = fReactionPerTime.insert(reaction);
-      reaction->AddIterator(it);
+      G4ITReactionPtr reaction(G4ITReaction::New(time, trackA, trackB));
+      AddReaction(trackA, reaction);
+      AddReaction(trackB, reaction);
+
+      if(fSortByTime)
+      {
+        auto it = fReactionPerTime.insert(reaction);
+        reaction->AddIterator(it);
+      }
     }
   }
 
-  void AddReactions(double time, G4Track* trackA, G4TrackVectorHandle reactants)
+//Hoang: this function checks if this reaction is added
+  G4bool CanAddThisReaction(G4Track* trackA, G4Track* trackB)
   {
-    std::vector<G4Track*>::iterator it = reactants->begin();
+      auto it_track = fReactionPerTrack.find(trackA);
+      G4ITReactionPerTrackPtr reactionPerTrack;
+      if(it_track == fReactionPerTrack.end())
+      {
+          return true;
+      }
+      
+      reactionPerTrack = it_track->second;
+      auto list = reactionPerTrack->GetReactionList();
+      //for(auto it_list = list.begin(); it_list != list.end(); ++it_list)
+      for(const auto& it_list:list)
+      {
+          if ((*it_list).GetReactant(trackA)->GetTrackID() == trackB->GetTrackID())
+          {
+              return false;
+          }
+      }
+      return true;
+  }
+
+  void AddReactions(G4double time, G4Track* trackA, G4TrackVectorHandle reactants)
+  {
+    auto it = reactants->begin();
     for(;it != reactants->end() ; ++it)
     {
       AddReaction(time, trackA, *it);
@@ -222,7 +252,7 @@ public:
 
   void RemoveReactionSet(G4Track* track)
   {
-    G4ITReactionPerTrackMap::iterator it = fReactionPerTrack.find(track);
+    auto it = fReactionPerTrack.find(track);
     if(it != fReactionPerTrack.end())
     {
       G4ITReactionPerTrackPtr backItUp = it->second->shared_from_this();
@@ -250,12 +280,9 @@ public:
 
   void RemoveReactionPerTrack(G4ITReactionPerTrackPtr reactionPerTrack)
   {
-    for(std::list<G4ITReactionPerTrackMap::iterator>::iterator it =
-            reactionPerTrack->GetListOfIterators().begin() ;
-        it != reactionPerTrack->GetListOfIterators().end() ;
-        ++it)
+    for(auto & it : reactionPerTrack->GetListOfIterators())
     {
-      fReactionPerTrack.erase(*it);
+      fReactionPerTrack.erase(it);
     }
     reactionPerTrack->GetListOfIterators().clear();
     reactionPerTrack->GetReactionList().clear();
@@ -263,7 +290,7 @@ public:
 
   void CleanAllReaction()
   {
-    for(G4ITReactionPerTrackMap::iterator it = fReactionPerTrack.begin();
+    for(auto it = fReactionPerTrack.begin();
         it != fReactionPerTrack.end() ;
         it = fReactionPerTrack.begin())
     {
@@ -273,7 +300,7 @@ public:
     fReactionPerTime.clear();
   }
 
-  bool Empty()
+  G4bool Empty()
   {
     return fReactionPerTrack.empty();
   }
@@ -283,10 +310,14 @@ public:
     return fReactionPerTime;
   }
 
+  void SortByTime(){
+	  fSortByTime = true;
+  }
+
 protected:
   void AddReaction(G4Track* track, G4ITReactionPtr reaction)
   {
-    G4ITReactionPerTrackMap::iterator it = fReactionPerTrack.find(track);
+    auto it = fReactionPerTrack.find(track);
 
     G4ITReactionPerTrackPtr reactionPerTrack;
 
@@ -302,12 +333,12 @@ protected:
      reactionPerTrack = it->second;
     }
 
-    reactionPerTrack->AddReaction(reaction);
+    reactionPerTrack->AddReaction(std::move(reaction));
   }
   G4ITReactionPerTrackMap fReactionPerTrack;
   G4ITReactionPerTime fReactionPerTime;
 
-  bool fSortByTime;
+  G4bool fSortByTime;
   static G4ThreadLocal G4ITReactionSet* fpInstance;
 };
 

@@ -28,7 +28,7 @@
 #define G4HumanPhantomAnalysisManager_HH
 
 #include "globals.hh"
-#include "g4root.hh"
+#include "G4AnalysisManager.hh"
 
 /*
 Author: Susanna Guatelli, University of Wollongong, Australia
@@ -48,7 +48,7 @@ class G4HumanPhantomAnalysisManager
 
 public:
   G4HumanPhantomAnalysisManager();
-  ~G4HumanPhantomAnalysisManager();
+  ~G4HumanPhantomAnalysisManager() = default;
   
 
   void book();
@@ -64,7 +64,7 @@ public:
  // results in the ROOT file
 
 private:
-    G4bool factoryOn; 
+    G4bool fFactoryOn; 
     G4int         fNtColId[MaxNtCol];
 };
 #endif

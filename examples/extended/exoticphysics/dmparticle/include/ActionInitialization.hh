@@ -23,13 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file exoticphysics/dmparticle/include/ActionInitialization.hh
+/// \file ActionInitialization.hh
 /// \brief Definition of the ActionInitialization class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef ActionInitialization_h
 #define ActionInitialization_h 1
@@ -42,19 +37,16 @@ class DetectorConstruction;
 
 class ActionInitialization : public G4VUserActionInitialization
 {
-public:
-  
-  ActionInitialization(DetectorConstruction*);
-  virtual ~ActionInitialization();
+  public:
+    ActionInitialization(DetectorConstruction*);
+    virtual ~ActionInitialization();
 
-  virtual void Build() const;
+    virtual void Build() const;
 
-  virtual void BuildForMaster() const;
+    virtual void BuildForMaster() const;
 
-private:
-
-  DetectorConstruction* fDetector;
-
+  private:
+    DetectorConstruction* fDetector;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

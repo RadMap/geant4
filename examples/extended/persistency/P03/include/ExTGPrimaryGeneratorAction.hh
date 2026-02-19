@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P03/include/ExTGPrimaryGeneratorAction.hh
+/// \file ExTGPrimaryGeneratorAction.hh
 /// \brief Definition of the ExTGPrimaryGeneratorAction class
-//
- 
+
 #ifndef ExTGPrimaryGeneratorAction_h
 #define ExTGPrimaryGeneratorAction_h 1
 
@@ -40,14 +39,12 @@ class G4Event;
 class ExTGPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-
-    ExTGPrimaryGeneratorAction(); 
-   ~ExTGPrimaryGeneratorAction();
+    ExTGPrimaryGeneratorAction();
+    ~ExTGPrimaryGeneratorAction();
 
     void GeneratePrimaries(G4Event*);
 
   private:
-
     G4ParticleGun* fParticleGun;
 };
 

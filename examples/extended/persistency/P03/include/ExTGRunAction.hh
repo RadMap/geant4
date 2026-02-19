@@ -23,9 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P03/include/ExTGRunAction.hh
+/// \file ExTGRunAction.hh
 /// \brief Definition of the ExTGRunAction class
-//
 
 #ifndef ExTGRunAction_h
 #define ExTGRunAction_h 1
@@ -40,9 +39,8 @@ class G4Run;
 class ExTGRunAction : public G4UserRunAction
 {
   public:
-
     ExTGRunAction();
-   ~ExTGRunAction();
+    ~ExTGRunAction();
 
     void BeginOfRunAction(const G4Run*);
     void EndOfRunAction(const G4Run*);

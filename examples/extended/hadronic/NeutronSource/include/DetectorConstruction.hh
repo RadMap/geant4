@@ -25,11 +25,6 @@
 //
 /// \file DetectorConstruction.hh
 /// \brief Definition of the DetectorConstruction class
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
@@ -46,57 +41,50 @@ class DetectorMessenger;
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-  
     DetectorConstruction();
-   ~DetectorConstruction();
+    ~DetectorConstruction() override;
 
   public:
-  
-    virtual G4VPhysicalVolume* Construct();
+    G4VPhysicalVolume* Construct() override;
 
-    G4Material* 
-    MaterialWithSingleIsotope(G4String, G4String, G4double, G4int, G4int);
-         
-    void SetAbsorRadius   (G4double);
-    void SetAbsorLength   (G4double);
-    void SetAbsorMaterial (G4String);
+    G4Material* MaterialWithSingleIsotope(G4String, G4String, G4double, G4int, G4int);
 
-    void SetContainThickness (G4double);
-    void SetContainMaterial (G4String);
+    void SetAbsorRadius(G4double);
+    void SetAbsorLength(G4double);
+    void SetAbsorMaterial(G4String);
+
+    void SetContainThickness(G4double);
+    void SetContainMaterial(G4String);
 
   public:
+    G4double GetAbsorRadius() { return fAbsorRadius; };
+    G4double GetAbsorLength() { return fAbsorLength; };
+    G4Material* GetAbsorMaterial() { return fAbsorMaterial; };
 
-     G4double           GetAbsorRadius()     {return fAbsorRadius;};
-     G4double           GetAbsorLength()     {return fAbsorLength;};
-     G4Material*        GetAbsorMaterial()   {return fAbsorMaterial;};
+    G4double GetContainThickness() { return fContainThickness; };
+    G4Material* GetContainMaterial() { return fContainMaterial; };
 
-     G4double           GetContainThickness()  {return fContainThickness;};
-     G4Material*        GetContainMaterial()   {return fContainMaterial;};
-
-     void               PrintParameters();
-
-  private:
-
-     G4double           fAbsorRadius, fAbsorLength;
-     G4Material*        fAbsorMaterial;
-     G4LogicalVolume*   fLAbsor;
-     
-     G4double           fContainThickness;
-     G4Material*        fContainMaterial;
-     G4LogicalVolume*   fLContain;
-
-     G4Material*        fWorldMaterial;
-     G4VPhysicalVolume* fPWorld;
-     
-     DetectorMessenger* fDetectorMessenger;
+    void PrintParameters();
 
   private:
-    
-     void               DefineMaterials();
-     G4VPhysicalVolume* ConstructVolumes();     
+    G4double fAbsorRadius = 0., fAbsorLength = 0.;
+    G4Material* fAbsorMaterial = nullptr;
+    G4LogicalVolume* fLAbsor = nullptr;
+
+    G4double fContainThickness = 0.;
+    G4Material* fContainMaterial = nullptr;
+    G4LogicalVolume* fLContain = nullptr;
+
+    G4Material* fWorldMaterial = nullptr;
+    G4VPhysicalVolume* fPWorld = nullptr;
+
+    DetectorMessenger* fDetectorMessenger = nullptr;
+
+  private:
+    void DefineMaterials();
+    G4VPhysicalVolume* ConstructVolumes();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

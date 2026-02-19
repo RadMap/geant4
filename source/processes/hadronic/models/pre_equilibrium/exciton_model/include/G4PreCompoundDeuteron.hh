@@ -36,7 +36,6 @@
 #define G4PreCompoundDeuteron_h 1
 
 #include "G4PreCompoundIon.hh"
-#include "G4DeuteronCoulombBarrier.hh"
 
 class G4PreCompoundDeuteron : public G4PreCompoundIon
 {
@@ -44,26 +43,23 @@ public:
 
   G4PreCompoundDeuteron();
 
-  ~G4PreCompoundDeuteron();
+  ~G4PreCompoundDeuteron() override = default;
 
-  virtual G4double GetRj(G4int NumberParticles, G4int NumberCharged) const;
-
-  virtual G4double FactorialFactor(G4int N, G4int P) const;
-
-  virtual G4double CoalescenceFactor(G4int A) const;
-
-  virtual G4double GetAlpha() const; 
-  
-private:
-
-  // operators
-  G4PreCompoundDeuteron(const G4PreCompoundDeuteron &right);
+  G4PreCompoundDeuteron(const G4PreCompoundDeuteron &right) = delete;
   const G4PreCompoundDeuteron& 
-  operator= (const G4PreCompoundDeuteron &right);
-  G4bool operator==(const G4PreCompoundDeuteron &right) const;
-  G4bool operator!=(const G4PreCompoundDeuteron &right) const;    
+  operator= (const G4PreCompoundDeuteron &right) = delete;
+  G4bool operator==(const G4PreCompoundDeuteron &right) const = delete;
+  G4bool operator!=(const G4PreCompoundDeuteron &right) const = delete;
 
-  G4DeuteronCoulombBarrier theDeuteronCoulombBarrier;
+protected:
+
+  G4double GetRj(G4int NumberParticles, G4int NumberCharged) const override;
+
+  G4double FactorialFactor(G4int N, G4int P) const override;
+
+  G4double CoalescenceFactor(G4int A) const override;
+
+  G4double GetAlpha() const override;
 };
 
 #endif

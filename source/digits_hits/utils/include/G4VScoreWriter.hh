@@ -23,27 +23,28 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4VScoreWriter
 //
+// Class description:
 //
-
+// This class represents storing the scored quantity into a file.
+//
+// Author: Makoto Asai
+// --------------------------------------------------------------------
 #ifndef G4VScoreWriter_h
 #define G4VScoreWriter_h 1
 
 #include "globals.hh"
+
 class G4VScoringMesh;
 
-// class description:
-//
-//  This class represents storing the scored quantity into a file.
-//
+class G4VScoreWriter
+{
+ public:
 
-class G4VScoreWriter {
+  G4VScoreWriter() = default;
+  virtual ~G4VScoreWriter() = default;
 
-public:
-  G4VScoreWriter();
-  virtual ~G4VScoreWriter();
-
-public:
   // store a quantity into a file
   virtual void DumpQuantityToFile(const G4String& psName,
                                   const G4String& fileName,
@@ -53,23 +54,23 @@ public:
                                        const G4String& option);
 
   // set a socring mesh to retrieve its quantities
-  void SetScoringMesh(G4VScoringMesh * sm); 
+  void SetScoringMesh(G4VScoringMesh* sm);
   // set a verbose level
   inline void SetVerboseLevel(G4int vl) { verboseLevel = vl; }
-  inline void SetFactor(G4double val=1.0) { fact = val; }
+  inline void SetFactor(G4double val = 1.0) { fact = val; }
   inline G4double GetFactor() const { return fact; }
 
-protected:
-  // get an index from (x,y,z) 
+ protected:
+
+  // get an index from (x,y,z)
   G4int GetIndex(G4int x, G4int y, G4int z) const;
 
-protected:
-  G4int fNMeshSegments[3]; // number of segments of the mesh
-  G4VScoringMesh * fScoringMesh;
-  G4int verboseLevel;
-  G4double fact;
+ protected:
 
+  G4int fNMeshSegments[3] = {0, 0, 0};  // number of segments of the mesh
+  G4VScoringMesh* fScoringMesh = nullptr;
+  G4int verboseLevel = 0;
+  G4double fact = 1.0;
 };
 
 #endif
-

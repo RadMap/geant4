@@ -52,11 +52,13 @@ public: // With description
 
   G4Visible ();
   G4Visible (const G4Visible&);
+  G4Visible (G4Visible&&);
   G4Visible (const G4VisAttributes*);
 
   virtual ~G4Visible ();
 
   G4Visible& operator= (const G4Visible&);
+  G4Visible& operator= (G4Visible&&);
 
   G4bool operator != (const G4Visible& right) const;
 
@@ -75,8 +77,13 @@ public: // With description
   // A copy of the G4VisAttributes object is created on the heap to
   // ensure a long life.
 
+  // Access functions to the string for user customizable information
+  virtual   const G4String&  GetInfo() const;
+  virtual   void             SetInfo(const G4String& info);
+
 protected:
 
+  G4String  fInfo;   // String for user customizable information
   const G4VisAttributes* fpVisAttributes;
   G4bool fAllocatedVisAttributes;
 };

@@ -74,14 +74,11 @@ G4double G4AtimaEnergyLossModel::tableE[] = {0.0};
 G4AtimaEnergyLossModel::G4AtimaEnergyLossModel(const G4ParticleDefinition*, 
                                      const G4String& nam)
   : G4VEmModel(nam),
-    particle(nullptr),
-    tlimit(DBL_MAX),
-    isIon(false)
+    particle(nullptr)
 {
   g4calc = G4Pow::GetInstance();
   fParticleChange = nullptr;
   theElectron = G4Electron::Electron();
-  SetParticle(theElectron);
   corr = G4LossTableManager::Instance()->EmCorrections();  
   nist = G4NistManager::Instance();
   SetLowEnergyLimit(2.0*MeV);
@@ -103,8 +100,7 @@ G4AtimaEnergyLossModel::G4AtimaEnergyLossModel(const G4ParticleDefinition*,
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4AtimaEnergyLossModel::~G4AtimaEnergyLossModel()
-{}
+G4AtimaEnergyLossModel::~G4AtimaEnergyLossModel() = default;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -272,21 +268,16 @@ G4double G4AtimaEnergyLossModel::ComputeDEDXPerVolume(const G4Material* material
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void G4AtimaEnergyLossModel::CorrectionsAlongStep(const G4MaterialCutsCouple* couple,
-                                             const G4DynamicParticle* dp,
-                                             G4double& eloss,
-                                             G4double&,
-                                             G4double length)
+void G4AtimaEnergyLossModel::CorrectionsAlongStep(const G4Material* mat,
+						  const G4ParticleDefinition* p,
+						  const G4double kinEnergy,
+						  const G4double cutEnergy,
+                                                  const G4double& length,
+                                                  G4double& eloss)
 {
-  if(isIon) {
-    const G4ParticleDefinition* p = dp->GetDefinition();
-    const G4Material* mat = couple->GetMaterial();
-    G4double cutEnergy = DBL_MAX;
-    GetModelOfFluctuations()->SetParticleAndCharge(p, p->GetPDGCharge());
-    G4double kineticEnergy = dp->GetKineticEnergy();
-    eloss = ComputeDEDXPerVolume(mat, p, kineticEnergy, cutEnergy)*length/(cm);   
+  if (isIon) {
+    eloss = ComputeDEDXPerVolume(mat, p, kinEnergy, cutEnergy)*length/(cm);
   }
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -391,8 +382,7 @@ void G4AtimaEnergyLossModel::SampleSecondaries(vector<G4DynamicParticle*>* vdp,
            << G4endl;
   */
   // create G4DynamicParticle object for delta ray
-  G4DynamicParticle* delta = 
-    new G4DynamicParticle(theElectron,deltaDirection,deltaKinEnergy);
+  auto delta = new G4DynamicParticle(theElectron,deltaDirection,deltaKinEnergy);
 
   vdp->push_back(delta);
 

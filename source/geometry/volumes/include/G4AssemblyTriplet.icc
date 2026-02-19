@@ -25,6 +25,7 @@
 // 
 // Class G4AssemblyTriplet - inline implementation
 //
+// Author: Radovan Chytracek (CERN), November 2000
 // ----------------------------------------------------------------------
 
 inline
@@ -65,9 +66,7 @@ G4AssemblyTriplet::G4AssemblyTriplet( const G4AssemblyTriplet& scopy )
 }
 
 inline
-G4AssemblyTriplet::~G4AssemblyTriplet()
-{
-}
+G4AssemblyTriplet::~G4AssemblyTriplet() = default;
 
 inline
 G4LogicalVolume* G4AssemblyTriplet::GetVolume() const

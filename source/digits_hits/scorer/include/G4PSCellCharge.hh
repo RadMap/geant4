@@ -38,32 +38,27 @@
 //
 // Created: 2007-08-20  Tsukasa ASO
 // 2010-07-22   Introduce Unit specification.
-// 
+//
 ///////////////////////////////////////////////////////////////////////////////
-
 
 class G4PSCellCharge : public G4VPrimitiveScorer
 {
-   public: // with description
-      G4PSCellCharge(G4String name, G4int depth=0);
-      G4PSCellCharge(G4String name, const G4String& unit, G4int depth=0);
-      virtual ~G4PSCellCharge();
+ public:
+  G4PSCellCharge(const G4String& name, G4int depth = 0);
+  G4PSCellCharge(const G4String& name, const G4String& unit, G4int depth = 0);
+  ~G4PSCellCharge() override = default;
 
-  protected: // with description
-      virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
+  void Initialize(G4HCofThisEvent*) override;
+  void clear() override;
+  void PrintAll() override;
 
-  public: 
-      virtual void Initialize(G4HCofThisEvent*);
-      virtual void EndOfEvent(G4HCofThisEvent*);
-      virtual void clear();
-      virtual void DrawAll();
-      virtual void PrintAll();
+  virtual void SetUnit(const G4String& unit);
 
-      virtual void SetUnit(const G4String& unit);
+ protected:
+  G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
 
-  private:
-      G4int HCID;
-      G4THitsMap<G4double>* EvtMap;
+ private:
+  G4int HCID;
+  G4THitsMap<G4double>* EvtMap;
 };
 #endif
-

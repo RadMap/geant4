@@ -35,7 +35,6 @@
 #include "G4MolecularConfiguration.hh"
 #include "G4MoleculeDefinition.hh"
 #include "G4UIcommand.hh"
-#include "G4AllocatorList.hh"
 #include "G4AutoLock.hh"
 #include "G4MoleculeTable.hh"
 #include "G4Serialize.hh"
@@ -56,10 +55,9 @@ using namespace std;
 
 //______________________________________________________________________________
 // G4MolecularConfigurationManager
-typedef G4MolecularConfiguration::G4MolecularConfigurationManager
-    MolecularConfigurationManager;
+using MolecularConfigurationManager = G4MolecularConfiguration::G4MolecularConfigurationManager;
 
-MolecularConfigurationManager* G4MolecularConfiguration::fgManager = 0;
+MolecularConfigurationManager* G4MolecularConfiguration::fgManager = nullptr;
 
 G4Mutex MolecularConfigurationManager::fManagerCreationMutex;
 
@@ -87,7 +85,7 @@ G4MolecularConfiguration::G4MolecularConfiguration(const G4MoleculeDefinition* m
   fMoleculeID = GetManager()->Insert(moleculeDef,
                                      label,
                                      this);
-  fElectronOccupancy = 0;
+  fElectronOccupancy = nullptr;
 
   fDynCharge = charge;
 
@@ -129,10 +127,10 @@ void G4MolecularConfiguration::MakeExceptionIfFinalized()
 G4MolecularConfiguration::G4MolecularConfigurationManager*
 G4MolecularConfiguration::GetManager()
 {
-  if (!fgManager)
+  if (fgManager == nullptr)
   {
     G4AutoLock lock(&MolecularConfigurationManager::fManagerCreationMutex);
-    if (!fgManager) // double check for MT
+    if (fgManager == nullptr) // double check for MT
     {
       fgManager = new G4MolecularConfiguration::
           G4MolecularConfigurationManager();
@@ -148,10 +146,6 @@ G4MolecularConfiguration::GetManager()
 G4MolecularConfiguration::
 G4MolecularConfigurationManager::~G4MolecularConfigurationManager()
 {
-//  G4cout << "Does G4AllocatorList exists= ";
-//  G4cout << (G4AllocatorList::GetAllocatorListIfExist() ? "true":"false")
-//      << G4endl;
-
   G4MolecularConfigurationManager::MolElectronConfTable::iterator it1;
   G4MolecularConfigurationManager::ElectronOccupancyTable::
     iterator it2;
@@ -160,14 +154,14 @@ G4MolecularConfigurationManager::~G4MolecularConfigurationManager()
   {
     for (it2 = it1->second.begin(); it2 != it1->second.end(); it2++)
     {
-      if (it2->second)
-      {
+      
+      
         delete it2->second;
-      }
+      
     }
   }
   fElecOccTable.clear();
-  fgManager = 0;
+  fgManager = nullptr;
 }
 
 //______________________________________________________________________________
@@ -181,7 +175,7 @@ Insert(const G4MoleculeDefinition* molDef,
   //G4AutoLock lock(&fMoleculeCreationMutex);
 
   ElectronOccupancyTable& table2 = fElecOccTable[molDef];
-  ElectronOccupancyTable::iterator it = table2.find(eOcc);
+  auto it = table2.find(eOcc);
 
   if(it == table2.end())
   {
@@ -218,23 +212,23 @@ FindCommonElectronOccupancy(const G4MoleculeDefinition* molDef,
 {
   //G4AutoLock lock(&fMoleculeCreationMutex);
 
-  MolElectronConfTable::iterator it1 = fElecOccTable.find(molDef);
+  auto it1 = fElecOccTable.find(molDef);
 
   if(it1 == fElecOccTable.end())
   {
     // TODO = handle exception ?
-    return 0;
+    return nullptr;
   }
 
   ElectronOccupancyTable& table2 = it1->second;
-  ElectronOccupancyTable::iterator it2 = table2.find(eOcc);
+  auto it2 = table2.find(eOcc);
 
   //lock.unlock();
 
   if (it2 == table2.end())
   {
     // TODO = handle exception ?
-    return 0;
+    return nullptr;
   }
 
   return &(it2->first);
@@ -247,23 +241,19 @@ G4MolecularConfiguration::G4MolecularConfigurationManager::
 GetMolecularConfiguration(const G4MoleculeDefinition* molDef,
                           const G4ElectronOccupancy& eOcc)
 {
-  MolElectronConfTable::iterator it1 = fElecOccTable.find(molDef);
+  auto it1 = fElecOccTable.find(molDef);
 
-  if(it1 == fElecOccTable.end()) return 0;
+  if(it1 == fElecOccTable.end()) return nullptr;
 
   ElectronOccupancyTable& table2 = it1->second;
-  ElectronOccupancyTable::iterator it = table2.find(eOcc);
+  auto it = table2.find(eOcc);
 
   if(it == table2.end())
   {
-    return 0;
+    return nullptr;
   }
-  else
-  {
-    return it->second;
-  }
-
-  return 0;
+  
+  return it->second;
 }
 
 //______________________________________________________________________________
@@ -276,7 +266,7 @@ Insert(const G4MoleculeDefinition* molDef,
 
   //G4AutoLock lock(&fMoleculeCreationMutex);
   ChargeTable& table2 = fChargeTable[molDef];
-  ChargeTable::iterator it = table2.find(charge);
+  auto it = table2.find(charge);
 
   if(it == table2.end())
   {
@@ -309,26 +299,20 @@ GetMolecularConfiguration(const G4MoleculeDefinition* molDef,
 {
   //G4AutoLock lock(&fMoleculeCreationMutex);
 
-  MolChargeConfTable::iterator it1 = fChargeTable.find(molDef);
+  auto it1 = fChargeTable.find(molDef);
 
-  if(it1 == fChargeTable.end()) return 0;
+  if(it1 == fChargeTable.end()) return nullptr;
 
   ChargeTable& table2 = it1->second;
-  ChargeTable::iterator it = table2.find(charge);
+  auto it = table2.find(charge);
 
   if(it == table2.end())
   {
-    return 0;
+    return nullptr;
   }
-  else
-  {
-    return it->second;
-  }
-
-  return 0;
-
-  //lock.unlock();
-  return 0;
+  
+  return it->second;
+ 
 }
 
 //______________________________________________________________________________
@@ -337,42 +321,36 @@ G4MolecularConfiguration*
 G4MolecularConfiguration::
 GetOrCreateMolecularConfiguration(const G4MoleculeDefinition* molDef)
 {
-  if (molDef->GetGroundStateElectronOccupancy())
+  if (molDef->GetGroundStateElectronOccupancy() != nullptr)
   {
     const G4ElectronOccupancy& elecOcc =
         *molDef->GetGroundStateElectronOccupancy();
     G4MolecularConfiguration* molConf =
         GetManager()->GetMolecularConfiguration(molDef, elecOcc);
 
-    if (molConf)
+    if (molConf != nullptr)
     {
       return molConf;
     }
-    else
-    {
-      G4MolecularConfiguration* newConf =
-          new G4MolecularConfiguration(molDef,
-                                       elecOcc);
-      newConf->SetUserID(molDef->GetName());
-      return newConf;
-    }
+    
+    auto  newConf =
+        new G4MolecularConfiguration(molDef,
+                                     elecOcc);
+    newConf->SetUserID(molDef->GetName());
+    return newConf;
   }
-  else
+  
+  G4MolecularConfiguration* molConf =
+      GetManager()->GetMolecularConfiguration(molDef, molDef->GetCharge());
+  if(molConf != nullptr)
   {
-    G4MolecularConfiguration* molConf =
-        GetManager()->GetMolecularConfiguration(molDef, molDef->GetCharge());
-    if(molConf)
-    {
-      return molConf;
-    }
-    else
-    {
-      G4MolecularConfiguration* newConf =
-          new G4MolecularConfiguration(molDef, molDef->GetCharge());
-      newConf->SetUserID(molDef->GetName());
-      return newConf;
-    }
+    return molConf;
   }
+    
+  auto  newConf =
+      new G4MolecularConfiguration(molDef, molDef->GetCharge());
+  newConf->SetUserID(molDef->GetName());
+  return newConf;
 }
 
 //______________________________________________________________________________
@@ -409,16 +387,14 @@ GetOrCreateMolecularConfiguration(const G4MoleculeDefinition* molDef,
   G4MolecularConfiguration* molConf =
       GetManager()->GetMolecularConfiguration(molDef, charge);
 
-  if(molConf)
+  if(molConf != nullptr)
   {
     return molConf;
   }
-  else
-  {
-    G4MolecularConfiguration* newConf =
-        new G4MolecularConfiguration(molDef, charge);
-    return newConf;
-  }
+  
+  auto  newConf =
+      new G4MolecularConfiguration(molDef, charge);
+  return newConf;
 }
 
 //______________________________________________________________________________
@@ -426,8 +402,8 @@ GetOrCreateMolecularConfiguration(const G4MoleculeDefinition* molDef,
 void G4MolecularConfiguration::DeleteManager()
 {
   G4AutoLock lock(&MolecularConfigurationManager::fManagerCreationMutex);
-  if (fgManager) delete fgManager;
-  fgManager = 0;
+  delete fgManager;
+  fgManager = nullptr;
   lock.unlock();
 }
 
@@ -472,9 +448,9 @@ G4MolecularConfiguration(const G4MoleculeDefinition* moleculeDef,
   fFormatedName += G4UIcommand::ConvertToString(fDynCharge);
   fFormatedName += "}";
 
-  fLabel = 0; // let it here
+  fLabel = nullptr; // let it here
 
-  if(label != "")
+  if(!label.empty())
   {
     SetLabel(label);
   }
@@ -495,7 +471,7 @@ G4MolecularConfiguration(const G4MoleculeDefinition* moleculeDef,
   fMoleculeID = GetManager()->Insert(moleculeDef,
                                      charge,
                                      this);
-  fElectronOccupancy = 0;
+  fElectronOccupancy = nullptr;
 
   fDynCharge = charge;
   fDynMass = fMoleculeDefinition->GetMass();
@@ -514,7 +490,7 @@ G4MolecularConfiguration(const G4MoleculeDefinition* moleculeDef,
   fFormatedName += G4UIcommand::ConvertToString(fDynCharge);
   fFormatedName += "}";
 
-  fLabel = 0;
+  fLabel = nullptr;
 
   fDiffParam = &G4MolecularConfiguration::ReturnDefaultDiffCoeff;
 
@@ -525,16 +501,7 @@ G4MolecularConfiguration(const G4MoleculeDefinition* moleculeDef,
 
 G4MolecularConfiguration::~G4MolecularConfiguration()
 {
-  if (fgManager) fgManager->RemoveMolecularConfigurationFromTable(this);
-
-//  if (G4AllocatorList::GetAllocatorListIfExist())
-//  {
-//    if (fElectronOccupancy)
-//    {
-//      delete fElectronOccupancy;
-//      fElectronOccupancy = 0;
-//    }
-//  }
+  if (fgManager != nullptr) fgManager->RemoveMolecularConfigurationFromTable(this);
 }
 
 //______________________________________________________________________________
@@ -547,7 +514,7 @@ ChangeConfiguration(const G4ElectronOccupancy& newElectronOccupancy) const
       GetManager()->GetMolecularConfiguration(fMoleculeDefinition,
                                               newElectronOccupancy);
 
-  if (!output)
+  if (output == nullptr)
   {
     output = new G4MolecularConfiguration(fMoleculeDefinition,
                                           newElectronOccupancy);
@@ -563,7 +530,7 @@ G4MolecularConfiguration::ChangeConfiguration(int charge) const
   G4MolecularConfiguration* output =
       GetManager()->GetMolecularConfiguration(fMoleculeDefinition, charge);
 
-  if (!output)
+  if (output == nullptr)
   {
     output = new G4MolecularConfiguration(fMoleculeDefinition, charge);
   }
@@ -705,14 +672,6 @@ G4MolecularConfiguration::MoveOneElectron(G4int orbitToFree,
 
 const G4String& G4MolecularConfiguration::GetName() const
 {
-//  if (fName.isNull())
-//  {
-//    fName = fMoleculeDefinition->GetName();
-//    fName += "^";
-//    // fName+= "{";
-//    fName += G4UIcommand::ConvertToString(fDynCharge);
-//    // fName+= "}";
-//  }
   return fName;
 }
 
@@ -720,14 +679,6 @@ const G4String& G4MolecularConfiguration::GetName() const
 
 const G4String& G4MolecularConfiguration::GetFormatedName() const
 {
-//  if (fFormatedName.isNull())
-//  {
-//    fFormatedName = fMoleculeDefinition->GetFormatedName();
-//    fFormatedName += "^";
-//    fFormatedName += "{";
-//    fFormatedName += G4UIcommand::ConvertToString(fDynCharge);
-//    fFormatedName += "}";
-//  }
   return fFormatedName;
 }
 
@@ -753,7 +704,7 @@ void G4MolecularConfiguration::PrintState() const
   G4cout << "-------------- Start Printing State " << GetName()
          << " ---------------" << G4endl;
 
-  if (fElectronOccupancy)
+  if (fElectronOccupancy != nullptr)
   {
     G4cout << "--------------Print electronic state of " << GetName()
            << "---------------" << G4endl;
@@ -772,7 +723,7 @@ void G4MolecularConfiguration::PrintState() const
          << fDynCharge
          << G4endl;
 
-  if(fLabel)
+  if(fLabel != nullptr)
   {
     G4cout << "Label :"
            << GetLabel()
@@ -796,8 +747,8 @@ const vector<const G4MolecularDissociationChannel*>*
 
 G4int G4MolecularConfiguration::GetFakeParticleID() const
 {
-  if(fMoleculeDefinition) return fMoleculeDefinition->GetPDGEncoding();
-  else G4Exception("G4MolecularConfiguration::GetMoleculeID",
+  if(fMoleculeDefinition != nullptr) return fMoleculeDefinition->GetPDGEncoding();
+  G4Exception("G4MolecularConfiguration::GetMoleculeID",
                    "",
                    FatalErrorInArgument,
                    "You should first enter a molecule definition");
@@ -810,10 +761,10 @@ G4int G4MolecularConfiguration::GetFakeParticleID() const
 const char* removePath(const char* path)
 {
   const char* pDelimeter = strrchr(path, '\\');
-  if (pDelimeter) path = pDelimeter + 1;
+  if (pDelimeter != nullptr) path = pDelimeter + 1;
 
   pDelimeter = strrchr(path, '/');
-  if (pDelimeter) path = pDelimeter + 1;
+  if (pDelimeter != nullptr) path = pDelimeter + 1;
 
   return path;
 }
@@ -822,7 +773,7 @@ const char* removePath(const char* path)
 
 void G4MolecularConfiguration::CheckElectronOccupancy(const char* function) const
 {
-  if (fElectronOccupancy == 0)
+  if (fElectronOccupancy == nullptr)
   {
     G4String functionName(function);
     G4ExceptionDescription description;
@@ -845,7 +796,7 @@ RecordNewlyLabeledConfiguration(G4MolecularConfiguration* molConf)
 
   LabelTable& tmpMap = fLabelTable[molConf->fMoleculeDefinition];
 
-  LabelTable::iterator it = tmpMap.find(*molConf->fLabel);
+  auto it = tmpMap.find(*molConf->fLabel);
 
   if(it == tmpMap.end())
   {
@@ -868,7 +819,7 @@ RecordNewlyLabeledConfiguration(G4MolecularConfiguration* molConf)
 void G4MolecularConfiguration::G4MolecularConfigurationManager::AddUserID(const G4String& userID,
                                                                           G4MolecularConfiguration* molecule)
 {
-  UserIDTable::iterator it = fUserIDTable.find(userID);
+  auto it = fUserIDTable.find(userID);
 
   if(it == fUserIDTable.end())
   {
@@ -894,14 +845,13 @@ void G4MolecularConfiguration::G4MolecularConfigurationManager::AddUserID(const 
 void G4MolecularConfiguration::G4MolecularConfigurationManager::
 RemoveMolecularConfigurationFromTable(G4MolecularConfiguration* configuration)
 {
-  MolElectronConfTable::iterator it1 =
+  auto it1 =
       fElecOccTable.find(configuration->GetDefinition());
-  MolElectronConfTable::iterator end = fElecOccTable.end();
+  auto end = fElecOccTable.end();
 
   if (it1 == end) return;
 
-  std::map<G4ElectronOccupancy, G4MolecularConfiguration*, comparator>::
-    iterator it2 =
+  auto it2 =
       it1->second.find(*configuration->GetElectronOccupancy());
 
   if (it2 == it1->second.end()) return;
@@ -909,7 +859,7 @@ RemoveMolecularConfigurationFromTable(G4MolecularConfiguration* configuration)
   it2->second = 0;
 //  it1->second.erase(it2);
 
-  configuration->fElectronOccupancy = 0;
+  configuration->fElectronOccupancy = nullptr;
 }
 
 //______________________________________________________________________________
@@ -921,17 +871,17 @@ GetMolecularConfiguration(const G4MoleculeDefinition* molDef,
 {
   //G4AutoLock lock(&fMoleculeCreationMutex);
 
-  MolLabelConfTable::iterator it1 = fLabelTable.find(molDef);
+  auto it1 = fLabelTable.find(molDef);
 
-  if(it1 == fLabelTable.end()) return 0;
+  if(it1 == fLabelTable.end()) return nullptr;
 
   LabelTable& table2 = it1->second;
 
-  LabelTable::iterator it2 = table2.find(label);
+  auto it2 = table2.find(label);
 
   //lock.unlock();
 
-  if(it2 == table2.end()) return 0;
+  if(it2 == table2.end()) return nullptr;
   return it2->second;
 }
 
@@ -942,7 +892,7 @@ G4MolecularConfiguration::G4MolecularConfigurationManager::
 GetMolecularConfiguration(int moleculeID)
 {
   if(moleculeID > (int) fMolConfPerID.size() ||
-     moleculeID < 0) return 0;
+     moleculeID < 0) return nullptr;
 
   return fMolConfPerID[moleculeID];
 }
@@ -957,7 +907,7 @@ Insert(const G4MoleculeDefinition* molDef,
 {
   G4AutoLock lock(&fMoleculeCreationMutex);
   LabelTable& tmpMap = fLabelTable[molDef];
-  LabelTable::iterator it = tmpMap.find(label);
+  auto it = tmpMap.find(label);
 
   if(it == tmpMap.end())
   {
@@ -1012,9 +962,9 @@ G4MolecularConfiguration::CreateMolecularConfiguration(const G4String& userIdent
   G4MolecularConfiguration* molConf =
       GetManager()->GetMolecularConfiguration(molDef, charge);
 
-  if (molConf)
+  if (molConf != nullptr)
   {
-    if(molConf->fLabel == 0)
+    if(molConf->fLabel == nullptr)
     {
       molConf->SetLabel(label);
       G4ExceptionDescription wMsg ;
@@ -1027,7 +977,7 @@ G4MolecularConfiguration::CreateMolecularConfiguration(const G4String& userIdent
                   JustWarning,
                   wMsg);
     }
-    else if(*(molConf->fLabel) == "" )
+    else if(molConf->fLabel->empty() )
     {
       molConf->SetLabel(label);
     }
@@ -1046,7 +996,7 @@ G4MolecularConfiguration::CreateMolecularConfiguration(const G4String& userIdent
       // KILL APP
     }
 
-    if(molConf->fUserIdentifier == "")
+    if(molConf->fUserIdentifier.empty())
     {
       molConf->fUserIdentifier = userIdentifier;
 
@@ -1077,18 +1027,16 @@ G4MolecularConfiguration::CreateMolecularConfiguration(const G4String& userIdent
     wasAlreadyCreated = true;
     return molConf;
   }
-  else
-  {
-    G4MolecularConfiguration* newConf =
-        new G4MolecularConfiguration(molDef, label, charge);
-    newConf->fUserIdentifier = userIdentifier;
+  
+  auto  newConf =
+      new G4MolecularConfiguration(molDef, label, charge);
+  newConf->fUserIdentifier = userIdentifier;
 
-    GetManager()->AddUserID(userIdentifier, newConf);
+  GetManager()->AddUserID(userIdentifier, newConf);
 
 //    G4MoleculeTable::Instance()->RecordMolecularConfiguration(userIdentifier,
 //                                                              newConf);
-    return newConf;
-  }
+  return newConf;
 }
 
 //______________________________________________________________________________
@@ -1103,7 +1051,7 @@ CreateMolecularConfiguration(const G4String& userIdentifier,
   G4MolecularConfiguration* preRegisteredMolConf =
       GetManager()->GetMolecularConfiguration(userIdentifier);
 
-  if(preRegisteredMolConf)
+  if(preRegisteredMolConf != nullptr)
   {
     if(preRegisteredMolConf->GetDefinition() == molDef)
     {
@@ -1112,16 +1060,16 @@ CreateMolecularConfiguration(const G4String& userIdentifier,
     }
   }
 
-  if(molDef->GetGroundStateElectronOccupancy())
+  if(molDef->GetGroundStateElectronOccupancy() != nullptr)
   {
     const G4ElectronOccupancy& elecOcc = *molDef
         ->GetGroundStateElectronOccupancy();
     G4MolecularConfiguration* molConf =
         GetManager()->GetMolecularConfiguration(molDef, elecOcc);
 
-    if(molConf)
+    if(molConf != nullptr)
     {
-      if(molConf->fUserIdentifier == "")
+      if(molConf->fUserIdentifier.empty())
       {
         molConf->fUserIdentifier = userIdentifier;
       }
@@ -1148,28 +1096,24 @@ CreateMolecularConfiguration(const G4String& userIdentifier,
       wasAlreadyCreated = true;
       return molConf;
     }
-    else
-    {
-      // G4cout << "Create molConf for " << molDef->GetName() << G4endl;
-      G4MolecularConfiguration* newConf = new G4MolecularConfiguration(molDef,
-                                                                       elecOcc);
-      newConf->fUserIdentifier = userIdentifier;
+    
+    // G4cout << "Create molConf for " << molDef->GetName() << G4endl;
+    auto  newConf = new G4MolecularConfiguration(molDef,
+                                                                    elecOcc);
+    newConf->fUserIdentifier = userIdentifier;
 
-      GetManager()->AddUserID(userIdentifier, newConf);
+    GetManager()->AddUserID(userIdentifier, newConf);
 
 //      G4MoleculeTable::Instance()->RecordMolecularConfiguration(userIdentifier,
 //                                                                newConf);
-      return newConf;
-    }
+    return newConf;
   }
-  else
-  {
-    return CreateMolecularConfiguration(userIdentifier,
-                                        molDef,
-                                        molDef->GetName(),
-                                        molDef->GetCharge(),
-                                        wasAlreadyCreated);
-  }
+  
+  return CreateMolecularConfiguration(userIdentifier,
+                                      molDef,
+                                      molDef->GetName(),
+                                      molDef->GetCharge(),
+                                      wasAlreadyCreated);
 }
 
 //______________________________________________________________________________
@@ -1186,21 +1130,21 @@ CreateMolecularConfiguration(const G4String& userIdentifier,
 
   G4MolecularConfiguration* molConf =
       GetManager()->GetMolecularConfiguration(molDef, label);
-  if(molConf)
+  if(molConf != nullptr)
   {
-    if(molConf->fLabel
+    if((molConf->fLabel != nullptr)
        && *molConf->fLabel == label)
     {
       wasAlreadyCreated = true;
       return molConf;
     }
-    else if(molConf->fLabel == 0)
+    if(molConf->fLabel == nullptr)
     {
       wasAlreadyCreated = true;
       molConf->SetLabel(label);
       return molConf;
     }
-    else if(*molConf->fLabel == "")
+    if(molConf->fLabel->empty())
     {
       wasAlreadyCreated = true;
       molConf->SetLabel(label);
@@ -1223,7 +1167,7 @@ CreateMolecularConfiguration(const G4String& userIdentifier,
   }
   else
   {
-    G4MolecularConfiguration* newConf =
+    auto  newConf =
       new G4MolecularConfiguration(molDef,
                                    label,
                                    molDef->GetCharge());
@@ -1254,24 +1198,24 @@ CreateMolecularConfiguration(const G4String& userIdentifier,
   G4MolecularConfiguration* molConf =
       GetManager()->GetMolecularConfiguration(molDef, eOcc);
 
-  if(molConf)
+  if(molConf != nullptr)
   {
-    if(molConf->GetElectronOccupancy())
+    if(molConf->GetElectronOccupancy() != nullptr)
     {
       if(*molConf->GetElectronOccupancy() == eOcc)
       {
-        if(molConf->fLabel && *molConf->fLabel == label)
+        if((molConf->fLabel != nullptr) && *molConf->fLabel == label)
         {
           wasAlreadyCreated = true;
           return molConf;
         }
-        else if(molConf->fLabel == 0)
+        if(molConf->fLabel == nullptr)
         {
           wasAlreadyCreated = true;
           molConf->SetLabel(label);
           return molConf;
         }
-        else if(*molConf->fLabel == "")
+        if(molConf->fLabel->empty())
         {
           wasAlreadyCreated = true;
           molConf->SetLabel(label);
@@ -1296,7 +1240,7 @@ CreateMolecularConfiguration(const G4String& userIdentifier,
   }
   else
   {
-    G4MolecularConfiguration* newConf =
+    auto  newConf =
       new G4MolecularConfiguration(molDef,
                                    eOcc,
                                    label);
@@ -1319,7 +1263,7 @@ G4MolecularConfiguration::G4MolecularConfigurationManager::
 GetOrCreateMolecularConfiguration(const G4MoleculeDefinition* molDef,
                                   const G4ElectronOccupancy& eOcc)
 {
-  MolElectronConfTable::iterator it1 = fElecOccTable.find(molDef);
+  auto it1 = fElecOccTable.find(molDef);
 
   if(it1 == fElecOccTable.end())
   {
@@ -1327,21 +1271,17 @@ GetOrCreateMolecularConfiguration(const G4MoleculeDefinition* molDef,
   }
 
   ElectronOccupancyTable& table2 = it1->second;
-  ElectronOccupancyTable::iterator it = table2.find(eOcc);
+  auto it = table2.find(eOcc);
 
   if(it == table2.end())
   {
-    G4MolecularConfiguration* molConf =
+    auto  molConf =
         new G4MolecularConfiguration(molDef, eOcc);
 //    molConf->Finalize();
     return molConf;
   }
-  else
-  {
-    return it->second;
-  }
-
-  return 0;
+  
+  return it->second;
 }
 
 //______________________________________________________________________________
@@ -1351,34 +1291,30 @@ G4MolecularConfiguration::G4MolecularConfigurationManager::
 GetOrCreateMolecularConfiguration(const G4MoleculeDefinition* molDef,
                                   int charge)
 {
-  MolChargeConfTable::iterator it1 = fChargeTable.find(molDef);
+  auto it1 = fChargeTable.find(molDef);
 
   if(it1 == fChargeTable.end())
   {
     G4AutoLock lock(&fMoleculeCreationMutex);
 
-    G4MolecularConfiguration* newConf = new G4MolecularConfiguration(molDef, charge);
+    auto  newConf = new G4MolecularConfiguration(molDef, charge);
     return newConf ;
   }
 
   ChargeTable& table2 = it1->second;
-  ChargeTable::iterator it = table2.find(charge);
+  auto it = table2.find(charge);
 
   if(it == table2.end())
   {
     G4AutoLock lock(&fMoleculeCreationMutex);
 
-    G4MolecularConfiguration* newConf =
+    auto  newConf =
         new G4MolecularConfiguration(molDef, charge);
 //    newConf->Finalize();
     return newConf ;
   }
-  else
-  {
-    return it->second;
-  }
-
-  return 0;
+  
+  return it->second;
 }
 
 //______________________________________________________________________________
@@ -1442,27 +1378,27 @@ G4MolecularConfiguration* G4MolecularConfiguration::Load(std::istream& in)
 
 G4MolecularConfiguration::G4MolecularConfiguration(std::istream& in)
 {
-  fLabel = 0; // TODO: for now not serialized
+  fLabel = nullptr; // TODO: for now not serialized
   Unserialize(in);
-  fMoleculeDefinition = 0;
-  fElectronOccupancy = 0;
-  if(fElectronOccupancy)
+  fMoleculeDefinition = nullptr;
+  fElectronOccupancy = nullptr;
+  if(fElectronOccupancy != nullptr)
   {
     GetManager()->Insert(fMoleculeDefinition, *fElectronOccupancy, this);
     fElectronOccupancy =
         GetManager()->FindCommonElectronOccupancy(fMoleculeDefinition,
                                                   *fElectronOccupancy);
 
-    if(fLabel)
+    if(fLabel != nullptr)
     {
       GetManager()->RecordNewlyLabeledConfiguration(this);
     }
   }
-  else if(fLabel)
+  else if(fLabel != nullptr)
   {
     fMoleculeID = GetManager()->Insert(fMoleculeDefinition, *fLabel, this);
   }
-  else if(fDynCharge)
+  else if(fDynCharge != 0)
   {
     fMoleculeID = GetManager()->Insert(fMoleculeDefinition, fDynCharge, this);
   }
@@ -1514,7 +1450,7 @@ ScaleAllDiffusionCoefficientsOnWater(double temperature_K)
 
 void G4MolecularConfiguration::CreateDefaultDiffCoeffParam()
 {
-  if(bool(fDiffParam) == false)
+  if(!static_cast<bool>(fDiffParam))
   {
     fDiffParam = &G4MolecularConfiguration::ReturnDefaultDiffCoeff;
   }
@@ -1545,7 +1481,7 @@ G4MolecularConfigurationManager::GetMolecularConfiguration(const G4String& userI
   {
     if(it->GetUserID() == userID) return it;
   }
-  return 0;
+  return nullptr;
 }
 
 //______________________________________________________________________________
@@ -1563,9 +1499,29 @@ void G4MolecularConfiguration::FinalizeAll()
   const std::vector<G4MolecularConfiguration*>& species =
       GetManager()->GetAllSpecies();
 
-  for(size_t i = 0; i < species.size() ; ++i)
+  for(auto specie : species)
   {
-    species[i]->Finalize();
+    specie->Finalize();
+  }
+
+}
+
+void G4MolecularConfiguration::PrintAll() //hoang added
+{
+  const std::vector<G4MolecularConfiguration*>& species =
+    GetManager()->GetAllSpecies();
+  G4cout<<G4endl;
+  G4cout<<"Molecular Config"<<std::setw(25)<<" | Diffusion Coefficient (m2 / s) "<<std::setw(20)<<" | Radius (nm) "<<G4endl;
+  G4cout<<"__________________________________________"
+            "___________________________________"<<G4endl;
+  for(auto specie : species)
+  {
+    G4cout<<specie->GetName()
+           <<std::setw(G4int(30 - specie->GetName().length()))
+           <<right<<specie->GetDiffusionCoefficient() * 1.0e3<<std::setw(30)
+           <<specie->GetVanDerVaalsRadius()/CLHEP::nm<<G4endl;
+    G4cout<<"__________________________________________"
+              "___________________________________"<<G4endl;
   }
 
 }

@@ -23,35 +23,31 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/fanoCavity/include/StackingMessenger.hh
+/// \file StackingMessenger.hh
 /// \brief Definition of the StackingMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef StackingMessenger_h
 #define StackingMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class StackingAction;
 class G4UIcmdWithABool;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class StackingMessenger: public G4UImessenger
+class StackingMessenger : public G4UImessenger
 {
   public:
     StackingMessenger(StackingAction*);
-   ~StackingMessenger();
-    
+    ~StackingMessenger();
+
     virtual void SetNewValue(G4UIcommand*, G4String);
-    
+
   private:
-    StackingAction*    fStacking;
-    G4UIcmdWithABool*  fKillCmd;
+    StackingAction* fStacking;
+    G4UIcmdWithABool* fKillCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -23,9 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/HepMCEx02/src/HEPEvtcom.cc
+/// \file HEPEvtcom.cc
 /// \brief Implementation of the HEPEvtcom class
-//
+
 // ======================================================================
 //      PARAMETER (NMXHEP=4000)
 //      COMMON/HEPEVT/NEVHEP,NHEP,ISTHEP(NMXHEP),IDHEP(NMXHEP),
@@ -72,14 +72,21 @@
 
 #include <ctype.h>
 
-enum {HEPEVT_EntriesAllocation=4000};
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-const unsigned int hepevt_bytes_allocation =
-sizeof(long int) * ( 2 + 4 * HEPEVT_EntriesAllocation )
-  + sizeof(double) * ( 9 * HEPEVT_EntriesAllocation );
+enum
+{
+  HEPEVT_EntriesAllocation = 4000
+};
 
-extern "C" struct hepevt{
-  char data[hepevt_bytes_allocation];
+const unsigned int hepevt_bytes_allocation = sizeof(long int) * (2 + 4 * HEPEVT_EntriesAllocation)
+                                             + sizeof(double) * (9 * HEPEVT_EntriesAllocation);
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+extern "C" struct hepevt
+{
+    char data[hepevt_bytes_allocation];
 };
 
 hepevt hepevt_;

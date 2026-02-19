@@ -23,66 +23,57 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file polarisation/Pol01/src/PhysListEmPolarized.cc
+/// \file PhysListEmPolarized.cc
 /// \brief Implementation of the PhysListEmPolarized class
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "PhysListEmPolarized.hh"
+
 #include "G4ParticleDefinition.hh"
-#include "G4ProcessManager.hh"
-
-#include "G4eMultipleScattering.hh"
-
+#include "G4PolarizedAnnihilation.hh"
+#include "G4PolarizedBremsstrahlung.hh"
 #include "G4PolarizedCompton.hh"
 #include "G4PolarizedGammaConversion.hh"
-#include "G4ePolarizedIonisation.hh"
-#include "G4ePolarizedBremsstrahlung.hh"
-#include "G4eplusPolarizedAnnihilation.hh"
-#include "G4PolarizedPhotoElectricEffect.hh"
+#include "G4PolarizedIonisation.hh"
+#include "G4PolarizedPhotoElectric.hh"
+#include "G4ProcessManager.hh"
+#include "G4eMultipleScattering.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PhysListEmPolarized::PhysListEmPolarized(const G4String& name)
-   :  G4VPhysicsConstructor(name)
-{}
+PhysListEmPolarized::PhysListEmPolarized(const G4String& name) : G4VPhysicsConstructor(name) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PhysListEmPolarized::~PhysListEmPolarized()
-{}
+PhysListEmPolarized::~PhysListEmPolarized() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void PhysListEmPolarized::ConstructProcess()
 {
   // Add standard EM Processes
-  
-  auto particleIterator=GetParticleIterator();
+
+  auto particleIterator = GetParticleIterator();
   particleIterator->reset();
-  while( (*particleIterator)() ){
+  while ((*particleIterator)()) {
     G4ParticleDefinition* particle = particleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
     G4String particleName = particle->GetParticleName();
 
     if (particleName == "gamma") {
-      pmanager->AddDiscreteProcess(new G4PolarizedPhotoElectricEffect);
+      pmanager->AddDiscreteProcess(new G4PolarizedPhotoElectric);
       pmanager->AddDiscreteProcess(new G4PolarizedCompton);
-      pmanager->AddDiscreteProcess(new G4PolarizedGammaConversion);      
-
-    } else if (particleName == "e-") {
-      pmanager->AddProcess(new G4eMultipleScattering,   -1,1,1);
-      pmanager->AddProcess(new G4ePolarizedIonisation,  -1,2,2);
-      pmanager->AddProcess(new G4ePolarizedBremsstrahlung,      -1,3,3);
-
-    } else if (particleName == "e+") {
-      pmanager->AddProcess(new G4eMultipleScattering,  -1, 1,1);
-      pmanager->AddProcess(new G4ePolarizedIonisation, -1, 2,2);
-      pmanager->AddProcess(new G4ePolarizedBremsstrahlung,    -1, 3,3);
-      pmanager->AddProcess(new G4eplusPolarizedAnnihilation,   0,-1,4);
+      pmanager->AddDiscreteProcess(new G4PolarizedGammaConversion);
+    }
+    else if (particleName == "e-") {
+      pmanager->AddProcess(new G4eMultipleScattering, -1, 1, 1);
+      pmanager->AddProcess(new G4PolarizedIonisation, -1, 2, 2);
+      pmanager->AddProcess(new G4PolarizedBremsstrahlung, -1, -3, 3);
+    }
+    else if (particleName == "e+") {
+      pmanager->AddProcess(new G4eMultipleScattering, -1, 1, 1);
+      pmanager->AddProcess(new G4PolarizedIonisation, -1, 2, 2);
+      pmanager->AddProcess(new G4PolarizedBremsstrahlung, -1, -3, 3);
+      pmanager->AddProcess(new G4PolarizedAnnihilation, 0, -1, 4);
     }
   }
 }

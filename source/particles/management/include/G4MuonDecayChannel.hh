@@ -23,50 +23,38 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4MuonDecayChannel
 //
+// Class decription:
 //
-//
-// ------------------------------------------------------------
-//      GEANT 4 class header file
-//
-//      History: first implementation, based on object model of
-//      30 May 1997 H.Kurashige
-// ------------------------------------------------------------
-#ifndef G4MuonDecayChannel_h
-#define G4MuonDecayChannel_h 1
+// This class describes muon decay kinematics.
+// This version neglects muon polarization; assumes the pure
+// V-A coupling gives incorrect energy spectrum for neutrinos.
 
+// Author: H.Kurashige, 30 May 1997
+// --------------------------------------------------------------------
+#ifndef G4MuonDecayChannel_hh
+#define G4MuonDecayChannel_hh 1
+
+#include "G4VDecayChannel.hh"
 #include "G4ios.hh"
 #include "globals.hh"
-#include "G4VDecayChannel.hh"
 
-class G4MuonDecayChannel :public G4VDecayChannel
+class G4MuonDecayChannel : public G4VDecayChannel
 {
-  // Class Decription
-  //  This class describes muon decay kinemtics.
-  //  This version neglects muon polarization  
-  //              assumes the pure V-A coupling
-  //              gives incorrect energy spectrum for neutrinos
-  //
+  public:
+    // Constructor & destructor
+    G4MuonDecayChannel(const G4String& parentName, G4double BR);
+    ~G4MuonDecayChannel() override = default;
 
-  public:  // With Description
-    //Constructors 
-      G4MuonDecayChannel(const G4String& theParentName,
-			 G4double        theBR);
-    //  Destructor
-      virtual ~G4MuonDecayChannel();
+    G4DecayProducts* DecayIt(G4double) override;
 
   protected:
+    G4MuonDecayChannel() = default;
+
     // Copy constructor and assignment operator
-      G4MuonDecayChannel(const G4MuonDecayChannel &);
-      G4MuonDecayChannel & operator=(const G4MuonDecayChannel &);
-
-  protected:
-      G4MuonDecayChannel();
-
-  public:  // With Description
-     virtual G4DecayProducts *DecayIt(G4double);     
-  
-};  
-
+    G4MuonDecayChannel(const G4MuonDecayChannel&) = default;
+    G4MuonDecayChannel& operator=(const G4MuonDecayChannel&);
+};
 
 #endif

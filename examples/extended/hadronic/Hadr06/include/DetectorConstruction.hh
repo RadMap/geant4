@@ -25,11 +25,6 @@
 //
 /// \file DetectorConstruction.hh
 /// \brief Definition of the DetectorConstruction class
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
@@ -46,47 +41,39 @@ class DetectorMessenger;
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-  
     DetectorConstruction();
-   ~DetectorConstruction();
+    ~DetectorConstruction() override;
 
   public:
-  
-    virtual G4VPhysicalVolume* Construct();
+    G4VPhysicalVolume* Construct() override;
 
-    G4Material* 
-    MaterialWithSingleIsotope(G4String, G4String, G4double, G4int, G4int);
-         
-    void SetRadius   (G4double);              
-    void SetMaterial (G4String);            
+    G4Material* MaterialWithSingleIsotope(G4String, G4String, G4double, G4int, G4int);
 
-  public:  
-                    
-     G4double           GetRadius()     {return fRadius;};      
-     G4Material*        GetMaterial()   {return fMaterial;};
-                   
-     void               PrintParameters();
-                       
-  private:
-     
-     G4double           fRadius;
-     G4Material*        fMaterial;
-     G4LogicalVolume*   fLAbsor;
-     
-     G4double           fWorldSize;
-     G4Material*        fWorldMat;
-     G4VPhysicalVolume* fPWorld;                        
-     
-     DetectorMessenger* fDetectorMessenger;
+    void SetRadius(G4double);
+    void SetMaterial(G4String);
+
+  public:
+    G4double GetRadius() { return fRadius; };
+    G4Material* GetMaterial() { return fMaterial; };
+
+    void PrintParameters();
 
   private:
-    
-     void               DefineMaterials();
-     G4VPhysicalVolume* ConstructVolumes();     
+    G4double fRadius = 0.;
+    G4Material* fMaterial = nullptr;
+    G4LogicalVolume* fLAbsor = nullptr;
+
+    G4double fWorldSize = 0.;
+    G4Material* fWorldMat = nullptr;
+    G4VPhysicalVolume* fPWorld = nullptr;
+
+    DetectorMessenger* fDetectorMessenger = nullptr;
+
+  private:
+    void DefineMaterials();
+    G4VPhysicalVolume* ConstructVolumes();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-
 #endif
-

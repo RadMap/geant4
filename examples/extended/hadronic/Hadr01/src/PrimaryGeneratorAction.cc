@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr01/src/PrimaryGeneratorAction.cc
+/// \file PrimaryGeneratorAction.cc
 /// \brief Implementation of the PrimaryGeneratorAction class
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // PrimaryGeneratorAction
@@ -41,18 +40,18 @@
 //
 
 #include "PrimaryGeneratorAction.hh"
+
+#include "HistoManager.hh"
+
 #include "G4ParticleGun.hh"
 #include "G4SystemOfUnits.hh"
-#include "HistoManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PrimaryGeneratorAction::PrimaryGeneratorAction()
- : G4VUserPrimaryGeneratorAction(),
-   fParticleGun(0), fHisto(0)
+PrimaryGeneratorAction::PrimaryGeneratorAction() : G4VUserPrimaryGeneratorAction()
 {
-  fParticleGun  = new G4ParticleGun(1);
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
+  fParticleGun = new G4ParticleGun(1);
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
   fHisto = HistoManager::GetPointer();
 }
 
@@ -67,10 +66,10 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-  if(fHisto->DefaultBeamPosition()) {
-    static const G4double offset = 2*CLHEP::mm;
-    G4double zVertex = -(offset + 0.5*fHisto->Length());
-    fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,zVertex));
+  if (fHisto->DefaultBeamPosition()) {
+    static const G4double offset = 2 * CLHEP::mm;
+    G4double zVertex = -(offset + 0.5 * fHisto->Length());
+    fParticleGun->SetParticlePosition(G4ThreeVector(0., 0., zVertex));
   }
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }

@@ -23,14 +23,12 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm9/include/DetectorMessenger.hh
+/// \file DetectorMessenger.hh
 /// \brief Definition of the DetectorMessenger class
-//
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
-// test26: Cut per region physics
+// TestEm9: Crystal calorimeter
 //
 // Created: 31.01.03 V.Ivanchenko
 //
@@ -45,8 +43,8 @@
 #ifndef DetectorMessenger_h
 #define DetectorMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class DetectorConstruction;
 class G4UIdirectory;
@@ -57,34 +55,32 @@ class G4UIcmdWithoutParameter;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class DetectorMessenger: public G4UImessenger
+class DetectorMessenger : public G4UImessenger
 {
-public:
+  public:
+    DetectorMessenger(DetectorConstruction*);
+    virtual ~DetectorMessenger();
 
-  DetectorMessenger(DetectorConstruction* );
-  virtual ~DetectorMessenger();
+    virtual void SetNewValue(G4UIcommand*, G4String);
 
-  virtual void SetNewValue(G4UIcommand*, G4String);
+  private:
+    DetectorConstruction* fDetector;
 
-private:
-  DetectorConstruction* fDetector;
-
-  G4UIdirectory*             fAtestemDir;
-  G4UIcmdWithAString*        fAMaterCmd;
-  G4UIcmdWithAString*        fALBinCmd;
-  G4UIcmdWithADoubleAndUnit* fAl1Cmd;
-  G4UIcmdWithADoubleAndUnit* fAl2Cmd;
-  G4UIcmdWithADoubleAndUnit* fAl3Cmd;
-  G4UIcmdWithADoubleAndUnit* fAl4Cmd;
-  G4UIcmdWithADoubleAndUnit* fAl5Cmd;
-  G4UIcmdWithADoubleAndUnit* fAl6Cmd;
-  G4UIcmdWithoutParameter*   fAUpdateCmd;
-  G4UIcmdWith3Vector*        fAaccCmd1;
-  G4UIcmdWith3Vector*        fAaccCmd2;
-  G4UIcmdWith3Vector*        fAaccCmd3;
+    G4UIdirectory* fAtestemDir;
+    G4UIcmdWithAString* fAMaterCmd;
+    G4UIcmdWithAString* fALBinCmd;
+    G4UIcmdWithADoubleAndUnit* fAl1Cmd;
+    G4UIcmdWithADoubleAndUnit* fAl2Cmd;
+    G4UIcmdWithADoubleAndUnit* fAl3Cmd;
+    G4UIcmdWithADoubleAndUnit* fAl4Cmd;
+    G4UIcmdWithADoubleAndUnit* fAl5Cmd;
+    G4UIcmdWithADoubleAndUnit* fAl6Cmd;
+    G4UIcmdWithoutParameter* fAUpdateCmd;
+    G4UIcmdWith3Vector* fAaccCmd1;
+    G4UIcmdWith3Vector* fAaccCmd2;
+    G4UIcmdWith3Vector* fAaccCmd3;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

@@ -40,31 +40,29 @@
 //
 
 #include "G4PreCompoundDeuteron.hh"
-#include "G4SystemOfUnits.hh"
+#include "G4CoulombBarrier.hh"
 #include "G4Deuteron.hh"
+#include "G4DeexPrecoUtility.hh"
 
 G4PreCompoundDeuteron::G4PreCompoundDeuteron()
-  : G4PreCompoundIon(G4Deuteron::Deuteron(), &theDeuteronCoulombBarrier)
-{}
-
-G4PreCompoundDeuteron::~G4PreCompoundDeuteron()
+  : G4PreCompoundIon(G4Deuteron::Deuteron(), new G4CoulombBarrier(2, 1))
 {}
  
 G4double G4PreCompoundDeuteron::FactorialFactor(G4int N, G4int P) const
 {
-  return G4double((N-1)*(N-2)*(P-1)*P)*0.5;
+  return static_cast<G4double>((N-1)*(N-2)*(P-1)*P)*0.5;
 }
   
 G4double G4PreCompoundDeuteron::CoalescenceFactor(G4int A) const
 {
-  return 16.0/G4double(A);
+  return 16.0/static_cast<G4double>(A);
 }    
 
 G4double G4PreCompoundDeuteron::GetRj(G4int nParticles, G4int nCharged) const
 {
   G4double rj = 0.0;
   if(nCharged >=1 && (nParticles-nCharged) >=1) {
-    G4double denominator = G4double(nParticles*(nParticles-1));
+    G4double denominator = (G4double)(nParticles*(nParticles-1));
     rj = 2*nCharged*(nParticles-nCharged)/denominator; 
   }
   return rj;
@@ -72,15 +70,5 @@ G4double G4PreCompoundDeuteron::GetRj(G4int nParticles, G4int nCharged) const
 
 G4double G4PreCompoundDeuteron::GetAlpha() const
 {
-  G4double C = 0.0;
-  if (theFragZ >= 70) 
-    {
-      C = 0.10;
-    } 
-  else 
-    {
-      C = ((((0.15417e-06*theFragZ) - 0.29875e-04)*theFragZ 
-	    + 0.21071e-02)*theFragZ - 0.66612e-01)*theFragZ + 0.98375; 
-    }
-  return 1.0 + 0.5*C;
+  return 1.0 + G4DeexPrecoUtility::ProtonCValue(theResZ)*0.5;
 }

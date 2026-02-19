@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm5/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef RunAction_h
 #define RunAction_h 1
@@ -47,24 +43,21 @@ class HistoManager;
 
 class RunAction : public G4UserRunAction
 {
+  public:
+    RunAction(DetectorConstruction* det, PrimaryGeneratorAction* prim = nullptr);
+    ~RunAction() override;
 
-public:
-
-    RunAction(DetectorConstruction* det, PrimaryGeneratorAction* prim=0);
-   ~RunAction();
-   
-    virtual G4Run* GenerateRun();    
-    virtual void BeginOfRunAction(const G4Run*);
-    virtual void   EndOfRunAction(const G4Run*);
+    G4Run* GenerateRun() override;
+    void BeginOfRunAction(const G4Run*) override;
+    void EndOfRunAction(const G4Run*) override;
 
   private:
-    DetectorConstruction*   fDetector;
-    PrimaryGeneratorAction* fPrimary;
-    Run*                    fRun;        
-    HistoManager*           fHistoManager;
+    DetectorConstruction* fDetector = nullptr;
+    PrimaryGeneratorAction* fPrimary = nullptr;
+    Run* fRun = nullptr;
+    HistoManager* fHistoManager = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

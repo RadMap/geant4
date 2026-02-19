@@ -1,20 +1,31 @@
--------------------------------------------------------------------
+# Category prophonon History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                      Category History file
-                      ---------------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all category-tags.
-It DOES NOT substitute the  SVN log-message one should put at every
-committal in the SVN repository !
+-------------------------------------------------------------------------------
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2024-04-21 Gabriele Cosmo (prophonon-V11-02-00)
+- Fixed compilation error in G4LatticeManager on Windows VC++ with
+  C++20 Standard enabled.
+  Based on [GitHub PR#69](https://github.com/Geant4/geant4/pull/69).
+
+## 2021-12-10 Ben Morgan (prophonon-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+16 April 2021 Ben Morgan (prophonon-V10-07-00)
+-----------------------------------------------------
+- Migrate build to modular CMake API
+
+28 May 2020 Ben Morgan (prophonon-V10-06-00)
+-----------------------------------------------------
+- Name module "G4solidstate_phonon" for use with new CMake system,
+  as old "G4phonon" name clashes with solidstate/channeling"
 
 8 October 2014  Michael Kelsey (prophonon-V10-00-01)
 ----------------------------------------------------

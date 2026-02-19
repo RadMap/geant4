@@ -23,8 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
+/// \file G4LDMBremsstrahlung.hh
+/// \brief Definition of the G4LDMBremsstrahlung class
+
 // Class Description:
 //
 // This class manages the Bremsstrahlung process for hadrons
@@ -39,36 +40,31 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include "globals.hh"
 #include "G4MuBremsstrahlung.hh"
+#include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class G4LDMBremsstrahlung : public G4MuBremsstrahlung
 
 {
-public:
+  public:
+    explicit G4LDMBremsstrahlung(const G4String& processName = "ldmBrems");
 
-  explicit G4LDMBremsstrahlung(const G4String& processName = "ldmBrems");
+    virtual ~G4LDMBremsstrahlung();
 
-  virtual ~G4LDMBremsstrahlung();
+    virtual G4bool IsApplicable(const G4ParticleDefinition& p) override;
 
-  virtual G4bool IsApplicable(const G4ParticleDefinition& p) override;
+    virtual G4double MinPrimaryEnergy(const G4ParticleDefinition*, const G4Material*,
+                                      G4double) override;
 
-  virtual G4double MinPrimaryEnergy(const G4ParticleDefinition*,
-                                    const G4Material*, G4double) override;
+  protected:
+    virtual void InitialiseEnergyLossProcess(const G4ParticleDefinition*,
+                                             const G4ParticleDefinition*) override;
 
-protected:
-
-  virtual void InitialiseEnergyLossProcess(
-                         const G4ParticleDefinition*,
-                         const G4ParticleDefinition*) override;
-
-private:
-
-  G4LDMBremsstrahlung & operator=(const G4LDMBremsstrahlung &right) = delete;
-  G4LDMBremsstrahlung(const G4LDMBremsstrahlung&) = delete;
-
+  private:
+    G4LDMBremsstrahlung& operator=(const G4LDMBremsstrahlung& right) = delete;
+    G4LDMBremsstrahlung(const G4LDMBremsstrahlung&) = delete;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

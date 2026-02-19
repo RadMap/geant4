@@ -1,17 +1,38 @@
--------------------------------------------------------------------
+# Category phys-ctor-fact History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-              Hadronic physics-list/constructors/factory History
-              --------------------------------------------------
-This file should be used  to briefly summarize all major modifications
-introduced in the code and keeptrack of all tags.
+-------------------------------------------------------------------------------
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2024-11-04 Vladimir Ivantchenko (phys-ctor-fact-V11-02-01)
+- G4PhysicsConstructorRegistry - removed memory leak at exit by using of
+  G4ThreadLocalSingleton pattern
+
+## 2024-05-15 Gabriele Cosmo (phys-ctor-fact-V11-02-00)
+- Minor code cleanup in G4PhysicsConstructorRegistry source.
+
+## 2023-05-15 Alberto Ribon (phys-ctor-fact-V11-01-00)
+- Added G4StoppingPhysicsWithINCLXX in G4RegisterPhysicsConstructors.
+
+## 2021-12-10 Ben Morgan (phys-ctor-fact-V11-00-00)
+- Change to new Markdown History format.
+
+---
+
+# History entries prior to 11.0
+
+16-April-2021 Ben Morgan                (phys-ctor-fact-V10-07-01)
+- Migrate build to modular CMake API
+
+13-Apr-2021 Alberto Ribon               (phys-ctor-fact-V10-07-00)
+-  GNUmakefile, sources.cmake : removed dependency on hadronic/model/util
+   and hadronic/model/management (that have been now deleted, with their
+   classes moved to hadronic/util and hadronic/management).
+
+30-Apr-2020 Ben Morgan                  (phys-ctor-fact-V10-06-00)
+- Remove obsolete GRANULAR_DEPENDENCIES entries
 
 16-Mar-2018, Robert Hatcher             (phys-ctor-fact-V10-04-02)
 - Allows override of exclusion of G4RegisterPhysicsConstructors.icc
@@ -77,5 +98,5 @@ introduced in the code and keeptrack of all tags.
 - move G4PhysListFactory from constructor/factory to lists.
 
 10-Jan-2012, Gunter Folger              (phys-ctor-fact-V09-06-00)
-- new directory structure introduced. 
+- new directory structure introduced.
    constructors/factory classes

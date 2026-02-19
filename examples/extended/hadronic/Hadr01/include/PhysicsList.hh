@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr01/include/PhysicsList.hh
+/// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
-//
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // PhysicsList
@@ -38,7 +36,7 @@
 // 04.06.2006 Adoptation of Hadr01 (V.Ivanchenko)
 //
 ////////////////////////////////////////////////////////////////////////
-// 
+//
 
 #ifndef PhysicsList_h
 #define PhysicsList_h 1
@@ -52,35 +50,31 @@ class G4PhysListFactoryMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
-public:
+  public:
+    PhysicsList();
+    ~PhysicsList() override;
 
-  PhysicsList();
-  virtual ~PhysicsList();
+    void ConstructParticle() override;
+    void ConstructProcess() override;
 
-  virtual void ConstructParticle();
-  virtual void ConstructProcess();    
+    void AddPhysicsList(const G4String& name);
+    void List();
 
-  void AddPhysicsList(const G4String& name);
-  void List();
-  
-private:
+  private:
+    void SetBuilderList0(G4bool flagHP = false);
+    void SetBuilderList1(G4bool flagHP = false);
+    void SetBuilderList2();
 
-  void SetBuilderList0(G4bool flagHP = false);
-  void SetBuilderList1(G4bool flagHP = false);
-  void SetBuilderList2();
+    G4VPhysicsConstructor* fEmPhysicsList;
+    G4VPhysicsConstructor* fParticleList;
+    std::vector<G4VPhysicsConstructor*> fHadronPhys;
 
-  G4VPhysicsConstructor*  fEmPhysicsList;
-  G4VPhysicsConstructor*  fParticleList;
-  std::vector<G4VPhysicsConstructor*>  fHadronPhys;
-    
-  PhysicsListMessenger* fMessenger;
-  G4PhysListFactoryMessenger* fFactMessenger;
-
+    PhysicsListMessenger* fMessenger;
+    G4PhysListFactoryMessenger* fFactMessenger;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

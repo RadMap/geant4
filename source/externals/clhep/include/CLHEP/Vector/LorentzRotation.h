@@ -22,10 +22,6 @@
 #ifndef HEP_LORENTZROTATION_H
 #define HEP_LORENTZROTATION_H
 
-#ifdef GNUPRAGMA
-#pragma interface
-#endif
-
 #include "CLHEP/Vector/RotationInterfaces.h"
 #include "CLHEP/Vector/Rotation.h" 
 #include "CLHEP/Vector/Boost.h" 
@@ -350,9 +346,9 @@ inline std::ostream & operator<<
   {return lt.print(os);}
 
 inline bool operator==(const HepRotation &r, const HepLorentzRotation & lt)
-  { return lt==r; }
+  { return lt==HepLorentzRotation(r); }
 inline bool operator!=(const HepRotation &r, const HepLorentzRotation & lt)
-  { return lt!=r; }
+  { return lt!=HepLorentzRotation(r); }
 inline bool operator<=(const HepRotation &r, const HepLorentzRotation & lt)
   { return lt<=r; }
 inline bool operator>=(const HepRotation &r, const HepLorentzRotation & lt)
@@ -363,9 +359,9 @@ inline bool operator>(const HepRotation &r, const HepLorentzRotation & lt)
   { return lt>r; }
 
 inline bool operator==(const HepBoost &b, const HepLorentzRotation & lt)
-  { return lt==b; }
+  { return lt==HepLorentzRotation(b); }
 inline bool operator!=(const HepBoost &b, const HepLorentzRotation & lt)
-  { return lt!=b; }
+  { return lt!=HepLorentzRotation(b); }
 inline bool operator<=(const HepBoost &b, const HepLorentzRotation & lt)
   { return lt<=b; }
 inline bool operator>=(const HepBoost &b, const HepLorentzRotation & lt)

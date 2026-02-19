@@ -23,47 +23,44 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/src/UrQMDProtonBuilder.cc
+/// \file UrQMDProtonBuilder.cc
 /// \brief Implementation of the UrQMDProtonBuilder class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 
 #ifdef G4_USE_URQMD
-#include "UrQMDProtonBuilder.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4ParticleTable.hh"
-#include "G4ProcessManager.hh"
-#include "G4HadronicParameters.hh"
-#include "G4SystemOfUnits.hh"
+#  include "UrQMDProtonBuilder.hh"
+
+#  include "G4HadronicParameters.hh"
+#  include "G4ParticleDefinition.hh"
+#  include "G4ParticleTable.hh"
+#  include "G4ProcessManager.hh"
+#  include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-UrQMDProtonBuilder::UrQMDProtonBuilder() 
+UrQMDProtonBuilder::UrQMDProtonBuilder()
 {
-  fMin = 0*MeV;
+  fMin = 0 * MeV;
   fMax = G4HadronicParameters::Instance()->GetMaxEnergy();
   fModel = new G4UrQMD1_3Model();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-UrQMDProtonBuilder::~UrQMDProtonBuilder() 
-{}
+UrQMDProtonBuilder::~UrQMDProtonBuilder() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void UrQMDProtonBuilder::Build(G4HadronElasticProcess * )
-{}
+void UrQMDProtonBuilder::Build(G4HadronElasticProcess*) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void UrQMDProtonBuilder::Build(G4ProtonInelasticProcess * aP)
+void UrQMDProtonBuilder::Build(G4HadronInelasticProcess* aP)
 {
   fModel->SetMinEnergy(fMin);
   fModel->SetMaxEnergy(fMax);
   aP->RegisterMe(fModel);
 }
-#endif //G4_USE_URQMD
-
+#endif  // G4_USE_URQMD

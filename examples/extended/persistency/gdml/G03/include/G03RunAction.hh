@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G03/include/G03RunAction.hh
+/// \file G03RunAction.hh
 /// \brief Definition of the G03RunAction class
-//
-//
-//
+
 // Class G03RunAction
 //
 // Simple run action class.
@@ -37,10 +35,10 @@
 #ifndef G03RunAction_h
 #define G03RunAction_h 1
 
-#include <iostream>
-
-#include "globals.hh"
 #include "G4UserRunAction.hh"
+#include "globals.hh"
+
+#include <iostream>
 
 class G4Run;
 
@@ -49,13 +47,11 @@ class G4Run;
 class G03RunAction : public G4UserRunAction
 {
   public:
-
     G03RunAction();
-   ~G03RunAction();
+    ~G03RunAction();
 
     virtual void BeginOfRunAction(const G4Run*);
     virtual void EndOfRunAction(const G4Run*);
-      
 };
 
 // ----------------------------------------------------------------------------

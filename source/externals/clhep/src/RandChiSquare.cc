@@ -18,6 +18,9 @@
 #include "CLHEP/Random/DoubConv.h"
 #include "CLHEP/Utility/thread_local.h"
 #include <cmath>	// for std::log()
+#include <iostream>
+#include <string>
+#include <vector>
 
 namespace CLHEP {
 
@@ -135,7 +138,7 @@ double RandChiSquare::genChiSquare( HepRandomEngine *anEngine,
 }
 
 std::ostream & RandChiSquare::put ( std::ostream & os ) const {
-  int pr=os.precision(20);
+  long pr=os.precision(20);
   std::vector<unsigned long> t(2);
   os << " " << name() << "\n";
   os << "Uvec" << "\n";

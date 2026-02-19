@@ -28,8 +28,6 @@
 // 
 // Laurent Garnier  27th October 2011
 
-#ifdef G4VIS_BUILD_OPENGLQT_DRIVER
-
 #include "G4OpenGLStoredQtSceneHandler.hh"
 
 #include "G4PhysicalVolumeModel.hh"
@@ -95,7 +93,7 @@ G4bool G4OpenGLStoredQtSceneHandler::ExtraPOProcessing
     // build a path for tree viewer
     G4OpenGLQtViewer* pGLViewer = dynamic_cast<G4OpenGLQtViewer*>(fpViewer);
     if ( pGLViewer ) {
-      pGLViewer->addPVSceneTreeElement(fpModel->GetCurrentDescription(),pPVModel,currentPOListIndex);
+      pGLViewer->addPVSceneTreeElement(fpModel->GetCurrentDescription(),pPVModel,(G4int)currentPOListIndex);
     }
 
   } else {  // Not from a G4PhysicalVolumeModel.
@@ -106,7 +104,7 @@ G4bool G4OpenGLStoredQtSceneHandler::ExtraPOProcessing
       // build a path for tree viewer
       G4OpenGLQtViewer* pGLViewer = dynamic_cast<G4OpenGLQtViewer*>(fpViewer);
       if ( pGLViewer ) {
-        pGLViewer->addNonPVSceneTreeElement(fpModel->GetType(),currentPOListIndex,fpModel->GetCurrentDescription().data(),visible);
+        pGLViewer->addNonPVSceneTreeElement(fpModel->GetType(),(G4int)currentPOListIndex,fpModel->GetCurrentDescription().data(),visible);
       }
     }
   }
@@ -136,12 +134,17 @@ void G4OpenGLStoredQtSceneHandler::ClearStore () {
 
   //G4cout << "G4OpenGLStoredQtSceneHandler::ClearStore" << G4endl;
 
-  G4OpenGLStoredSceneHandler::ClearStore ();  // Sets need kernel visit, etc.
-  // Should recreate the tree
-  G4OpenGLQtViewer* pGLQtViewer = dynamic_cast<G4OpenGLQtViewer*>(fpViewer);
-  if ( pGLQtViewer ) {
-    pGLQtViewer->clearTreeWidget();
-  }
+  G4OpenGLStoredSceneHandler::ClearStore ();
+
+  // Not needed - the old scene tree is currently (partially) disabled - but
+  // this code somehow affects the view in rare cases, e.g., after twinkling
+  // the volume does not return to its original colour. So I have disabled
+  // this, pending a review of the old scene tree. JA 31/10/24
+//  // Should recreate the tree
+//  G4OpenGLQtViewer* pGLQtViewer = dynamic_cast<G4OpenGLQtViewer*>(fpViewer);
+//  if ( pGLQtViewer ) {
+//    pGLQtViewer->clearTreeWidget();
+//  }
 }
 
 void G4OpenGLStoredQtSceneHandler::ClearTransientStore () {
@@ -170,5 +173,3 @@ void G4OpenGLStoredQtSceneHandler::SetScene(G4Scene* pScene){
   }
   G4VSceneHandler::SetScene(pScene);
 }
-
-#endif

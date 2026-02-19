@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file TimeStepAction.cc
+/// \brief Implementation of the TimeStepAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,19 +34,17 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file TimeStepAction.cc
-/// \brief Implementation of the TimeStepAction class
 
 #include "TimeStepAction.hh"
-#include "G4UnitsTable.hh"
+
 #include "G4SystemOfUnits.hh"
-//#include "G4ITScheduler.hh"
-//#include "G4Molecule.hh"
+#include "G4UnitsTable.hh"
+// #include "G4ITScheduler.hh"
+// #include "G4Molecule.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TimeStepAction::TimeStepAction() :
-    G4UserTimeStepAction()
+TimeStepAction::TimeStepAction() : G4UserTimeStepAction()
 {
   /**
    * Inform G4ITTimeStepper of the selected minimum time steps
@@ -67,23 +68,17 @@ TimeStepAction::TimeStepAction() :
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TimeStepAction::~TimeStepAction()
-{
-}
+TimeStepAction::~TimeStepAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TimeStepAction::TimeStepAction(const TimeStepAction& other) :
-    G4UserTimeStepAction(other)
-{
-}
+TimeStepAction::TimeStepAction(const TimeStepAction& other) : G4UserTimeStepAction(other) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-TimeStepAction&
-TimeStepAction::operator=(const TimeStepAction& rhs)
+TimeStepAction& TimeStepAction::operator=(const TimeStepAction& rhs)
 {
-  if (this == &rhs) return *this; // handle self assignment
-  //assignment operator
+  if (this == &rhs) return *this;  // handle self assignment
+  // assignment operator
   return *this;
 }
 
@@ -91,41 +86,33 @@ TimeStepAction::operator=(const TimeStepAction& rhs)
 
 void TimeStepAction::StartProcessing()
 {
-// You want to know why the simulation stopped ?
-// G4ITScheduler::Instance()->WhyDoYouStop();
-// At the end of the simulation, information will be printed
-// It is better to place this command before the simulation starts
+  // You want to know why the simulation stopped ?
+  // G4ITScheduler::Instance()->WhyDoYouStop();
+  // At the end of the simulation, information will be printed
+  // It is better to place this command before the simulation starts
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TimeStepAction::UserPreTimeStepAction()
-{
-}
+void TimeStepAction::UserPreTimeStepAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TimeStepAction::UserPostTimeStepAction()
-{
-}
+void TimeStepAction::UserPostTimeStepAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 
 // Here you can retrieve information related to reactions
-void
-TimeStepAction::UserReactionAction(const G4Track& /*a*/,
-                                   const G4Track& /*b*/,
-                                   const std::vector<G4Track*>* /*products*/)
+void TimeStepAction::UserReactionAction(const G4Track& /*a*/, const G4Track& /*b*/,
+                                        const std::vector<G4Track*>* /*products*/)
 {
-
   // Example to display reactions with product
   // S. Incerti, H. Tran
   // 2019/01/24
 
   /*
-  if (products) 
-  {  
+  if (products)
+  {
     G4cout << G4endl;
     G4int nbProducts = products->size();
     for (int i = 0 ; i < nbProducts ; i ++)
@@ -138,19 +125,19 @@ TimeStepAction::UserReactionAction(const G4Track& /*a*/,
         << GetMolecule((*products)[i])->GetName()
         << G4endl ;
 
-      G4cout 
+      G4cout
       <<" A position: x(nm)="<<a.GetPosition().getX()/nm
       <<" y(nm)="<<a.GetPosition().getY()/nm
       <<" z(nm)="<<a.GetPosition().getZ()/nm
       <<G4endl;
 
-      G4cout 
+      G4cout
       <<" B position: x(nm)="<<b.GetPosition().getX()/nm
       <<" y(nm)="<<b.GetPosition().getY()/nm
       <<" z(nm)="<<b.GetPosition().getZ()/nm
       <<G4endl;
 
-      G4cout 
+      G4cout
       <<" Product " << i+1 << "position: x(nm)="<<(*products)[i]->GetPosition().getX()/nm
       <<" y(nm)="<<a.GetPosition().getY()/nm
       <<" z(nm)="<<a.GetPosition().getZ()/nm
@@ -160,7 +147,7 @@ TimeStepAction::UserReactionAction(const G4Track& /*a*/,
 
   else
 
-  {  
+  {
      G4cout << G4endl;
      G4cout << "-> A = "
         << GetMolecule(&a)->GetName() << " (TrackID=" << a.GetTrackID() << ")"
@@ -168,13 +155,13 @@ TimeStepAction::UserReactionAction(const G4Track& /*a*/,
         << GetMolecule(&b)->GetName() << " (TrackID=" << b.GetTrackID() << ")"
         << G4endl ;
 
-      G4cout 
+      G4cout
       <<" A position: x(nm)="<<a.GetPosition().getX()/nm
       <<" y(nm)="<<a.GetPosition().getY()/nm
       <<" z(nm)="<<a.GetPosition().getZ()/nm
       <<G4endl;
 
-      G4cout 
+      G4cout
       <<" B position: x(nm)="<<b.GetPosition().getX()/nm
       <<" y(nm)="<<b.GetPosition().getY()/nm
       <<" z(nm)="<<b.GetPosition().getZ()/nm
@@ -182,9 +169,6 @@ TimeStepAction::UserReactionAction(const G4Track& /*a*/,
 
   }
   */
-
 }
 
-void TimeStepAction::EndProcessing()
-{
-}
+void TimeStepAction::EndProcessing() {}

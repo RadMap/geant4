@@ -23,15 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm0/include/DetectorConstruction.hh
+/// \file DetectorConstruction.hh
 /// \brief Definition of the DetectorConstruction class
-//
-//
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
@@ -48,37 +41,30 @@ class DetectorMessenger;
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-  
     DetectorConstruction();
-    virtual ~DetectorConstruction();
+    ~DetectorConstruction() override;
 
   public:
+    G4VPhysicalVolume* Construct() override;
+    void SetMaterial(const G4String&);
 
-     virtual
-     G4VPhysicalVolume* Construct();
-     void SetMaterial (const G4String&);
-     
-     const
-     G4VPhysicalVolume* GetWorld() const     {return fBox;};
-     G4double           GetSize()  const     {return fBoxSize;};
-     const G4Material*  GetMaterial() const  {return fMaterial;};
+    const G4VPhysicalVolume* GetWorld() const { return fBox; };
+    G4double GetSize() const { return fBoxSize; };
+    const G4Material* GetMaterial() const { return fMaterial; };
 
-     void               PrintParameters() const;
-                       
-  private:
-  
-     G4VPhysicalVolume*    fBox;
-     G4double              fBoxSize;
-     G4Material*           fMaterial;
-     
-     DetectorMessenger*    fDetectorMessenger;
+    void PrintParameters() const;
 
   private:
-    
-     void               DefineMaterials();
+    G4VPhysicalVolume* fBox = nullptr;
+    G4double fBoxSize = 0.;
+    G4Material* fMaterial = nullptr;
+
+    DetectorMessenger* fDetectorMessenger = nullptr;
+
+  private:
+    void DefineMaterials();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

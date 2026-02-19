@@ -23,18 +23,16 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file electromagnetic/TestEm10/include/Materials.hh
+/// \file Materials.hh
 /// \brief Definition of the Materials class
-//
-//
+
 // -------------------------------------------------------------
-//      GEANT 4 class 
+//      GEANT 4 class
 //
 //      ---------- Materials-------
-//    Originally Created in Test30 by Vladimir Ivanchenko, 12 March 2002 
-// 
-//    Modified for Test by V. Grichine, 30 Jan 2006 
+//    Originally Created in Test30 by Vladimir Ivanchenko, 12 March 2002
+//
+//    Modified for Test by V. Grichine, 30 Jan 2006
 //
 //
 
@@ -51,19 +49,14 @@ class Materials
     Materials();
     ~Materials();
 
-    static  Materials* GetInstance();
-     
-    G4Material* GetMaterial(const G4String&);     
-                      
-  private:
+    static Materials* GetInstance();
 
+    G4Material* GetMaterial(const G4String&);
+
+  private:
     void Initialise();
 
     static Materials* fgInstance;
 };
 
 #endif
-
- 
-
-

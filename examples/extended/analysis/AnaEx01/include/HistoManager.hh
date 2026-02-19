@@ -23,22 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file analysis/AnaEx01/include/HistoManager.hh
+/// \file HistoManager.hh
 /// \brief Definition of the HistoManager class
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo...... 
 
 #ifndef HistoManager_h
 #define HistoManager_h 1
 
+#include "G4AnalysisManager.hh"
 #include "globals.hh"
-
-#include "g4root.hh"
-//#include "g4csv.hh"
-//#include "g4xml.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -46,24 +38,22 @@ class HistoManager
 {
   public:
     HistoManager();
-   ~HistoManager();
+    ~HistoManager() = default;
 
     void Book();
     void Save();
-    
-    void FillHisto(G4int id, G4double e, G4double weight = 1.0);
-    void Normalize(G4int id, G4double fac);    
 
-    void FillNtuple(G4double EnergyAbs, G4double EnergyGap,
-                    G4double TrackLAbs, G4double TrackLGap);
-    
-    void PrintStatistic();        
-    
+    void FillHisto(G4int id, G4double e, G4double weight = 1.0);
+    void Normalize(G4int id, G4double fac);
+
+    void FillNtuple(G4double EnergyAbs, G4double EnergyGap, G4double TrackLAbs, G4double TrackLGap);
+
+    void PrintStatistic();
+
   private:
-    G4bool fFactoryOn;    
+    G4bool fFactoryOn = false;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

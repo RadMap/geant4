@@ -25,11 +25,6 @@
 //
 /// \file DetectorConstruction.hh
 /// \brief Definition of the DetectorConstruction class
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
@@ -41,7 +36,8 @@ class G4LogicalVolume;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class DetectorConstruction : public G4VUserDetectorConstruction {
+class DetectorConstruction : public G4VUserDetectorConstruction
+{
   public:
     DetectorConstruction();
     virtual ~DetectorConstruction();
@@ -57,4 +53,3 @@ class DetectorConstruction : public G4VUserDetectorConstruction {
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

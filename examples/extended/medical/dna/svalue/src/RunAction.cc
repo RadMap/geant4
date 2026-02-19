@@ -23,47 +23,44 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// This example is provided by the Geant4-DNA collaboration
-// Any report or published results obtained using the Geant4-DNA software 
-// shall cite the following Geant4-DNA collaboration publications:
-// Med. Phys. 37 (2010) 4692-4708
-// Phys. Med. 31 (2015) 861-874
-// The Geant4-DNA web site is available at http://geant4-dna.org
-//
-/// \file medical/dna/svalue/src/RunAction.cc
+/// \file RunAction.cc
 /// \brief Implementation of the RunAction class
 
+// This example is provided by the Geant4-DNA collaboration
+// Any report or published results obtained using the Geant4-DNA software
+// shall cite the following Geant4-DNA collaboration publications:
+// Med. Phys. 45 (2018) e722-e739
+// Phys. Med. 31 (2015) 861-874
+// Med. Phys. 37 (2010) 4692-4708
+// Int. J. Model. Simul. Sci. Comput. 1 (2010) 157–178
+//
+// The Geant4-DNA web site is available at http://geant4-dna.org
+//
+
 #include "RunAction.hh"
-#include "DetectorConstruction.hh"
-#include "PhysicsList.hh"
-#include "Run.hh"
+
 #include "HistoManager.hh"
 #include "MyFile.hh"
+#include "Run.hh"
 
 #ifdef MYFILE
- #include "MyPrimaryGeneratorActionFromFile.hh"
+#  include "MyPrimaryGeneratorActionFromFile.hh"
 #else
- #include "PrimaryGeneratorAction.hh"
+#  include "PrimaryGeneratorAction.hh"
 #endif
 
 #include "G4RunManager.hh"
-#include "G4EmCalculator.hh"
-
-#include "Randomize.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::RunAction()
-:G4UserRunAction(),
-fpDetector(0), fpRun(0),fpHistoManager(0)
+RunAction::RunAction() : G4UserRunAction(), fpDetector(0), fpRun(0), fpHistoManager(0)
 {
-  fpDetector =
-      dynamic_cast<const DetectorConstruction*>(G4RunManager::GetRunManager()
-          ->GetUserDetectorConstruction());
+  fpDetector = dynamic_cast<const DetectorConstruction*>(
+    G4RunManager::GetRunManager()->GetUserDetectorConstruction());
 
   // Book predefined histograms
   fpHistoManager = new HistoManager();
- }
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -75,7 +72,7 @@ RunAction::~RunAction()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4Run* RunAction::GenerateRun()
-{ 
+{
   fpRun = new Run(fpDetector);
   return fpRun;
 }
@@ -83,41 +80,41 @@ G4Run* RunAction::GenerateRun()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void RunAction::BeginOfRunAction(const G4Run*)
-{    
-  // save Rndm status
+{
+  // If needed, save Rndm status
   // G4RunManager::GetRunManager()->SetRandomNumberStore(true);
   // if (isMaster) G4Random::showEngineStatus();
-  
-  //histograms
-  //
+
+  // Histograms
+
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-  if ( analysisManager->IsActive() ) {
+  if (analysisManager->IsActive()) {
     analysisManager->OpenFile();
   }
-  
-  //============================================================================
+
+  // Selection of primary generator
 
 #ifdef MYFILE
-   
-   const MyPrimaryGeneratorActionFromFile* primary =
-      dynamic_cast<const MyPrimaryGeneratorActionFromFile*>(G4RunManager::GetRunManager()
-          ->GetUserPrimaryGeneratorAction());
-   
+
+  const MyPrimaryGeneratorActionFromFile* primary =
+    dynamic_cast<const MyPrimaryGeneratorActionFromFile*>(
+      G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction());
+
 #else
-   const PrimaryGeneratorAction* primary =
-      dynamic_cast<const PrimaryGeneratorAction*>(G4RunManager::GetRunManager()
-          ->GetUserPrimaryGeneratorAction());
+  const PrimaryGeneratorAction* primary = dynamic_cast<const PrimaryGeneratorAction*>(
+    G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction());
 
 #endif
 
-  if (!primary) return; //
-      
-  // keep run condition
-  G4ParticleDefinition* particle 
-      = primary->GetParticleGun()->GetParticleDefinition();
-  G4double energy = primary->GetParticleGun()->GetParticleEnergy();
-  fpRun->SetPrimary(particle, energy);
+  if (!primary) return;  //
 
+  // Keep run condition
+
+  G4ParticleDefinition* particle = primary->GetParticleGun()->GetParticleDefinition();
+
+  G4double energy = primary->GetParticleGun()->GetParticleEnergy();
+
+  fpRun->SetPrimary(particle, energy);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -125,14 +122,15 @@ void RunAction::BeginOfRunAction(const G4Run*)
 void RunAction::EndOfRunAction(const G4Run*)
 {
   if (isMaster) fpRun->EndOfRun();
-  
-  // save histograms
-  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();  
-  if ( analysisManager->IsActive() ) {  
+
+  // Save histograms
+
+  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+  if (analysisManager->IsActive()) {
     analysisManager->Write();
     analysisManager->CloseFile();
-  }      
- 
-  // show Rndm status
-  // if (isMaster) G4Random::showEngineStatus();  
+  }
+
+  // If needed, show Rndm status
+  // if (isMaster) G4Random::showEngineStatus();
 }

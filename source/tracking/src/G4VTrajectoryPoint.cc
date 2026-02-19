@@ -23,20 +23,22 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4VTrajectoryPoint class implementation
 //
-//
-//---------------------------------------------------------------
-//
-// G4VTrajectoryPoint.cc
-//
-// ---------------------------------------------------------------
+// Contact:
+//   Questions and comments to this code should be sent to
+//     Katsuya Amako  (e-mail: Katsuya.Amako@kek.jp)
+//     Makoto  Asai   (e-mail: asai@slac.stanford.edu)
+//     Takashi Sasaki (e-mail: Takashi.Sasaki@kek.jp)
+// --------------------------------------------------------------------
 
 #include "G4VTrajectoryPoint.hh"
 
-G4VTrajectoryPoint::G4VTrajectoryPoint() {;}
-G4VTrajectoryPoint::~G4VTrajectoryPoint() {;}
+#include "G4AttValue.hh"
 
-G4bool G4VTrajectoryPoint::operator==(const G4VTrajectoryPoint& right) const
-{
-  return (this==&right);
+std::shared_ptr<std::vector<G4AttValue>> G4VTrajectoryPoint::GetAttValues() const {
+  if (!fpAttValues) {
+    fpAttValues = std::make_shared<std::vector<G4AttValue>>(*CreateAttValues());
+  }
+  return fpAttValues;
 }

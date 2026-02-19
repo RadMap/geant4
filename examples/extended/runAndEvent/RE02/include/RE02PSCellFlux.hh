@@ -23,11 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE02/include/RE02PSCellFlux.hh
+/// \file RE02PSCellFlux.hh
 /// \brief Definition of the RE02PSCellFlux class
-//
-//
-//
 
 #ifndef RE02PSCellFlux_h
 #define RE02PSCellFlux_h 1
@@ -48,20 +45,19 @@
 ///
 ///
 // Created: 2005-11-14  Tsukasa ASO, Akinori Kimura.
-// 
+//
 ///////////////////////////////////////////////////////////////////////////////
 
 class RE02PSCellFlux : public G4PSCellFlux
 {
-   public: // with description
-      RE02PSCellFlux(G4String name,G4int nx,G4int ny, G4int nz);
-      virtual ~RE02PSCellFlux();
+  public:  // with description
+    RE02PSCellFlux(G4String name, G4int nx, G4int ny, G4int nz);
+    virtual ~RE02PSCellFlux();
 
-  protected: // with description
-      virtual G4int GetIndex(G4Step*);
+  protected:  // with description
+    virtual G4int GetIndex(G4Step*);
 
   private:
-      G4int fNx, fNy, fNz;
+    G4int fNx, fNy, fNz;
 };
 #endif
-

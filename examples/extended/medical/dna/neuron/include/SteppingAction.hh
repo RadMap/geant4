@@ -23,21 +23,22 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file SteppingAction.hh
+/// \brief Definition of the SteppingAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
 // Med. Phys. 37 (2010) 4692-4708
 // and papers
 // M. Batmunkh et al. J Radiat Res Appl Sci 8 (2015) 498-507
-// O. Belov et al. Physica Medica 32 (2016) 1510-1520 
+// O. Belov et al. Physica Medica 32 (2016) 1510-1520
 // The Geant4-DNA web site is available at http://geant4-dna.org
-// 
+//
 // -------------------------------------------------------------------
 // November 2016
 // -------------------------------------------------------------------
 //
-/// \file SteppingAction.hh
-/// \brief Definition of the SteppingAction class
 
 #ifndef SteppingAction_h
 #define SteppingAction_h 1
@@ -46,26 +47,18 @@
 
 class RunAction;
 class PrimaryGeneratorAction;
-//class NeuronHitCompartments;
-//class NeuronLoadDataFile;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 class SteppingAction : public G4UserSteppingAction
 {
-public:
+  public:
+    SteppingAction(RunAction*);
+    ~SteppingAction() override = default;
 
-  SteppingAction(RunAction*); 
-  ~SteppingAction();
-  
-  void UserSteppingAction(const G4Step*);
+    void UserSteppingAction(const G4Step*) override;
 
-  //NeuronHitCompartments* fpNeuronHits;
-  
-private:
-
-  RunAction*            fRunAction;
-  //NeuronLoadDataFile * fNeuronLoadParamz;  
-
+  private:
+    RunAction* fRunAction;
 };
 #endif

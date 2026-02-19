@@ -42,8 +42,6 @@ endif()
 #
 # This module includes the following modules:
 include(CMakeDependentOption)
-include(Geant4MacroDefineModule)
-include(Geant4MacroLibraryTargets)
 
 #-----------------------------------------------------------------------
 # CMAKE EXTENSIONS
@@ -118,6 +116,7 @@ function(enum_option _var)
       endif()
     endif()
   endif()
+  set_property(CACHE ${_var} PROPERTY STRINGS ${_ENUMOP_VALUES})
 endfunction()
 
 #-----------------------------------------------------------------------
@@ -135,7 +134,9 @@ function(geant4_add_feature _var _description)
     set_property(GLOBAL APPEND PROPERTY GEANT4_DISABLED_FEATURES ${_var})
   endif()
 
-  set_property(GLOBAL PROPERTY ${_var}_DESCRIPTION "${_description}")
+  # Property name qualified by "G4" prefix so we can provide seperate
+  # descriptions for CMake builtins we might expose (e.g. CXX_STANDARD)
+  set_property(GLOBAL PROPERTY G4_${_var}_DESCRIPTION "${_description}")
 endfunction()
 
 #-----------------------------------------------------------------------
@@ -149,7 +150,7 @@ function(geant4_print_enabled_features)
   foreach(_feature ${_enabledFeatures})
     set(_currentFeatureText "${_currentFeatureText}\n${_feature}")
 
-    get_property(_desc GLOBAL PROPERTY ${_feature}_DESCRIPTION)
+    get_property(_desc GLOBAL PROPERTY G4_${_feature}_DESCRIPTION)
 
     if(_desc)
       set(_currentFeatureText "${_currentFeatureText}: ${_desc}")
@@ -195,9 +196,12 @@ function(geant4_save_package_variables _title)
   get_property(__exported_vars GLOBAL PROPERTY GEANT4_EXPORT_PACKAGE_${_title}_VARIABLES)
   foreach(__varname ${ARGN})
     if(NOT (${__varname} IN_LIST __exported_vars))
-      # TODO: Also check that the save variable is in the cache...
-      # if(CACHE ...) only available from 3.14
-      set_property(GLOBAL APPEND PROPERTY GEANT4_EXPORT_PACKAGE_${_title}_VARIABLES ${__varname})
+      # Some variables might be empty on certain systems. Only save those with a value
+      if(${__varname})
+        # TODO: Also check that the save variable is in the cache...
+        # if(CACHE ...) only available from 3.14
+        set_property(GLOBAL APPEND PROPERTY GEANT4_EXPORT_PACKAGE_${_title}_VARIABLES ${__varname})
+      endif()
     endif()
   endforeach()
 endfunction()
@@ -217,6 +221,21 @@ function(geant4_export_package_variables _file)
       get_property(__var_value CACHE ${__var} PROPERTY VALUE)
       get_property(__var_type CACHE ${__var} PROPERTY TYPE)
       get_property(__var_help CACHE ${__var} PROPERTY HELPSTRING)
+      # Variable may not be in cache, only local (canonical case being EXPAT_LIBRARY since CMake 3.27)
+      # We still need to account for these because they may be required to be in the CACHE at least set in
+      # earlier versions.
+      # 1. Variable may not be in cache, only local (canonical case being EXPAT_LIBRARY since CMake 3.27)
+      #    We still need to account for these because they may be required to be in the CACHE at least set in
+      #    earlier versions.
+      # 2. Depending on CMake version, variable may be in cache but unitialized, here we want the local value
+      if(((NOT __var_value) AND (NOT __var_type) AND (NOT __var_help)) OR (__var_type STREQUAL "UNINITIALIZED"))
+        set(__var_value ${${__var}})
+        # TODO: set type based on whether it looks like a bool or path, but PATH almost invariably what we save
+        # Only important in cmake GUI and if value needs to be changed, which we don't if package cache is used
+        set(__var_type PATH)
+        set(__var_help "no documentation, not a cache value")
+      endif()
+
       list(APPEND __local_build_setting "geant4_set_and_check_package_variable(${__var} \"${__var_value}\" ${__var_type} \"${__var_help}\")")
     endforeach()
 
@@ -245,7 +264,7 @@ function(geant4_add_unit_tests)
     if(IS_ABSOLUTE ${incdir})
       include_directories(${incdir})
     else()
-      include_directories(${CMAKE_SOURCE_DIR}/source/${incdir})
+      include_directories(${PROJECT_SOURCE_DIR}/source/${incdir})
     endif()
   endforeach()
 

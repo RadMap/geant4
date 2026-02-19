@@ -23,14 +23,13 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/phonon/src/XActionInitialization.cc
+/// \file XActionInitialization.cc
 /// \brief Implementation of the XActionInitialization class
-//
 
 #include "XActionInitialization.hh"
-#include "XPrimaryGeneratorAction.hh"
-#include "XPhononStackingAction.hh"
 
+#include "XPhononStackingAction.hh"
+#include "XPrimaryGeneratorAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -38,6 +37,6 @@ void XActionInitialization::Build() const
 {
   SetUserAction(new XPrimaryGeneratorAction);
   SetUserAction(new XPhononStackingAction);
-}  
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

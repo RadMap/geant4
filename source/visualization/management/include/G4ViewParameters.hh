@@ -101,7 +101,7 @@ public: // With description
 
   enum CutawayMode {
     cutawayUnion,       // Union (addition) of result of each cutaway plane.
-    cutawayIntersection // Intersection (multiplication) " .
+    cutawayIntersection // Intersection (multiplication).
   };
 
   enum RotationStyle {
@@ -109,8 +109,17 @@ public: // With description
     freeRotation           // Free, Google-like rotation, using mouse-grab.
   };
 
+  enum SMROption {  // Special Mesh Rendering Option
+    meshAsDefault,
+    meshAsDots,
+    meshAsSurfaces
+  };
+
   friend std::ostream& operator <<
-  (std::ostream&, const DrawingStyle&);
+  (std::ostream&, DrawingStyle);
+
+  friend std::ostream& operator <<
+  (std::ostream&, SMROption);
 
   friend std::ostream& operator <<
   (std::ostream&, const G4ViewParameters&);
@@ -165,6 +174,8 @@ public: // With description
         G4int            GetWindowAbsoluteLocationHintY (G4int) const;
         G4int            GetWindowLocationHintX  () const;
         G4int            GetWindowLocationHintY  () const;
+        G4bool           IsWindowLocationHintXNegative () const;
+        G4bool           IsWindowLocationHintYNegative () const;
   const G4String&        GetXGeometryString      () const;
   // GetXGeometryString is intended to be parsed by XParseGeometry.
   // It contains the size information, as in GetWindowSizeHint, but
@@ -183,24 +194,16 @@ public: // With description
         RotationStyle    GetRotationStyle        () const;
   const std::vector<G4ModelingParameters::VisAttributesModifier>&
                          GetVisAttributesModifiers () const;
-        G4double         GetStartTime            () const;
-        G4double         GetEndTime              () const;
-        G4double         GetFadeFactor           () const;
-        G4bool           IsDisplayHeadTime       () const;
-        G4double         GetDisplayHeadTimeX     () const;
-        G4double         GetDisplayHeadTimeY     () const;
-        G4double         GetDisplayHeadTimeSize  () const;
-        G4double         GetDisplayHeadTimeRed   () const;
-        G4double         GetDisplayHeadTimeGreen () const;
-        G4double         GetDisplayHeadTimeBlue  () const;
-        G4bool           IsDisplayLightFront     () const;
-        G4double         GetDisplayLightFrontX   () const;
-        G4double         GetDisplayLightFrontY   () const;
-        G4double         GetDisplayLightFrontZ   () const;
-        G4double         GetDisplayLightFrontT   () const;
-        G4double         GetDisplayLightFrontRed () const;
-        G4double         GetDisplayLightFrontGreen () const;
-        G4double         GetDisplayLightFrontBlue () const;
+  const G4ModelingParameters::TimeParameters&
+                         GetTimeParameters       () const;
+        G4bool           IsSpecialMeshRendering  () const;
+        SMROption        GetSpecialMeshRenderingOption () const;
+  const std::vector<G4ModelingParameters::PVNameCopyNo>& GetSpecialMeshVolumes () const;
+        G4double         GetTransparencyByDepth  () const;
+        G4int            GetTransparencyByDepthOption () const;
+        G4bool           IsZoomToCursor          () const;
+        G4bool           IsDotsSmooth            () const;
+        G4double         GetDotsSize             () const;
 
   // Here Follow functions to evaluate useful quantities as a
   // function of the radius of the Bounding Extent of the object being
@@ -275,24 +278,15 @@ public: // With description
   void SetRotationStyle        (RotationStyle);
   void ClearVisAttributesModifiers ();
   void AddVisAttributesModifier(const G4ModelingParameters::VisAttributesModifier&);
-  void SetStartTime            (G4double);
-  void SetEndTime              (G4double);
-  void SetFadeFactor           (G4double);
-  void SetDisplayHeadTime      (G4bool);
-  void SetDisplayHeadTimeX     (G4double);
-  void SetDisplayHeadTimeY     (G4double);
-  void SetDisplayHeadTimeSize  (G4double);
-  void SetDisplayHeadTimeRed   (G4double);
-  void SetDisplayHeadTimeGreen (G4double);
-  void SetDisplayHeadTimeBlue  (G4double);
-  void SetDisplayLightFront    (G4bool);
-  void SetDisplayLightFrontX   (G4double);
-  void SetDisplayLightFrontY   (G4double);
-  void SetDisplayLightFrontZ   (G4double);
-  void SetDisplayLightFrontT   (G4double);
-  void SetDisplayLightFrontRed (G4double);
-  void SetDisplayLightFrontGreen (G4double);
-  void SetDisplayLightFrontBlue (G4double);
+  void SetTimeParameters       (const G4ModelingParameters::TimeParameters&);
+  void SetSpecialMeshRendering (G4bool);
+  void SetSpecialMeshRenderingOption (SMROption);
+  void SetSpecialMeshVolumes   (const std::vector<G4ModelingParameters::PVNameCopyNo>&);
+  void SetTransparencyByDepth  (G4double);
+  void SetTransparencyByDepthOption (G4int);
+  void SetZoomToCursor         (G4bool);
+  void SetDotsSmooth           (G4bool);
+  void SetDotsSize             (G4double);
 
   // Command dumping functions.
   // For camera commands we need to provide the standard target point from
@@ -377,16 +371,15 @@ private:
   G4bool       fPicking;         // Request picking.
   RotationStyle fRotationStyle;  // Rotation style.
   std::vector<G4ModelingParameters::VisAttributesModifier> fVisAttributesModifiers;
-  G4double     fStartTime, fEndTime;  // Time range (e.g., for trajectory steps).
-  G4double     fFadeFactor;  // 0: no fade; 1: maximum fade with time within range.
-  G4bool       fDisplayHeadTime;  // Display head time (fEndTime) in 2D text.
-  G4double     fDisplayHeadTimeX, fDisplayHeadTimeY;  // 2D screen coords.
-  G4double     fDisplayHeadTimeSize;  // Screen size.
-  G4double     fDisplayHeadTimeRed, fDisplayHeadTimeGreen, fDisplayHeadTimeBlue;
-  G4bool       fDisplayLightFront;// Display light front at head time originating at
-  G4double     fDisplayLightFrontX, fDisplayLightFrontY, fDisplayLightFrontZ,
-               fDisplayLightFrontT;
-  G4double     fDisplayLightFrontRed, fDisplayLightFrontGreen, fDisplayLightFrontBlue;
+  G4ModelingParameters::TimeParameters fTimeParameters;  // For time-slicing, etc.
+  G4bool       fSpecialMeshRendering;  // Request special rendering of parameterised volumes
+  SMROption    fSpecialMeshRenderingOption;  // Special rendering option
+  std::vector<G4ModelingParameters::PVNameCopyNo> fSpecialMeshVolumes;  // If empty, all meshes.
+  G4double     fTransparencyByDepth;  // Transparency ~= (geometry depth) - fTransparencyByDepth
+  G4int        fTransparencyByDepthOption;  // Its option
+  G4bool       fZoomToCursor;  // If possible zoom to cursor with mouse wheel
+  G4bool       fDotsSmooth;  // Use glEnable(GL_POINT_SMOOTH) or equivalent for dots if available
+  G4double     fDotsSize;  // Size of G4Polymarker::dots
 
   enum { // Constants for geometry mask in ParseGeometry and related functions.
     fNoValue     = 0,

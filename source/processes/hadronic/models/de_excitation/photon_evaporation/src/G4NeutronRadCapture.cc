@@ -51,6 +51,7 @@
 #include "G4Alpha.hh"
 #include "G4RandomDirection.hh"
 #include "G4HadronicParameters.hh"
+#include "G4PhysicsModelCatalog.hh"
 
 G4NeutronRadCapture::G4NeutronRadCapture() 
   : G4HadronicInteraction("nRadCapture"),
@@ -58,12 +59,7 @@ G4NeutronRadCapture::G4NeutronRadCapture()
 {
   lowestEnergyLimit = 10*CLHEP::eV;
   minExcitation = 0.1*CLHEP::keV;
-  SetMinEnergy( 0.0*CLHEP::GeV );
-  SetMaxEnergy( G4HadronicParameters::Instance()->GetMaxEnergy() );
-
-  electron = G4Electron::Electron();
-  icID = -1;
-
+  secID = -1;
   theTableOfIons = G4ParticleTable::GetParticleTable()->GetIonTable();
 }
 
@@ -78,8 +74,7 @@ void G4NeutronRadCapture::InitialiseModel()
   G4DeexPrecoParameters* param = 
     G4NuclearLevelData::GetInstance()->GetParameters();
   minExcitation = param->GetMinExcitation();
-  icID = param->GetInternalConversionID();
-
+  secID = G4PhysicsModelCatalog::GetModelID("model_" + GetModelName());
   photonEvaporation = new G4PhotonEvaporation();
   photonEvaporation->Initialise();
   photonEvaporation->SetICM(true);
@@ -100,7 +95,7 @@ G4HadFinalState* G4NeutronRadCapture::ApplyYourself(
   lab4mom.set(0.,0.,0.,G4NucleiProperties::GetNuclearMass(A, Z));
   lab4mom += aTrack.Get4Momentum();
 
-  G4double M  = lab4mom.mag();
+  G4double M = lab4mom.mag();
   ++A;
   G4double mass = G4NucleiProperties::GetNuclearMass(A, Z);
   //G4cout << "Capture start: Z= " << Z << " A= " << A 
@@ -127,6 +122,7 @@ G4HadFinalState* G4NeutronRadCapture::ApplyYourself(
     G4HadSecondary* news = 
       new G4HadSecondary(new G4DynamicParticle(G4Gamma::Gamma(), lv2));
     news->SetTime(time);
+    news->SetCreatorModelID(secID);
     theParticleChange.AddSecondary(*news);
     delete news;
 
@@ -146,6 +142,7 @@ G4HadFinalState* G4NeutronRadCapture::ApplyYourself(
     if(theDef) {
       news = new G4HadSecondary(new G4DynamicParticle(theDef, lab4mom));
       news->SetTime(time);
+      news->SetCreatorModelID(secID);
       theParticleChange.AddSecondary(*news);
       delete news;
     }
@@ -173,14 +170,14 @@ G4HadFinalState* G4NeutronRadCapture::ApplyYourself(
     // Sample final state
     //
     G4FragmentVector* fv = photonEvaporation->BreakUpFragment(aFragment);
-    if(!fv) { fv = new G4FragmentVector(); }
+    if (nullptr == fv) { fv = new G4FragmentVector(); }
     fv->push_back(aFragment);
-    size_t n = fv->size();
+    std::size_t n = fv->size();
 
     if (verboseLevel > 1) {
-      G4cout << "G4NeutronRadCapture: " << n << " final particle icID= " << icID << G4endl;
+      G4cout << "G4NeutronRadCapture: " << n << " final particles" << G4endl;
     }
-    for(size_t i=0; i<n; ++i) {
+    for(std::size_t i=0; i<n; ++i) {
 
       G4Fragment* f = (*fv)[i];    
       G4double etot = f->GetMomentum().e();
@@ -218,7 +215,7 @@ G4HadFinalState* G4NeutronRadCapture::ApplyYourself(
       G4double timeF = f->GetCreationTime();
       if(timeF < 0.0) { timeF = 0.0; }
       news->SetTime(time + timeF);
-      if(theDef == electron) { news->SetCreatorModelType(icID); }
+      news->SetCreatorModelID(secID);
       theParticleChange.AddSecondary(*news);
       delete news;
       delete f;

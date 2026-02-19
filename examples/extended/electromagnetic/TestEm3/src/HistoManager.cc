@@ -23,28 +23,20 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+/// \file HistoManager.cc
+/// \brief Implementation of the HistoManager class
 
 #include "HistoManager.hh"
-#include "G4UnitsTable.hh"
+
 #include "DetectorConstruction.hh"
+
+#include "G4UnitsTable.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 HistoManager::HistoManager()
-  : fFileName("testem3")
 {
   Book();
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-HistoManager::~HistoManager()
-{
-  delete G4AnalysisManager::Instance();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -52,33 +44,34 @@ HistoManager::~HistoManager()
 void HistoManager::Book()
 {
   // Create or get analysis manager
-  // The choice of analysis technology is done via selection of a namespace
-  // in HistoManager.hh
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+  analysisManager->SetDefaultFileType("root");
   analysisManager->SetFileName(fFileName);
   analysisManager->SetVerboseLevel(1);
-  analysisManager->SetActivation(true);   // enable inactivation of histograms
+  analysisManager->SetActivation(true);  // enable inactivation of histograms
 
   // Define histograms start values
-  
-  const G4String id[] = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-                         "10","11","12","13","14","15","16","17","18","19",
-                         "20","21","22"};
+
+  const G4String id[] = {"0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",
+                         "9",  "10", "11", "12", "13", "14", "15", "16", "17",
+                         "18", "19", "20", "21", "22", "23", "24"};
   G4String title;
 
   // Default values (to be reset via /analysis/h1/set command)
   G4int nbins = 100;
   G4double vmin = 0.;
   G4double vmax = 100.;
-  
-  // Create all histograms as inactivated 
+
+  // Create all histograms as inactivated
   // as we have not yet set nbins, vmin, vmax
-  for (G4int k=0; k<kMaxHisto; k++) {
+  for (G4int k = 0; k < kMaxHisto; k++) {
     if (k < kMaxAbsor) title = "Edep in absorber " + id[k];
-    if (k > kMaxAbsor) title = "Edep longit. profile (MeV/event) in absorber "
-                               + id[k-kMaxAbsor];
-    if (k == 2*kMaxAbsor+1) title = "energy flow (MeV/event)";
-    if (k == 2*kMaxAbsor+2) title = "lateral energy leak (MeV/event)";
+    if (k == kMaxAbsor) title = "total energy deposited";
+    if (k > kMaxAbsor) title = "Edep longit. profile (MeV/event) in absorber " + id[k - kMaxAbsor];
+    if (k == 2 * kMaxAbsor + 1) title = "energy flow (MeV/event)";
+    if (k == 2 * kMaxAbsor + 2) title = "lateral energy leak (MeV/event)";
+    if (k == 2 * kMaxAbsor + 3) title = "total energy leakage";
+    if (k == 2 * kMaxAbsor + 4) title = "total energy relased : Edep + Eleak";
     G4int ih = analysisManager->CreateH1(id[k], title, nbins, vmin, vmax);
     analysisManager->SetH1Activation(ih, false);
   }

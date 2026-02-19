@@ -23,31 +23,18 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/wls/src/WLSStackingAction.cc
+/// \file WLSStackingAction.cc
 /// \brief Implementation of the WLSStackingAction class
-//
-//
+
 #include "WLSStackingAction.hh"
 
+#include "G4OpticalPhoton.hh"
 #include "G4RunManager.hh"
-
 #include "G4Track.hh"
-#include "G4ParticleTypes.hh"
-#include "G4ParticleDefinition.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-WLSStackingAction::WLSStackingAction() : fPhotonCounter(0) { }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-WLSStackingAction::~WLSStackingAction() { }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-G4ClassificationOfNewTrack
-      WLSStackingAction::ClassifyNewTrack(const G4Track * aTrack)
+G4ClassificationOfNewTrack WLSStackingAction::ClassifyNewTrack(const G4Track* aTrack)
 {
   G4ParticleDefinition* particleType = aTrack->GetDefinition();
 
@@ -55,23 +42,28 @@ G4ClassificationOfNewTrack
   if (aTrack->GetParentID() == 0) return fUrgent;
 
   if (particleType == G4OpticalPhoton::OpticalPhotonDefinition()) {
-     // keep optical photon
-     fPhotonCounter++;
-     return fUrgent;
-  } else {
-     // discard all other secondaries
-     // return fKill;
+    // keep optical photon
+    ++fPhotonCounter;
+    return fUrgent;
+  }
+  else {
+    // discard all other secondaries
+    // return fKill;
   }
   return fUrgent;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void WLSStackingAction::NewStage() {
+void WLSStackingAction::NewStage()
+{
   // G4cout << "Number of optical photons produces in this event : "
   //        << fPhotonCounter << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void WLSStackingAction::PrepareNewEvent() { fPhotonCounter = 0; }
+void WLSStackingAction::PrepareNewEvent()
+{
+  fPhotonCounter = 0;
+}

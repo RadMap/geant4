@@ -23,24 +23,22 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm10/include/DetectorSimpleALICE.hh
+/// \file DetectorSimpleALICE.hh
 /// \brief Definition of the DetectorSimpleALICE class
-//
-//
-//
-// Simplified setup for ALICE XTR test beam (~2004). 
+
+// Simplified setup for ALICE XTR test beam (~2004).
 // Runs by : Test salice.mac
 
 #ifndef DetectorSimpleALICE_h
 #define DetectorSimpleALICE_h 1
 
-#include "globals.hh"
-
 #include "RadiatorDescription.hh"
+
+#include "globals.hh"
 
 class G4VPhysicalVolume;
 
-class DetectorSimpleALICE 
+class DetectorSimpleALICE
 {
   public:
     DetectorSimpleALICE();
@@ -54,7 +52,7 @@ class DetectorSimpleALICE
 
   private:
     // data members
-    RadiatorDescription* fRadiatorDescription; 
+    RadiatorDescription* fRadiatorDescription;
 };
 
 #endif

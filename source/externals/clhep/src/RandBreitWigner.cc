@@ -23,6 +23,9 @@
 #include "CLHEP/Random/DoubConv.h"
 #include <algorithm>	// for min() and max()
 #include <cmath>
+#include <iostream>
+#include <string>
+#include <vector>
 
 namespace CLHEP {
 
@@ -275,7 +278,7 @@ void RandBreitWigner::fireArray ( const int size, double* vect,
 
 
 std::ostream & RandBreitWigner::put ( std::ostream & os ) const {
-  int pr=os.precision(20);
+  long pr=os.precision(20);
   std::vector<unsigned long> t(2);
   os << " " << name() << "\n";
   os << "Uvec" << "\n";

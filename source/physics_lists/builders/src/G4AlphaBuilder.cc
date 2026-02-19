@@ -41,7 +41,6 @@
  
  void G4AlphaBuilder::Build()
  {
-   wasActivated = true;
    std::vector<G4VAlphaBuilder *>::iterator i;
    for(i=theModelCollections.begin(); i!=theModelCollections.end(); i++)
    {
@@ -51,10 +50,9 @@
    theProcMan->AddDiscreteProcess(theAlphaInelastic);
  }
 
- G4AlphaBuilder::
- G4AlphaBuilder(): wasActivated(false)  
+ G4AlphaBuilder::G4AlphaBuilder()
  {
-   theAlphaInelastic=new G4AlphaInelasticProcess;
+   theAlphaInelastic=new G4HadronInelasticProcess( "alphaInelastic", G4Alpha::Definition() );
  }
 
  void G4AlphaBuilder::RegisterMe(G4PhysicsBuilderInterface* ab) {

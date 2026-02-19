@@ -23,8 +23,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file medical/electronScattering2/include/PhysicsList.hh
+/// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
 
 #ifndef PhysicsList_h
@@ -38,26 +37,25 @@ class PhysicsListMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
-public:
-  PhysicsList();
-  virtual ~PhysicsList();
+  public:
+    PhysicsList();
+    ~PhysicsList() override;
 
-  virtual void ConstructParticle();
-        
-  void AddPhysicsList(const G4String& name);
-    
-  virtual void ConstructProcess();    
-  void AddDecay();
-  void AddStepMax();       
-    
-private:
-  
-  PhysicsListMessenger* fMessenger; 
+    void ConstructParticle() override;
+    void ConstructProcess() override;
 
-  G4String fEmName;
-  G4VPhysicsConstructor*  fEmPhysicsList;
+    void AddPhysicsList(const G4String& name);
+
+    void AddDecay();
+    void AddStepMax();
+
+  private:
+    PhysicsListMessenger* fMessenger = nullptr;
+    G4VPhysicsConstructor* fEmPhysicsList = nullptr;
+
+    G4String fEmName = "";
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -50,6 +50,8 @@
 
 #include "globals.hh"
 #include "G4DNAModelSubType.hh"
+#include "G4EmFluoDirectory.hh"
+#include "G4ChemTimeStepModel.hh"
 #include <vector>
 
 class G4EmLowEParametersMessenger;
@@ -69,8 +71,12 @@ public:
   void SetFluo(G4bool val);
   G4bool Fluo() const;
 
+  G4EmFluoDirectory FluoDirectory() const;
+
+  void SetFluoDirectory(G4EmFluoDirectory val);
   void SetBeardenFluoDir(G4bool val);
-  G4bool BeardenFluoDir() const;
+  void SetANSTOFluoDir(G4bool val);
+  void SetXDB_EADLFluoDir(G4bool val);
 
   void SetAuger(G4bool val);
   G4bool Auger() const;
@@ -90,7 +96,17 @@ public:
   void SetDNAElectronMsc(G4bool val);
   G4bool DNAElectronMsc() const;
 
+  // double parameters
+  void SetMaxDNAElectronEnergy(G4double val);
+  G4double MaxDNAElectronEnergy() const;
+
+  void SetMaxDNAIonEnergy(G4double val);
+  G4double MaxDNAIonEnergy() const;
+
   // integer parameters 
+  void SetChemTimeStepModel(G4ChemTimeStepModel val);
+  G4ChemTimeStepModel GetChemTimeStepModel() const;
+
   void SetDNAeSolvationSubType(G4DNAModelSubType val);
   G4DNAModelSubType DNAeSolvationSubType() const;
 
@@ -100,6 +116,9 @@ public:
 
   void SetPIXEElectronCrossSectionModel(const G4String&);
   const G4String& PIXEElectronCrossSectionModel();
+
+  void SetLivermoreDataDir(const G4String&);
+  const G4String& LivermoreDataDir();
 
   // parameters per region or per process 
   void AddMicroElec(const G4String& region);
@@ -128,7 +147,6 @@ private:
   G4EmLowEParametersMessenger* theMessenger;
 
   G4bool fluo;
-  G4bool beardenFluoDir;
   G4bool auger;
   G4bool pixe;
   G4bool deexIgnoreCut;
@@ -137,10 +155,17 @@ private:
   G4bool dnaStationary;
   G4bool dnaMsc;
   
-  G4DNAModelSubType  dnaElectronSolvation;
+  G4DNAModelSubType dnaElectronSolvation;
+  G4ChemTimeStepModel fTimeStepModel;
+
+  G4double maxEElectron;
+  G4double maxEIon;
+
+  G4EmFluoDirectory fFluoDirectory;
 
   G4String namePIXE;
   G4String nameElectronPIXE;
+  G4String livDataDir;
 
   std::vector<G4String>  m_regnamesME;
 

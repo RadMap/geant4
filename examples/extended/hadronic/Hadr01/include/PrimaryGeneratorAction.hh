@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr01/include/PrimaryGeneratorAction.hh
+/// \file PrimaryGeneratorAction.hh
 /// \brief Definition of the PrimaryGeneratorAction class
-//
-//
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // PrimaryGeneratorAction
@@ -54,23 +51,20 @@ class HistoManager;
 
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
-  PrimaryGeneratorAction();
-  virtual ~PrimaryGeneratorAction();
+  public:
+    PrimaryGeneratorAction();
+    ~PrimaryGeneratorAction() override;
 
-  virtual void GeneratePrimaries(G4Event*);
+    void GeneratePrimaries(G4Event*) override;
 
-private:
+    PrimaryGeneratorAction& operator=(const PrimaryGeneratorAction& right) = delete;
+    PrimaryGeneratorAction(const PrimaryGeneratorAction&) = delete;
 
-  PrimaryGeneratorAction & operator=(const PrimaryGeneratorAction &right);
-  PrimaryGeneratorAction(const PrimaryGeneratorAction&);
-
-  G4ParticleGun*   fParticleGun;
-  HistoManager*    fHisto; 
+  private:
+    G4ParticleGun* fParticleGun;
+    HistoManager* fHisto;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-

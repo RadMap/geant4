@@ -23,11 +23,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
-// --------------------------------------------------------------------
-// GEANT 4 class header file 
+// G4BuffercoutDestination
 //
 // Class Description:
 //
@@ -37,49 +33,48 @@
 
 //      ---------------- G4BuffercoutDestination ----------------
 //
-// Author: A.Dotti (SLAC), April 2017
+// Author: A.Dotti (SLAC), 14 April 2017
 // --------------------------------------------------------------------
-#ifndef G4BUFFERCOUTDESTINATION_HH_
-#define G4BUFFERCOUTDESTINATION_HH_
+#ifndef G4BUFFERCOUTDESTINATION_HH
+#define G4BUFFERCOUTDESTINATION_HH
 
+#include <memory>
 #include <sstream>
 
 #include "G4coutDestination.hh"
 
 class G4BuffercoutDestination : public G4coutDestination
 {
-  public:
+ public:
+  explicit G4BuffercoutDestination(std::size_t maxSize = 0);
+  ~G4BuffercoutDestination() override;
 
-    explicit G4BuffercoutDestination(size_t maxSize = 0);
-    virtual ~G4BuffercoutDestination();
+  G4int ReceiveG4debug(const G4String& msg) override;
+  G4int ReceiveG4cout(const G4String& msg) override;
+  G4int ReceiveG4cerr(const G4String& msg) override;
 
-    virtual G4int ReceiveG4cout(const G4String& msg) override;
-    virtual G4int ReceiveG4cerr(const G4String& msg) override;
-    // Flush buffer to std output
-    virtual G4int FlushG4cout();
-    // Flush buffer to std error
-    virtual G4int FlushG4cerr();
-    // Flsuh both buffers
+  // Flush buffer to std output
+  virtual G4int FlushG4debug();
+   // Flush buffer to std output
+  virtual G4int FlushG4cout();
+  // Flush buffer to std error
+  virtual G4int FlushG4cerr();
+  
+  // Flush all buffers
+  virtual void Finalize();
 
-    virtual void Finalize();
+  // Set maximum size of buffer, when buffer grows to specified size,
+  // it will trigger flush. Dimension in char
+  void SetMaxSize(std::size_t max);
+  std::size_t GetMaxSize() const { return m_maxSize; }
 
-    // Set maximum size of buffer, when buffer grows to specified size,
-    // it will trigger flush. Dimension in char
-    void SetMaxSize(size_t max) { m_maxSize = max; }
-    size_t GetMaxSize() const { return m_maxSize; }
-    size_t GetCurrentSizeOut() const { return m_currentSize_out; }
-    size_t GetCurrentSizeErr() const { return m_currentSize_err; }
+ protected:
+  std::size_t m_maxSize = 0;
 
-  protected:
-
-    void ResetCout();
-    void ResetCerr();
-
-    std::ostringstream m_buffer_out;
-    std::ostringstream m_buffer_err;
-    size_t m_currentSize_out;
-    size_t m_currentSize_err;
-    size_t m_maxSize;
+  class BufferImpl;
+  std::unique_ptr<BufferImpl> m_buffer_dbg;
+  std::unique_ptr<BufferImpl> m_buffer_out;
+  std::unique_ptr<BufferImpl> m_buffer_err;
 };
 
-#endif /* G4BUFFERCOUTDESTINATION_HH_ */
+#endif

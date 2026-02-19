@@ -1,35 +1,10 @@
-#------------------------------------------------------------------------------
-# CMakeLists.txt
-# Module : G4digits_hits
-# Package: Geant4.src.G4digits_hits
-#
-# Top level CMakeLists.txt for a Geant4 Global Library
-# or collection of sublibraries
-#
-# Generated on : 24/9/2010
-#
-#
-#------------------------------------------------------------------------------
-
-# Add allocation export symbol for the digits_hits category
+# - G4digits_hits category build
 add_definitions(-DG4DIGI_ALLOC_EXPORT)
 
+include(detector/sources.cmake)
+include(digits/sources.cmake)
+include(hits/sources.cmake)
+include(scorer/sources.cmake)
+include(utils/sources.cmake)
 
-add_subdirectory(detector)
-add_subdirectory(digits)
-add_subdirectory(hits)
-add_subdirectory(scorer)
-add_subdirectory(utils)
-
-if(NOT GEANT4_BUILD_GRANULAR_LIBS)
-    include(Geant4MacroLibraryTargets)
-    GEANT4_GLOBAL_LIBRARY_TARGET(NAME G4digits_hits
-        COMPONENTS
-            detector/sources.cmake
-            digits/sources.cmake
-            hits/sources.cmake
-            scorer/sources.cmake
-            utils/sources.cmake
-)
-endif()
-
+geant4_add_category(G4digits_hits MODULES G4detector G4digits G4hits G4detscorer G4detutils)

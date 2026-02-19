@@ -23,10 +23,10 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//  G4TransportationManager inlined function members implementation
+// G4TransportationManager inlined function members implementation
 //
-// Created :  10 March 1997, J. Apostolakis
-// Reviewed:  26 April 2006, G. Cosmo
+// Created: John Apostolakis (CERN), 10 March 1997
+// Reviewed: Gabriele Cosmo (CERN), 26 April 2006
 // ----------------------------------------------------------------------------
 
 // ----------------------------------------------------------------------------
@@ -108,9 +108,8 @@ inline
 std::vector<G4Navigator*>::iterator
 G4TransportationManager::GetActiveNavigatorsIterator()
 {
-   std::vector<G4Navigator*>::iterator iterator
-     = std::vector<G4Navigator*>::iterator(fActiveNavigators.begin());
-   return iterator;
+   auto iter = std::vector<G4Navigator*>::iterator(fActiveNavigators.begin());
+   return iter;
 }
 
 // ----------------------------------------------------------------------------
@@ -133,9 +132,8 @@ inline
 std::vector<G4VPhysicalVolume*>::iterator
 G4TransportationManager::GetWorldsIterator()
 {
-   std::vector<G4VPhysicalVolume*>::iterator iterator
-     = std::vector<G4VPhysicalVolume*>::iterator(fWorlds.begin());
-   return iterator;
+   auto iter = std::vector<G4VPhysicalVolume*>::iterator(fWorlds.begin());
+   return iter;
 }
 
 // ----------------------------------------------------------------------------

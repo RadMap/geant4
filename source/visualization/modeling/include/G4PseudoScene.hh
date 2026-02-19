@@ -51,11 +51,13 @@ class G4PseudoScene: public G4VGraphicsScene {
 
 public:
 
-  G4PseudoScene(): fpCurrentObjectTransformation(0) {}
-  virtual ~G4PseudoScene () {}
+  G4PseudoScene()          = default;
+  virtual ~G4PseudoScene() = default;
   void PreAddSolid (const G4Transform3D& objectTransformation,
-		    const G4VisAttributes&)
-  {fpCurrentObjectTransformation = &objectTransformation;}
+                    const G4VisAttributes& visAttributes) {
+    fpCurrentObjectTransformation = &objectTransformation;
+    fpVisAttributes = &visAttributes;
+  }
   void PostAddSolid () {}
   // From geometry/solids/CSG
   void AddSolid (const G4Box&    solid) {ProcessVolume (solid);}
@@ -80,23 +82,26 @@ public:
   void AddCompound (const G4VDigi&)       {}
   void AddCompound (const G4THitsMap<G4double>&)     {}
   void AddCompound (const G4THitsMap<G4StatDouble>&) {}
+  void AddCompound (const G4Mesh&);  // Catches mesh if special mesh rendering set
   // Primitives
   void BeginPrimitives   (const G4Transform3D&) {}
   void EndPrimitives     ()                     {}
   void BeginPrimitives2D (const G4Transform3D&) {}
   void EndPrimitives2D   ()                     {}
   void AddPrimitive (const G4Polyline&)   {}
-  void AddPrimitive (const G4Scale&)      {}
   void AddPrimitive (const G4Text&)       {}
   void AddPrimitive (const G4Circle&)     {}
   void AddPrimitive (const G4Square&)     {}
   void AddPrimitive (const G4Polymarker&) {}
   void AddPrimitive (const G4Polyhedron&) {}
 
+  void AddPrimitive (const G4Plotter&)    {}
+
 protected:
 
-  virtual void ProcessVolume (const G4VSolid&) = 0;
-  const G4Transform3D* fpCurrentObjectTransformation;
+  virtual void ProcessVolume (const G4VSolid&);
+  const G4Transform3D* fpCurrentObjectTransformation = nullptr;
+  const G4VisAttributes* fpVisAttributes = nullptr;
 };
 
 #endif

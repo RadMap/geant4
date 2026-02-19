@@ -23,11 +23,10 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// class G4BrentLocator implementation
+// Class G4BrentLocator implementation
 //
-// 27.10.08 - Tatiana Nikitina.
-// 04.10.11 - John Apostolakis, revised convergence to use Surface Normal
-// ---------------------------------------------------------------------------
+// Author: Tatiana Nikitina (CERN), 27 October 2008
+// --------------------------------------------------------------------
 
 #include <iomanip>
 
@@ -42,17 +41,17 @@ G4BrentLocator::G4BrentLocator(G4Navigator *theNavigator)
   // Initialise the array of Pointers [max_depth+1] to do this  
   
   G4ThreeVector zeroV(0.0,0.0,0.0);
-  for (auto idepth=0; idepth<max_depth+1; ++idepth )
+  for (auto & idepth : ptrInterMedFT)
   {
-    ptrInterMedFT[ idepth ] = new G4FieldTrack( zeroV, zeroV, 0., 0., 0., 0.);
+    idepth = new G4FieldTrack( zeroV, zeroV, 0., 0., 0., 0.);
   }
 }
 
 G4BrentLocator::~G4BrentLocator()
 {
-  for ( auto idepth=0; idepth<max_depth+1; ++idepth )
+  for (auto & idepth : ptrInterMedFT)
   {
-    delete ptrInterMedFT[idepth];
+    delete idepth;
   }
 }
 
@@ -121,7 +120,7 @@ G4bool G4BrentLocator::EstimateIntersectionPoint(
 
   G4bool restoredFullEndpoint = false;
 
-  G4int oldprc;  // cout, cerr precision
+  G4long oldprc;  // cout, cerr precision
   G4int substep_no = 0;
    
   // Limits for substep number
@@ -186,9 +185,9 @@ G4bool G4BrentLocator::EstimateIntersectionPoint(
 
   //Final_section boolean store
   G4bool fin_section_depth[max_depth];
-  for (auto idepth=0; idepth<max_depth; ++idepth )
+  for (bool & idepth : fin_section_depth)
   {
-    fin_section_depth[idepth] = true;
+    idepth = true;
   }
 
   // 'SubStartPoint' is needed to calculate the length of the divided step
@@ -753,7 +752,7 @@ G4bool G4BrentLocator::EstimateIntersectionPoint(
   }
   else if( substep_no >= warn_substeps )
   {  
-    oldprc= G4cout.precision( 10 ); 
+    oldprc = G4cout.precision( 10 ); 
     std::ostringstream message;
     message << "Many substeps while trying to locate intersection."
             << G4endl

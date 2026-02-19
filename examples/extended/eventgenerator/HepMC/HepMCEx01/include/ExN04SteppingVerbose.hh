@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/HepMCEx01/include/ExN04SteppingVerbose.hh
+/// \file ExN04SteppingVerbose.hh
 /// \brief Definition of the ExN04SteppingVerbose class
-//
-//
+
 //   This class manages the verbose outputs in G4SteppingManager.
 //   It inherits from G4SteppingVerbose.
 //   It shows how to extract informations during the tracking of a particle.
@@ -38,15 +37,14 @@
 
 class ExN04SteppingVerbose;
 
+class ExN04SteppingVerbose : public G4SteppingVerbose
+{
+  public:
+    ExN04SteppingVerbose();
+    ~ExN04SteppingVerbose();
 
-class ExN04SteppingVerbose : public G4SteppingVerbose {
-public:
-  ExN04SteppingVerbose();
-  ~ExN04SteppingVerbose();
-
-  void StepInfo();
-  void TrackingStarted();
-
+    void StepInfo();
+    void TrackingStarted();
 };
 
 #endif

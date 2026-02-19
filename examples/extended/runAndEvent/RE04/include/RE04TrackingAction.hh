@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE04/include/RE04TrackingAction.hh
+/// \file RE04TrackingAction.hh
 /// \brief Definition of the RE04TrackingAction class
-//
-//
+
 #ifndef RE04TrackingAction_h
 #define RE04TrackingAction_h 1
 
@@ -41,15 +40,14 @@
 /// - void PostUserTrackingAction(const G4Track*)
 ///     does nothing
 //
-class RE04TrackingAction : public G4UserTrackingAction {
-
+class RE04TrackingAction : public G4UserTrackingAction
+{
   public:
     RE04TrackingAction() : G4UserTrackingAction() {};
-    virtual ~RE04TrackingAction(){};
-   
+    virtual ~RE04TrackingAction() {};
+
     virtual void PreUserTrackingAction(const G4Track*);
     virtual void PostUserTrackingAction(const G4Track*);
-
 };
 
 #endif

@@ -402,12 +402,26 @@ namespace G4INCL {
     }
 
 	
-	   G4double CrossSectionsINCL46::etaNToPiPiN(Particle const * const, Particle const * const) {
+	  G4double CrossSectionsINCL46::etaNToPiPiN(Particle const * const, Particle const * const) {
 		//
 		//     Eta-Nucleon producing Two Pions cross sections
 		//
 		      return 0.;
 	   }
+  
+    G4double CrossSectionsINCL46::etaNToLK(Particle const * const, Particle const * const) {
+    //
+    //     Eta-Nucleon producing K Lambda cross sections
+    //
+        return 0.;
+    }
+  
+    G4double CrossSectionsINCL46::etaNToSK(Particle const * const, Particle const * const) {
+    //
+    //     Eta-Nucleon producing K Sigma cross sections
+    //
+        return 0.;
+    }
 	
     G4double CrossSectionsINCL46::omegaNToPiN(Particle const * const, Particle const * const) {
 		//
@@ -420,6 +434,20 @@ namespace G4INCL {
 		//
 		//     Omega-Nucleon producing Two Pions cross sections
 		//
+        return 0.;
+    }
+  
+    G4double CrossSectionsINCL46::omegaNToLK(Particle const * const, Particle const * const) {
+    //
+    //     Omega-Nucleon producing K Lambda cross sections
+    //
+        return 0.;
+    }
+  
+    G4double CrossSectionsINCL46::omegaNToSK(Particle const * const, Particle const * const) {
+    //
+    //     Omega-Nucleon producing K Sigma cross sections
+    //
         return 0.;
     }
 	
@@ -736,6 +764,54 @@ namespace G4INCL {
         //
         return 0.;
     }
-	
+        
+    G4double CrossSectionsINCL46::NNbarElastic(Particle const* const, Particle const* const){
+        //
+        //     Nucleon-AntiNucleon to Nucleon-AntiNucleon cross sections
+        //
+      return 0.;
+    }
+
+    G4double CrossSectionsINCL46::NNbarCEX(Particle const* const, Particle const* const){
+        //
+        //     Nucleon-AntiNucleon charge exchange cross sections
+        //
+      return 0.;
+    }
+
+    G4double CrossSectionsINCL46::NNbarToLLbar(Particle const* const, Particle const* const){
+        //
+        //     Nucleon-AntiNucleon to Lambda-AntiLambda cross sections
+        //
+      return 0.;
+    }
+      
+    G4double CrossSectionsINCL46::NNbarToNNbarpi(Particle const* const, Particle const* const){
+        //
+        //     Nucleon-AntiNucleon to Nucleon-AntiNucleon + 1 pion cross sections
+        //
+      return 0.;
+    }
+
+    G4double CrossSectionsINCL46::NNbarToNNbar2pi(Particle const* const, Particle const* const){
+        //
+        //     Nucleon-AntiNucleon to Nucleon-AntiNucleon + 2 pions cross sections
+        //
+      return 0.;
+    }
+    
+    G4double CrossSectionsINCL46::NNbarToNNbar3pi(Particle const* const, Particle const* const){
+        //
+        //     Nucleon-AntiNucleon to Nucleon-AntiNucleon + 3 pions cross sections
+        //
+      return 0.;
+    }
+     
+    G4double CrossSectionsINCL46::NNbarToAnnihilation(Particle const* const, Particle const* const){
+        //
+        //     Nucleon-AntiNucleon total annihilation cross sections
+        //
+      return 0.;
+    }	
 } // namespace G4INCL
 

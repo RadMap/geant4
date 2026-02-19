@@ -26,7 +26,7 @@
 #include "G4DNAWaterExcitationStructure.hh"
 #include "G4SystemOfUnits.hh"
 
-G4DNAWaterExcitationStructure::G4DNAWaterExcitationStructure(): nLevels(5)
+G4DNAWaterExcitationStructure::G4DNAWaterExcitationStructure() 
 {
   energyConstant.push_back(8.22*eV);
   energyConstant.push_back(10.00*eV);
@@ -34,12 +34,12 @@ G4DNAWaterExcitationStructure::G4DNAWaterExcitationStructure(): nLevels(5)
   energyConstant.push_back(12.61*eV);
   energyConstant.push_back(13.77*eV);
 
-  nLevels = energyConstant.size();
+  nLevels = (G4int)energyConstant.size();
 }
 
 
 G4DNAWaterExcitationStructure::~G4DNAWaterExcitationStructure()
-{ }
+= default;
  
 
 G4double G4DNAWaterExcitationStructure::ExcitationEnergy(G4int level)

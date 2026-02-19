@@ -39,19 +39,15 @@
 #include "G4MuNeutrinoNucleusProcess.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4Nucleus.hh"
+#include "G4HadronicException.hh"
 #include "G4ProcessManager.hh"
 #include "G4CrossSectionDataStore.hh"
-#include "G4HadronElasticDataSet.hh" //???
 #include "G4ProductionCutsTable.hh"
-#include "G4HadronicException.hh"
-#include "G4HadronicDeprecate.hh"
 #include "G4HadronicInteraction.hh"
 #include "G4VCrossSectionRatio.hh"
 #include "G4VDiscreteProcess.hh"
 
 #include "G4MuNeutrinoNucleusTotXsc.hh"
-//#include "G4NuMuNucleusCcModel.hh"
-//#include "G4NuMuNucleusNcModel.hh"
 
 #include "G4RotationMatrix.hh"
 #include "G4ThreeVector.hh"
@@ -66,24 +62,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-G4MuNeutrinoNucleusProcess::G4MuNeutrinoNucleusProcess( G4String anEnvelopeName, const G4String& pName)
-  : G4HadronicProcess( pName, fHadronInelastic ), isInitialised(false), fBiased(true)  // fHadronElastic???
+G4MuNeutrinoNucleusProcess::G4MuNeutrinoNucleusProcess(const G4String& anEnvelopeName, const G4String& pName)
+  : G4HadronicProcess( pName, fNuNucleus )
 {
-  // AddDataSet(new G4HadronElasticDataSet); //???
   lowestEnergy = 1.*keV;
-  fEnvelope  = nullptr;
   fEnvelopeName = anEnvelopeName;
-  fTotXsc = nullptr; // new G4MuNeutrinoNucleusTotXsc();
-  fNuNuclCcBias=1.;
-  fNuNuclNcBias=1.;
-  fNuNuclTotXscBias=1.;
-  safetyHelper = G4TransportationManager::GetTransportationManager()->GetSafetyHelper();
+  fTotXsc = new G4MuNeutrinoNucleusTotXsc();
+   safetyHelper = G4TransportationManager::GetTransportationManager()->GetSafetyHelper();
   safetyHelper->InitialiseHelper();
-}
-
-G4MuNeutrinoNucleusProcess::~G4MuNeutrinoNucleusProcess()
-{
-  if( fTotXsc ) delete fTotXsc;
 }
 
 ///////////////////////////////////////////////////////
@@ -91,20 +77,25 @@ G4MuNeutrinoNucleusProcess::~G4MuNeutrinoNucleusProcess()
 void G4MuNeutrinoNucleusProcess::SetBiasingFactor(G4double bf)
 {
   fNuNuclTotXscBias = bf;
-
-  fTotXsc = new G4MuNeutrinoNucleusTotXsc();
-  fTotXsc->SetBiasingFactor(bf);
 }
 
 ///////////////////////////////////////////////////////
 
 void G4MuNeutrinoNucleusProcess::SetBiasingFactors(G4double bfCc, G4double bfNc)
 {
-  fNuNuclCcBias=bfCc;
-  fNuNuclNcBias=bfNc;
+  fNuNuclCcBias = bfCc;
+  fNuNuclNcBias = bfNc;
+  fNuNuclTotXscBias = std::max(fNuNuclCcBias, fNuNuclNcBias);
+}
 
-  fTotXsc = new G4MuNeutrinoNucleusTotXsc();
-  // fTotXsc->SetBiasingFactors(bfCc, bfNc);
+///////////////////////////////////////////////
+
+G4double G4MuNeutrinoNucleusProcess::PostStepGetPhysicalInteractionLength( const G4Track& track,
+                                      G4double previousStepSize,
+                                      G4ForceCondition* condition )
+{
+  return G4VDiscreteProcess::PostStepGetPhysicalInteractionLength(  track,
+                                       previousStepSize,  condition );
 }
 
 //////////////////////////////////////////////////
@@ -115,29 +106,12 @@ GetMeanFreePath(const G4Track &aTrack, G4double, G4ForceCondition *)
   //G4cout << "GetMeanFreePath " << aTrack.GetDefinition()->GetParticleName()
   //	 << " Ekin= " << aTrack.GetKineticEnergy() << G4endl;
   G4String rName = aTrack.GetStep()->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName();
-  G4double totxsc(0.);
-  try
-  {
-    if( rName == fEnvelopeName && fNuNuclTotXscBias > 1.)    
-    {
-      totxsc = fNuNuclTotXscBias*
-	GetCrossSectionDataStore()->ComputeCrossSection(aTrack.GetDynamicParticle(),
+  G4double totxsc = GetCrossSectionDataStore()->ComputeCrossSection(aTrack.GetDynamicParticle(),
 						    aTrack.GetMaterial());
-    }
-    else
-    {
-      totxsc = GetCrossSectionDataStore()->ComputeCrossSection(aTrack.GetDynamicParticle(),
-						    aTrack.GetMaterial());
-    }
-  }
-  catch(G4HadronicException & aR)
+
+  if( rName == fEnvelopeName && fNuNuclTotXscBias > 1.)
   {
-    G4ExceptionDescription ed;
-    aR.Report(ed);
-    DumpState(aTrack,"GetMeanFreePath",ed);
-    ed << " Cross section is not available" << G4endl;
-    G4Exception("G4MuNeutrinoNucleusProcess::GetMeanFreePath", "had002", FatalException,
-		ed);
+    totxsc *= fNuNuclTotXscBias;
   }
   G4double res = (totxsc>0.0) ? 1.0/totxsc : DBL_MAX;
   //G4cout << "         xsection= " << totxsc << G4endl;
@@ -148,11 +122,9 @@ GetMeanFreePath(const G4Track &aTrack, G4double, G4ForceCondition *)
 
 void G4MuNeutrinoNucleusProcess::ProcessDescription(std::ostream& outFile) const
 {
-
-    outFile << "G4MuNeutrinoNucleusProcess handles the scattering of \n"
-            << "neutrino on electrons by invoking the following  model(s) and \n"
-            << "cross section(s).\n";
-
+  outFile << "G4MuNeutrinoNucleusProcess handles the scattering of \n"
+	  << "neutrino on electrons by invoking the following  model(s) and \n"
+	  << "cross section(s).\n";
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -160,9 +132,6 @@ void G4MuNeutrinoNucleusProcess::ProcessDescription(std::ostream& outFile) const
 G4VParticleChange* 
 G4MuNeutrinoNucleusProcess::PostStepDoIt(const G4Track& track, const G4Step& step)
 {
-  // track.GetVolume()->GetLogicalVolume()->GetName()
-  // if( track.GetVolume()->GetLogicalVolume() != fEnvelope )
- 
   G4String rName = track.GetStep()->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName();
 
   if( rName != fEnvelopeName ) 
@@ -208,23 +177,22 @@ G4MuNeutrinoNucleusProcess::PostStepDoIt(const G4Track& track, const G4Step& ste
   G4double kineticEnergy = track.GetKineticEnergy();
   const G4DynamicParticle* dynParticle = track.GetDynamicParticle();
   const G4ParticleDefinition* part = dynParticle->GetDefinition();
+  const G4String pName = part->GetParticleName();
 
   // NOTE:  Very low energy scatters were causing numerical (FPE) errors
   //        in earlier releases; these limits have not been changed since.
 
-  if ( kineticEnergy <= lowestEnergy )   return theTotalResult;
+  if ( kineticEnergy <= lowestEnergy ) return theTotalResult;
 
   const G4Material* material = track.GetMaterial();
   G4Nucleus* targNucleus = GetTargetNucleusPointer();
 
-  //////////////// uniform random spread of the neutrino interaction point ////////////
+  ///// uniform random spread of the neutrino interaction point ////////////
 
   const G4StepPoint* pPostStepPoint  = step.GetPostStepPoint();
   const G4DynamicParticle* aParticle = track.GetDynamicParticle();
   G4ThreeVector      position  = pPostStepPoint->GetPosition(), newPosition=position;
   G4ParticleMomentum direction = aParticle->GetMomentumDirection();
-  G4double           startTime = pPostStepPoint->GetGlobalTime();
-
   
   if( fNuNuclCcBias > 1.0 ||  fNuNuclNcBias > 1.0) // = true, if fBiasingfactor != 1., i.e. xsc is biased
   {
@@ -248,43 +216,19 @@ G4MuNeutrinoNucleusProcess::PostStepDoIt(const G4Track& track, const G4Step& ste
 
     G4double range = -backward+G4UniformRand()*distance;
 
-    G4double delta = range - backward;
-
-    startTime += delta/track.GetVelocity();
-
     newPosition = position + range*direction;
 
     safetyHelper->ReLocateWithinVolume(newPosition);
 
     theTotalResult->ProposePosition(newPosition); // G4Exception : GeomNav1002
-    // theTotalResult->ProposeGlobalTime(startTime); // time is updated for 'elastic' only
   }
   G4HadProjectile theProj( track );
   G4HadronicInteraction* hadi = nullptr;
   G4HadFinalState* result = nullptr;
-
-  // Select element
-  const G4Element* elm = nullptr;
-  G4int ZZ=1;
-
-  try
-  {
-      elm = GetCrossSectionDataStore()->SampleZandA(dynParticle, material, 
-						    *targNucleus);
-  }
-  catch( G4HadronicException & aR )
-  {
-      G4ExceptionDescription ed;
-      aR.Report(ed);
-      DumpState(track,"SampleZandA",ed); 
-      ed << " PostStepDoIt failed on element selection" << G4endl;
-      G4Exception("G4MuNeutrinoNucleusProcess::PostStepDoIt", "had003", 
-		  FatalException, ed);
-  }
-  if( elm ) ZZ = elm->GetZ();
-
-  G4double xsc = fTotXsc->GetElementCrossSection(dynParticle, ZZ, material);
-  xsc *= 1.;
+  const G4Element* elm =
+    GetCrossSectionDataStore()->SampleZandA(dynParticle, material, *targNucleus);
+  G4int ZZ = elm->GetZasInt();
+  fTotXsc->GetElementCrossSection(dynParticle, ZZ, material);  
   G4double ccTotRatio = fTotXsc->GetCcTotRatio();
 
   if( G4UniformRand() < ccTotRatio )  // Cc-model
@@ -292,7 +236,8 @@ G4MuNeutrinoNucleusProcess::PostStepDoIt(const G4Track& track, const G4Step& ste
     // Initialize the hadronic projectile from the track
     thePro.Initialise(track);
 
-    hadi = (GetHadronicInteractionList())[0];
+    if (pName == "nu_mu" ) hadi = (GetHadronicInteractionList())[0];
+    else                   hadi = (GetHadronicInteractionList())[2];
 
     result = hadi->ApplyYourself( thePro, *targNucleus);
    
@@ -304,10 +249,10 @@ G4MuNeutrinoNucleusProcess::PostStepDoIt(const G4Track& track, const G4Step& ste
   }
   else  // Nc-model                            
   {
+    if (pName == "nu_mu" ) hadi = (GetHadronicInteractionList())[1]; 
+    else                   hadi = (GetHadronicInteractionList())[3];
 
-    hadi = (GetHadronicInteractionList())[1]; 
-
-    size_t idx = track.GetMaterialCutsCouple()->GetIndex();
+    std::size_t idx = track.GetMaterialCutsCouple()->GetIndex();
 
     G4double tcut = (*(G4ProductionCutsTable::GetProductionCutsTable()->GetEnergyCutsVector(3)))[idx];
 
@@ -330,7 +275,7 @@ G4MuNeutrinoNucleusProcess::PostStepDoIt(const G4Track& track, const G4Step& ste
       G4ExceptionDescription ed;
       aR.Report(ed);
       ed << "Call for " << hadi->GetModelName() << G4endl;
-      ed << "Target element "<< elm->GetName()<<"  Z= " 
+      ed << "  Z= " 
 	 << targNucleus->GetZ_asInt() 
 	 << "  A= " << targNucleus->GetA_asInt() << G4endl;
       DumpState(track,"ApplyYourself",ed);
@@ -377,9 +322,9 @@ G4MuNeutrinoNucleusProcess::PostStepDoIt(const G4Track& track, const G4Step& ste
 
     if(efinal > 0.0) 
     {
-    outdir.rotate(phi, it);
-    outdir.rotateUz(indir);
-    theTotalResult->ProposeMomentumDirection(outdir);
+      outdir.rotate(phi, it);
+      outdir.rotateUz(indir);
+      theTotalResult->ProposeMomentumDirection(outdir);
     } 
     else 
     {
@@ -437,16 +382,6 @@ G4MuNeutrinoNucleusProcess::PostStepDoIt(const G4Track& track, const G4Step& ste
     result->Clear();
   }
   return theTotalResult;
-}
-
-void 
-G4MuNeutrinoNucleusProcess::PreparePhysicsTable(const G4ParticleDefinition& part)
-{
-  if(!isInitialised) {
-    isInitialised = true;
-    if(G4Neutron::Neutron() == &part) { lowestEnergy = 1.e-6*eV; }
-  }
-  G4HadronicProcess::PreparePhysicsTable(part);
 }
 
 void 

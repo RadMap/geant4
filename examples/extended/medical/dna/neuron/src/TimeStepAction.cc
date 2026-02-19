@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file TimeStepAction.cc
+/// \brief Implementation of the TimeStepAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,20 +34,19 @@
 // M. Batmunkh et al. J Radiat Res Appl Sci 8 (2015) 498-507
 // O. Belov et al. Physica Medica 32 (2016) 1510-1520
 // The Geant4-DNA web site is available at http://geant4-dna.org
-// 
+//
 // -------------------------------------------------------------------
 // November 2016
 // -------------------------------------------------------------------
 //
-/// \file TimeStepAction.hh
-/// \brief Implementation of the TimeStepAction class
 
 #include "TimeStepAction.hh"
 
-#include <G4Scheduler.hh>
-#include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
-//#include "G4Molecule.hh"
+#include "G4UnitsTable.hh"
+
+#include <G4Scheduler.hh>
+// #include "G4Molecule.hh"
 
 TimeStepAction::TimeStepAction() : G4UserTimeStepAction()
 {
@@ -55,35 +57,33 @@ TimeStepAction::TimeStepAction() : G4UserTimeStepAction()
    * Those time steps are used for the chemistry of G4DNA
    */
 
-  AddTimeStep(1*picosecond, 0.1*picosecond);
-  AddTimeStep(10*picosecond, 1*picosecond);
-  AddTimeStep(100*picosecond, 3*picosecond);
-  AddTimeStep(1000*picosecond, 10*picosecond);
-  AddTimeStep(10000*picosecond, 100*picosecond);
+  AddTimeStep(1 * picosecond, 0.1 * picosecond);
+  AddTimeStep(10 * picosecond, 1 * picosecond);
+  AddTimeStep(100 * picosecond, 3 * picosecond);
+  AddTimeStep(1000 * picosecond, 10 * picosecond);
+  AddTimeStep(10000 * picosecond, 100 * picosecond);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 TimeStepAction::~TimeStepAction()
 {
-  //dtor
+  // dtor
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TimeStepAction::TimeStepAction(const TimeStepAction& other) :
-        G4UserTimeStepAction(other)
+TimeStepAction::TimeStepAction(const TimeStepAction& other) : G4UserTimeStepAction(other)
 {
-  //copy ctor
+  // copy ctor
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TimeStepAction&
-TimeStepAction::operator=(const TimeStepAction& rhs)
+TimeStepAction& TimeStepAction::operator=(const TimeStepAction& rhs)
 {
-  if (this == &rhs) return *this; // handle self assignment
-  //assignment operator
+  if (this == &rhs) return *this;  // handle self assignment
+  // assignment operator
   return *this;
 }
 
@@ -107,9 +107,8 @@ void TimeStepAction::UserPostTimeStepAction()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TimeStepAction::UserReactionAction(const G4Track&,
-    const G4Track&,
-    const std::vector<G4Track*>* /*products*/)
+void TimeStepAction::UserReactionAction(const G4Track&, const G4Track&,
+                                        const std::vector<G4Track*>* /*products*/)
 {
   /*
   for (int i = 0 ; i < nbProducts ; i ++)

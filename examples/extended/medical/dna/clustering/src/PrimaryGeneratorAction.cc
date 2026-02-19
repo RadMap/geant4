@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PrimaryGeneratorAction.cc
+/// \brief Implementation of the PrimaryGeneratorAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -30,33 +33,29 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file PrimaryGeneratorAction.cc
-/// \brief Implementation of the PrimaryGeneratorAction class
 
 #include "PrimaryGeneratorAction.hh"
 
 #include "G4Event.hh"
+#include "G4ParticleDefinition.hh"
 #include "G4ParticleGun.hh"
 #include "G4ParticleTable.hh"
-#include "G4ParticleDefinition.hh"
 #include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PrimaryGeneratorAction::PrimaryGeneratorAction()
-: G4VUserPrimaryGeneratorAction(),fpParticleGun(0)
+PrimaryGeneratorAction::PrimaryGeneratorAction() : G4VUserPrimaryGeneratorAction(), fpParticleGun(0)
 {
   G4int n_particle = 1;
-  fpParticleGun  = new G4ParticleGun(n_particle);
+  fpParticleGun = new G4ParticleGun(n_particle);
 
   // default particle kinematic
-  G4ParticleDefinition* particle
-  = G4ParticleTable::GetParticleTable()->FindParticle("proton");
+  G4ParticleDefinition* particle = G4ParticleTable::GetParticleTable()->FindParticle("proton");
   fpParticleGun->SetParticleDefinition(particle);
-  fpParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
-  fpParticleGun->SetParticleEnergy(0.5*MeV);
+  fpParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
+  fpParticleGun->SetParticleEnergy(0.5 * MeV);
   fpParticleGun->SetParticlePosition(
-      G4ThreeVector(0.*micrometer,0.*micrometer,-0.25*micrometer));
+    G4ThreeVector(0. * micrometer, 0. * micrometer, -0.25 * micrometer));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -72,4 +71,3 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
   fpParticleGun->GeneratePrimaryVertex(anEvent);
 }
-

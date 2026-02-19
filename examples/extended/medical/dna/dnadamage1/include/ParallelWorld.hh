@@ -23,6 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file ParallelWorld.hh
+/// \brief Definition of the ParallelWorld class
 
 #pragma once
 #include "G4VUserParallelWorld.hh"
@@ -30,13 +32,13 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-class ParallelWorld: public G4VUserParallelWorld
+class ParallelWorld : public G4VUserParallelWorld
 {
-public:
+  public:
     ParallelWorld(G4String);
-    ~ParallelWorld() override;
+    ~ParallelWorld() override = default;
     void Construct() override;
 
-private:
+  private:
     void SetupChemistryGeometry();
 };

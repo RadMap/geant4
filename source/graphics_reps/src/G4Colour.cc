@@ -32,46 +32,26 @@
 
 #include "G4Threading.hh"
 
-G4Colour::G4Colour (G4double r, G4double gr, G4double b, G4double a):
-red (r), green (gr), blue (b), alpha (a)
-{
-  if( red   > 1.0 ){red   = 1.0;} if( red   < 0.0 ){red   = 0.0;}
-  if( green > 1.0 ){green = 1.0;} if( green < 0.0 ){green = 0.0;}
-  if( blue  > 1.0 ){blue  = 1.0;} if( blue  < 0.0 ){blue  = 0.0;}
-  if( alpha > 1.0 ){alpha = 1.0;} if( alpha < 0.0 ){alpha = 0.0;}
+#include <algorithm>
+
+namespace {
+  auto clamp = [](double rgba){return std::clamp(rgba, 0., 1.);};
 }
+
+// clang-format off
+G4Colour::G4Colour (G4double r, G4double gr, G4double b, G4double a):
+red(clamp(r)), green(clamp(gr)), blue(clamp(b)), alpha(clamp(a))
+{}
 
 G4Colour::G4Colour (G4ThreeVector v):
-red (v.x()), green (v.y()), blue (v.z()), alpha (1.)
-{
-  if( red   > 1.0 ){red   = 1.0;} if( red   < 0.0 ){red   = 0.0;}
-  if( green > 1.0 ){green = 1.0;} if( green < 0.0 ){green = 0.0;}
-  if( blue  > 1.0 ){blue  = 1.0;} if( blue  < 0.0 ){blue  = 0.0;}
-}
+red(clamp(v.x())), green(clamp(v.y())), blue(clamp(v.z())), alpha (1.)
+{}
 
-void G4Colour::SetRed (G4double r)
-{
-  red = r;
-  if( red   > 1.0 ){red   = 1.0;} if( red   < 0.0 ){red   = 0.0;}
-}
-
-void G4Colour::SetGreen (G4double gr)
-{
-  green = gr;
-  if( green > 1.0 ){green = 1.0;} if( green < 0.0 ){green = 0.0;}
-}
-
-void G4Colour::SetBlue (G4double b)
-{
-  blue = b;
-  if( blue  > 1.0 ){blue  = 1.0;} if( blue  < 0.0 ){blue  = 0.0;}
-}
-
-void G4Colour::SetAlpha (G4double a)
-{
-  alpha = a;
-  if( alpha > 1.0 ){alpha = 1.0;} if( alpha < 0.0 ){alpha = 0.0;}
-}
+void G4Colour::SetRed   (G4double r)  {red   = clamp(r);}
+void G4Colour::SetGreen (G4double gr) {green = clamp(gr);}
+void G4Colour::SetBlue  (G4double b)  {blue  = clamp(b);}
+void G4Colour::SetAlpha (G4double a)  {alpha = clamp(a);}
+// clang-format on
 
 G4Colour::operator G4ThreeVector() {
   return G4ThreeVector(red,green,blue);
@@ -94,14 +74,10 @@ std::ostream& operator << (std::ostream& os, const G4Colour& c) {
 }
 
 G4bool G4Colour::operator != (const G4Colour& c) const {
-  if (
-      (red   != c.red)   ||
+  return (red   != c.red)   ||
       (green != c.green) ||
       (blue  != c.blue)  ||
-      (alpha != c.alpha)
-      )
-    return true;
-  return false;
+      (alpha != c.alpha);
 }
 
 std::map<G4String, G4Colour> G4Colour::fColourMap;
@@ -122,13 +98,13 @@ void G4Colour::AddToMap(const G4String& key, const G4Colour& colour)
     return;
   }
 
-  // Convert to lower case since colour map is case insensitive
-  G4String myKey(key);
-  myKey.toLower();
+  // Add standard colours to map
+  InitialiseColourMap();  // Initialises if not already initialised
 
-  std::map<G4String, G4Colour>::iterator iter = fColourMap.find(myKey);
+  // Convert to lower case since colour map is case insensitive
+  G4String myKey = G4StrUtil::to_lower_copy(key);
   
-  if (iter == fColourMap.end()) fColourMap[myKey] = colour;
+  if (fColourMap.find(myKey) == fColourMap.end()) fColourMap[myKey] = colour;
   else {
     G4ExceptionDescription ed; 
     ed << "G4Colour with key " << myKey << " already exists." << G4endl;
@@ -145,6 +121,7 @@ void G4Colour::InitialiseColourMap()
 
   fInitColourMap = true;
 
+  // clang-format off
   // Standard colours
   AddToMap("white",   G4Colour::White());
   AddToMap("grey",    G4Colour::Grey());
@@ -157,21 +134,31 @@ void G4Colour::InitialiseColourMap()
   AddToMap("cyan",    G4Colour::Cyan());
   AddToMap("magenta", G4Colour::Magenta());
   AddToMap("yellow",  G4Colour::Yellow());
+  // clang-format off
 }
 
-G4bool G4Colour::GetColour(const G4String& key, G4Colour& result) 
+G4bool G4Colour::GetColour(const G4String& key, G4Colour& result)
+// Get colour for given key, placing it in result.
+// The key is usually the name of the colour.
+// The key is case insensitive.
+// Returns false if key doesn't exist, leaving result unchanged.
 {
   // Add standard colours to map
   InitialiseColourMap();  // Initialises if not already initialised
 
-  G4String myKey(key);
-  myKey.toLower();
- 
-  std::map<G4String, G4Colour>::iterator iter = fColourMap.find(myKey);
+  G4String myKey = G4StrUtil::to_lower_copy(key);
+
+  // NOLINTNEXTLINE(modernize-use-auto): Explicitly want a const_iterator
+  std::map<G4String, G4Colour>::const_iterator iter = fColourMap.find(myKey); 
 
   // Don't modify "result" if colour was not found in map
-  if (iter == fColourMap.end()) return false;
-  
+  if (iter == fColourMap.cend()) {
+    G4ExceptionDescription ed;
+    ed << "Colour \"" << key << "\" not found. No action taken.";
+    G4Exception("G4Colour::GetColour", "greps0003", JustWarning, ed);
+    return false;
+  }
+
   result = iter->second;
 
   return true;
@@ -183,4 +170,19 @@ const std::map<G4String, G4Colour>& G4Colour::GetMap()
   InitialiseColourMap();  // Initialises if not already initialised
  
   return fColourMap;
+}
+
+G4bool G4Colour::operator< (const G4Colour& rhs) const
+{
+  if (red < rhs.red) return true;
+  if (red == rhs.red) {
+    if (green < rhs.green) return true;
+    if (green == rhs.green) {
+      if (blue < rhs.blue) return true;
+      if (blue == rhs.blue) {
+	      if (alpha < rhs.alpha) return true;
+      }
+    }
+  }
+  return false;
 }

@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------------
 # Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.27)
 project(factory)
 
 #----------------------------------------------------------------------------
@@ -23,8 +23,8 @@ include(${Geant4_USE_FILE})
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #
-include_directories(${PROJECT_SOURCE_DIR}/include 
-                    ${PROJECT_SOURCE_DIR}/shared/include 
+include_directories(${PROJECT_SOURCE_DIR}/include
+                    ${PROJECT_SOURCE_DIR}/shared/include
                     ${Geant4_INCLUDE_DIR})
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc
                   ${PROJECT_SOURCE_DIR}/shared/src/*.cc)
@@ -34,8 +34,8 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_executable(factory factory.cc 
-               ${sources} ${add_sources} ${fortran_sources} 
+add_executable(factory factory.cc
+               ${sources} ${add_sources} ${fortran_sources}
                ${headers} ${add_headers})
 target_link_libraries(factory ${Geant4_LIBRARIES} ${HBOOK_LIBRARIES})
 

@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file field/field02/include/F02SteppingVerbose.hh
+/// \file F02SteppingVerbose.hh
 /// \brief Definition of the F02SteppingVerbose class
-//
-//
-//
-//
+
 //---------------------------------------------------------------
 //
 // F01SteppingVerbose.hh
@@ -58,13 +55,13 @@
 class F02SteppingVerbose : public G4SteppingVerbose
 {
   public:
+    F02SteppingVerbose() = default;
+    ~F02SteppingVerbose() override = default;
 
-    F02SteppingVerbose();
-    virtual ~F02SteppingVerbose();
+    G4VSteppingVerbose* Clone() override { return new F02SteppingVerbose; }
 
-    virtual void StepInfo();
-    virtual void TrackingStarted();
-
+    void StepInfo() override;
+    void TrackingStarted() override;
 };
 
 #endif

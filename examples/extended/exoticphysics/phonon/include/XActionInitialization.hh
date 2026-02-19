@@ -23,24 +23,22 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/phonon/include/XActionInitialization.hh
+/// \file XActionInitialization.hh
 /// \brief Definition of the XActionInitialization class
-//
-//
 
 #ifndef XActionInitialization_h
 #define XActionInitialization_h 1
 
-#include "globals.hh"
 #include "G4VUserActionInitialization.hh"
+#include "globals.hh"
 
+class XActionInitialization : public G4VUserActionInitialization
+{
+  public:
+    XActionInitialization() { ; }
+    virtual ~XActionInitialization() { ; }
 
-class XActionInitialization : public G4VUserActionInitialization {
-public:
-  XActionInitialization() {;}
-  virtual ~XActionInitialization() {;}
-
-  virtual void Build() const;
+    virtual void Build() const;
 };
 
-#endif  /* XActionInitialization_h */
+#endif /* XActionInitialization_h */

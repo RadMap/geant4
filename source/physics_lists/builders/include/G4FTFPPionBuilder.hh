@@ -61,8 +61,7 @@ class G4FTFPPionBuilder : public G4VPionBuilder
     virtual ~G4FTFPPionBuilder();
 
     virtual void Build(G4HadronElasticProcess *) final override {}
-    virtual void Build(G4PionPlusInelasticProcess * aP) final override;
-    virtual void Build(G4PionMinusInelasticProcess * aP) final override;
+    virtual void Build(G4HadronInelasticProcess * aP) final override;
     
     virtual void SetMinEnergy(G4double aM) final override {theMin = aM;}
     virtual void SetMaxEnergy(G4double aM) final override {theMax = aM;}
@@ -71,11 +70,6 @@ class G4FTFPPionBuilder : public G4VPionBuilder
 
   private:
     G4TheoFSGenerator * theModel;
-    G4GeneratorPrecompoundInterface * theCascade;
-    G4FTFModel * theStringModel;
-    G4ExcitedStringDecay * theStringDecay;
-    G4QuasiElasticChannel * theQuasiElastic;
-    G4LundStringFragmentation * theLund;
     G4double theMin;
     G4double theMax;
 };

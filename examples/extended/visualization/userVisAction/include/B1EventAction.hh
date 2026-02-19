@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file B1EventAction.hh
 /// \brief Definition of the B1EventAction class
 
@@ -41,18 +40,16 @@ class B1EventAction : public G4UserEventAction
   public:
     B1EventAction();
     virtual ~B1EventAction();
-    
+
     virtual void BeginOfEventAction(const G4Event* event);
     virtual void EndOfEventAction(const G4Event* event);
 
     void AddEdep(G4double edep) { fEdep += edep; }
 
   private:
-    G4double  fEdep;
+    G4double fEdep;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-    

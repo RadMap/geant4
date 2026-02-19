@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file LXeActionInitialization.hh
 /// \brief Definition of the LXeActionInitialization class
 
@@ -34,21 +33,17 @@
 
 class LXeDetectorConstruction;
 
-/// Action initialization class.
-///
-
 class LXeActionInitialization : public G4VUserActionInitialization
 {
   public:
     LXeActionInitialization(const LXeDetectorConstruction* det);
-    virtual ~LXeActionInitialization();
+    ~LXeActionInitialization() override = default;
 
-    virtual void BuildForMaster() const;
-    virtual void Build() const;
+    void BuildForMaster() const override;
+    void Build() const override;
 
   private:
-
-    const LXeDetectorConstruction* fDetector;
+    const LXeDetectorConstruction* fDetector = nullptr;
 };
 
 #endif

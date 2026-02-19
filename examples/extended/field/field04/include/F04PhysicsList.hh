@@ -23,49 +23,44 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field04/include/F04PhysicsList.hh
+/// \file F04PhysicsList.hh
 /// \brief Definition of the F04PhysicsList class
-//
 
 #ifndef F04PhysicsList_h
 #define F04PhysicsList_h 1
 
-#include "globals.hh"
 #include "G4VModularPhysicsList.hh"
+#include "globals.hh"
 
 class G4VPhysicsConstructor;
 class F04PhysicsListMessenger;
 
 class F04StepMax;
 
-class F04PhysicsList: public G4VModularPhysicsList
+class F04PhysicsList : public G4VModularPhysicsList
 {
-public:
-
-    F04PhysicsList(G4String);
-    virtual ~F04PhysicsList();
+  public:
+    F04PhysicsList(const G4String&);
+    ~F04PhysicsList() override;
 
     void SetStepMax(G4double);
-    F04StepMax* GetStepMaxProcess();
+    F04StepMax* GetStepMaxProcess() const;
     void AddStepMax();
-/*
-    /// Remove specific physics from physics list.
-    void RemoveFromPhysicsList(const G4String&);
+    /*
+        /// Remove specific physics from physics list.
+        void RemoveFromPhysicsList(const G4String&);
 
-    /// Make sure that the physics list is empty.
-    void ClearPhysics();
-*/
-    virtual void ConstructParticle();
-    virtual void ConstructProcess();
+        /// Make sure that the physics list is empty.
+        void ClearPhysics();
+    */
+    void ConstructParticle() override;
+    void ConstructProcess() override;
 
-private:
-
-    G4double fMaxChargedStep;
+  private:
+    G4double fMaxChargedStep = DBL_MAX;
     static G4ThreadLocal F04StepMax* fStepMaxProcess;
 
-    F04PhysicsListMessenger* fMessenger;
-
+    F04PhysicsListMessenger* fMessenger = nullptr;
 };
 
 #endif

@@ -23,8 +23,10 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4UserEventAction class implementation
 //
-//
+// Author: Makoto Asai (SLAC)
+// --------------------------------------------------------------------
 
 #include "G4UserEventAction.hh"
 #include "G4Event.hh"
@@ -48,12 +50,16 @@ G4UserEventAction::G4UserEventAction()
  }
 }
 
-G4UserEventAction::~G4UserEventAction()
-{;}
+void G4UserEventAction::SetEventManager(G4EventManager* value)
+{
+  fpEventManager = value;
+}
 
 void G4UserEventAction::BeginOfEventAction(const G4Event*)
-{;}
+{}
 
 void G4UserEventAction::EndOfEventAction(const G4Event*)
-{;}
+{}
 
+void G4UserEventAction::MergeSubEvent(G4Event*, const G4Event*)
+{}

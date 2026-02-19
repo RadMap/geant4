@@ -23,14 +23,11 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm2/src/TrackingAction.cc
+/// \file TrackingAction.cc
 /// \brief Implementation of the TrackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "TrackingAction.hh"
+
 #include "Run.hh"
 
 #include "G4RunManager.hh"
@@ -38,22 +35,14 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TrackingAction::TrackingAction()
-:G4UserTrackingAction()
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 void TrackingAction::PostUserTrackingAction(const G4Track* aTrack)
 {
- //count total track length
- G4double charge = aTrack->GetDefinition()->GetPDGCharge();
- G4double TrLeng = aTrack->GetTrackLength();
-  
- Run* run 
-   = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
- run->FillPerTrack(charge,TrLeng);     
+  // count total track length
+  G4double charge = aTrack->GetDefinition()->GetPDGCharge();
+  G4double TrLeng = aTrack->GetTrackLength();
+
+  Run* run = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+  run->FillPerTrack(charge, TrLeng);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PDBresidue.cc
+/// \brief Implementation of the PDBresidue class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -33,44 +36,50 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file PDBresidue.cc
-/// \brief Implementation of the PDBresidue class
 
 #include "PDBresidue.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Residue::Residue():fResName(""),fResSeq(0),fVisible(false),fSelected(false),
-fCenterX(0),fCenterY(0),fCenterZ(0),fNbAtom(0),fpNext(0),fpFirst(0)
+Residue::Residue()
+  : fResName(""),
+    fResSeq(0),
+    fVisible(false),
+    fSelected(false),
+    fCenterX(0),
+    fCenterY(0),
+    fCenterZ(0),
+    fNbAtom(0),
+    fpNext(0),
+    fpFirst(0)
+{}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+Residue::Residue(const std::string& rN, int rS)
 {
+  fResName = rN;  // Residue name
+  fResSeq = rS;  // Residue sequence number
+  fVisible = false;
+  fSelected = false;
+  fCenterX = 0;
+  fCenterY = 0;
+  fCenterZ = 0;
+  fNbAtom = 0;
+  fpNext = 0;
+  fpFirst = 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Residue::Residue(const std::string& rN,int rS)
-{
-  fResName=rN;// Residue name
-  fResSeq=rS; // Residue sequence number
-  fVisible=false;
-  fSelected=false;
-  fCenterX=0;
-  fCenterY=0;
-  fCenterZ=0;
-  fNbAtom=0;
-  fpNext=0;
-  fpFirst=0;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-Residue *Residue::GetNext()
+Residue* Residue::GetNext()
 {
   return fpNext;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Atom *Residue::GetFirst()
+Atom* Residue::GetFirst()
 {
   return fpFirst;
 }
@@ -84,14 +93,14 @@ int Residue::GetID()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void Residue::SetNext(Residue *residueNext)
+void Residue::SetNext(Residue* residueNext)
 {
-  fpNext=residueNext;
+  fpNext = residueNext;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void Residue::SetFirst(Atom *atomFirst)
+void Residue::SetFirst(Atom* atomFirst)
 {
-  fpFirst=atomFirst;
+  fpFirst = atomFirst;
 }

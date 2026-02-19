@@ -27,60 +27,100 @@
 //
 // Class description:
 //
-//   Virtual class defining CSG-like type shape that is built entirely
-//   of G4CSGface faces.
+// Virtual class defining CSG-like type shape that is built entirely
+// of G4CSGface faces.
 
-// Author: David C. Williams (davidw@scipp.ucsc.edu)
+// Author: David C. Williams (UCSC), 1998 - Created
 // --------------------------------------------------------------------
 #ifndef G4VCSGFACETED_HH
-#define G4VCSGFACETED_HH
+#define G4VCSGFACETED_HH 1
 
 #include "G4VSolid.hh"
 
 class G4VCSGface;
 class G4VisExtent;
 
+/**
+ * @brief G4VCSGfaceted is a virtual class defining a CSG-like type shape
+ * that is built entirely of G4CSGface faces.
+ */
+
 class G4VCSGfaceted : public G4VSolid 
 {
-  public:  // with description
+  public:
 
+    /**
+     * Constructor taking a 'name'.
+     */
     G4VCSGfaceted( const G4String& name );
-    virtual ~G4VCSGfaceted();
+
+    /**
+     * Destructor.
+     */
+    ~G4VCSGfaceted() override;
   
+    /**
+     * Copy constructor and assignment operator.
+     */
     G4VCSGfaceted( const G4VCSGfaceted& source );
     G4VCSGfaceted& operator=( const G4VCSGfaceted& source );
   
-    virtual G4bool CalculateExtent( const EAxis pAxis,
-                                    const G4VoxelLimits& pVoxelLimit,
-                                    const G4AffineTransform& pTransform,
-                                          G4double& pmin, G4double& pmax) const;
+    /**
+     * Calculates the minimum and maximum extent of the solid, when under the
+     * specified transform, and within the specified limits.
+     *  @param[in] pAxis The axis along which compute the extent.
+     *  @param[in] pVoxelLimit The limiting space dictated by voxels.
+     *  @param[in] pTransform The internal transformation applied to the solid.
+     *  @param[out] pMin The minimum extent value.
+     *  @param[out] pMax The maximum extent value.
+     *  @returns True if the solid is intersected by the extent region.
+     */
+    G4bool CalculateExtent( const EAxis pAxis,
+                            const G4VoxelLimits& pVoxelLimit,
+                            const G4AffineTransform& pTransform,
+                                  G4double& pmin, G4double& pmax) const override;
   
-    virtual EInside Inside( const G4ThreeVector& p ) const;
+    /**
+     * Concrete implementations of the expected query interfaces for
+     * solids, as defined in G4VSolid.
+     */
+    EInside Inside( const G4ThreeVector& p ) const override;
+    G4ThreeVector SurfaceNormal( const G4ThreeVector& p ) const override;
+    G4double DistanceToIn( const G4ThreeVector& p,
+                           const G4ThreeVector& v ) const override;
+    G4double DistanceToIn( const G4ThreeVector& p ) const override;
+    G4double DistanceToOut( const G4ThreeVector& p,
+                            const G4ThreeVector& v,
+                            const G4bool calcNorm = false,
+                                  G4bool* validNorm = nullptr,
+                                  G4ThreeVector* n = nullptr ) const override;
+    G4double DistanceToOut( const G4ThreeVector& p ) const override;
 
-    virtual G4ThreeVector SurfaceNormal( const G4ThreeVector& p ) const;
+    /**
+     * Returns the type ID, "G4CSGfaceted" of the solid.
+     */
+    G4GeometryType GetEntityType() const override;
 
-    virtual G4double DistanceToIn( const G4ThreeVector& p,
-                                   const G4ThreeVector& v ) const;
-    virtual G4double DistanceToIn( const G4ThreeVector& p ) const;
-    virtual G4double DistanceToOut( const G4ThreeVector& p,
-                                    const G4ThreeVector& v,
-                                    const G4bool calcNorm = false,
-                                          G4bool* validNorm = nullptr,
-                                          G4ThreeVector* n = nullptr ) const;
-    virtual G4double DistanceToOut( const G4ThreeVector& p ) const;
+    /**
+     * Streams the object contents to an output stream.
+     */
+    std::ostream& StreamInfo(std::ostream& os) const override;
 
-    virtual G4GeometryType GetEntityType() const;
+    /**
+     * Returns a pointer to a generated polyhedron used for visualisation.
+     */
+    G4Polyhedron* CreatePolyhedron() const override = 0;
 
-    virtual std::ostream& StreamInfo(std::ostream& os) const;
+    /**
+     * Methods for creating graphical representations (i.e. for visualisation).
+     */
+    void DescribeYourselfTo( G4VGraphicsScene& scene ) const override;
+    G4VisExtent GetExtent() const override;
+    G4Polyhedron* GetPolyhedron () const override;
 
-    virtual G4Polyhedron* CreatePolyhedron() const = 0;
-
-    virtual void DescribeYourselfTo( G4VGraphicsScene& scene ) const;
-
-    virtual G4VisExtent GetExtent() const;
-
-    virtual G4Polyhedron* GetPolyhedron () const;
-
+    /**
+     * Accessors and modifiers for capacity and area computation.
+     */
     G4int GetCubVolStatistics() const;
     G4double GetCubVolEpsilon() const;
     void SetCubVolStatistics(G4int st);
@@ -90,21 +130,43 @@ class G4VCSGfaceted : public G4VSolid
     void SetAreaStatistics(G4int st);
     void SetAreaAccuracy(G4double ep);
 
-    virtual G4double GetCubicVolume();
-      // Returns an estimation of the geometrical cubic volume of the
-      // solid. Caches the computed value once computed the first time.
-    virtual G4double GetSurfaceArea();
-      // Returns an estimation of the geometrical surface area of the
-      // solid. Caches the computed value once computed the first time.
+    /**
+     * Returning an estimation of the solid volume (capacity) and
+     * surface area, in internal units. Caches the computed value
+     * once computed the first time.
+     */
+    G4double GetCubicVolume() override;
+    G4double GetSurfaceArea() override;
 
-  public:  // without description
-
+    /**
+     * Fake default constructor for usage restricted to direct object
+     * persistency for clients requiring preallocation of memory for
+     * persistifiable objects.
+     */
     G4VCSGfaceted(__void__&);
-      // Fake default constructor for usage restricted to direct object
-      // persistency for clients requiring preallocation of memory for
-      // persistifiable objects.
 
-  protected:  // without description
+  protected:
+
+    /**
+     * Protected method used in DistanceToIn() and DistanceToOut().
+     */
+    virtual G4double DistanceTo( const G4ThreeVector& p,
+                                 const G4bool outgoing ) const;
+
+    /**
+     * Returns a random point located on the surface of the solid 
+     * in case of generic Polycone or generic Polyhedra.
+     */
+    G4ThreeVector GetPointOnSurfaceGeneric()const;
+
+    /**
+     * Copy parameters from other solid or reset them.
+     * Used in copy constructor and assignment operator.
+     */
+    void CopyStuff( const G4VCSGfaceted& source );
+    void DeleteStuff();
+
+  protected:
 
     G4int numFace = 0;
     G4VCSGface **faces = nullptr;
@@ -113,23 +175,12 @@ class G4VCSGfaceted : public G4VSolid
     mutable G4bool fRebuildPolyhedron = false;
     mutable G4Polyhedron* fpPolyhedron = nullptr;
 
-    virtual G4double DistanceTo( const G4ThreeVector& p,
-                                 const G4bool outgoing ) const;
-
-    G4ThreeVector GetPointOnSurfaceGeneric()const;
-      // Returns a random point located on the surface of the solid 
-      // in case of generic Polycone or generic Polyhedra.
-
-    void CopyStuff( const G4VCSGfaceted& source );
-    void DeleteStuff();
-
   private:
 
-    G4int    fStatistics;
+    /** Statistics, error accuracy for volume estimation. */
+    G4int fStatistics;
     G4double fCubVolEpsilon;
     G4double fAreaAccuracy;
-      // Statistics, error accuracy for volume estimation.
-
 };
 
 #endif

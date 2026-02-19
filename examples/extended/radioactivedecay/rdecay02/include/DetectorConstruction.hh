@@ -25,11 +25,6 @@
 //
 /// \file DetectorConstruction.hh
 /// \brief Definition of the DetectorConstruction class
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
@@ -46,63 +41,56 @@ class DetectorMessenger;
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-  
     DetectorConstruction();
-   ~DetectorConstruction();
+    ~DetectorConstruction() override;
 
   public:
-  
-    virtual G4VPhysicalVolume* Construct();
-    
-    void SetTargetLength (G4double value);
-    void SetTargetRadius (G4double value);
-    void SetTargetMaterial (G4String);
-    
-    void SetDetectorLength(G4double value);           
-    void SetDetectorThickness(G4double value);  
-    void SetDetectorMaterial(G4String);               
-                   
+    G4VPhysicalVolume* Construct() override;
+
+    void SetTargetLength(G4double value);
+    void SetTargetRadius(G4double value);
+    void SetTargetMaterial(G4String);
+
+    void SetDetectorLength(G4double value);
+    void SetDetectorThickness(G4double value);
+    void SetDetectorMaterial(G4String);
+
     void PrintParameters();
-    
+
   public:
-      
     G4double GetTargetLength();
     G4double GetTargetRadius();
-    G4Material* GetTargetMaterial();       
+    G4Material* GetTargetMaterial();
     G4LogicalVolume* GetLogicTarget();
-    
+
     G4double GetDetectorLength();
     G4double GetDetectorThickness();
-    G4Material* GetDetectorMaterial();                 
-    G4LogicalVolume* GetLogicDetector();      
-                       
-  private:
-  
-    G4double           fTargetLength; 
-    G4double           fTargetRadius;
-    G4Material*        fTargetMater;
-    G4LogicalVolume*   fLogicTarget;
-                 
-    G4double           fDetectorLength;
-    G4double           fDetectorThickness;
-    G4Material*        fDetectorMater;
-    G4LogicalVolume*   fLogicDetector;
-               
-    G4double           fWorldLength;
-    G4double           fWorldRadius;
-    G4Material*        fWorldMater;     
-    G4VPhysicalVolume* fPhysiWorld;
-                
-    DetectorMessenger* fDetectorMessenger;
+    G4Material* GetDetectorMaterial();
+    G4LogicalVolume* GetLogicDetector();
 
   private:
-    
-    void               DefineMaterials();
-    G4VPhysicalVolume* ConstructVolumes();     
+    G4double fTargetLength = 0.;
+    G4double fTargetRadius = 0.;
+    G4Material* fTargetMater = nullptr;
+    G4LogicalVolume* fLogicTarget = nullptr;
+
+    G4double fDetectorLength = 0.;
+    G4double fDetectorThickness = 0.;
+    G4Material* fDetectorMater = nullptr;
+    G4LogicalVolume* fLogicDetector = nullptr;
+
+    G4double fWorldLength = 0.;
+    G4double fWorldRadius = 0.;
+    G4Material* fWorldMater = nullptr;
+    G4VPhysicalVolume* fPhysiWorld = nullptr;
+
+    DetectorMessenger* fDetectorMessenger = nullptr;
+
+  private:
+    void DefineMaterials();
+    G4VPhysicalVolume* ConstructVolumes();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-
 #endif
-

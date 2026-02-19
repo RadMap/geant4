@@ -23,30 +23,32 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4VTrajectory
 //
+// Class description:
 //
-//---------------------------------------------------------------
-//
-// G4VTrajectory.hh
-//
-// class description:
-//   This class is the abstract base class which represents a trajectory of 
-//   a particle tracked.
-//   Its concrete class includes information of 
-//     1) List of trajectory points which compose the trajectory,
-//     2) static information of particle which generated the 
-//        trajectory, 
-//     3) trackID and parent particle ID of the trajectory,
-//
-// ---------------------------------------------------------------
+// This class is the abstract base class representing a trajectory of
+// a particle being tracked.
+// Its concrete class includes information of:
+//     1) List of trajectory points composing the trajectory;
+//     2) Static information of the particle which generated the trajectory;
+//     3) Track ID and parent particle ID of the trajectory.
 
-#ifndef G4VTrajectory_h
-#define G4VTrajectory_h 1
+// Contact:
+//   Questions and comments to this code should be sent to
+//     Katsuya Amako  (e-mail: Katsuya.Amako@kek.jp)
+//     Makoto  Asai   (e-mail: asai@slac.stanford.edu)
+//     Takashi Sasaki (e-mail: Takashi.Sasaki@kek.jp)
+// --------------------------------------------------------------------
+#ifndef G4VTrajectory_hh
+#define G4VTrajectory_hh 1
 
-#include "globals.hh"
-#include <vector>
-#include <map>
 #include "G4ThreeVector.hh"
+#include "globals.hh"
+
+#include <map>
+#include <vector>
+#include <memory>
 
 class G4Step;
 class G4VTrajectoryPoint;
@@ -55,74 +57,89 @@ class G4AttValue;
 
 class G4VTrajectory
 {
- public: // with description
-
-// Constructor/Destrcutor
-
-   G4VTrajectory();
-   virtual ~G4VTrajectory();
-
-// Operators
-   G4bool operator == (const G4VTrajectory& right) const;
-
-// Get/Set functions 
-   virtual G4int GetTrackID() const = 0;
-   virtual G4int GetParentID() const = 0;
-   virtual G4String GetParticleName() const = 0;
-   virtual G4double GetCharge() const = 0;
-   // Charge is that of G4DynamicParticle
-   virtual G4int GetPDGEncoding() const = 0;
-   // Zero will be returned if the particle does not have PDG code.
-   virtual G4ThreeVector GetInitialMomentum() const = 0;
-   // Momentum at the origin of the track in global coordinate system.
-
-// Other member functions
-   virtual int GetPointEntries() const = 0;
-   // Returns the number of trajectory points
-   virtual G4VTrajectoryPoint* GetPoint(G4int i) const = 0;
-   // Returns i-th trajectory point.
-   virtual void ShowTrajectory(std::ostream& os=G4cout) const;
-   // Convert attributes in trajectory (and trajectory point if
-   // needed) to ostream.  A default implementation in this base class
-   // may be used or may be overridden in the concrete class.  Note:
-   // the user needs to follow with new-line or end-of-string,
-   // depending on the nature of os.
-   virtual void DrawTrajectory() const;
-   // Draw the trajectory.  A default implementation in this base
-   // class may be used or may be overridden in the concrete class.
-   virtual const std::map<G4String,G4AttDef>* GetAttDefs() const
-   { return 0; }
-   // If implemented by a derived class, returns a pointer to a map of
-   // attribute definitions for the attribute values below.  The user
-   // must test the validity of this pointer.  See G4Trajectory for an
-   // example of a concrete implementation of this method.
-   virtual std::vector<G4AttValue>* CreateAttValues() const
-   { return 0; }
-   // If implemented by a derived class, returns a pointer to a list
-   // of attribute values suitable, e.g., for picking.  Each must
-   // refer to an attribute definition in the above map; its name is
-   // the key.  The user must test the validity of this pointer (it
-   // must be non-zero and conform to the G4AttDefs, which may be
-   // checked with G4AttCheck) and delete the list after use.  See
-   // G4Trajectory for an example of a concrete implementation of this
-   // method and G4VTrajectory::ShowTrajectory for an example of its
-   // use.
-
  public:
-   // Following methods MUST be invoked exclusively by G4TrackingManager
-   virtual void AppendStep(const G4Step* aStep) = 0;
-   virtual void MergeTrajectory(G4VTrajectory* secondTrajectory) = 0;
+  // Constructor/Destrcutor
+  G4VTrajectory() = default;
+  virtual ~G4VTrajectory() = default;
 
+  // Equality operator
+  G4bool operator==(const G4VTrajectory& right) const;
+
+  // Cloning with the master thread allocator
+  // Each concrete class should implement its own method.
+  // This method is used only in the sub-event parallel mode.
+  virtual G4VTrajectory* CloneForMaster() const;
+
+  // Accessors
+  virtual G4int GetTrackID() const = 0;
+  virtual G4int GetParentID() const = 0;
+  virtual G4String GetParticleName() const = 0;
+
+  // Charge is that of G4DynamicParticle
+  virtual G4double GetCharge() const = 0;
+
+  // Zero will be returned if the particle does not have PDG code.
+  virtual G4int GetPDGEncoding() const = 0;
+
+  // Momentum at the origin of the track in global coordinate system
+  virtual G4ThreeVector GetInitialMomentum() const = 0;
+
+  // Returns the number of trajectory points
+  virtual G4int GetPointEntries() const = 0;
+
+  // Returns i-th trajectory point
+  virtual G4VTrajectoryPoint* GetPoint(G4int i) const = 0;
+
+  // Converts attributes in trajectory (and trajectory point if
+  // needed) to ostream. A default implementation in this base class
+  // may be used or may be overridden in the concrete class. Note:
+  // the user needs to follow with new-line or end-of-string,
+  // depending on the nature of os
+  virtual void ShowTrajectory(std::ostream& os = G4cout) const;
+
+  // Draw the trajectory. A default implementation in this base
+  // class may be used or may be overridden in the concrete class
+  virtual void DrawTrajectory() const;
+
+  // If implemented by a derived class, returns a pointer to a map of
+  // attribute definitions for the attribute values below. The user
+  // must test the validity of this pointer. See G4Trajectory for an
+  // example of a concrete implementation of this method
+  virtual const std::map<G4String, G4AttDef>* GetAttDefs() const { return nullptr; }
+
+  // If implemented by a derived class, returns a pointer to a list
+  // of attribute values suitable, e.g., for picking. Each must
+  // refer to an attribute definition in the above map; its name is
+  // the key. The user must test the validity of this pointer (it
+  // must be non-zero and conform to the G4AttDefs, which may be
+  // checked with G4AttCheck) and delete the list after use. See
+  // G4Trajectory for an example of a concrete implementation of this
+  // method and G4VTrajectory::ShowTrajectory for an example of its use.
+  // The caller is expected to take ownership of the returned pointer
+  // and delete it appropriately.
+  virtual std::vector<G4AttValue>* CreateAttValues() const { return nullptr; }
+  
+  // Smart access function - creates on request and stores for future
+  // access. An invalid shared pointer means "not available". Usage:
+  //   const auto trajectoryAttValues = aTrajectory.GetAttValues();
+  //   if (trajectoryAttValues) { ...
+  // then use as a normal pointer, but do not delete - simply allow
+  // to go out of scope.
+  std::shared_ptr<std::vector<G4AttValue>> GetAttValues() const;
+
+  // Methods invoked exclusively by G4TrackingManager
+  virtual void AppendStep(const G4Step* aStep) = 0;
+  virtual void MergeTrajectory(G4VTrajectory* secondTrajectory) = 0;
+
+protected:
+  G4VTrajectory(const G4VTrajectory& right) = default;
+  G4VTrajectory& operator=(const G4VTrajectory& right) = default;
+  G4VTrajectory(G4VTrajectory&&) = default;
+  G4VTrajectory& operator=(G4VTrajectory&&) = default;
+
+private:
+  // Cached att values
+  mutable std::shared_ptr<std::vector<G4AttValue>> fpAttValues;
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-

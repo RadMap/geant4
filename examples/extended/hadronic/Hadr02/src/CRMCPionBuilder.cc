@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/src/CRMCPionBuilder.cc
+/// \file CRMCPionBuilder.cc
 /// \brief Implementation of the CRMCPionBuilder class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName: CRMCPionBuilder
@@ -34,47 +33,48 @@
 // Author:    2018 Alberto Ribon
 //
 // Modified:
+// -  18-May-2021 Alberto Ribon : Used the latest Geant4-CRMC interface.
 //
 //----------------------------------------------------------------------------
 //
 #ifdef G4_USE_CRMC
 
-#include "CRMCPionBuilder.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4ParticleTable.hh"
-#include "G4ProcessManager.hh"
-#include "G4PionPlusInelasticProcess.hh"
-#include "G4PionMinusInelasticProcess.hh"
-#include "G4HadronicParameters.hh"
-#include "G4SystemOfUnits.hh"
+#  include "CRMCPionBuilder.hh"
 
+#  include "HadronicInelasticModelCRMC.hh"
 
-CRMCPionBuilder::CRMCPionBuilder() {
-  fMin = 0.0*MeV;  // This value does not matter in practice because we are going
-                   // to use this model only at high energies.
+#  include "G4HadronInelasticProcess.hh"
+#  include "G4HadronicParameters.hh"
+#  include "G4ParticleDefinition.hh"
+#  include "G4ParticleTable.hh"
+#  include "G4ProcessManager.hh"
+#  include "G4SystemOfUnits.hh"
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+CRMCPionBuilder::CRMCPionBuilder(const G4int crmcModelId, const std::string& crmcModelName)
+{
+  fMin = 0.0 * MeV;  // This value does not matter in practice because we are going
+                     // to use this model only at high energies.
   fMax = G4HadronicParameters::Instance()->GetMaxEnergy();
-  fModel = new G4CRMCModel;
+  fModel = new HadronicInelasticModelCRMC(crmcModelId, crmcModelName);
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 CRMCPionBuilder::~CRMCPionBuilder() {}
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void CRMCPionBuilder::Build( G4HadronElasticProcess* ) {}
+void CRMCPionBuilder::Build(G4HadronElasticProcess*) {}
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void CRMCPionBuilder::Build( G4PionPlusInelasticProcess* aP ) {
-  fModel->SetMinEnergy( fMin );
-  fModel->SetMaxEnergy( fMax );
-  aP->RegisterMe( fModel );
+void CRMCPionBuilder::Build(G4HadronInelasticProcess* aP)
+{
+  fModel->SetMinEnergy(fMin);
+  fModel->SetMaxEnergy(fMax);
+  aP->RegisterMe(fModel);
 }
 
-
-void CRMCPionBuilder::Build( G4PionMinusInelasticProcess* aP ) {
-  fModel->SetMinEnergy( fMin );
-  fModel->SetMaxEnergy( fMax );
-  aP->RegisterMe( fModel );
-}
-
-#endif //G4_USE_CRMC
-
+#endif  // G4_USE_CRMC

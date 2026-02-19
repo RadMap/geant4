@@ -37,6 +37,12 @@
 
 #include "G4VGraphicsScene.hh"
 #include "G4Polyhedron.hh"
+#include "G4AutoLock.hh"
+
+namespace
+{
+  G4RecursiveMutex scaledMutex = G4MUTEX_INITIALIZER;
+}
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -120,7 +126,7 @@ G4VSolid* G4ScaledSolid::GetUnscaledSolid() const
 //////////////////////////////////////////////////////////////////////////
 //
 // Get bounding box
-
+//
 void G4ScaledSolid::BoundingLimits(G4ThreeVector& pMin,
                                    G4ThreeVector& pMax) const
 {
@@ -268,7 +274,7 @@ G4ScaledSolid::DistanceToOut( const G4ThreeVector& p,
   {
     G4ThreeVector normal;
     fScale->TransformNormal(solNorm, normal);
-    *n = normal/normal.mag();
+    *n = normal.unit();
   }
 
   // Return distance converted to global
@@ -315,6 +321,23 @@ G4ThreeVector G4ScaledSolid::GetPointOnSurface() const
 {
   return fScale->InverseTransform(fPtrSolid->GetPointOnSurface());
 }
+//////////////////////////////////////////////////////////////////////////
+//
+// Return the number of constituents used for construction of the solid
+//
+G4int G4ScaledSolid::GetNumOfConstituents() const
+{
+  return fPtrSolid->GetNumOfConstituents();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Return true if the solid has only planar faces
+//
+G4bool G4ScaledSolid::IsFaceted() const
+{
+  return fPtrSolid->IsFaceted();  
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -322,7 +345,7 @@ G4ThreeVector G4ScaledSolid::GetPointOnSurface() const
 //
 G4GeometryType G4ScaledSolid::GetEntityType() const
 {
-  return G4String("G4ScaledSolid");
+  return {"G4ScaledSolid"};
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -340,9 +363,9 @@ G4VSolid* G4ScaledSolid::Clone() const
 //
 G4Scale3D G4ScaledSolid::GetScaleTransform() const
 {
-  return G4Scale3D(fScale->GetScale().x(),
-                   fScale->GetScale().y(),
-                   fScale->GetScale().z());
+  return { fScale->GetScale().x(),
+           fScale->GetScale().y(),
+           fScale->GetScale().z() };
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -351,7 +374,7 @@ G4Scale3D G4ScaledSolid::GetScaleTransform() const
 //
 void G4ScaledSolid::SetScaleTransform(const G4Scale3D& scale)
 {
-  if (fScale != nullptr) { delete fScale; }
+  delete fScale; 
   fScale = new G4ScaleTransform(scale);
   fRebuildPolyhedron = true;
 }
@@ -364,10 +387,12 @@ G4double G4ScaledSolid::GetCubicVolume()
 {
   if(fCubicVolume < 0.)
   {
+    G4RecursiveAutoLock l(&scaledMutex);
     fCubicVolume = fPtrSolid->GetCubicVolume() *
                    fScale->GetScale().x() *
                    fScale->GetScale().y() *
                    fScale->GetScale().z();
+    l.unlock();
   }
   return fCubicVolume;
 }
@@ -380,7 +405,9 @@ G4double G4ScaledSolid::GetSurfaceArea()
 {
   if(fSurfaceArea < 0.)
   {
+    G4RecursiveAutoLock l(&scaledMutex);
     fSurfaceArea = G4VSolid::GetSurfaceArea();
+    l.unlock();
   }
   return fSurfaceArea;
 }

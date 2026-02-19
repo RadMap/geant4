@@ -25,10 +25,6 @@
 //
 /// \file TrackingAction.hh
 /// \brief Definition of the TrackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef TrackingAction_h
 #define TrackingAction_h 1
@@ -40,17 +36,17 @@ class DetectorConstruction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class TrackingAction : public G4UserTrackingAction {
-
-  public:  
+class TrackingAction : public G4UserTrackingAction
+{
+  public:
     TrackingAction(DetectorConstruction*);
-   ~TrackingAction() {};
-   
-    virtual void  PreUserTrackingAction(const G4Track*);   
-    virtual void PostUserTrackingAction(const G4Track*);
-    
+    ~TrackingAction() override = default;
+
+    void PreUserTrackingAction(const G4Track*) override;
+    void PostUserTrackingAction(const G4Track*) override;
+
   private:
-    DetectorConstruction* fDetector;
+    DetectorConstruction* fDetector = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

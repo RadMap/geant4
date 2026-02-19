@@ -54,6 +54,7 @@
 #include "G4EmParameters.hh"
 #include "G4Log.hh"
 #include "G4Exp.hh"
+#include "G4AutoLock.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -61,46 +62,31 @@ G4double G4WentzelOKandVIxSection::ScreenRSquareElec[] = {0.0};
 G4double G4WentzelOKandVIxSection::ScreenRSquare[]     = {0.0};
 G4double G4WentzelOKandVIxSection::FormFactor[]        = {0.0};
 
-#ifdef G4MULTITHREADED
-G4Mutex G4WentzelOKandVIxSection::WentzelOKandVIxSectionMutex = G4MUTEX_INITIALIZER;
-#endif
+namespace
+{
+  G4Mutex theWOKVIMutex = G4MUTEX_INITIALIZER;
+}
+
+const G4double alpha2 = CLHEP::fine_structure_const*CLHEP::fine_structure_const;
+const G4double factB1= 0.5*CLHEP::pi*CLHEP::fine_structure_const;
+const G4double numlimit = 0.1;
+const G4int nwarnlimit = 50;
 
 using namespace std;
 
 G4WentzelOKandVIxSection::G4WentzelOKandVIxSection(G4bool comb) :
   temp(0.,0.,0.),
-  numlimit(0.1),
-  nwarnings(0),
-  nwarnlimit(50),
-  isCombined(comb),
-  cosThetaMax(-1.0),
-  alpha2(fine_structure_const*fine_structure_const)
+  isCombined(comb)
 {
   fNistManager = G4NistManager::Instance();
   fG4pow = G4Pow::GetInstance();
-  fMottXSection = nullptr;
 
   theElectron = G4Electron::Electron();
   thePositron = G4Positron::Positron();
   theProton   = G4Proton::Proton();
 
-  lowEnergyLimit = 1.0*eV;
-  G4double p0 = electron_mass_c2*classic_electr_radius;
-  coeff = twopi*p0*p0;
-  particle = nullptr;
-
-  fNucFormfactor = fExponentialNF;
-
-  currentMaterial = nullptr;
-  factB = factD = formfactA = screenZ = 0.0;
-  cosTetMaxElec = cosTetMaxNuc = invbeta2 = kinFactor = fMottFactor 
-    = gam0pcmp = pcmp2 = 1.0;
-
-  factB1= 0.5*CLHEP::pi*fine_structure_const;
-
-  tkin = mom2 = momCM2 = factorA2 = mass = spin = chargeSquare = charge3 = 0.0;
-  ecut = etag = DBL_MAX;
-  targetZ = 0;
+  G4double p0 = CLHEP::electron_mass_c2*CLHEP::classic_electr_radius;
+  coeff = CLHEP::twopi*p0*p0;
   targetMass = CLHEP::proton_mass_c2;
 }
 
@@ -149,19 +135,19 @@ void G4WentzelOKandVIxSection::InitialiseA()
 {
   // Thomas-Fermi screening radii
   // Formfactors from A.V. Butkevich et al., NIM A 488 (2002) 282
-#ifdef G4MULTITHREADED
-  G4MUTEXLOCK(&G4WentzelOKandVIxSection::WentzelOKandVIxSectionMutex);
-#endif
+  if(0.0 != ScreenRSquare[0]) { return; }
+  G4AutoLock l(&theWOKVIMutex);
   if(0.0 == ScreenRSquare[0]) {
-    G4double a0 = electron_mass_c2/0.88534; 
-    G4double constn = 6.937e-6/(MeV*MeV);
+    const G4double invmev2 = 1./(CLHEP::MeV*CLHEP::MeV);
+    G4double a0 = CLHEP::electron_mass_c2/0.88534; 
+    G4double constn = 6.937e-6*invmev2;
     G4double fct = G4EmParameters::Instance()->ScreeningFactor();
 
     G4double afact = 0.5*fct*alpha2*a0*a0;
     ScreenRSquare[0] = afact;
     ScreenRSquare[1] = afact;
     ScreenRSquareElec[1] = afact; 
-    FormFactor[1] = 3.097e-6/(MeV*MeV);
+    FormFactor[1] = 3.097e-6*invmev2;
 
     for(G4int j=2; j<100; ++j) {
       G4double x = fG4pow->Z13(j);
@@ -170,15 +156,8 @@ void G4WentzelOKandVIxSection::InitialiseA()
       x = fNistManager->GetA27(j);
       FormFactor[j] = constn*x*x;
     } 
-  }
-#ifdef G4MULTITHREADED
-  G4MUTEXUNLOCK(&G4WentzelOKandVIxSection::WentzelOKandVIxSectionMutex);
-#endif
-  
-  //G4cout << "G4WentzelOKandVIxSection::Initialise  mass= " << mass
-  //         << "  " << p->GetParticleName() 
-  //     << "  cosThetaMax= " << cosThetaMax << G4endl; 
-  
+  }  
+  l.unlock();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -367,34 +346,32 @@ G4WentzelOKandVIxSection::SampleSingleScattering(G4double cosTMin,
     }
   }
   if(cost1 > cost2) {
-
-    G4double w1 = 1. - cost1 + screenZ;
-    G4double w2 = 1. - cost2 + screenZ;
-    G4double z1 = w1*w2/(w1 + rndmEngineMod->flat()*(w2 - w1)) - screenZ;
-
+    G4double w1 = 1. - cost1;
+    G4double w2 = 1. - cost2;
+    G4double w3 = rndmEngineMod->flat()*(w2 - w1);
+    G4double z1 = ((w2 - w3)*screenZ + w1*w2)/(screenZ + w1 + w3);
     G4double fm = 1.0;
+
     if(fNucFormfactor == fExponentialNF) {
       fm += formf*z1;
       fm = 1.0/(fm*fm);
     } else if(fNucFormfactor == fGaussianNF) {
       fm = G4Exp(-2*formf*z1);
     } else if(fNucFormfactor == fFlatNF) {
-      static const G4double ccoef = 0.00508/MeV;
+      static const G4double ccoef = 0.00508/CLHEP::MeV;
       G4double x = std::sqrt(2.*mom2*z1)*ccoef*2.;
       fm = FlatFormfactor(x);
-      fm *= FlatFormfactor(x*0.6
-	    *fG4pow->A13(fNistManager->GetAtomicMassAmu(targetZ)));
+      fm *= FlatFormfactor(x*0.6*fG4pow->A13(fNistManager->GetAtomicMassAmu(targetZ)));
     }
+    // G4cout << " fm=" << fm << "  " << fMottXSection << G4endl;
     G4double grej;
-    if(fMottXSection) {
+    if(nullptr != fMottXSection) {
       fMottXSection->SetupKinematic(tkin, targetZ);
-      grej = fMottXSection->RatioMottRutherfordCosT(std::sqrt(z1))*fm*fm;
+      grej = fMottXSection->RatioMottRutherfordCosT(std::sqrt(z1))*fm;
     } else {
       grej = (1. - z1*factB + factB1*targetZ*sqrt(z1*factB)*(2. - z1))
-      *fm*fm/(1.0 + z1*factD);
+      *fm/(1.0 + z1*factD);
     }
-    // G4cout << "SampleSingleScattering: E= " << tkin << " z1= " 
-    //	   << z1 << " grej= "<< grej << " mottFact= "<< fMottFactor<< G4endl;
     if(fMottFactor*rndmEngineMod->flat() <= grej ) {
       // exclude "false" scattering due to formfactor and spin effect
       G4double cost = 1.0 - z1;

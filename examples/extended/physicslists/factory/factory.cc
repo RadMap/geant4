@@ -25,63 +25,57 @@
 //
 /// \file factory.cc
 /// \brief Main program of the physicslists/factory example
-//
-//
-//
+
 // -------------------------------------------------------------
-//      GEANT4 Hadr00
+//      factory
 //
-//  Application demonstrating Geant4 hadronic cross sections
+//  Application demonstrating the usage of G4PhysListFactory
+//  to build the concrete physics list
 //
-//  Author: V.Ivanchenko 20 June 2008
-//
-//  Modified: 
-//
+//  Modified from hadronic/Hadr00/Hadr00.cc
+//     Author: V.Ivanchenko 20 June 2008
 // -------------------------------------------------------------
 //
 //
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include "DetectorConstruction.hh"
 #include "ActionInitialization.hh"
+#include "DetectorConstruction.hh"
 #include "PrimaryGeneratorAction.hh"
 
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
-
 #include "G4PhysListFactory.hh"
-#include "G4VModularPhysicsList.hh"
-#include "G4UImanager.hh"
-#include "Randomize.hh"
-#include "G4VisExecutive.hh"
+#include "G4RunManagerFactory.hh"
 #include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
+#include "G4VModularPhysicsList.hh"
+#include "G4VisExecutive.hh"
+#include "Randomize.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-namespace {
-  void PrintUsage() {
-    G4cerr << " Usage: " << G4endl;
-    G4cerr << " factory [-m macro ] [-p physList ] [-u UIsession] [-t nThreads]" << G4endl;
-    G4cerr << "   note: -t option is available only for multi-threaded mode." << G4endl;
-    G4cerr << G4endl;
-  }
+namespace
+{
+void PrintUsage()
+{
+  G4cerr << " Usage: " << G4endl;
+  G4cerr << " factory [-m macro ] [-p physList ] [-u UIsession] [-t nThreads]" << G4endl;
+  G4cerr << "   note: -t option is available only for multi-threaded mode." << G4endl;
+  G4cerr << G4endl;
 }
+}  // namespace
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-int main(int argc,char** argv) 
+int main(int argc, char** argv)
 {
   // Evaluate arguments
   //
-  if ( argc > 9 ) {
+  if (argc > 9) {
     PrintUsage();
     return 1;
   }
-  
+
   G4String macro;
   G4String session;
   G4String physListName;
@@ -89,25 +83,28 @@ int main(int argc,char** argv)
 #ifdef G4MULTITHREADED
   G4int nofThreads = 0;
 #endif
-  for ( G4int i=1; i<argc; i=i+2 ) {
-    if      ( G4String(argv[i]) == "-m" ) macro = argv[i+1];
-    else if ( G4String(argv[i]) == "-u" ) session = argv[i+1];
-    else if ( G4String(argv[i]) == "-p" ) physListName = argv[i+1];
+  for (G4int i = 1; i < argc; i = i + 2) {
+    if (G4String(argv[i]) == "-m")
+      macro = argv[i + 1];
+    else if (G4String(argv[i]) == "-u")
+      session = argv[i + 1];
+    else if (G4String(argv[i]) == "-p")
+      physListName = argv[i + 1];
 #ifdef G4MULTITHREADED
-    else if ( G4String(argv[i]) == "-t" ) {
-      nofThreads = G4UIcommand::ConvertToInt(argv[i+1]);
+    else if (G4String(argv[i]) == "-t") {
+      nofThreads = G4UIcommand::ConvertToInt(argv[i + 1]);
     }
 #endif
     else {
       PrintUsage();
       return 1;
     }
-  }  
-  
+  }
+
   // Detect interactive mode (if no arguments) and define UI session
   //
-  G4UIExecutive* ui = 0;
-  if ( ! macro.size() ) {
+  G4UIExecutive* ui = nullptr;
+  if (!macro.size()) {
     ui = new G4UIExecutive(argc, argv, session);
   }
 
@@ -115,37 +112,34 @@ int main(int argc,char** argv)
   G4Random::setTheEngine(new CLHEP::RanecuEngine());
 
   // Construct the run manager
-#ifdef G4MULTITHREADED  
-  G4MTRunManager * runManager = new G4MTRunManager(); 
-  if ( nofThreads > 0 ) {
+  auto* runManager = G4RunManagerFactory::CreateRunManager();
+#ifdef G4MULTITHREADED
+  if (nofThreads > 0) {
     runManager->SetNumberOfThreads(nofThreads);
   }
-#else
-  G4RunManager * runManager = new G4RunManager(); 
 #endif
 
   // Physics list factory
   G4PhysListFactory factory;
   G4VModularPhysicsList* physList = nullptr;
 
-  // Get physics list name 
-  if ( ! physListName.size() ) {
+  // Get physics list name
+  if (!physListName.size()) {
     // Physics List is defined via environment variable PHYSLIST
     char* physListNameEnv = std::getenv("PHYSLIST");
-    if ( physListNameEnv ) { 
-      physListName = G4String(physListNameEnv); 
+    if (physListNameEnv) {
+      physListName = G4String(physListNameEnv);
     }
   }
 
   // Check if the name is known to the factory
-  if ( physListName.size() &&  (! factory.IsReferencePhysList(physListName) ) ) {
-    G4cerr << "Physics list " << physListName 
-           << " is not available in PhysListFactory." << G4endl;
+  if (physListName.size() && (!factory.IsReferencePhysList(physListName))) {
+    G4cerr << "Physics list " << physListName << " is not available in PhysListFactory." << G4endl;
     physListName.clear();
   }
 
   // If name is not defined use FTFP_BERT
-  if ( ! physListName.size() ) {
+  if (!physListName.size()) {
     physListName = "FTFP_BERT";
   }
 
@@ -159,7 +153,7 @@ int main(int argc,char** argv)
   // set user action classes
   runManager->SetUserInitialization(new ActionInitialization("factory"));
 
-// Initialize visualization
+  // Initialize visualization
   G4VisManager* visManager = new G4VisExecutive;
   // G4VisExecutive can take a verbosity argument - see /vis/verbose guidance.
   // G4VisManager* visManager = new G4VisExecutive("Quiet");
@@ -168,23 +162,23 @@ int main(int argc,char** argv)
   // Get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if ( macro.size() ) {
+  if (macro.size()) {
     // batch mode
     G4String command = "/control/execute ";
-    UImanager->ApplyCommand(command+macro);
+    UImanager->ApplyCommand(command + macro);
   }
   else {
     // interactive mode : define UI session
-    UImanager->ApplyCommand("/control/execute init_vis.mac"); 
+    UImanager->ApplyCommand("/control/execute init_vis.mac");
     ui->SessionStart();
     delete ui;
   }
 
   // Job termination
   // Free the store: user actions, physics_list and detector_description are
-  // owned and deleted by the run manager, so they should not be deleted 
+  // owned and deleted by the run manager, so they should not be deleted
   // in the main() program !
-  
+
   delete visManager;
   delete runManager;
 }

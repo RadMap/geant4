@@ -23,13 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file RE05/include/RE05SteppingVerbose.hh
+/// \file RE05SteppingVerbose.hh
 /// \brief Definition of the RE05SteppingVerbose class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class RE05SteppingVerbose;
 
@@ -40,19 +35,20 @@ class RE05SteppingVerbose;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-/// This class manages the verbose outputs in G4SteppingManager. 
+/// This class manages the verbose outputs in G4SteppingManager.
 /// It inherits from G4SteppingVerbose.
 /// It shows how to extract informations during the tracking of a particle.
 
-class RE05SteppingVerbose : public G4SteppingVerbose 
+class RE05SteppingVerbose : public G4SteppingVerbose
 {
- public:
-   
-  RE05SteppingVerbose();
- ~RE05SteppingVerbose();
+  public:
+    RE05SteppingVerbose();
+    virtual ~RE05SteppingVerbose();
 
-  void StepInfo();
-  void TrackingStarted();
+    virtual G4VSteppingVerbose* Clone() { return new RE05SteppingVerbose; }
+
+    void StepInfo();
+    void TrackingStarted();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

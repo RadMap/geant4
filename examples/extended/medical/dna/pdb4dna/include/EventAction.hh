@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file EventAction.hh
+/// \brief Definition of the EventAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -33,75 +36,61 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file EventAction.hh
-/// \brief Definition of the EventAction class
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef EventAction_h
-#define EventAction_h 1
+#  define EventAction_h 1
 
-#include "globals.hh"
-#include "G4UserEventAction.hh"
+#  include "G4UserEventAction.hh"
+#  include "globals.hh"
 
-#include <map>
+#  include <map>
 
 class EventActionMessenger;
 
 class EventAction : public G4UserEventAction
 {
-public:
-  EventAction();
-  ~EventAction();
+  public:
+    EventAction();
+    ~EventAction();
 
-public:
-  virtual void BeginOfEventAction(const G4Event*);
-  virtual void EndOfEventAction(const G4Event*);
+  public:
+    virtual void BeginOfEventAction(const G4Event*);
+    virtual void EndOfEventAction(const G4Event*);
 
-  void AddEdepEvent(G4double edep)
-  {
-    fTotalEnergyDeposit += edep;
-  };
-  G4double GetEdepEvent()
-  {
-    return fTotalEnergyDeposit;
-  };
+    void AddEdepEvent(G4double edep) { fTotalEnergyDeposit += edep; };
+    G4double GetEdepEvent() { return fTotalEnergyDeposit; };
 
-  void AddEdepToNucleotide(G4int numStrand,G4int numNucl,G4double edep)
-  {
-    if(numStrand==1)
+    void AddEdepToNucleotide(G4int numStrand, G4int numNucl, G4double edep)
     {
-      fEdepStrand1[numNucl]+=edep;
+      if (numStrand == 1) {
+        fEdepStrand1[numNucl] += edep;
+      }
+      else {
+        fEdepStrand2[numNucl] += edep;
+      }
     }
-    else{
-      fEdepStrand2[numNucl]+=edep;
-    }
-  }
 
-  void SetEnergyThresForSSB(G4double val)
-  {
-    fThresEdepForSSB=val;
-  };
-  void SetDistanceThresForDSB(G4int val)
-  {fThresDistForDSB=val;
-  };
+    void SetEnergyThresForSSB(G4double val) { fThresEdepForSSB = val; };
+    void SetDistanceThresForDSB(G4int val) { fThresDistForDSB = val; };
 
-private:
-  // total energy deposit per event
-  G4double fTotalEnergyDeposit;
-  // map: first strand (G4int : nucleotide ID, G4double : energy deposit)
-  std::map<G4int,G4double>  fEdepStrand1;
-  // map: second strand (G4int : nucleotide ID, G4double : energy deposit)
-  std::map<G4int,G4double>  fEdepStrand2;
-  // Min energy to consider single strand break
-  G4double fThresEdepForSSB;
-  // Max distance to consider double strand break
-  G4int fThresDistForDSB;
+  private:
+    // total energy deposit per event
+    G4double fTotalEnergyDeposit;
+    // map: first strand (G4int : nucleotide ID, G4double : energy deposit)
+    std::map<G4int, G4double> fEdepStrand1;
+    // map: second strand (G4int : nucleotide ID, G4double : energy deposit)
+    std::map<G4int, G4double> fEdepStrand2;
+    // Min energy to consider single strand break
+    G4double fThresEdepForSSB;
+    // Max distance to consider double strand break
+    G4int fThresDistForDSB;
 
-  EventActionMessenger*     fpEventMessenger;
+    EventActionMessenger* fpEventMessenger;
 
-  // Compute Strand breaks from energy deposits in DNA strands
-  void ComputeStrandBreaks(G4int*);
+    // Compute Strand breaks from energy deposits in DNA strands
+    void ComputeStrandBreaks(G4int*);
 };
 
 #endif

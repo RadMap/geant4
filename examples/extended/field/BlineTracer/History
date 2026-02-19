@@ -1,18 +1,26 @@
--------------------------------------------------------------------
+# Example BlineTracer History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top). It must **not**
+be used as a substitute for writing good git commit messages!
 
-                    BlineTracer History file
-                    ------------------------
-This file should be used by the G4 example coordinator to briefly
-summarize all major modifications introduced in the code and keep
-track of all tags.
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2023-11-10 I. Hrivnacova (BlineTracer-V11-01-01)
+- Coding guidelines: document macro in README
+
+## 2023-07-05 I. Hrivnacova (BlineTracer-V11-01-00)
+- Clang-tidy, new coding guidelines, agreed separators in .cc
+- Clean-up trailing white-spaces
+
+## 2021-12-10 Ben Morgan (BlineTracer-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+10th November 2020 Ben Morgan (BlineTracer-V10-06-00)
+- Migration to G4RunManagerFactory.
 
 2nd May 2018  Ivana Hrivnacova (BlineTracer-V10-04-00)
 - Fixed compilation error (missing include)
@@ -21,8 +29,8 @@ track of all tags.
 - Fixed shadowed declarations
 
 8th November 2012  Ivana Hrivnacova (BlineTracer-V09-05-03)
-- Fixed testBlineTracer: 
-  now a physics list has to be instatiated first. 
+- Fixed testBlineTracer:
+  now a physics list has to be instatiated first.
 
 21st September 2012  Ivana Hrivnacova (BlineTracer-V09-05-02)
 - Fixed compiler warning (unused variable in G4BlineEventAction.cc)

@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file ITSteppingAction.cc
+/// \brief Implementation of the ITSteppingAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -31,22 +34,17 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file ITSteppingAction.hh
-/// \brief Implementation of the ITSteppingAction class
 
 #include "ITSteppingAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ITSteppingAction::ITSteppingAction() : G4UserSteppingAction()
-{}
+ITSteppingAction::ITSteppingAction() : G4UserSteppingAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ITSteppingAction::~ITSteppingAction()
-{}
+ITSteppingAction::~ITSteppingAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void ITSteppingAction::UserSteppingAction(const G4Step* )
-{}
+void ITSteppingAction::UserSteppingAction(const G4Step*) {}

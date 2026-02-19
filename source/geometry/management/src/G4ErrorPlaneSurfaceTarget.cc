@@ -25,7 +25,7 @@
 //
 // G4ErrorPlaneSurfaceTarget class implementation
 //
-// Created: P.Arce, September 2004
+// Author: Pedro Arce (CIEMAT), September 2004
 // --------------------------------------------------------------------
 
 #include "G4ErrorPlaneSurfaceTarget.hh"
@@ -85,12 +85,6 @@ G4ErrorPlaneSurfaceTarget(const G4Point3D &p1,
     Dump( " $$$ creating G4ErrorPlaneSurfaceTarget from three points");
   }
 #endif
-}
-
-//---------------------------------------------------------------------
-
-G4ErrorPlaneSurfaceTarget::~G4ErrorPlaneSurfaceTarget()
-{
 }
 
 //---------------------------------------------------------------------

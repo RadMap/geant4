@@ -28,6 +28,9 @@
 #include "CLHEP/Units/PhysicalConstants.h"
 #include "CLHEP/Random/DoubConv.h"
 #include <cmath>	// for std::floor()
+#include <iostream>
+#include <string>
+#include <vector>
 
 namespace CLHEP {
 
@@ -99,10 +102,10 @@ long RandPoisson::shoot(double xm) {
   double om = getOldMean();
   HepRandomEngine* anEngine = HepRandom::getTheEngine();
 
-  double* status = getPStatus();
-  sq = status[0];
-  alxm = status[1];
-  g1 = status[2];
+  double* pstatus = getPStatus();
+  sq = pstatus[0];
+  alxm = pstatus[1];
+  g1 = pstatus[2];
 
   if( xm == -1 ) return 0;
   if( xm < 12.0 ) {
@@ -159,10 +162,10 @@ long RandPoisson::shoot(HepRandomEngine* anEngine, double xm) {
   double sq, alxm, g1;
   double om = getOldMean();
 
-  double* status = getPStatus();
-  sq = status[0];
-  alxm = status[1];
-  g1 = status[2];
+  double* pstatus = getPStatus();
+  sq = pstatus[0];
+  alxm = pstatus[1];
+  g1 = pstatus[2];
 
   if( xm == -1 ) return 0;
   if( xm < 12.0 ) {
@@ -278,7 +281,7 @@ void RandPoisson::fireArray(const int size, long* vect, double m1)
 }
 
 std::ostream & RandPoisson::put ( std::ostream & os ) const {
-  int pr=os.precision(20);
+  long pr=os.precision(20);
   std::vector<unsigned long> t(2);
   os << " " << name() << "\n";
   os << "Uvec" << "\n";

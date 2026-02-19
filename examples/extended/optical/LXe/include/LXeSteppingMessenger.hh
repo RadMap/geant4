@@ -23,33 +23,29 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/LXe/include/LXeSteppingMessenger.hh
+/// \file LXeSteppingMessenger.hh
 /// \brief Definition of the LXeSteppingMessenger class
-//
-//
+
 #ifndef LXeSteppingMessenger_h
 #define LXeSteppingMessenger_h 1
 
 #include "G4UImessenger.hh"
-#include "globals.hh"
 
 class LXeSteppingAction;
+
 class G4UIcmdWithABool;
 
-class LXeSteppingMessenger: public G4UImessenger
+class LXeSteppingMessenger : public G4UImessenger
 {
   public:
     LXeSteppingMessenger(LXeSteppingAction*);
-    virtual ~LXeSteppingMessenger();
- 
-    virtual void SetNewValue(G4UIcommand*, G4String);
+    ~LXeSteppingMessenger() override;
+
+    void SetNewValue(G4UIcommand*, G4String) override;
 
   private:
-
-    LXeSteppingAction*        fStepping;
-    G4UIcmdWithABool*  fOneStepPrimariesCmd;
- 
+    LXeSteppingAction* fStepping = nullptr;
+    G4UIcmdWithABool* fOneStepPrimariesCmd = nullptr;
 };
 
 #endif

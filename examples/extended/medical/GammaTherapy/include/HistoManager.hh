@@ -23,21 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/GammaTherapy/include/HistoManager.hh
+/// \file HistoManager.hh
 /// \brief Definition of the HistoManager class
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef HistoManager_h
 #define HistoManager_h 1
 
+#include "G4AnalysisManager.hh"
 #include "globals.hh"
-
-#include "g4root.hh"
-//#include "g4xml.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -45,33 +38,28 @@ class DetectorConstruction;
 
 class HistoManager
 {
-
-
   public:
     HistoManager();
-   ~HistoManager();
+    ~HistoManager();
 
-  void Update(DetectorConstruction* det, bool bForceActivation = false);
-  std::vector<G4int> GetHistoIdentifiers() const { return fHisto; }
-  void DumpHistoParameters();
+    void Update(DetectorConstruction* det, bool bForceActivation = false);
+    std::vector<G4int> GetHistoIdentifiers() const { return fHisto; }
+    void DumpHistoParameters();
 
   private:
-  void Book();
-  std::vector<G4int> fHisto;
+    void Book();
+    std::vector<G4int> fHisto;
 
-  G4double fMaxEnergy;
-  G4int fNBinsZ, fNBinsR, fNBinsE;
-  
-  G4double fAbsorberZ;
-  G4double fAbsorberR;
-  G4double fScoreZ;
+    G4double fMaxEnergy;
+    G4int fNBinsZ, fNBinsR, fNBinsE;
 
-  G4double fStepZ, fStepR, fStepE;
+    G4double fAbsorberZ;
+    G4double fAbsorberR;
+    G4double fScoreZ;
 
-
+    G4double fStepZ, fStepR, fStepE;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

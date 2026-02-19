@@ -23,38 +23,33 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/particleGun/include/TrackingAction.hh
+/// \file TrackingAction.hh
 /// \brief Definition of the TrackingAction class
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef TrackingAction_h
 #define TrackingAction_h 1
 
-#include "G4UserTrackingAction.hh"
 #include "G4ThreeVector.hh"
+#include "G4UserTrackingAction.hh"
 #include "globals.hh"
 
 class PrimaryGeneratorAction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class TrackingAction : public G4UserTrackingAction {
-
-  public:  
+class TrackingAction : public G4UserTrackingAction
+{
+  public:
     TrackingAction(PrimaryGeneratorAction*);
-   ~TrackingAction() {};
-   
-    virtual void  PreUserTrackingAction(const G4Track*);
-    virtual void PostUserTrackingAction(const G4Track*);
-    
-  private:
-    PrimaryGeneratorAction* fPrimary;
+    ~TrackingAction() override = default;
 
-   // parameters for generator action #3
+    void PreUserTrackingAction(const G4Track*) override;
+    void PostUserTrackingAction(const G4Track*) override;
+
+  private:
+    PrimaryGeneratorAction* fPrimary = nullptr;
+
+    // parameters for generator action #3
     G4ThreeVector fNewUz;
 };
 

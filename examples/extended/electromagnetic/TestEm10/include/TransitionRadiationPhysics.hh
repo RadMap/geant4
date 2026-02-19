@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm10/include/TransitionRadiationPhysics.hh
+/// \file TransitionRadiationPhysics.hh
 /// \brief Definition of the TransitionRadiationPhysics class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef TransitionRadiationPhysics_h
 #define TransitionRadiationPhysics_h 1
@@ -43,38 +39,28 @@ class DetectorConstruction;
 
 class TransitionRadiationPhysics : public G4VPhysicsConstructor
 {
-public: 
-  TransitionRadiationPhysics(G4int verb, DetectorConstruction* ptr);
-  virtual ~TransitionRadiationPhysics();
+  public:
+    TransitionRadiationPhysics(G4int verb, DetectorConstruction* ptr);
+    virtual ~TransitionRadiationPhysics();
 
-  // This method is dummy for physics
-  virtual void ConstructParticle() {};
- 
-  // This method will be invoked in the Construct() method.
-  // each physics process will be instantiated and
-  // registered to the process manager of each particle type 
-  virtual void ConstructProcess();
+    // This method is dummy for physics
+    virtual void ConstructParticle() {};
 
-  inline void SetXTRModel(const G4String& name) { fXTRModel = name; };
+    // This method will be invoked in the Construct() method.
+    // each physics process will be instantiated and
+    // registered to the process manager of each particle type
+    virtual void ConstructProcess();
 
-private:
+    inline void SetXTRModel(const G4String& name) { fXTRModel = name; };
 
-  DetectorConstruction* fDetector;
-  G4int    fVerbose;
-  G4String fXTRModel;
+  private:
+    DetectorConstruction* fDetector;
+    G4int fVerbose;
+    G4String fXTRModel;
 
-  static G4ThreadLocal G4VXTRenergyLoss* fXTRProcess;  
-
+    static G4ThreadLocal G4VXTRenergyLoss* fXTRProcess;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-
-
-
-
-
-
-

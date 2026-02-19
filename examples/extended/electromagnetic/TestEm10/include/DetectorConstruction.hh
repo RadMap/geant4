@@ -23,21 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm10/include/DetectorConstruction.hh
+/// \file DetectorConstruction.hh
 /// \brief Definition of the DetectorConstruction class
-//
-//
-//
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
 
-#include "G4VUserDetectorConstruction.hh"
-
 #include "RadiatorDescription.hh"
 
-#include "globals.hh"
+#include "G4VUserDetectorConstruction.hh"
 #include "G4ios.hh"
+#include "globals.hh"
 
 class DetectorMessenger;
 
@@ -55,13 +51,13 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void SetDetectorSetUp(G4String setup) { fSetUp = setup; }
 
     RadiatorDescription* GetRadiatorDescription() const;
-    G4Material*  GetAbsorberMaterial() const;
+    G4Material* GetAbsorberMaterial() const;
 
   private:
     // data members
-    DetectorMessenger*   fDetectorMessenger;  //pointer to the Messenger
+    DetectorMessenger* fDetectorMessenger;  // pointer to the Messenger
     RadiatorDescription* fRadiatorDescription;
-    G4String             fSetUp;
+    G4String fSetUp;
 };
 
 #endif

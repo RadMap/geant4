@@ -29,7 +29,7 @@
 //
 // Wrapper class for G4EllipticalTube to make use of VecGeom EllipticalTube.
 
-// 13.09.19 Gabriele Cosmo, CERN
+// Author: Gabriele Cosmo (CERN), 13.09.2019
 // --------------------------------------------------------------------
 #ifndef G4UELLIPTICALTUBE_HH
 #define G4UELLIPTICALTUBE_HH
@@ -38,51 +38,97 @@
 
 #if ( defined(G4GEOM_USE_USOLIDS) || defined(G4GEOM_USE_PARTIAL_USOLIDS) )
 
-#include <volumes/UnplacedEllipticalTube.h>
+#include <VecGeom/volumes/UnplacedEllipticalTube.h>
 
 #include "G4Polyhedron.hh"
+
+/**
+ * @brief G4UEllipticalTube is a wrapper class for G4EllipticalTube
+ * to make use of VecGeom EllipticalTube.
+ */
 
 class G4UEllipticalTube : public G4UAdapter<vecgeom::UnplacedEllipticalTube>
 {
   using Shape_t = vecgeom::UnplacedEllipticalTube;
   using Base_t  = G4UAdapter<vecgeom::UnplacedEllipticalTube>;
 
-  public:  // with description
+  public:
 
-    G4UEllipticalTube(const G4String& name, G4double dx,
-                                            G4double dy,
-                                            G4double dz);
-   ~G4UEllipticalTube();
+    /**
+     * Constructs an elliptical tube, given its parameters.
+     *  @param[in] name The solid name.
+     *  @param[in] dx Half length of axis along X.
+     *  @param[in] dy Half length of axis along Y.
+     *  @param[in] dz Half length in Z.
+     */
+    G4UEllipticalTube(const G4String& name,
+                            G4double dx,
+                            G4double dy,
+                            G4double dz);
 
-    G4VSolid* Clone() const;
+    /**
+     * Default destructor.
+     */
+    ~G4UEllipticalTube() override = default;
 
+    /**
+     * Makes a clone of the object for use in multi-treading.
+     *  @returns A pointer to the new cloned allocated solid.
+     */
+    G4VSolid* Clone() const override;
+
+    /**
+     * Accessors.
+     */
     G4double GetDx() const;
     G4double GetDy() const;
     G4double GetDz() const;
 
+    /**
+     * Modifiers.
+     */
     void SetDx(G4double dx);
     void SetDy(G4double dy);
     void SetDz(G4double dz);
 
-    inline G4GeometryType GetEntityType() const;
+    /**
+     * Returns the type ID, "G4EllipticalTube" of the solid.
+     */
+    inline G4GeometryType GetEntityType() const override;
 
-  public:  // without description
+    /**
+     * Computes the bounding limits of the solid.
+     *  @param[out] pMin The minimum bounding limit point.
+     *  @param[out] pMax The maximum bounding limit point.
+     */
+    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const override;
 
-    G4UEllipticalTube(__void__&);
-      // Fake default constructor for usage restricted to direct object
-      // persistency for clients requiring preallocation of memory for
-      // persistifiable objects.
-
-    G4UEllipticalTube( const G4UEllipticalTube& source );
-    G4UEllipticalTube &operator=( const G4UEllipticalTube& source );
-      // Copy constructor and assignment operator.
-
-    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const;
+    /**
+     * Calculates the minimum and maximum extent of the solid, when under the
+     * specified transform, and within the specified limits.
+     *  @param[in] pAxis The axis along which compute the extent.
+     *  @param[in] pVoxelLimit The limiting space dictated by voxels.
+     *  @param[in] pTransform The internal transformation applied to the solid.
+     *  @param[out] pMin The minimum extent value.
+     *  @param[out] pMax The maximum extent value.
+     *  @returns True if the solid is intersected by the extent region.
+     */
     G4bool CalculateExtent(const EAxis pAxis,
                            const G4VoxelLimits& pVoxelLimit,
                            const G4AffineTransform& pTransform,
-                           G4double& pmin, G4double& pmax) const;
-    G4Polyhedron* CreatePolyhedron() const;
+                           G4double& pmin, G4double& pmax) const override;
+
+    /**
+     * Returns a generated polyhedron as graphical representations.
+     */
+    G4Polyhedron* CreatePolyhedron() const override;
+
+    /**
+     * Copy constructor and assignment operator.
+     */
+    G4UEllipticalTube( const G4UEllipticalTube& source );
+    G4UEllipticalTube &operator=( const G4UEllipticalTube& source );
+
 };
 
 // --------------------------------------------------------------------

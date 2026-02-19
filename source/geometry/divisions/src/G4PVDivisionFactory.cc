@@ -34,21 +34,6 @@
 
 //_____________________________________________________________________________
 
-G4PVDivisionFactory::G4PVDivisionFactory()
-  : G4VPVDivisionFactory()
-{
-  // Protected singleton constructor.
-  // ---
-}
-
-//_____________________________________________________________________________
-
-G4PVDivisionFactory::~G4PVDivisionFactory()
-{
-}
-
-//_____________________________________________________________________________
-
 G4PVDivisionFactory* G4PVDivisionFactory::GetInstance()
 {
   if (fgInstance == nullptr)
@@ -123,8 +108,7 @@ G4PVDivisionFactory::CreatePVDivision(const G4String& pName,
 
   // Get parameterisation data
   //
-  const G4VDivisionParameterisation* divParam
-    = dynamic_cast<const G4VDivisionParameterisation*>(param);
+  const auto divParam = dynamic_cast<const G4VDivisionParameterisation*>(param);
 
   if (divParam == nullptr)
   {
@@ -133,16 +117,14 @@ G4PVDivisionFactory::CreatePVDivision(const G4String& pName,
                 "Unexpected parameterisation type!");
     return nullptr;
   }
-  else
-  {
-    EAxis axis = divParam->GetAxis();
-    G4int nofDivisions = divParam->GetNoDiv();
-    G4double width = divParam->GetWidth();
-    G4double offset = divParam->GetOffset();
+  
+  EAxis axis = divParam->GetAxis();
+  G4int nofDivisions = divParam->GetNoDiv();
+  G4double width = divParam->GetWidth();
+  G4double offset = divParam->GetOffset();
 
-    return new G4PVDivision(pName, pLogical, pMotherLogical, 
-                            axis, nofDivisions, width, offset);
-  }
+  return new G4PVDivision(pName, pLogical, pMotherLogical, 
+                          axis, nofDivisions, width, offset);
 }    
 
 //_____________________________________________________________________________
@@ -152,6 +134,6 @@ G4bool G4PVDivisionFactory::IsPVDivision(const G4VPhysicalVolume* pv) const
   // Returns true if pv is division
   // ---
 
-  return (dynamic_cast<const G4PVDivision*>(pv) != nullptr) ? true : false;
+  return dynamic_cast<const G4PVDivision*>(pv) != nullptr;
 }
 

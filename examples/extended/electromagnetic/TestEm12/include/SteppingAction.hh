@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm12/include/SteppingAction.hh
+/// \file SteppingAction.hh
 /// \brief Definition of the SteppingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef SteppingAction_h
 #define SteppingAction_h 1
@@ -43,12 +39,12 @@ class SteppingAction : public G4UserSteppingAction
 {
   public:
     SteppingAction(EventAction*);
-   ~SteppingAction();
+    ~SteppingAction() override = default;
 
-    virtual void UserSteppingAction(const G4Step*);
-    
+    void UserSteppingAction(const G4Step*) override;
+
   private:
-    EventAction* fEventAction;
+    EventAction* fEventAction = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -60,11 +60,17 @@
 
 #include "G4LogLogInterpolation.hh"
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 G4CrossSectionHandler::G4CrossSectionHandler()
 { }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 G4CrossSectionHandler::~G4CrossSectionHandler()
 { }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 std::vector<G4VEMDataSet*>*
 G4CrossSectionHandler::BuildCrossSectionsForMaterials(const G4DataVector& energyVector,
@@ -80,16 +86,16 @@ G4CrossSectionHandler::BuildCrossSectionsForMaterials(const G4DataVector& energy
 
   const G4ProductionCutsTable* theCoupleTable=
         G4ProductionCutsTable::GetProductionCutsTable();
-  size_t numOfCouples = theCoupleTable->GetTableSize();
+  G4int numOfCouples = (G4int)theCoupleTable->GetTableSize();
 
-  size_t nOfBins = energyVector.size();
+  std::size_t nOfBins = energyVector.size();
   const G4VDataSetAlgorithm* interpolationAlgo = CreateInterpolation();
 
-  for (size_t mLocal=0; mLocal<numOfCouples; mLocal++)
+  for (G4int mLocal=0; mLocal<numOfCouples; ++mLocal)
     {
       const G4MaterialCutsCouple* couple = theCoupleTable->GetMaterialCutsCouple(mLocal);
       const G4Material* material= couple->GetMaterial();
-      G4int nElements = material->GetNumberOfElements();
+      G4int nElements = (G4int)material->GetNumberOfElements();
       const G4ElementVector* elementVector = material->GetElementVector();
       const G4double* nAtomsPerVolume = material->GetAtomicNumDensityVector();
 
@@ -97,7 +103,7 @@ G4CrossSectionHandler::BuildCrossSectionsForMaterials(const G4DataVector& energy
 
       G4VEMDataSet* setForMat = new G4CompositeEMDataSet(algo,1.,1.);
 
-      for (G4int i=0; i<nElements; i++) {
+      for (G4int i=0; i<nElements; ++i) {
  
         G4int Z = (G4int) (*elementVector)[i]->GetZ();
         G4double density = nAtomsPerVolume[i];
@@ -108,8 +114,7 @@ G4CrossSectionHandler::BuildCrossSectionsForMaterials(const G4DataVector& energy
         log_energies = new G4DataVector;
         log_data = new G4DataVector;
 
-
-        for (size_t bin=0; bin<nOfBins; bin++)
+        for (std::size_t bin=0; bin<nOfBins; ++bin)
 	  {
 	    G4double e = energyVector[bin];
 	    energies->push_back(e);
@@ -122,9 +127,6 @@ G4CrossSectionHandler::BuildCrossSectionsForMaterials(const G4DataVector& energy
 	  }
 
         G4VDataSetAlgorithm* algo1 = interpolationAlgo->Clone();
-
-//      G4VEMDataSet* elSet = new G4EMDataSet(i,energies,data,algo1,1.,1.);
-
         G4VEMDataSet* elSet = new G4EMDataSet(i,energies,data,log_energies,log_data,algo1,1.,1.);
 
         setForMat->AddComponent(elSet);

@@ -23,27 +23,28 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PhysicsList.cc
+/// \brief Implementation of the PhysicsList class
+
 // This example is provided by the Geant4-DNA collaboration
-// Any report or published results obtained using the Geant4-DNA software 
-// and the DNA geometry given in the Geom_DNA example 
+// Any report or published results obtained using the Geant4-DNA software
+// and the DNA geometry given in the Geom_DNA example
 // shall cite the following Geant4-DNA collaboration publications:
 // [1] NIM B 298 (2013) 47-54
 // [2] Med. Phys. 37 (2010) 4692-4708
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
-/// \file PhysicsList.cc
-/// \brief Implementation of the PhysicsList class
 
 #include "PhysicsList.hh"
-#include "G4SystemOfUnits.hh"
+
 #include "G4EmDNAPhysics.hh"
- 
+#include "G4SystemOfUnits.hh"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PhysicsList::PhysicsList() 
-: G4VModularPhysicsList()
+PhysicsList::PhysicsList() : G4VModularPhysicsList()
 {
-  SetDefaultCutValue(1.0*micrometer);
+  SetDefaultCutValue(1.0 * micrometer);
   SetVerboseLevel(1);
 
   // EM physics
@@ -52,8 +53,6 @@ PhysicsList::PhysicsList()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PhysicsList::~PhysicsList()
-{
-}
+PhysicsList::~PhysicsList() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

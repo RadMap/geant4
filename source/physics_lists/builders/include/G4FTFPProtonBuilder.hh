@@ -41,40 +41,27 @@
 #include "globals.hh"
 
 #include "G4HadronElasticProcess.hh"
-#include "G4HadronFissionProcess.hh"
-#include "G4HadronCaptureProcess.hh"
-#include "G4ProtonInelasticProcess.hh"
+#include "G4HadronInelasticProcess.hh"
 #include "G4VProtonBuilder.hh"
 
 #include "G4TheoFSGenerator.hh"
-#include "G4GeneratorPrecompoundInterface.hh"
-#include "G4FTFModel.hh"
-#include "G4LundStringFragmentation.hh"
-#include "G4ExcitedStringDecay.hh"
-#include "G4QuasiElasticChannel.hh"
 
 class G4FTFPProtonBuilder : public G4VProtonBuilder
 {
   public: 
     G4FTFPProtonBuilder(G4bool quasiElastic=false);
-    virtual ~G4FTFPProtonBuilder();
+    ~G4FTFPProtonBuilder() override = default;
 
-  public: 
-    virtual void Build(G4HadronElasticProcess *) final override {};
-    virtual void Build(G4ProtonInelasticProcess * aP) final override;
+    void Build(G4HadronElasticProcess *) override {};
+    void Build(G4HadronInelasticProcess * aP) override;
     
-    virtual void SetMinEnergy(G4double aM) final override {theMin = aM;}
-    virtual void SetMaxEnergy(G4double aM) final override {theMax = aM;}
+    void SetMinEnergy(G4double aM) override { theMin = aM; };
+    void SetMaxEnergy(G4double aM) override { theMax = aM; };
 
     using G4VProtonBuilder::Build; //Prevent compiler warning
 
   private:
     G4TheoFSGenerator * theModel;
-    G4GeneratorPrecompoundInterface * theCascade;
-    G4FTFModel * theStringModel;
-    G4ExcitedStringDecay * theStringDecay;
-    G4QuasiElasticChannel * theQuasiElastic;
-    G4LundStringFragmentation * theLund;
     G4double theMin;
     G4double theMax;
 

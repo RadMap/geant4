@@ -29,7 +29,7 @@
 //
 // Wrapper class for G4Orb to make use of VecGeom Orb.
 
-// 30.10.13 G.Cosmo, CERN/PH
+// Author: G.Cosmo (CERN), 30.10.2013
 // --------------------------------------------------------------------
 #ifndef G4UORB_HH
 #define G4UORB_HH
@@ -38,52 +38,91 @@
 
 #if ( defined(G4GEOM_USE_USOLIDS) || defined(G4GEOM_USE_PARTIAL_USOLIDS) )
 
-#include <volumes/UnplacedOrb.h>
+#include <VecGeom/volumes/UnplacedOrb.h>
 
 #include "G4Polyhedron.hh"
+
+/**
+ * @brief G4UOrb is a wrapper class for G4Orb to make use of VecGeom Orb.
+ */
 
 class G4UOrb : public G4UAdapter<vecgeom::UnplacedOrb>
 {
   using Shape_t = vecgeom::UnplacedOrb;
   using Base_t  = G4UAdapter<vecgeom::UnplacedOrb>;
 
-  public:  // with description
+  public:
 
+    /**
+     * Constructs a full sphere, given a name and its radius.
+     *  @param[in] pName The name of the solid.
+     *  @param[in] pRmax Outer radius.
+     */
     G4UOrb(const G4String& pName, G4double pRmax);
        
-   ~G4UOrb() ;
+    /**
+     * Default destructor.
+     */
+    ~G4UOrb() override = default;
     
-    void ComputeDimensions(      G4VPVParameterisation* p,
+    /**
+     * Dispatch method for parameterisation replication mechanism and
+     * dimension computation.
+     */
+    void ComputeDimensions(G4VPVParameterisation* p,
                            const G4int n,
-                           const G4VPhysicalVolume* pRep);
+                           const G4VPhysicalVolume* pRep) override;
 
-    G4VSolid* Clone() const;
+    /**
+     * Makes a clone of the object for use in multi-treading.
+     *  @returns A pointer to the new cloned allocated solid.
+     */
+    G4VSolid* Clone() const override;
 
+    /**
+     * Accessors and modifiers.
+     */
     G4double GetRadius() const;
     void SetRadius(G4double newRmax);
     G4double GetRadialTolerance() const;
 
-    inline G4GeometryType GetEntityType() const;
+    /**
+     * Returns the type ID, "G4Orb" of the solid.
+     */
+    inline G4GeometryType GetEntityType() const override;
 
-    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const;
+    /**
+     * Computes the bounding limits of the solid.
+     *  @param[out] pMin The minimum bounding limit point.
+     *  @param[out] pMax The maximum bounding limit point.
+     */
+    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const override;
 
+    /**
+     * Calculates the minimum and maximum extent of the solid, when under the
+     * specified transform, and within the specified limits.
+     *  @param[in] pAxis The axis along which compute the extent.
+     *  @param[in] pVoxelLimit The limiting space dictated by voxels.
+     *  @param[in] pTransform The internal transformation applied to the solid.
+     *  @param[out] pMin The minimum extent value.
+     *  @param[out] pMax The maximum extent value.
+     *  @returns True if the solid is intersected by the extent region.
+     */
     G4bool CalculateExtent(const EAxis pAxis,
                            const G4VoxelLimits& pVoxelLimit,
                            const G4AffineTransform& pTransform,
-                                 G4double& pmin, G4double& pmax) const;
+                                 G4double& pmin, G4double& pmax) const override;
 
-    G4Polyhedron* CreatePolyhedron() const;
+    /**
+     * Returns a generated polyhedron as graphical representations.
+     */
+    G4Polyhedron* CreatePolyhedron() const override;
 
-  public:  // without description
-
-    G4UOrb(__void__&);
-      // Fake default constructor for usage restricted to direct object
-      // persistency for clients requiring preallocation of memory for
-      // persistifiable objects.
-
+    /**
+     * Copy constructor and assignment operator.
+     */
     G4UOrb(const G4UOrb& rhs);
     G4UOrb& operator=(const G4UOrb& rhs); 
-      // Copy constructor and assignment operator.
 };
 
 // --------------------------------------------------------------------

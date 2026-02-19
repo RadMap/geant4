@@ -119,6 +119,8 @@ elseif(MSVC)
   set(GEANT4_COMPILER "VC")
 elseif(CMAKE_CXX_COMPILER MATCHES "icpc.*|icc.*")
   set(GEANT4_COMPILER "icc")
+elseif(CMAKE_CXX_COMPILER MATCHES "icpx.*|icx.*")
+  set(GEANT4_COMPILER "icx")
 else()
   set(GEANT4_COMPILER "UNSUPPORTED")
 endif()
@@ -152,6 +154,12 @@ macro(_g4tc_shell_setup SHELL_FAMILY)
     set(GEANT4_TC_SHELL_FAMILY "C shell")
     set(GEANT4_TC_UNSET_COMMAND "unsetenv")
     set(GEANT4_TC_SHELL_EXTENSION ".csh")
+  elseif(${SHELL_FAMILY} STREQUAL "cmd")
+    #the variable GEANT4_TC_SHELL_PROGRAM is not used in .bat generation
+    set(GEANT4_TC_SHELL_PROGRAM "cmd.exe")
+    set(GEANT4_TC_SHELL_FAMILY "Windows cmd.exe")
+    set(GEANT4_TC_UNSET_COMMAND "set")
+    set(GEANT4_TC_SHELL_EXTENSION ".bat")
   else()
     message(FATAL_ERROR "Unsupported shell '${SHELL_FAMILY}'")
   endif()
@@ -168,27 +176,31 @@ function(_g4tc_selflocate TEMPLATE_NAME SHELL_FAMILY SCRIPT_NAME LOCATION_VARIAB
   if(${SHELL_FAMILY} STREQUAL "bourne")
     set(${TEMPLATE_NAME}
       "# Self locate script when sourced
-if [ -z \"\$BASH_VERSION\" ]; then
-  # Not bash, so rely on sourcing from correct location
+g4sls_sourced_dir=\$\(dirname \${BASH_SOURCE[0]:-$0}\)
+
+if [  \"\${g4sls_sourced_dir}\" = \".\" ]; then
   if [ ! -f ${SCRIPT_NAME}${GEANT4_TC_SHELL_EXTENSION} ]; then
+    # Not bash, zsh or sh so rely on sourcing from correct location
     echo 'ERROR: ${SCRIPT_NAME}${GEANT4_TC_SHELL_EXTENSION} could NOT self-locate Geant4 installation'
-    echo 'This is most likely because you are using ksh, zsh or similar'
+    echo 'This is most likely because you are using ksh, dash  or similar'
     echo 'To fix this issue, cd to the directory containing this script'
     echo 'and source it in that directory.'
+    unset g4sls_sourced_dir
     return 1
   fi
-  ${LOCATION_VARIABLE}=\$\(pwd\)
-else
-  g4sls_sourced_dir=\$\(dirname \${BASH_ARGV[0]}\)
-  ${LOCATION_VARIABLE}=$\(cd \$g4sls_sourced_dir > /dev/null ; pwd\)
 fi
+${LOCATION_VARIABLE}=$\(cd \$g4sls_sourced_dir > /dev/null ; pwd\)
       "
       PARENT_SCOPE
       )
     # For bourne shell, set the values of the guard variables
     set(GEANT4_TC_IF_SELFLOCATED "" PARENT_SCOPE)
-    set(GEANT4_TC_ENDIF_SELFLOCATED "" PARENT_SCOPE)
-
+    set(GEANT4_TC_ENDIF_SELFLOCATED "
+# unset local variables
+unset g4sls_sourced_dir
+unset ${LOCATION_VARIABLE}
+"
+    PARENT_SCOPE)
 
   elseif(${SHELL_FAMILY} STREQUAL "cshell")
     set(${TEMPLATE_NAME}
@@ -249,7 +261,32 @@ set ${LOCATION_VARIABLE}=\"`cd \${g4sls_sourced_dir} > /dev/null ; pwd`\"
 
     # For C-shell, set the values of the guard variables
     set(GEANT4_TC_IF_SELFLOCATED "" PARENT_SCOPE)
-   set(GEANT4_TC_ENDIF_SELFLOCATED "" PARENT_SCOPE)
+   set(GEANT4_TC_ENDIF_SELFLOCATED "
+# unset local variables
+unset g4sls_sourced_dir
+unset ${LOCATION_VARIABLE}
+"
+    PARENT_SCOPE)
+
+elseif(${SHELL_FAMILY} STREQUAL "cmd")
+    set(${TEMPLATE_NAME}
+"set ${LOCATION_VARIABLE}=
+
+rem Self locate script when sourced
+for /F %%i in (\"%0\") do set BINDIR=%%~dpi
+set \"BINDIR=%BINDIR:~0,-1%\"
+set \"${LOCATION_VARIABLE}=%BINDIR%\"
+rem unset temparary variable
+set BINDIR=
+"
+      PARENT_SCOPE
+      )
+    # Set the values of the guard variables
+    set(GEANT4_TC_IF_SELFLOCATED "" PARENT_SCOPE)
+    set(GEANT4_TC_ENDIF_SELFLOCATED "
+rem unset local variables
+set ${LOCATION_VARIABLE}=
+" PARENT_SCOPE)
   endif()
 endfunction()
 
@@ -267,6 +304,11 @@ function(_g4tc_setenv_command TEMPLATE_NAME SHELL_FAMILY VARIABLE_NAME VARIABLE_
   elseif(${SHELL_FAMILY} STREQUAL "cshell")
     set(${TEMPLATE_NAME}
       "setenv ${VARIABLE_NAME} ${VARIABLE_VALUE}"
+      PARENT_SCOPE
+      )
+  elseif(${SHELL_FAMILY} STREQUAL "cmd")
+    set(${TEMPLATE_NAME}
+      "set \"${VARIABLE_NAME}=${VARIABLE_VALUE}\""
       PARENT_SCOPE
       )
   endif()
@@ -301,6 +343,17 @@ endif
 "
        PARENT_SCOPE
        )
+  # -- cmd.exe block
+  elseif(${SHELL_FAMILY} STREQUAL "cmd")
+    # Again, this is verbatim so final output is formatted correctly
+    set(${TEMPLATE_NAME}
+      "
+IF NOT DEFINED ${VARIABLE_NAME} (
+  set \"${VARIABLE_NAME}=${VARIABLE_VALUE}\"
+)
+"
+      PARENT_SCOPE
+      )
   endif()
 endfunction()
 
@@ -329,13 +382,22 @@ fi
   elseif(${SHELL_FAMILY} STREQUAL "cshell")
     # Again, this is verbatim so final output is formatted correctly
     set(${TEMPLATE_NAME}
-      "
+"
 if ( ! \${?${PATH_VARIABLE}} ) then
   setenv ${PATH_VARIABLE} ${APPEND_VARIABLE}
 else
   setenv ${PATH_VARIABLE} ${APPEND_VARIABLE}:\${${PATH_VARIABLE}}
 endif
+"
+      PARENT_SCOPE
+      )
+  # -- cmd.exe block
+  elseif(${SHELL_FAMILY} STREQUAL "cmd")
+    file(TO_NATIVE_PATH ${APPEND_VARIABLE} APPEND_VARIABLE)
+    set(${TEMPLATE_NAME}
       "
+set \"${PATH_VARIABLE}=${APPEND_VARIABLE};%${PATH_VARIABLE}%\"
+"
       PARENT_SCOPE
       )
   endif()
@@ -372,7 +434,16 @@ if ( ! \${?${PATH_VARIABLE}} ) then
 else
   setenv ${PATH_VARIABLE} \${${PATH_VARIABLE}}:${APPEND_VARIABLE}
 endif
+"
+      PARENT_SCOPE
+      )
+  # -- cmd.exe block
+  elseif(${SHELL_FAMILY} STREQUAL "cmd")
+    file(TO_NATIVE_PATH ${APPEND_VARIABLE} APPEND_VARIABLE)
+    set(${TEMPLATE_NAME}
       "
+set \"${PATH_VARIABLE}=%${PATH_VARIABLE}%;${APPEND_VARIABLE}\"
+"
       PARENT_SCOPE
       )
   endif()
@@ -449,13 +520,7 @@ macro(_g4tc_configure_tc_variables SHELL_FAMILY SCRIPT_NAME)
     # Have to use detected CLHEP paths to set base dir and others
     get_filename_component(_CLHEP_INCLUDE_DIR "${CLHEP_INCLUDE_DIR}" REALPATH)
     get_filename_component(_CLHEP_BASE_DIR "${_CLHEP_INCLUDE_DIR}" DIRECTORY)
-
-    # Handle granular vs singular cases
-    if(GEANT4_USE_SYSTEM_CLHEP_GRANULAR)
-      get_target_property(_CLHEP_LIB_DIR CLHEP::Vector LOCATION)
-    else()
-      get_target_property(_CLHEP_LIB_DIR CLHEP::CLHEP LOCATION)
-    endif()
+    get_target_property(_CLHEP_LIB_DIR CLHEP::CLHEP LOCATION)
 
     get_filename_component(_CLHEP_LIB_DIR "${_CLHEP_LIB_DIR}" REALPATH)
     get_filename_component(_CLHEP_LIB_DIR "${_CLHEP_LIB_DIR}" DIRECTORY)
@@ -465,21 +530,6 @@ macro(_g4tc_configure_tc_variables SHELL_FAMILY SCRIPT_NAME)
     _g4tc_setenv_command(GEANT4_TC_CLHEP_INCLUDE_DIR ${SHELL_FAMILY} CLHEP_INCLUDE_DIR "${_CLHEP_INCLUDE_DIR}")
 
     # Only need to handle CLHEP_LIB for granular case
-    if(GEANT4_USE_SYSTEM_CLHEP_GRANULAR)
-      set(G4_SYSTEM_CLHEP_LIBRARIES )
-      foreach(_clhep_lib ${CLHEP_LIBRARIES})
-        get_target_property(_CLHEP_LIB_NAME ${_clhep_lib} LOCATION)
-        get_filename_component(_curlib "${_CLHEP_LIB_NAME}" NAME)
-        string(REGEX REPLACE "^lib(.*)\\.(so|a|dylib|lib|dll)$" "\\1" _curlib "${_curlib}")
-        set(G4_SYSTEM_CLHEP_LIBRARIES "${G4_SYSTEM_CLHEP_LIBRARIES} -l${_curlib}")
-      endforeach()
-
-      # Strip first "-l" as that's prepended by Geant4Make
-      string(REGEX REPLACE "^ *\\-l" "" G4_SYSTEM_CLHEP_LIBRARIES "${G4_SYSTEM_CLHEP_LIBRARIES}")
-
-      _g4tc_setenv_command(GEANT4_TC_CLHEP_LIB ${SHELL_FAMILY} CLHEP_LIB "\"${G4_SYSTEM_CLHEP_LIBRARIES}\"")
-    endif()
-
     _g4tc_setenv_command(GEANT4_TC_CLHEP_LIB_DIR ${SHELL_FAMILY} CLHEP_LIB_DIR ${_CLHEP_LIB_DIR})
 
 
@@ -507,6 +557,13 @@ macro(_g4tc_configure_tc_variables SHELL_FAMILY SCRIPT_NAME)
     _g4tc_setenv_command(GEANT4_TC_G4LIB_USE_ZLIB ${SHELL_FAMILY} G4LIB_USE_ZLIB 1)
   endif()
 
+  # - PTL...
+  if(GEANT4_USE_SYSTEM_PTL)
+    set(GEANT4_TC_G4LIB_USE_PTL "# USING SYSTEM PTL")
+  else()
+    _g4tc_setenv_command(GEANT4_TC_G4LIB_USE_PTL ${SHELL_FAMILY} G4LIB_USE_PTL 1)
+  endif()
+
   # - GDML...
   if(GEANT4_USE_GDML)
     _g4tc_setenv_command(GEANT4_TC_G4LIB_USE_GDML ${SHELL_FAMILY} G4LIB_USE_GDML 1)
@@ -515,6 +572,12 @@ macro(_g4tc_configure_tc_variables SHELL_FAMILY SCRIPT_NAME)
     # variable...
     get_filename_component(_xercesc_root ${XercesC_INCLUDE_DIR} PATH)
     _g4tc_setenv_command(GEANT4_TC_GDML_PATH_SETUP ${SHELL_FAMILY} XERCESCROOT ${_xercesc_root})
+
+    # Needed temporarily to workaround issue on LCG setups
+    if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+      get_filename_component(_xercesc_libdir ${XercesC_LIBRARY_RELEASE} DIRECTORY)
+      _g4tc_prepend_path(GEANT4_TC_XERCESC_LIB_PATH_SETUP ${SHELL_FAMILY} LD_LIBRARY_PATH ${_xercesc_libdir})
+    endif()
   else()
     set(GEANT4_TC_G4LIB_USE_GDML "# NOT BUILT WITH GDML SUPPORT")
   endif()
@@ -560,6 +623,7 @@ macro(_g4tc_configure_tc_variables SHELL_FAMILY SCRIPT_NAME)
 
   # - Qt UI AND VIS
   if(GEANT4_USE_QT)
+    _g4tc_setenv_command(GEANT4_TC_QT_VERSION ${SHELL_FAMILY} QT_VERSION ${QT_VERSION_MAJOR})
     _g4tc_setenv_command(GEANT4_TC_QTHOME ${SHELL_FAMILY} QTHOME ${G4QTHOME})
     _g4tc_setenv_command(GEANT4_TC_QTLIBPATH ${SHELL_FAMILY} QTLIBPATH ${G4QTLIBPATH})
     _g4tc_setenv_command(GEANT4_TC_G4UI_USE_QT ${SHELL_FAMILY} G4UI_USE_QT 1)
@@ -581,20 +645,6 @@ macro(_g4tc_configure_tc_variables SHELL_FAMILY SCRIPT_NAME)
     # Might need library setup, but for now recommend system install....
   else()
     set(GEANT4_TC_G4UI_USE_XM "# NOT BUILT WITH XM INTERFACE")
-  endif()
-
-  # - Network DAWN
-  if(GEANT4_USE_NETWORKDAWN)
-    _g4tc_setenv_command(GEANT4_TC_G4VIS_USE_DAWN ${SHELL_FAMILY} G4VIS_USE_DAWN 1)
-  else()
-    set(GEANT4_TC_G4VIS_USE_DAWN "# NOT BUILT WITH NETWORK DAWN SUPPORT")
-  endif()
-
-  # - Network VRML
-  if(GEANT4_USE_NETWORKVRML)
-    _g4tc_setenv_command(GEANT4_TC_G4VIS_USE_VRML ${SHELL_FAMILY} G4VIS_USE_VRML 1)
-  else()
-    set(GEANT4_TC_G4VIS_USE_VRML "# NOT BUILT WITH NETWORK VRML SUPPORT")
   endif()
 
   # - OpenInventor
@@ -645,7 +695,7 @@ macro(_g4tc_configure_build_tree_scripts SCRIPT_NAME)
 
     # Configure the file - goes straight into the binary dir
     configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/Templates/geant4make-skeleton.in
+      ${PROJECT_SOURCE_DIR}/cmake/Templates/geant4make-skeleton.in
       ${PROJECT_BINARY_DIR}/${SCRIPT_NAME}${GEANT4_TC_SHELL_EXTENSION}
       @ONLY
       )
@@ -666,7 +716,7 @@ macro(_g4tc_configure_install_tree_scripts CONFIGURE_DESTINATION SCRIPT_NAME INS
 
     # Configure the file
     configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/Templates/geant4make-skeleton.in
+      ${PROJECT_SOURCE_DIR}/cmake/Templates/geant4make-skeleton.in
       ${CONFIGURE_DESTINATION}/${SCRIPT_NAME}${GEANT4_TC_SHELL_EXTENSION}
       @ONLY
       )
@@ -699,7 +749,7 @@ endmacro()
 #
 set(G4SYSTEM  "${GEANT4_SYSTEM}-${GEANT4_COMPILER}")
 set(G4INSTALL ${PROJECT_SOURCE_DIR})
-set(G4INCLUDE ${PROJECT_SOURCE_DIR}/this_is_a_deliberate_dummy_path)
+set(G4INCLUDE ${PROJECT_BINARY_DIR}/this_is_a_deliberate_dummy_path)
 set(G4BIN_DIR ${PROJECT_BINARY_DIR})
 set(G4LIB ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 set(G4LIB_DIR ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
@@ -714,7 +764,7 @@ foreach(_ds ${GEANT4_EXPORTED_DATASETS})
 endforeach()
 
 # - Fonts
-set(TOOLS_FONT_PATH "${PROJECT_SOURCE_DIR}/source/analysis/fonts")
+set(TOOLS_FONT_PATH "${PROJECT_SOURCE_DIR}/source/externals/g4tools/fonts")
 
 # - Configure the shell scripts for the BUILD TREE
 _g4tc_configure_build_tree_scripts(geant4make)
@@ -729,7 +779,7 @@ _g4tc_configure_build_tree_scripts(geant4make)
 # +- CMAKE_INSTALL_PREFIX
 #    +- LIBDIR/Geant4-VERSION (G4LIB)
 #    +- INCLUDEDIR/Geant4     (G4INCLUDE)
-#    +- DATAROOTDIR/Geant4-VERSION/
+#    +- DATADIR/
 #       +- geant4make              (THIS IS G4INSTALL!)
 #          +- geant4make.(c)sh
 #          +- config/
@@ -742,7 +792,7 @@ set(G4INSTALL "\"\$geant4make_root\"")
 # - Include dir
 file(RELATIVE_PATH
   G4MAKE_TO_INCLUDEDIR
-  ${CMAKE_INSTALL_FULL_DATAROOTDIR}/Geant4-${Geant4_VERSION}/geant4make
+  ${CMAKE_INSTALL_FULL_DATADIR}/geant4make
   ${CMAKE_INSTALL_FULL_INCLUDEDIR}/${PROJECT_NAME}
   )
 set(G4INCLUDE "\"`cd \$geant4make_root/${G4MAKE_TO_INCLUDEDIR} > /dev/null \; pwd`\"")
@@ -750,7 +800,7 @@ set(G4INCLUDE "\"`cd \$geant4make_root/${G4MAKE_TO_INCLUDEDIR} > /dev/null \; pw
 # - Bin dir
 file(RELATIVE_PATH
   G4MAKE_TO_BINDIR
-  ${CMAKE_INSTALL_FULL_DATAROOTDIR}/Geant4-${Geant4_VERSION}/geant4make
+  ${CMAKE_INSTALL_FULL_DATADIR}/geant4make
   ${CMAKE_INSTALL_FULL_BINDIR}
   )
 set(G4BIN_DIR "\"`cd \$geant4make_root/${G4MAKE_TO_BINDIR} > /dev/null \; pwd`\"")
@@ -758,7 +808,7 @@ set(G4BIN_DIR "\"`cd \$geant4make_root/${G4MAKE_TO_BINDIR} > /dev/null \; pwd`\"
 # - Lib dir
 file(RELATIVE_PATH
   G4MAKE_TO_LIBDIR
-  ${CMAKE_INSTALL_FULL_DATAROOTDIR}/Geant4-${Geant4_VERSION}/geant4make
+  ${CMAKE_INSTALL_FULL_DATADIR}/geant4make
   ${CMAKE_INSTALL_FULL_LIBDIR}
   )
 set(G4LIB "\"`cd \$geant4make_root/${G4MAKE_TO_LIBDIR}/Geant4-${Geant4_VERSION} > /dev/null \; pwd`\"")
@@ -775,7 +825,7 @@ foreach(_ds ${GEANT4_EXPORTED_DATASETS})
 
   file(RELATIVE_PATH
     G4MAKE_TO_DATADIR
-    ${CMAKE_INSTALL_FULL_DATAROOTDIR}/Geant4-${Geant4_VERSION}/geant4make
+    ${CMAKE_INSTALL_FULL_DATADIR}/geant4make
     ${${_ds}_PATH}
     )
   set(${_ds}_PATH "\"`cd \$geant4make_root/${G4MAKE_TO_DATADIR} > /dev/null \; pwd`\"")
@@ -786,9 +836,9 @@ set(TOOLS_FONT_PATH "\"`cd \$geant4make_root/../fonts > /dev/null ; pwd`\"")
 
 # - Configure the shell scripts for the INSTALL TREE
 _g4tc_configure_install_tree_scripts(
-    ${CMAKE_BINARY_DIR}/InstallTreeFiles
+    ${PROJECT_BINARY_DIR}/InstallTreeFiles
     geant4make
-    ${CMAKE_INSTALL_DATAROOTDIR}/Geant4-${Geant4_VERSION}/geant4make
+    ${CMAKE_INSTALL_DATADIR}/geant4make
     )
 
 
@@ -797,7 +847,7 @@ _g4tc_configure_install_tree_scripts(
 #   softlink to the G4SYSTEM directory.
 #
 install(DIRECTORY config
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/Geant4-${Geant4_VERSION}/geant4make
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/geant4make
     COMPONENT Development
     FILES_MATCHING PATTERN "*.gmk"
     PATTERN "CVS" EXCLUDE
@@ -830,30 +880,47 @@ file(RELATIVE_PATH
 
 # Resource Files
 # - Data
-geant4_get_datasetnames(GEANT4_EXPORTED_DATASETS)
-foreach(_ds ${GEANT4_EXPORTED_DATASETS})
-  geant4_get_dataset_property(${_ds} ENVVAR ${_ds}_ENVVAR)
-  geant4_get_dataset_property(${_ds} INSTALL_DIR ${_ds}_PATH)
+  if(NOT IS_ABSOLUTE ${GEANT4_INSTALL_DATADIR})
+    file(RELATIVE_PATH
+      G4ENV_BINDIR_TO_DATADIR
+      ${CMAKE_INSTALL_FULL_BINDIR}
+      ${GEANT4_INSTALL_FULL_DATADIR}
+      )
+    set(GEANT4_DATA_DIR "\"`cd \$geant4_envbindir/${G4ENV_BINDIR_TO_DATADIR} > /dev/null \; pwd`\"")
+    file(TO_NATIVE_PATH ${G4ENV_BINDIR_TO_DATADIR} G4ENV_BINDIR_TO_DATADIR)
+    set(GEANT4_DATA_DIRW "\%geant4_envbindir\%\\${G4ENV_BINDIR_TO_DATADIR}")
+  else()
+    set(GEANT4_DATA_DIR "\"${GEANT4_INSTALL_DATADIR}\"")
+    file(TO_NATIVE_PATH ${GEANT4_INSTALL_DATADIR} GEANT4_INSTALL_DATADIR)
+    set(GEANT4_DATA_DIRW "${GEANT4_INSTALL_DATADIR}")
+  endif()
 
-  file(RELATIVE_PATH
-    G4ENV_BINDIR_TO_DATADIR
-    ${CMAKE_INSTALL_FULL_BINDIR}
-    ${${_ds}_PATH}
-    )
-  set(${_ds}_PATH "\"`cd \$geant4_envbindir/${G4ENV_BINDIR_TO_DATADIR} > /dev/null \; pwd`\"")
-endforeach()
+  geant4_get_datasetnames(GEANT4_EXPORTED_DATASETS)
+  foreach(_ds ${GEANT4_EXPORTED_DATASETS})
+    geant4_get_dataset_property(${_ds} ENVVAR ${_ds}_ENVVAR)
+    geant4_get_dataset_property(${_ds} DIRECTORY ${_ds}_PATH)
+ endforeach()
 
 # - Fonts
 file(RELATIVE_PATH
-  G4ENV_BINDIR_TO_DATAROOTDIR
+  G4ENV_BINDIR_TO_DATADIR
   "${CMAKE_INSTALL_FULL_BINDIR}"
-  "${CMAKE_INSTALL_FULL_DATAROOTDIR}/Geant4-${Geant4_VERSION}"
+  "${CMAKE_INSTALL_FULL_DATADIR}"
   )
-set(TOOLS_FONT_PATH "\"`cd \$geant4_envbindir/${G4ENV_BINDIR_TO_DATAROOTDIR}/fonts > /dev/null ; pwd`\"")
+set(TOOLS_FONT_PATH "\"`cd \$geant4_envbindir/../share/Geant4/fonts > /dev/null ; pwd`\"")
+set(TOOLS_FONT_PATHW "\%geant4_envbindir\%\\..\\share\\Geant4\\fonts")
 
+# list of shells
+set(shells_list bourne;cshell)
+if(WIN32)
+  list(APPEND shells_list cmd)
+endif()
+
+#os which use LD_LIBRARY_PATH
+set(_oswithldpath Linux)
 
 # - Configure for each shell
-foreach(_shell bourne;cshell)
+foreach(_shell IN LISTS shells_list)
   # Setup the shell
   _g4tc_shell_setup(${_shell})
 
@@ -867,97 +934,221 @@ foreach(_shell bourne;cshell)
     geant4_envbindir
     )
 
+  if(NOT ${_shell} STREQUAL cmd)
+    # Set path, which should be where the script itself is installed
+    _g4tc_prepend_path(GEANT4_ENV_BINPATH_SETUP
+      ${_shell}
+      PATH
+      "\"\$geant4_envbindir\""
+      )
+
+    # Set library path, based on relative paths between bindir and libdir
+    if(${CMAKE_SYSTEM_NAME} IN_LIST _oswithldpath)
+      _g4tc_prepend_path(GEANT4_ENV_LIBPATH_SETUP
+        ${_shell}
+        LD_LIBRARY_PATH
+        "\"`cd $geant4_envbindir/${G4ENV_BINDIR_TO_LIBDIR} > /dev/null ; pwd`\""
+        )
+    endif()
+
+    # Third party lib paths
+    # - CLHEP, if system
+    set(GEANT4_TC_CLHEP_LIB_PATH_SETUP "# - Builtin CLHEP used")
+    if(GEANT4_USE_SYSTEM_CLHEP)
+      # Handle granular vs singular cases
+      get_target_property(_CLHEP_LIB_DIR CLHEP::CLHEP LOCATION)
+      get_filename_component(_CLHEP_LIB_DIR "${_CLHEP_LIB_DIR}" REALPATH)
+      get_filename_component(_CLHEP_LIB_DIR "${_CLHEP_LIB_DIR}" DIRECTORY)
+
+      if(${CMAKE_SYSTEM_NAME} IN_LIST _oswithldpath)
+              _g4tc_append_path(GEANT4_TC_CLHEP_LIB_PATH_SETUP
+                ${_shell}
+                LD_LIBRARY_PATH
+                "${_CLHEP_LIB_DIR}"
+              )
+      elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+        # add to PATH on windows
+        get_filename_component(_CLHEP_LIB_DIR "${_CLHEP_LIB_DIR}/../bin"
+          REALPATH
+        )
+              file(TO_CMAKE_PATH "${_CLHEP_LIB_DIR}" _CLHEP_LIB_DIR)
+              _g4tc_append_path(GEANT4_TC_CLHEP_LIB_PATH_SETUP
+                ${_shell}
+                PATH
+                "${_CLHEP_LIB_DIR}"
+              )
+      else()
+              set(GEANT4_TC_CLHEP_LIB_PATH_SETUP "# System CLHEP in use, no configuration required")
+      endif()
+    endif()
+
+    # - XercesC
+    set(GEANT4_TC_XERCESC_LIB_PATH_SETUP "# GDML SUPPORT NOT AVAILABLE")
+    if(GEANT4_USE_GDML)
+      get_target_property(_XERCESC_LIB_DIR XercesC::XercesC LOCATION)
+      get_filename_component(_XERCESC_LIB_DIR "${_XERCESC_LIB_DIR}" REALPATH)
+      get_filename_component(_XERCESC_LIB_DIR "${_XERCESC_LIB_DIR}" DIRECTORY)
+      if(${CMAKE_SYSTEM_NAME} IN_LIST _oswithldpath)
+              _g4tc_append_path(GEANT4_TC_XERCESC_LIB_PATH_SETUP
+                ${_shell}
+                LD_LIBRARY_PATH
+                "${_XERCESC_LIB_DIR}"
+              )
+      elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+        get_filename_component(_XERCESC_LIB_DIR "${_XERCESC_LIB_DIR}/../bin"
+          REALPATH
+        )
+        file(TO_CMAKE_PATH "${_XERCESC_LIB_DIR}" _XERCESC_LIB_DIR)
+              _g4tc_append_path(GEANT4_TC_XERCESC_LIB_PATH_SETUP
+                ${_shell}
+                PATH
+                "${_XERCESC_LIB_DIR}"
+              )
+      else()
+              set(GEANT4_TC_XERCESC_LIB_PATH_SETUP "# GDML Supported, no configuration of Xerces-C required")
+      endif()
+    endif()
+
+    # - Set data paths
+    set(GEANT4_ENV_DATASETS )
+    _g4tc_setenv_command(_dssetenvcmd ${_shell} GEANT4_DATA_DIR ${GEANT4_DATA_DIR})
+    set(GEANT4_ENV_DATASETS "${GEANT4_ENV_DATASETS}${_dssetenvcmd}\n")
+    set(_dssetenvcmd "
+# - Variables for individual datasets
+# Uncomment the line and edit the path to the dataset if installed in not standard location.")
+    set(GEANT4_ENV_DATASETS "${GEANT4_ENV_DATASETS}${_dssetenvcmd}\n\n")
+    foreach(_ds ${GEANT4_EXPORTED_DATASETS})
+      _g4tc_setenv_command(_dssetenvcmd ${_shell} ${${_ds}_ENVVAR} "$GEANT4_DATA_DIR/${${_ds}_PATH}")
+      set(GEANT4_ENV_DATASETS "${GEANT4_ENV_DATASETS}# ${_dssetenvcmd}\n")
+    endforeach()
+
+    # - Set Font Path
+    set(GEANT4_ENV_TOOLS_FONT_PATH "# FREETYPE SUPPORT NOT AVAILABLE")
+    if(GEANT4_USE_FREETYPE)
+      _g4tc_append_path(GEANT4_ENV_TOOLS_FONT_PATH
+              ${_shell}
+              TOOLS_FONT_PATH
+              "${TOOLS_FONT_PATH}"
+            )
+    endif()
+
+    # Configure the file
+    configure_file(
+      ${PROJECT_SOURCE_DIR}/cmake/Templates/geant4-env-skeleton.in
+      ${PROJECT_BINARY_DIR}/InstallTreeFiles/${_scriptfullname}
+      @ONLY
+    )
+else()
+   # message(STATUS "bat skeleton")
+
   # Set path, which should be where the script itself is installed
+  # the varible synax differnt
   _g4tc_prepend_path(GEANT4_ENV_BINPATH_SETUP
     ${_shell}
     PATH
-    "\"\$geant4_envbindir\""
-    )
+    "%geant4_envbindir%"
+  )
 
-  # Set library path, based on relative paths between bindir and libdir
-  if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    _g4tc_prepend_path(GEANT4_ENV_LIBPATH_SETUP
-      ${_shell}
-      LD_LIBRARY_PATH
-      "\"`cd $geant4_envbindir/${G4ENV_BINDIR_TO_LIBDIR} > /dev/null ; pwd`\""
-      )
-  endif()
+  ## Set library path, based on relative paths between bindir and libdir
+  #if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  #  _g4tc_prepend_path(GEANT4_ENV_LIBPATH_SETUP
+  #    ${_shell}
+  #    LD_LIBRARY_PATH
+  #    "\"`cd $geant4_envbindir/${G4ENV_BINDIR_TO_LIBDIR} > /dev/null ; pwd`\""
+  #    )
+  # endif()
 
   # Third party lib paths
   # - CLHEP, if system
-  set(GEANT4_TC_CLHEP_LIB_PATH_SETUP "# - Builtin CLHEP used")
+  set(GEANT4_TC_CLHEP_LIB_PATH_SETUP "rem # - Builtin CLHEP used")
   if(GEANT4_USE_SYSTEM_CLHEP)
     # Handle granular vs singular cases
-    if(GEANT4_USE_SYSTEM_CLHEP_GRANULAR)
-      get_target_property(_CLHEP_LIB_DIR CLHEP::Vector LOCATION)
-    else()
-      get_target_property(_CLHEP_LIB_DIR CLHEP::CLHEP LOCATION)
-    endif()
-
+    get_target_property(_CLHEP_LIB_DIR CLHEP::CLHEP LOCATION)
     get_filename_component(_CLHEP_LIB_DIR "${_CLHEP_LIB_DIR}" REALPATH)
     get_filename_component(_CLHEP_LIB_DIR "${_CLHEP_LIB_DIR}" DIRECTORY)
+    get_filename_component(_CLHEP_LIB_DIR "${_CLHEP_LIB_DIR}/../bin" REALPATH)
+    file(TO_NATIVE_PATH "${_CLHEP_LIB_DIR}" _CLHEP_LIB_DIR)
 
-    if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-      _g4tc_append_path(GEANT4_TC_CLHEP_LIB_PATH_SETUP
-        ${_shell}
-        LD_LIBRARY_PATH
-        "${_CLHEP_LIB_DIR}"
-        )
+    if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+            _g4tc_append_path(GEANT4_TC_CLHEP_LIB_PATH_SETUP
+              ${_shell}
+              PATH
+              "${_CLHEP_LIB_DIR}"
+            )
     else()
-      set(GEANT4_TC_CLHEP_LIB_PATH_SETUP "# System CLHEP in use, no configuration required")
+            set(GEANT4_TC_CLHEP_LIB_PATH_SETUP "rem # System CLHEP in use, no configuration required")
     endif()
+    unset(_CLHEP_LIB_DIR)
   endif()
 
   # - XercesC
-  set(GEANT4_TC_XERCESC_LIB_PATH_SETUP "# GDML SUPPORT NOT AVAILABLE")
+  set(GEANT4_TC_XERCESC_LIB_PATH_SETUP "rem # GDML SUPPORT NOT AVAILABLE")
   if(GEANT4_USE_GDML)
-    get_filename_component(_XERCESC_LIB_DIR "${XercesC_LIBRARY}" REALPATH)
-    get_filename_component(_XERCESC_LIB_DIR "${XercesC_LIBRARY}" DIRECTORY)
-    if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-      _g4tc_append_path(GEANT4_TC_XERCESC_LIB_PATH_SETUP
-        ${_shell}
-        LD_LIBRARY_PATH
-        "${_XERCESC_LIB_DIR}"
-        )
-    else()
-      set(GEANT4_TC_XERCESC_LIB_PATH_SETUP "# GDML Supported, no configuration of Xerces-C required")
-    endif()
-  endif()
+    get_target_property(_XERCESC_LIB_DIR XercesC::XercesC LOCATION)
+    get_filename_component(_XERCESC_LIB_DIR "${_XERCESC_LIB_DIR}" REALPATH)
+    get_filename_component(_XERCESC_LIB_DIR "${_XERCESC_LIB_DIR}" DIRECTORY)
+    get_filename_component(_XERCESC_LIB_DIR "${_XERCESC_LIB_DIR}/../bin" REALPATH)
+    file(TO_NATIVE_PATH "${_XERCESC_LIB_DIR}" _XERCESC_LIB_DIR)
 
+    if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+            _g4tc_append_path(GEANT4_TC_XERCESC_LIB_PATH_SETUP
+              ${_shell}
+              PATH
+              "${_XERCESC_LIB_DIR}"
+            )
+    else()
+            set(GEANT4_TC_XERCESC_LIB_PATH_SETUP "rem # GDML Supported, no configuration of Xerces-C required")
+    endif()
+    unset(_XERCESC_LIB_DIR)
+  endif()
 
   # - Set data paths
   set(GEANT4_ENV_DATASETS )
-  foreach(_ds ${GEANT4_EXPORTED_DATASETS})
-    _g4tc_setenv_command(_dssetenvcmd ${_shell} ${${_ds}_ENVVAR} ${${_ds}_PATH})
-    set(GEANT4_ENV_DATASETS "${GEANT4_ENV_DATASETS}${_dssetenvcmd}\n")
-  endforeach()
+  _g4tc_setenv_command(_dssetenvcmd ${_shell} GEANT4_DATA_DIR ${GEANT4_DATA_DIRW})
+  set(GEANT4_ENV_DATASETS "${GEANT4_ENV_DATASETS}${_dssetenvcmd}\n")
+  set(_dssetenvcmd "FOR /F %%i IN ( \"%GEANT4_DATA_DIR%\" ) DO set \"GEANT4_DATA_DIR=%%~fi\"")
+  set(GEANT4_ENV_DATASETS "${GEANT4_ENV_DATASETS}${_dssetenvcmd}\n\n")
+  set(_dssetenvcmd "
+rem - Variables for individual datasets
+rem Uncomment the line and edit the path to the dataset if installed in not standard location.
+" )
+  set(GEANT4_ENV_DATASETS "${GEANT4_ENV_DATASETS}${_dssetenvcmd}\n\n")
+    foreach(_ds ${GEANT4_EXPORTED_DATASETS})
+      file(TO_NATIVE_PATH ${${_ds}_PATH} _native_path)
+      _g4tc_setenv_command(_dssetenvcmd ${_shell} ${${_ds}_ENVVAR} "%GEANT4_DATA_DIR%\\${_native_path}")
+      set(GEANT4_ENV_DATASETS "${GEANT4_ENV_DATASETS}rem ${_dssetenvcmd}\n")
+    endforeach()
 
   # - Set Font Path
-  set(GEANT4_ENV_TOOLS_FONT_PATH "# FREETYPE SUPPORT NOT AVAILABLE")
+  # g4tools fonts directory
+
+  set(GEANT4_ENV_TOOLS_FONT_PATH "rem # FREETYPE SUPPORT NOT AVAILABLE")
   if(GEANT4_USE_FREETYPE)
-    _g4tc_append_path(GEANT4_ENV_TOOLS_FONT_PATH
-      ${_shell}
-      TOOLS_FONT_PATH
-      "${TOOLS_FONT_PATH}"
-      )
+    _g4tc_setenv_command(_freetypecmd ${_shell} _g4_font_path ${TOOLS_FONT_PATHW})
+    set(GEANT4_ENV_TOOLS_FONT_PATH "${_freetypecmd}\n")
+    set(_freetypecmd "FOR /F %%i IN ( \"%_g4_font_path%\" ) DO set \"_g4_font_path=%%~fi\"")
+    set(GEANT4_ENV_TOOLS_FONT_PATH "${GEANT4_ENV_TOOLS_FONT_PATH}${_freetypecmd}\n")
+    _g4tc_append_path(_freetypecmd ${_shell} TOOLS_FONT_PATH "%_g4_font_path%")
+    set(GEANT4_ENV_TOOLS_FONT_PATH "${GEANT4_ENV_TOOLS_FONT_PATH}${_freetypecmd}")
+    _g4tc_setenv_command(_freetypecmd ${_shell} _g4_font_path "")
+    set(GEANT4_ENV_TOOLS_FONT_PATH "${GEANT4_ENV_TOOLS_FONT_PATH}${_freetypecmd}\n")
   endif()
 
-  # Configure the file
   configure_file(
-    ${CMAKE_SOURCE_DIR}/cmake/Templates/geant4-env-skeleton.in
+    ${PROJECT_SOURCE_DIR}/cmake/Templates/geant4-bat-skeleton.in
     ${PROJECT_BINARY_DIR}/InstallTreeFiles/${_scriptfullname}
     @ONLY
-    )
+  )
+endif()
 
-  # Install it to the required location
-  install(FILES
-    ${PROJECT_BINARY_DIR}/InstallTreeFiles/${_scriptfullname}
-    DESTINATION ${CMAKE_INSTALL_BINDIR}
-    PERMISSIONS
-    OWNER_READ OWNER_WRITE OWNER_EXECUTE
-    GROUP_READ GROUP_EXECUTE
-    WORLD_READ WORLD_EXECUTE
-    COMPONENT Runtime
-    )
+# Install it to the required location
+install(FILES
+  ${PROJECT_BINARY_DIR}/InstallTreeFiles/${_scriptfullname}
+  DESTINATION ${CMAKE_INSTALL_BINDIR}
+  PERMISSIONS
+  OWNER_READ OWNER_WRITE OWNER_EXECUTE
+  GROUP_READ GROUP_EXECUTE
+  WORLD_READ WORLD_EXECUTE
+  COMPONENT Runtime
+)
 endforeach()
-

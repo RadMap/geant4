@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/dmparticle/include/StackingAction.hh
+/// \file StackingAction.hh
 /// \brief Definition of the StackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef StackingAction_h
 #define StackingAction_h 1
@@ -42,22 +38,19 @@ class StackingMessenger;
 
 class StackingAction : public G4UserStackingAction
 {
-public:
-  StackingAction();
-  virtual ~StackingAction();
-   
-  inline void SetKillStatus(G4bool value) { fKillSecondary = value; };
-     
-  virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*);
-    
-private:
-    
-  G4bool              fKillSecondary;
-  StackingMessenger*  fStackMessenger;
+  public:
+    StackingAction();
+    virtual ~StackingAction();
 
+    inline void SetKillStatus(G4bool value) { fKillSecondary = value; };
+
+    virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*);
+
+  private:
+    G4bool fKillSecondary;
+    StackingMessenger* fStackMessenger;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

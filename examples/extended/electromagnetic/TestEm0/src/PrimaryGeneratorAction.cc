@@ -23,31 +23,23 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm0/src/PrimaryGeneratorAction.cc
+/// \file PrimaryGeneratorAction.cc
 /// \brief Implementation of the PrimaryGeneratorAction class
-//
-//
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "PrimaryGeneratorAction.hh"
 
 #include "DetectorConstruction.hh"
 
 #include "G4Event.hh"
-#include "G4ParticleTable.hh"
 #include "G4ParticleDefinition.hh"
+#include "G4ParticleTable.hh"
 #include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PrimaryGeneratorAction::PrimaryGeneratorAction( DetectorConstruction* DC)
-:G4VUserPrimaryGeneratorAction(),fParticleGun(0),fDetector(DC)
+PrimaryGeneratorAction::PrimaryGeneratorAction(DetectorConstruction* detector) : fDetector(detector)
 {
-  fParticleGun  = new G4ParticleGun(1);
+  fParticleGun = new G4ParticleGun(1);
   SetDefaultKinematic();
 }
 
@@ -62,23 +54,21 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 
 void PrimaryGeneratorAction::SetDefaultKinematic()
 {
-  G4ParticleDefinition* particle
-           = G4ParticleTable::GetParticleTable()->FindParticle("e-");
+  G4ParticleDefinition* particle = G4ParticleTable::GetParticleTable()->FindParticle("e-");
   fParticleGun->SetParticleDefinition(particle);
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(1.,0.,0.));
-  fParticleGun->SetParticleEnergy(100*MeV);
-  G4double position = -0.5*(fDetector->GetSize());
-  fParticleGun->SetParticlePosition(G4ThreeVector(position,0.*cm,0.*cm));
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(1., 0., 0.));
+  fParticleGun->SetParticleEnergy(100 * MeV);
+  G4double position = -0.5 * (fDetector->GetSize());
+  fParticleGun->SetParticlePosition(G4ThreeVector(position, 0. * cm, 0. * cm));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-  //this function is called at the begining of event
+  // this function is called at the begining of event
   //
-  fParticleGun->GeneratePrimaryVertex(anEvent); 
+  fParticleGun->GeneratePrimaryVertex(anEvent);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

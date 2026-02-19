@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE02/src/RE02PSNofStep.cc
+/// \file RE02PSNofStep.cc
 /// \brief Implementation of the RE02PSNofStep class
-//
-//
-//
+
 // RE02PSNofStep
 #include "RE02PSNofStep.hh"
 
@@ -47,23 +45,27 @@
 //   This is a primitive scorer class for scoring cell charge.
 //   The Cell Charge is defined by  a sum of charge inside the cell
 //  which calculates the deposited charge in the cell.
-//   
-//    
+//
+//
 //
 //
 //
 // Created: 2006-06-20  Tsukasa ASO, Akinori Kimura.
-// 
+//
 ///////////////////////////////////////////////////////////////////////////////
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-RE02PSNofStep::RE02PSNofStep(G4String name,G4int nx, G4int ny, G4int nz)
-  :G4PSNofStep(name),fNx(nx),fNy(ny),fNz(nz)
-{;}
+RE02PSNofStep::RE02PSNofStep(G4String name, G4int nx, G4int ny, G4int nz)
+  : G4PSNofStep(name), fNx(nx), fNy(ny), fNz(nz)
+{
+  ;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 RE02PSNofStep::~RE02PSNofStep()
-{;}
+{
+  ;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 G4int RE02PSNofStep::GetIndex(G4Step* aStep)
@@ -72,8 +74,10 @@ G4int RE02PSNofStep::GetIndex(G4Step* aStep)
   G4int ix = touchable->GetReplicaNumber(1);
   G4int iy = touchable->GetReplicaNumber(2);
   G4int iz = touchable->GetReplicaNumber(0);
- 
+
   G4int tmp = fNy;
-  if (tmp) return iy*fNx*fNz+ix*fNz+iz;
-  else return iy*fNx*fNz+ix*fNz+iz; 
+  if (tmp)
+    return iy * fNx * fNz + ix * fNz + iz;
+  else
+    return iy * fNx * fNz + ix * fNz + iz;
 }

@@ -67,8 +67,8 @@ public :
 
     static size_t size();
 
-    G4ITType(const int d_ = 0) : fValue(d_) {;}
-    G4ITType(const G4ITType & d_) : fValue(d_.fValue){;}
+    G4ITType(const int d_ = 0) : fValue(d_) {}
+    G4ITType(const G4ITType & d_)  = default;
     G4ITType & operator=(const G4ITType & rhs);
     inline G4ITType & operator=(const int & rhs) { fValue = rhs; return *this;}
     inline operator int & () { return fValue; }
@@ -112,27 +112,24 @@ public :
 
 #define ITDef(T)\
 public:\
-static G4ITType fType;\
+inline static G4ITType fType= G4ITTypeManager::Instance()->NewType();\
 static const G4ITType ITType()\
 {\
     return fType;\
 }\
-const G4ITType GetITType() const\
+const G4ITType GetITType() const override\
 {\
     return fType;\
 }\
-virtual G4bool equal(const G4IT &right) const \
+G4bool equal(const G4IT &right) const override\
 {\
     const T& right_mol = (const T&)right ;\
     return (this->operator==(right_mol));\
 }\
-virtual G4bool diff(const G4IT &right) const\
+G4bool diff(const G4IT &right) const override\
 {\
     const T& right_mol = (const T&)right ;\
     return (this->operator<(right_mol));\
 }
-
-#define ITImp(T) \
-G4ITType T::fType = G4ITTypeManager::Instance()->NewType();
 
 #endif // G4ITTYPE_HH

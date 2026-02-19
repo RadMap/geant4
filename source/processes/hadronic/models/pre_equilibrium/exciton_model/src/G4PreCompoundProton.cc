@@ -34,7 +34,7 @@
 // Author:         V.Lara
 //
 // Modified:  
-// 21.08.2008 J. M. Quesada added external choice of inverse cross section option
+// 21.08.2008 J. M. Quesada added external choice of inverse cross section 
 // 21.08.2008 J. M. Quesada added external choice for superimposed Coulomb 
 //                          barrier (if useSICB=true) 
 // 20.08.2010 V.Ivanchenko added G4Pow and G4PreCompoundParameters pointers
@@ -42,17 +42,12 @@
 //
 
 #include "G4PreCompoundProton.hh"
-#include "G4PhysicalConstants.hh"
-#include "G4SystemOfUnits.hh"
+#include "G4CoulombBarrier.hh"
 #include "G4Proton.hh"
-#include "G4Log.hh"
-#include "G4Exp.hh"
+#include "G4DeexPrecoUtility.hh"
 
 G4PreCompoundProton::G4PreCompoundProton()
-  : G4PreCompoundNucleon(G4Proton::Proton(), &theProtonCoulombBarrier)
-{}
-
-G4PreCompoundProton::~G4PreCompoundProton()
+  : G4PreCompoundNucleon(G4Proton::Proton(), new G4CoulombBarrier(1, 1))
 {}
 
 G4double G4PreCompoundProton::GetRj(G4int nParticles, G4int nCharged) const
@@ -66,21 +61,6 @@ G4double G4PreCompoundProton::GetRj(G4int nParticles, G4int nCharged) const
 
 G4double G4PreCompoundProton::GetAlpha() const
 {
-  G4double C = 0.0;
-  if (theResZ >= 70) 
-    {
-      C = 0.10;
-    } 
-  else 
-    {
-      C = ((((0.15417e-06*theResZ) - 0.29875e-04)*theResZ 
-	    + 0.21071e-02)*theResZ - 0.66612e-01)*theResZ + 0.98375;
-    }
-  return 1.0 + C;
-}
-
-G4double G4PreCompoundProton::GetBeta() const
-{
-  return -theCoulombBarrier;
+  return 1.0 + G4DeexPrecoUtility::ProtonCValue(theResZ);
 }
   

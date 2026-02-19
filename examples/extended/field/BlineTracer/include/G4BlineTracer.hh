@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file field/BlineTracer/include/G4BlineTracer.hh
+/// \file G4BlineTracer.hh
 /// \brief Definition of the G4BlineTracer class
-//
-//
-//
-// 
+
 // --------------------------------------------------------------------
 //
 // G4BlineTracer
@@ -36,7 +33,7 @@
 // Class description:
 //
 // Defines a tool to trace and visualise magnetic field lines
-// To use this tool in a Geant4 application the user should  
+// To use this tool in a Geant4 application the user should
 // create an instance of this class in the code as a run action.
 // It will only work if a G4MagneticField field object is declared.
 
@@ -47,10 +44,12 @@
 #ifndef G4BlineTracer_h
 #define G4BlineTracer_h 1
 
-#include <vector>
+#include "CLHEP/Units/SystemOfUnits.h"
 
 #include "G4Types.hh"
 #include "G4UserRunAction.hh"
+
+#include <vector>
 
 class G4VUserPrimaryGeneratorAction;
 class G4MagneticField;
@@ -63,45 +62,40 @@ class G4BlineEventAction;
 class G4BlinePrimaryGeneratorAction;
 class G4BlineEquation;
 
-class G4BlineTracer : public G4UserRunAction 
+class G4BlineTracer : public G4UserRunAction
 {
-   public:  // with description
-  
-     G4BlineTracer();
-     virtual ~G4BlineTracer();
-  
-     virtual void BeginOfRunAction(const G4Run* aRun);
-     virtual void EndOfRunAction(const G4Run* aRun);
+  public:  // with description
+    G4BlineTracer();
+    ~G4BlineTracer() override;
 
-     void ComputeBlines(G4int nlines);
+    void BeginOfRunAction(const G4Run* aRun) override;
+    void EndOfRunAction(const G4Run* aRun) override;
 
-     inline void SetMaxTrackingStep(G4double max_step)
-       { fMaxTrackingStep=max_step; }
-     inline G4BlineEventAction* GetEventAction()
-       { return fEventAction; }
+    void ComputeBlines(G4int nlines);
 
-   private:
+    inline void SetMaxTrackingStep(G4double max_step) { fMaxTrackingStep = max_step; }
+    inline G4BlineEventAction* GetEventAction() { return fEventAction; }
 
-     void ResetChordFinders();
+  private:
+    void ResetChordFinders();
 
-   private:
+  private:
+    G4BlineTracerMessenger* fMessenger = nullptr;
+    G4BlineSteppingAction* fSteppingAction = nullptr;
+    G4BlineEventAction* fEventAction = nullptr;
+    G4BlinePrimaryGeneratorAction* fPrimaryGeneratorAction = nullptr;
+    G4double fMaxTrackingStep = 1000. * CLHEP::m;
+    G4bool fWas_ResetChordFinders_already_called = false;
 
-     G4BlineTracerMessenger* fMessenger;
-     G4BlineSteppingAction* fSteppingAction;
-     G4BlineEventAction* fEventAction;
-     G4BlinePrimaryGeneratorAction* fPrimaryGeneratorAction;
-     G4double fMaxTrackingStep;
-     G4bool fWas_ResetChordFinders_already_called;
- 
-     //G4VUserPrimaryGeneratorAction* fUserPrimaryAction;
-       // User defined primary generator action
+    // G4VUserPrimaryGeneratorAction* fUserPrimaryAction;
+    //  User defined primary generator action
 
-     std::vector<G4ChordFinder* > fVecChordFinders;
-     std::vector<G4FieldManager* > fVecFieldManagers;
-     std::vector<G4MagneticField* > fVecMagneticFields;
-     std::vector<G4BlineEquation* > fVecEquationOfMotion;
-       // ChordFinders, detector fields, equation of motions, and field
-       // manager for the different local and global magnetic fields.
+    std::vector<G4ChordFinder*> fVecChordFinders;
+    std::vector<G4FieldManager*> fVecFieldManagers;
+    std::vector<G4MagneticField*> fVecMagneticFields;
+    std::vector<G4BlineEquation*> fVecEquationOfMotion;
+    // ChordFinders, detector fields, equation of motions, and field
+    // manager for the different local and global magnetic fields.
 };
 
 #endif

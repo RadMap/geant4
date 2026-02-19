@@ -29,56 +29,49 @@
 #ifndef G4PSPassageCellCurrent_h
 #define G4PSPassageCellCurrent_h 1
 
-#include "G4VPrimitiveScorer.hh"
+#include "G4VPrimitivePlotter.hh"
 #include "G4THitsMap.hh"
 
 ////////////////////////////////////////////////////////////////////////////////
 // (Description)
 //   This is a primitive scorer class for scoring current.
-//   The number of tracks passing through the geometry are taken 
+//   The number of tracks passing through the geometry are taken
 //  into account.
 //
 // Created: 2005-11-14  Tsukasa ASO, Akinori Kimura.
 // 2010-07-22   Introduce Unit specification.
 // 2010-07-22   Add weighted option
-// 
+// 2020-10-06   Use G4VPrimitivePlotter and fill 1-D histo of kinetic energy (x)
+//              vs. current * track weight (y)               (Makoto Asai)
+//
 ///////////////////////////////////////////////////////////////////////////////
 
-
-class G4PSPassageCellCurrent : public G4VPrimitiveScorer
+class G4PSPassageCellCurrent : public G4VPrimitivePlotter
 {
- 
-  public: // with description
-      G4PSPassageCellCurrent(G4String name, G4int depth=0);
-      virtual ~G4PSPassageCellCurrent();
+ public:
+  G4PSPassageCellCurrent(const G4String& name, G4int depth = 0);
+  ~G4PSPassageCellCurrent() override = default;
 
-  inline void Weighted(G4bool flg=true) { weighted = flg; }
+  inline void Weighted(G4bool flg = true) { weighted = flg; }
   // Multiply track weight
 
-  protected: // with description
-      virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
+  void Initialize(G4HCofThisEvent*) override;
+  void clear() override;
+  void PrintAll() override;
 
-      virtual G4bool IsPassed(G4Step*);
+  virtual void SetUnit(const G4String& unit);
 
-  public: 
-      virtual void Initialize(G4HCofThisEvent*);
-      virtual void EndOfEvent(G4HCofThisEvent*);
-      virtual void clear();
+ protected:
+  G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
 
-  public:
-      virtual void DrawAll();
-      virtual void PrintAll();
+  virtual G4bool IsPassed(G4Step*);
 
-      virtual void SetUnit(const G4String& unit);
-
-  private:
-      G4int HCID;
-      G4int fCurrentTrkID;
-      G4double fCurrent;
-      G4THitsMap<G4double>* EvtMap;
-      G4bool  weighted;
-
+ private:
+  G4int HCID{-1};
+  G4int fCurrentTrkID{-1};
+  G4double fCurrent{0};
+  G4THitsMap<G4double>* EvtMap{nullptr};
+  G4bool weighted{true};
 };
 
 #endif
-

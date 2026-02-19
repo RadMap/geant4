@@ -23,25 +23,22 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE01/include/RE01SteppingAction.hh
+/// \file RE01SteppingAction.hh
 /// \brief Definition of the RE01SteppingAction class
-//
-//
 
 #ifndef RE01SteppingAction_H
 #define RE01SteppingAction_H 1
 
-#include "globals.hh"
 #include "G4UserSteppingAction.hh"
+#include "globals.hh"
 
 class RE01SteppingAction : public G4UserSteppingAction
 {
-public:
-  RE01SteppingAction();
-  virtual ~RE01SteppingAction();
-  
-  virtual void UserSteppingAction(const G4Step*);
+  public:
+    RE01SteppingAction();
+    virtual ~RE01SteppingAction();
+
+    virtual void UserSteppingAction(const G4Step*);
 };
 
 #endif
-

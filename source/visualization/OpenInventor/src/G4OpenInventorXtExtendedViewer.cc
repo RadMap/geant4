@@ -37,8 +37,6 @@
  * gb 14 November 2004 : inherit G4OpenInventorViewer.
  */
 
-#ifdef G4VIS_BUILD_OIX_DRIVER
-
 // this :
 #include "G4OpenInventorXtExtendedViewer.hh"
 
@@ -105,7 +103,7 @@ void G4OpenInventorXtExtendedViewer::Initialise() {
              << G4endl;
       width = 600;
       height = 600;  
-      sprintf(s,"%dx%d",width,height);
+      snprintf(s,32,"%dx%d",width,height);
       sgeometry = s;
     } else {
       width = fVP.GetWindowSizeHintX();
@@ -426,5 +424,3 @@ void G4OpenInventorXtExtendedViewer::HelpCbk(
   XtManageChild(This->fHelpForm);
   XmTextSetString(This->fHelpText,(char*)This->Help().c_str());
 }
-
-#endif

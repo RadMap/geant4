@@ -55,21 +55,6 @@ G4UTorus::G4UTorus(const G4String& pName,
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Fake default constructor - sets only member data and allocates memory
-//                            for usage restricted to object persistency.
-
-G4UTorus::G4UTorus( __void__& a )
-  : Base_t(a)
-{ }
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Destructor
-
-G4UTorus::~G4UTorus() { }
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Copy constructor
 
 G4UTorus::G4UTorus(const G4UTorus& rhs)
@@ -298,7 +283,7 @@ G4UTorus::CalculateExtent(const EAxis pAxis,
 #endif
   if (bbox.BoundingBoxVsVoxelLimits(pAxis,pVoxelLimit,pTransform,pMin,pMax))
   {
-    return exist = (pMin < pMax) ? true : false;
+    return exist = pMin < pMax;
   }
 
   // Get parameters of the solid
@@ -333,7 +318,7 @@ G4UTorus::CalculateExtent(const EAxis pAxis,
 
   // define vectors for bounding envelope
   G4ThreeVectorList pols[NDISK+1];
-  for (G4int k=0; k<NDISK+1; ++k) pols[k].resize(4);
+  for (auto & pol : pols) pol.resize(4);
 
   std::vector<const G4ThreeVectorList *> polygons;
   polygons.resize(NDISK+1);

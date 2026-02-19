@@ -25,8 +25,8 @@
 //
 // G4VTwistSurface implementation
 //
-// 01-Aug-2002 - Kotoyo Hoshina (hoshina@hepburn.s.chiba-u.ac.jp), created.
-// 13-Nov-2003 - O.Link (Oliver.Link@cern.ch), Integration in Geant4
+// Author: Kotoyo Hoshina (Chiba University), 01.08.2002 - Created.
+//         Oliver Link (CERN), 13.11.2003 - Integration in Geant4
 //               from original version in Jupiter-2.5.02 application.
 // --------------------------------------------------------------------
 
@@ -132,13 +132,6 @@ G4VTwistSurface::G4VTwistSurface( __void__& )
    fAxisMin[0] = fAxisMin[1] = 0.;
    fAxisMax[0] = fAxisMax[1] = 0.;
    fNeighbours[0] = fNeighbours[1] = fNeighbours[2] = fNeighbours[3] = nullptr;
-}
-
-//=====================================================================
-//* destructor --------------------------------------------------------
-
-G4VTwistSurface::~G4VTwistSurface()
-{
 }
 
 //=====================================================================
@@ -419,7 +412,7 @@ G4double G4VTwistSurface::DistanceToIn(const G4ThreeVector& gp,
                   G4cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                          << G4endl;
 #endif 
-                  if (tmpisvalid[k])  return kInfinity;
+                  if (tmpisvalid[k]) { return kInfinity; }
                   continue;
 
                //  
@@ -428,26 +421,26 @@ G4double G4VTwistSurface::DistanceToIn(const G4ThreeVector& gp,
                //
 
                }
-               else if (IsSameBoundary(this,areacode[i],
+               if (IsSameBoundary(this,areacode[i],
                                        neighbours[j], tmpareacode[k]))
                { 
                   // tmpxx[k] is same boundary (or corner) of xx.
                  
                   neighbournormal = neighbours[j]->GetNormal(tmpgxx[k], true);
-                  if (neighbournormal * gv < 0) isaccepted[j] = true;
+                  if (neighbournormal * gv < 0) { isaccepted[j] = true; }
                }
             } 
 
             // if nneighbours = 1, chabge isaccepted[1] before
             // exiting neighboursurface loop.  
 
-            if (nneighbours == 1) isaccepted[1] = true;
+            if (nneighbours == 1) { isaccepted[1] = true; }
 
          } // neighboursurface loop end
 
          // now, we can accept xx intersection
 
-         if (isaccepted[0] == true && isaccepted[1] == true)
+         if (isaccepted[0] && isaccepted[1])
          {
             if (distance[i] < bestdistance)
             {
@@ -634,10 +627,9 @@ G4VTwistSurface::IsSameBoundary(G4VTwistSurface* surf1, G4int areacode1,
       G4ThreeVector corner2 = 
            surf2->ComputeGlobalPoint(surf2->GetCorner(areacode2));
 
-      if ((corner1 - corner2).mag() < kCarTolerance) { return true; }
-      else                                           { return false; }
+      return (corner1 - corner2).mag() < kCarTolerance;
    }
-   else if ((IsBoundary(areacode1, testbitmode) && (!iscorner[0])) &&
+   if ((IsBoundary(areacode1, testbitmode) && (!iscorner[0])) &&
             (IsBoundary(areacode2, testbitmode) && (!iscorner[1])))
    {
       // on boundary  
@@ -652,32 +644,27 @@ G4VTwistSurface::IsSameBoundary(G4VTwistSurface* surf1, G4int areacode1,
       d1  = surf1->ComputeGlobalDirection(ld1);
       d2  = surf2->ComputeGlobalDirection(ld2);
 
-      if ((x01 - x02).mag() < kCarTolerance &&
-          (d1 - d2).mag() < kCarTolerance) { return true; }
-      else                                 { return false; }
+      return (x01 - x02).mag() < kCarTolerance
+            && (d1 - d2).mag() < kCarTolerance;
    }
-   else
-   {
-      return false;
-   }
+   return false;
 }
 
 //=====================================================================
 //* GetBoundaryParameters ---------------------------------------------
 
 void G4VTwistSurface::GetBoundaryParameters(const G4int& areacode,
-                                             G4ThreeVector& d,
-                                             G4ThreeVector& x0,
-                                             G4int& boundarytype) const
+                                            G4ThreeVector& d,
+                                            G4ThreeVector& x0,
+                                            G4int& boundarytype) const
 {
    // areacode must be one of them:
    // sAxis0 & sAxisMin, sAxis0 & sAxisMax,
    // sAxis1 & sAxisMin, sAxis1 & sAxisMax.
    
-   for (G4int i=0; i<4; ++i)
+   for (const auto & boundary : fBoundaries)
    {
-      if (fBoundaries[i].GetBoundaryParameters(areacode, d, x0,
-                                               boundarytype))
+      if (boundary.GetBoundaryParameters(areacode, d, x0, boundarytype))
       {
          return;
       }
@@ -702,7 +689,7 @@ G4ThreeVector G4VTwistSurface::GetBoundaryAtPZ(G4int areacode,
    // sAxis0 & sAxisMin, sAxis0 & sAxisMax,
    // sAxis1 & sAxisMin, sAxis1 & sAxisMax.
 
-   if (areacode & sAxis0 && areacode & sAxis1)
+   if (((areacode & sAxis0) != 0) && ((areacode & sAxis1) != 0))
    {
      std::ostringstream message;
      message << "Point is in the corner area." << G4endl
@@ -715,13 +702,12 @@ G4ThreeVector G4VTwistSurface::GetBoundaryAtPZ(G4int areacode,
 
    G4ThreeVector d;
    G4ThreeVector x0;
-   G4int         boundarytype;
+   G4int         boundarytype = 0;
    G4bool        found = false;
    
-   for (G4int i=0; i<4; ++i)
+   for (const auto & boundary : fBoundaries)
    {
-      if (fBoundaries[i].GetBoundaryParameters(areacode, d, x0, 
-                                               boundarytype))
+      if (boundary.GetBoundaryParameters(areacode, d, x0, boundarytype))
       {
          found = true;
          continue;
@@ -778,7 +764,7 @@ void G4VTwistSurface::SetCorner(G4int areacode,
 }
 
 //=====================================================================
-//* SetBoundaryAxis ---------------------------------------------------
+//* GetBoundaryAxis ---------------------------------------------------
 
 void G4VTwistSurface::GetBoundaryAxis(G4int areacode, EAxis axis[]) const
 {
@@ -797,7 +783,7 @@ void G4VTwistSurface::GetBoundaryAxis(G4int areacode, EAxis axis[]) const
       
       // extracted axiscode of whichaxis
       G4int axiscode = whichaxis & sAxisMask & areacode ; 
-      if (axiscode) {
+      if (axiscode != 0) {
          if (axiscode == (whichaxis & sAxisX)) {
             axis[i] = kXAxis;
          } else if (axiscode == (whichaxis & sAxisY)) {
@@ -824,28 +810,28 @@ void G4VTwistSurface::GetBoundaryAxis(G4int areacode, EAxis axis[]) const
 
 void G4VTwistSurface::GetBoundaryLimit(G4int areacode, G4double limit[]) const
 {
-   if (areacode & sCorner) {
-      if (areacode & sC0Min1Min) {
+   if ((areacode & sCorner) != 0) {
+      if ((areacode & sC0Min1Min) != 0) {
          limit[0] = fAxisMin[0];
          limit[1] = fAxisMin[1];
-      } else if (areacode & sC0Max1Min) {
+      } else if ((areacode & sC0Max1Min) != 0) {
          limit[0] = fAxisMax[0];
          limit[1] = fAxisMin[1];
-      } else if (areacode & sC0Max1Max) {
+      } else if ((areacode & sC0Max1Max) != 0) {
          limit[0] = fAxisMax[0];
          limit[1] = fAxisMax[1];
-      } else if (areacode & sC0Min1Max) {
+      } else if ((areacode & sC0Min1Max) != 0) {
          limit[0] = fAxisMin[0];
          limit[1] = fAxisMax[1];
       }
-   } else if (areacode & sBoundary) {
-      if (areacode & (sAxis0 | sAxisMin)) {
+   } else if ((areacode & sBoundary) != 0) {
+      if ((areacode & (sAxis0 | sAxisMin)) != 0) {
          limit[0] = fAxisMin[0];
-      } else if (areacode & (sAxis1 | sAxisMin)) {
+      } else if ((areacode & (sAxis1 | sAxisMin)) != 0) {
          limit[0] = fAxisMin[1];
-      } else if (areacode & (sAxis0 | sAxisMax)) {
+      } else if ((areacode & (sAxis0 | sAxisMax)) != 0) {
          limit[0] = fAxisMax[0];
-      } else if (areacode & (sAxis1 | sAxisMax)) {
+      } else if ((areacode & (sAxis1 | sAxisMax)) != 0) {
          limit[0] = fAxisMax[1];
       }
    } else {
@@ -872,12 +858,11 @@ void G4VTwistSurface::SetBoundary(const G4int& axiscode,
        (code == (sAxis1 & sAxisMax)))
    {
       G4bool done = false;
-      for (auto i=0; i<4; ++i)
+      for (auto & boundary : fBoundaries)
       {
-         if (fBoundaries[i].IsEmpty())
+         if (boundary.IsEmpty())
          {
-            fBoundaries[i].SetFields(axiscode, direction,
-                                     x0, boundarytype);
+            boundary.SetFields(axiscode, direction, x0, boundarytype);
             done = true;
             break;
          }
@@ -909,39 +894,20 @@ G4int G4VTwistSurface::GetFace( G4int i, G4int j, G4int k,
   // this is the face mapping function
   // (i,j) -> face number
 
-  if ( iside == 0 ) {
-    return i * ( k - 1 ) + j ;
-  }
+  if ( iside == 0 ) { return i * ( k - 1 ) + j ; }
+  if ( iside == 1 ) { return (k-1)*(k-1) + i*(k-1) + j ; }
+  if ( iside == 2 ) { return 2*(k-1)*(k-1) + i*(k-1) + j ; }
+  if ( iside == 3 ) { return 2*(k-1)*(k-1) + (n-1)*(k-1) + i*(k-1) + j ; }
+  if ( iside == 4 ) { return 2*(k-1)*(k-1) + 2*(n-1)*(k-1) + i*(k-1) + j ; }
+  if ( iside == 5 ) { return 2*(k-1)*(k-1) + 3*(n-1)*(k-1) + i*(k-1) + j ; }
 
-  else if ( iside == 1 ) {
-    return (k-1)*(k-1) + i*(k-1) + j ;
-  }
-
-  else if ( iside == 2 ) {
-    return 2*(k-1)*(k-1) + i*(k-1) + j ;
-  }
-
-  else if ( iside == 3 ) {
-    return 2*(k-1)*(k-1) + (n-1)*(k-1) + i*(k-1) + j ;
-  }
-  
-  else if ( iside == 4 ) {
-    return 2*(k-1)*(k-1) + 2*(n-1)*(k-1) + i*(k-1) + j ;
-  }
-  
-  else if ( iside == 5 ) {
-    return 2*(k-1)*(k-1) + 3*(n-1)*(k-1) + i*(k-1) + j ;
-  }
-
-  else {
-    std::ostringstream message;
-    message << "Not correct side number: "
-            << GetName() << G4endl
-            << "iside is " << iside << " but should be "
-            << "0,1,2,3,4 or 5" << ".";
-    G4Exception("G4TwistSurface::G4GetFace()", "GeomSolids0002",
-                FatalException, message);
-  }
+  std::ostringstream message;
+  message << "Not correct side number: "
+          << GetName() << G4endl
+          << "iside is " << iside << " but should be "
+          << "0,1,2,3,4 or 5" << ".";
+  G4Exception("G4TwistSurface::G4GetFace()", "GeomSolids0002",
+              FatalException, message);
 
   return -1 ;  // wrong face
 }
@@ -962,66 +928,50 @@ G4int G4VTwistSurface::GetNode( G4int i, G4int j, G4int k,
     // n = k 
     return i * k + j ;
   }
-
   if ( iside == 1 )
   {
     // upper endcap is kxk squared. Shift by k*k
     // n = k 
     return  k*k + i*k + j ;
   }
-
-  else if ( iside == 2 )
+  if ( iside == 2 )
   {
     // front side.
-    if      ( i == 0 )   { return       j ;  }
-    else if ( i == n-1 ) { return k*k + j ;  } 
-    else                 { return 2*k*k + 4*(i-1)*(k-1) + j ; }
+    if ( i == 0 )   { return       j ;  }
+    if ( i == n-1 ) { return k*k + j ;  } 
+    return 2*k*k + 4*(i-1)*(k-1) + j ;
   }
-
-  else if ( iside == 3 )
+  if ( iside == 3 )
   {
     // right side
-    if      ( i == 0 )   { return       (j+1)*k - 1 ; } 
-    else if ( i == n-1 ) { return k*k + (j+1)*k - 1 ; }
-    else
-    {
-      return 2*k*k + 4*(i-1)*(k-1) + (k-1) + j ;
-    }
+    if ( i == 0 )   { return       (j+1)*k - 1 ; } 
+    if ( i == n-1 ) { return k*k + (j+1)*k - 1 ; }
+    return 2*k*k + 4*(i-1)*(k-1) + (k-1) + j ;
   }
-  else if ( iside == 4 )
+  if ( iside == 4 )
   {
     // back side
-    if      ( i == 0 )   { return   k*k - 1 - j ; }    // reversed order
-    else if ( i == n-1 ) { return 2*k*k - 1 - j ; }    // reversed order 
-    else
-    {
-      return 2*k*k + 4*(i-1)*(k-1) + 2*(k-1) + j ; // normal order
-    }
+    if ( i == 0 )   { return   k*k - 1 - j ; }    // reversed order
+    if ( i == n-1 ) { return 2*k*k - 1 - j ; }    // reversed order 
+    return 2*k*k + 4*(i-1)*(k-1) + 2*(k-1) + j ; // normal order
   }
-  else if ( iside == 5 )
+  if ( iside == 5 )
   {
     // left side 
-    if      ( i == 0 )   { return k*k   - (j+1)*k ; }  // reversed order
-    else if ( i == n-1)  { return 2*k*k - (j+1)*k ; }  // reverded order
-    else
-    {
-      if ( j == k-1 ) { return 2*k*k + 4*(i-1)*(k-1) ; } // special case
-      else
-      {
-        return 2*k*k + 4*(i-1)*(k-1) + 3*(k-1) + j ; // normal order
-      }
-    }
+    if      ( i == 0 ) { return k*k   - (j+1)*k ; }  // reversed order
+    if ( i == n-1) { return 2*k*k - (j+1)*k ; }  // reverded order
+    if ( j == k-1 ) { return 2*k*k + 4*(i-1)*(k-1) ; } // special case
+    return 2*k*k + 4*(i-1)*(k-1) + 3*(k-1) + j ; // normal order
   }
-  else
-  {
-    std::ostringstream message;
-    message << "Not correct side number: "
-            << GetName() << G4endl
-            << "iside is " << iside << " but should be "
-            << "0,1,2,3,4 or 5" << ".";
-    G4Exception("G4TwistSurface::G4GetNode()", "GeomSolids0002",
-                FatalException, message);
-  } 
+
+  std::ostringstream message;
+  message << "Not correct side number: "
+          << GetName() << G4endl
+          << "iside is " << iside << " but should be "
+          << "0,1,2,3,4 or 5" << ".";
+  G4Exception("G4TwistSurface::G4GetNode()", "GeomSolids0002",
+              FatalException, message);
+
   return -1 ;  // wrong node 
 } 
 
@@ -1067,61 +1017,56 @@ G4int G4VTwistSurface::GetEdgeVisibility( G4int i, G4int j, G4int k, G4int n,
   // check true edges
   if ( ( j>=1 && j<=k-3 ) )
   {
-    if ( i == 0 )  {        // signs (A):  ---+  
+    if ( i == 0 )        // signs (A):  ---+
+    {
       return ( number == 3 ) ? 1 : -1 ;
     }
     
-    else if ( i == n-2 ) {  // signs (C):  -+--
+    if ( i == n-2 )      // signs (C):  -+--
+    {
       return  ( number == 1 ) ? 1 : -1 ; 
     }
     
-    else
-    {
-      std::ostringstream message;
-      message << "Not correct face number: " << GetName() << " !";
-      G4Exception("G4TwistSurface::G4GetEdgeVisibility()",
-                  "GeomSolids0003", FatalException, message);
-    }
-  }
-  
-  if ( ( i>=1 && i<=n-3 ) )
-  {
-    if ( j == 0 )  {        // signs (D):  +---
-      return ( number == 0 ) ? 1 : -1 ;
-    }
-
-    else if ( j == k-2 ) {  // signs (B):  --+-
-      return  ( number == 2 ) ? 1 : -1 ; 
-    }
-
-    else
-    {
-      std::ostringstream message;
-      message << "Not correct face number: " << GetName() << " !";
-      G4Exception("G4TwistSurface::G4GetEdgeVisibility()",
-                  "GeomSolids0003", FatalException, message);
-    }
-  }
-  
-  // now the corners
-  if ( i == 0 && j == 0 ) {          // signs (a) : +--+
-    return ( number == 0 || number == 3 ) ? 1 : -1 ;
-  }
-  else if ( i == 0 && j == k-2 ) {   // signs (b) : --++
-    return ( number == 2 || number == 3 ) ? 1 : -1 ;
-  }
-  else if ( i == n-2 && j == k-2 ) { // signs (c) : -++-
-    return ( number == 1 || number == 2 ) ? 1 : -1 ;
-  }
-  else if ( i == n-2 && j == 0 ) {   // signs (d) : ++--
-    return ( number == 0 || number == 1 ) ? 1 : -1 ;
-  }
-  else
-  {
     std::ostringstream message;
     message << "Not correct face number: " << GetName() << " !";
     G4Exception("G4TwistSurface::G4GetEdgeVisibility()",
                 "GeomSolids0003", FatalException, message);
+  }
+  
+  if ( ( i>=1 && i<=n-3 ) )
+  {
+    if ( j == 0 )    // signs (D):  +---
+    {
+      return ( number == 0 ) ? 1 : -1 ;
+    }
+
+    if ( j == k-2 )  // signs (B):  --+-
+    {
+      return  ( number == 2 ) ? 1 : -1 ; 
+    }
+    
+    std::ostringstream message;
+    message << "Not correct face number: " << GetName() << " !";
+    G4Exception("G4TwistSurface::G4GetEdgeVisibility()",
+                "GeomSolids0003", FatalException, message);
+  }
+  
+  // now the corners
+  if ( i == 0 && j == 0 )          // signs (a) : +--+
+  {
+    return ( number == 0 || number == 3 ) ? 1 : -1 ;
+  }
+  if ( i == 0 && j == k-2 )   // signs (b) : --++
+  {
+    return ( number == 2 || number == 3 ) ? 1 : -1 ;
+  }
+  if ( i == n-2 && j == k-2 ) // signs (c) : -++-
+  {
+    return ( number == 1 || number == 2 ) ? 1 : -1 ;
+  }
+  if ( i == n-2 && j == 0 )   // signs (d) : ++--
+  {
+    return ( number == 0 || number == 1 ) ? 1 : -1 ;
   }
 
   std::ostringstream message;
@@ -1189,8 +1134,7 @@ G4VTwistSurface::CurrentStatus::CurrentStatus()
 //* CurrentStatus::~CurrentStatus -------------------------------------
 
 G4VTwistSurface::CurrentStatus::~CurrentStatus() 
-{
-}
+= default;
 
 //=====================================================================
 //* CurrentStatus::SetCurrentStatus -----------------------------------
@@ -1243,7 +1187,7 @@ G4VTwistSurface::CurrentStatus::ResetfDone(EValidate validate,
 {
   if (validate == fLastValidate && p != nullptr && *p == fLastp)
   {
-     if (v == nullptr || (*v == fLastv)) return;
+     if (v == nullptr || (*v == fLastv)) { return; }
   }         
   G4ThreeVector xx(kInfinity, kInfinity, kInfinity);
   for (size_t i=0; i<G4VSURFACENXX; ++i)
@@ -1276,21 +1220,6 @@ G4VTwistSurface::CurrentStatus::DebugPrint() const
 //=====================================================================
 
 //=====================================================================
-//* Boundary::Boundary ------------------------------------------------
-
-G4VTwistSurface::Boundary::Boundary()
- : fBoundaryAcode(-1), fBoundaryType(0)
-{
-}
-
-//=====================================================================
-//* Boundary::~Boundary -----------------------------------------------
-
-G4VTwistSurface::Boundary::~Boundary()
-{
-}
-
-//=====================================================================
 //* Boundary::SetFields -----------------------------------------------
 
 void
@@ -1310,8 +1239,7 @@ G4VTwistSurface::Boundary::SetFields(const G4int& areacode,
 
 G4bool G4VTwistSurface::Boundary::IsEmpty() const 
 {
-  if (fBoundaryAcode == -1) return true;
-  return false;
+  return fBoundaryAcode == -1;
 }
 
 //=====================================================================
@@ -1327,7 +1255,7 @@ G4VTwistSurface::Boundary::GetBoundaryParameters(const G4int& areacode,
   // sAxis0 & sAxisMin, sAxis0 & sAxisMax,
   // sAxis1 & sAxisMin, sAxis1 & sAxisMax
   //
-  if ((areacode & sAxis0) && (areacode & sAxis1))
+  if (((areacode & sAxis0) != 0) && ((areacode & sAxis1) != 0))
   {
     std::ostringstream message;
     message << "Located in the corner area." << G4endl

@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file biasing/ReverseMC01/include/RMC01RunAction.hh
+/// \file RMC01RunAction.hh
 /// \brief Definition of the RMC01RunAction class
-//
-//
-//////////////////////////////////////////////////////////////
+
 //  Class Name:            RMC01RunAction
 //        Author:               L. Desorgher
 //        Organisation:         SpaceIT GmbH
@@ -49,6 +47,7 @@
 
 #include "G4UserRunAction.hh"
 #include "globals.hh"
+
 #include <vector>
 
 class G4Run;
@@ -58,17 +57,16 @@ class RMC01AnalysisManager;
 
 class RMC01RunAction : public G4UserRunAction
 {
-public:
-  // constructor and destructor
-  RMC01RunAction();
-  virtual ~RMC01RunAction();
+  public:
+    // constructor and destructor
+    RMC01RunAction();
+    virtual ~RMC01RunAction();
 
-  // virtual method from G4UserRunAction.
-  virtual void BeginOfRunAction(const G4Run*);
-  virtual void EndOfRunAction(const G4Run*);
+    // virtual method from G4UserRunAction.
+    virtual void BeginOfRunAction(const G4Run*);
+    virtual void EndOfRunAction(const G4Run*);
 
-private:
-  RMC01AnalysisManager* fAnalysisManager;
+
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

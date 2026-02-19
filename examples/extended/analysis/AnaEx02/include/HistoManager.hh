@@ -23,17 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file analysis/AnaEx02/include/HistoManager.hh
+/// \file HistoManager.hh
 /// \brief Definition of the HistoManager class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef HistoManager_h
 #define HistoManager_h 1
 
 #include "globals.hh"
+
+#include <array>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -48,33 +46,31 @@ const G4int kMaxHisto = 4;
 class HistoManager
 {
   public:
-    HistoManager();
-   ~HistoManager();
-   
+    HistoManager() = default;
+    ~HistoManager();
+
     void Book();
     void Save();
 
     void FillHisto(G4int id, G4double bin, G4double weight = 1.0);
-    void Normalize(G4int id, G4double fac);    
+    void Normalize(G4int id, G4double fac);
 
-    void FillNtuple(G4double energyAbs, G4double energyGap,
-                    G4double trackLAbs, G4double trackLGap);
-    
+    void FillNtuple(G4double energyAbs, G4double energyGap, G4double trackLAbs, G4double trackLGap);
+
     void PrintStatistic();
-        
-  private:
-    TFile*   fRootFile;
-    TH1D*    fHisto[kMaxHisto];            
-    TTree*   fNtuple1;    
-    TTree*   fNtuple2;    
 
-    G4double fEabs;
-    G4double fEgap;
-    G4double fLabs;
-    G4double fLgap;
+  private:
+    TFile* fRootFile = nullptr;
+    std::array<TH1D*, kMaxHisto> fHisto = {nullptr, nullptr, nullptr, nullptr};
+    TTree* fNtuple1 = nullptr;
+    TTree* fNtuple2 = nullptr;
+
+    G4double fEabs = 0.;
+    G4double fEgap = 0.;
+    G4double fLabs = 0.;
+    G4double fLgap = 0.;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

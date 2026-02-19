@@ -23,36 +23,32 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field04/include/F04EventActionMessenger.hh
+/// \file F04EventActionMessenger.hh
 /// \brief Definition of the F04EventActionMessenger class
-//
 
 #ifndef F04EventActionMessenger_h
 #define F04EventActionMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class F04EventAction;
 class G4UIcmdWithAString;
 class G4UIcmdWithAnInteger;
 class G4UIcmdWithADoubleAndUnit;
 
-class F04EventActionMessenger: public G4UImessenger
+class F04EventActionMessenger : public G4UImessenger
 {
   public:
-
     F04EventActionMessenger(F04EventAction*);
-    virtual ~F04EventActionMessenger();
- 
-    virtual void SetNewValue(G4UIcommand*, G4String);
- 
+    ~F04EventActionMessenger() override;
+
+    void SetNewValue(G4UIcommand*, G4String) override;
+
   private:
+    F04EventAction* fEventAction = nullptr;
 
-    F04EventAction* fEventAction;
-
-    G4UIcmdWithAnInteger* fSetVerboseCmd;
+    G4UIcmdWithAnInteger* fSetVerboseCmd = nullptr;
 };
 
 #endif

@@ -23,23 +23,19 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm6/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef RunAction_h
 #define RunAction_h 1
 
-#include "G4UserRunAction.hh"
-#include "ProcessesCount.hh"
-#include "globals.hh"
-#include "G4ParticleDefinition.hh"
 #include "DetectorConstruction.hh"
+#include "ProcessesCount.hh"
 
-#include "g4root.hh"
+#include "G4AnalysisManager.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4UserRunAction.hh"
+#include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -51,27 +47,24 @@ class RunAction : public G4UserRunAction
 {
   public:
     RunAction(DetectorConstruction*);
-   ~RunAction();
+    ~RunAction();
 
   public:
     virtual void BeginOfRunAction(const G4Run*);
-    virtual void   EndOfRunAction(const G4Run*);
-    void     CountProcesses(G4String);
-    
+    virtual void EndOfRunAction(const G4Run*);
+    void CountProcesses(G4String);
+
   private:
     DetectorConstruction* fDetector;
-    ProcessesCount*       fProcCounter;
-    G4AnalysisManager*    fAnalysis;
-    G4Material*           fMat;
+    ProcessesCount* fProcCounter;
+    G4AnalysisManager* fAnalysis;
+    G4Material* fMat;
 
     G4double fMinE;
     G4double fMaxE;
-    G4int    fnBin;
-
-    G4int fNtColId[3];
+    G4int fnBin;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

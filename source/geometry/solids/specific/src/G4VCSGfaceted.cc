@@ -26,7 +26,7 @@
 // G4VCSGfaceted implementation; a virtual class of a CSG type shape
 // that is built entirely out of G4VCSGface faces.
 //
-// Author: David C. Williams (davidw@scipp.ucsc.edu)
+// Author: David C. Williams (UCSC), 1998
 // --------------------------------------------------------------------
 
 #include "G4VCSGfaceted.hh"
@@ -36,7 +36,7 @@
 #include "G4VoxelLimits.hh"
 #include "G4AffineTransform.hh"
 
-#include "Randomize.hh"
+#include "G4QuickRand.hh"
 
 #include "G4Polyhedron.hh"   
 #include "G4VGraphicsScene.hh"
@@ -47,6 +47,7 @@
 namespace
 {
   G4Mutex polyhedronMutex = G4MUTEX_INITIALIZER;
+  G4Mutex vcsgMutex = G4MUTEX_INITIALIZER;
 }
 
 //
@@ -149,7 +150,7 @@ void G4VCSGfaceted::CopyStuff( const G4VCSGfaceted& source )
 //
 void G4VCSGfaceted::DeleteStuff()
 {
-  if (numFace)
+  if (numFace != 0)
   {
     G4VCSGface **face = faces;
     do    // Loop checking, 13.08.2015, G.Cosmo
@@ -229,7 +230,7 @@ G4ThreeVector G4VCSGfaceted::SurfaceNormal( const G4ThreeVector& p ) const
   G4double best = kInfinity;
   do    // Loop checking, 13.08.2015, G.Cosmo
   {
-    G4double distance;
+    G4double distance = kInfinity;
     G4ThreeVector normal = (*face)->Normal( p, &distance );
     if (distance < best)
     {
@@ -429,9 +430,9 @@ G4VisExtent G4VCSGfaceted::GetExtent() const
     
   } while( ++face < faces + numFace );
   
-    return G4VisExtent( -answers[0], answers[1], 
-                        -answers[2], answers[3],
-                        -answers[4], answers[5]  );
+  return { -answers[0], answers[1], 
+           -answers[2], answers[3],
+           -answers[4], answers[5]  };
 }
 
 
@@ -440,7 +441,7 @@ G4VisExtent G4VCSGfaceted::GetExtent() const
 //
 G4GeometryType G4VCSGfaceted::GetEntityType() const
 {
-  return G4String("G4CSGfaceted");
+  return {"G4CSGfaceted"};
 }
 
 
@@ -542,8 +543,12 @@ void G4VCSGfaceted::SetAreaAccuracy(G4double ep)
 //
 G4double G4VCSGfaceted::GetCubicVolume()
 {
-  if(fCubicVolume != 0.) {;}
-  else   { fCubicVolume = EstimateCubicVolume(fStatistics,fCubVolEpsilon); }
+  if (fCubicVolume == 0)
+  {
+    G4AutoLock l(&vcsgMutex);
+    fCubicVolume = EstimateCubicVolume(fStatistics,fCubVolEpsilon);
+    l.unlock();
+  }
   return fCubicVolume;
 }
 
@@ -553,8 +558,12 @@ G4double G4VCSGfaceted::GetCubicVolume()
 //
 G4double G4VCSGfaceted::GetSurfaceArea()
 {
-  if(fSurfaceArea != 0.) {;}
-  else   { fSurfaceArea = EstimateSurfaceArea(fStatistics,fAreaAccuracy); }
+  if (fSurfaceArea == 0)
+  {
+    G4AutoLock l(&vcsgMutex);
+    fSurfaceArea = EstimateSurfaceArea(fStatistics,fAreaAccuracy);
+    l.unlock();
+  }
   return fSurfaceArea;
 }
 
@@ -605,7 +614,7 @@ G4ThreeVector G4VCSGfaceted::GetPointOnSurfaceGeneric( ) const
   // Second Step: choose randomly one surface
   //
   G4VCSGface **face1 = faces;
-  G4double chose = area*G4UniformRand();
+  G4double chose = area*G4QuickRand();
   G4double Achose1, Achose2;
   Achose1=0.; Achose2=0.; 
   i=0;

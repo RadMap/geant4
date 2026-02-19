@@ -23,24 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file /optical/OpNovice2/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef RunAction_h
 #define RunAction_h 1
 
-#include "globals.hh"
 #include "G4UserRunAction.hh"
-// #include "Run.hh"
+#include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class G4Timer;
 class Run;
 class HistoManager;
 class PrimaryGeneratorAction;
@@ -49,18 +42,16 @@ class RunAction : public G4UserRunAction
 {
   public:
     RunAction(PrimaryGeneratorAction* = nullptr);
-    virtual ~RunAction();
+    ~RunAction() override;
 
-
-    virtual G4Run* GenerateRun();
-    virtual void BeginOfRunAction(const G4Run*);
-    virtual void EndOfRunAction(const G4Run*);
+    G4Run* GenerateRun() override;
+    void BeginOfRunAction(const G4Run*) override;
+    void EndOfRunAction(const G4Run*) override;
 
   private:
-    G4Timer* fTimer;
-    Run* fRun;
-    HistoManager* fHistoManager;
-    PrimaryGeneratorAction* fPrimary;
+    Run* fRun = nullptr;
+    HistoManager* fHistoManager = nullptr;
+    PrimaryGeneratorAction* fPrimary = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

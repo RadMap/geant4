@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm16/include/PrimaryGeneratorAction.hh
+/// \file PrimaryGeneratorAction.hh
 /// \brief Definition of the PrimaryGeneratorAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PrimaryGeneratorAction_h
 #define PrimaryGeneratorAction_h 1
@@ -46,18 +42,16 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
     PrimaryGeneratorAction(DetectorConstruction*);
-   ~PrimaryGeneratorAction();
+    ~PrimaryGeneratorAction() override = default;
 
   public:
-    virtual void GeneratePrimaries(G4Event*);
+    void GeneratePrimaries(G4Event*) override;
 
   private:
-    G4ParticleGun*             fParticleGun;
-    DetectorConstruction*      fDetector;
+    G4ParticleGun* fParticleGun = nullptr;
+    DetectorConstruction* fDetector;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-

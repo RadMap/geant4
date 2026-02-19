@@ -23,16 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file SteppingAction.hh
+/// \brief Definition of the SteppingAction class
+
 // This example is provided by the Geant4-DNA collaboration
-// Any report or published results obtained using the Geant4-DNA software 
+// Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
 // Med. Phys. 37 (2010) 4692-4708
 // J. Comput. Phys. 274 (2014) 841-882
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file SteppingAction.hh
-/// \brief Definition of the SteppingAction class
 
 #ifndef SteppingAction_h
 #define SteppingAction_h 1
@@ -46,14 +47,13 @@ class PrimaryGeneratorAction;
 
 class SteppingAction : public G4UserSteppingAction
 {
-public:
+  public:
+    SteppingAction(EventAction*);
+    ~SteppingAction();
 
-  SteppingAction(EventAction*);
-  ~SteppingAction();
-  
-  virtual void UserSteppingAction(const G4Step*);
-  
-private:
-  EventAction* fpEventaction;
+    virtual void UserSteppingAction(const G4Step*);
+
+  private:
+    EventAction* fpEventaction;
 };
 #endif

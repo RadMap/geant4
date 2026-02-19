@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm5/include/EventAction.hh
+/// \file EventAction.hh
 /// \brief Definition of the EventAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef EventAction_h
 #define EventAction_h 1
@@ -38,38 +34,41 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+class G4VProcess;
+
 class EventAction : public G4UserEventAction
 {
   public:
-    EventAction();
-   ~EventAction();
+    EventAction() = default;
+    ~EventAction() override = default;
 
-  public:
-    virtual void BeginOfEventAction(const G4Event*);
-    virtual void   EndOfEventAction(const G4Event*);
-    
-    void AddEnergy      (G4double edep)   {fEnergyDeposit  += edep;};
-    void AddTrakLenCharg(G4double length) {fTrakLenCharged += length;};
-    void AddTrakLenNeutr(G4double length) {fTrakLenNeutral += length;};
-    
-    void CountStepsCharg ()               {fNbStepsCharged++ ;};
-    void CountStepsNeutr ()               {fNbStepsNeutral++ ;};
-    
-    void SetTransmitFlag (G4int flag) 
-                           {if (flag > fTransmitFlag) fTransmitFlag = flag;};
-    void SetReflectFlag  (G4int flag) 
-                           {if (flag > fReflectFlag)   fReflectFlag = flag;};
-                                             
-        
+    void BeginOfEventAction(const G4Event*) override;
+    void EndOfEventAction(const G4Event*) override;
+
+    void AddEnergy(G4double edep) { fEnergyDeposit += edep; };
+    void AddTrakLenCharg(G4double length) { fTrakLenCharged += length; };
+    void AddTrakLenNeutr(G4double length) { fTrakLenNeutral += length; };
+
+    void CountStepsCharg() { ++fNbStepsCharged; };
+    void CountStepsNeutr(const G4VProcess*);
+
+    void SetTransmitFlag(G4int flag)
+    {
+      if (flag > fTransmitFlag) fTransmitFlag = flag;
+    };
+    void SetReflectFlag(G4int flag)
+    {
+      if (flag > fReflectFlag) fReflectFlag = flag;
+    };
+
   private:
-    G4double fEnergyDeposit;
-    G4double fTrakLenCharged, fTrakLenNeutral;
-    G4int    fNbStepsCharged, fNbStepsNeutral;
-    G4int    fTransmitFlag,   fReflectFlag;        
+    G4double fEnergyDeposit = 0.;
+    G4double fTrakLenCharged = 0., fTrakLenNeutral = 0.;
+    G4int fNbStepsCharged = 0, fNbStepsNeutral = 0;
+    G4int fTransmitFlag = 0, fReflectFlag = 0;
+    G4int fTypes[4] = {0, 0, 0, 0};
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-    

@@ -34,20 +34,22 @@
 // graphics-system-indepedent description of a Geant4 component.
 // The key fuctionality of a model is to know how to describe itself
 // to a scene handler.  A scene is a collection of models.
-// A special case is made for G4PhysicalVolumeModel - a non-null pointer
-// is to be returned by G4PhysicalVolumeModel::GetG4PhysicalVolumeModel().
+//
+// The static data member const fpCurrentMP is provided so that it
+// can be access statically: G4VModel::GetCurrentModelingParameters().
+// Its value is expected to be identical to fpMP set in the scene
+// handler, but to avoid linking problems, it must *not* be set on
+// the vis side; it must be set in modeling by any model that
+// requires it, G4TrajectoriesModel.
 
 #ifndef G4VMODEL_HH
 #define G4VMODEL_HH
 
 #include "globals.hh"
 #include "G4VisExtent.hh"
-#include "G4Transform3D.hh"
 
 class G4VGraphicsScene;
 class G4ModelingParameters;
-
-class G4PhysicalVolumeModel;  // Special case - see above.
 
 class G4VModel {
 
@@ -55,9 +57,7 @@ public: // With description
 
   friend std::ostream& operator << (std::ostream& os, const G4VModel&);
 
-  G4VModel
-  (const G4Transform3D& modelTransformation = G4Transform3D(),
-   const G4ModelingParameters* = 0);
+  G4VModel(const G4ModelingParameters* = 0);
    
   virtual ~G4VModel ();
 
@@ -65,6 +65,8 @@ public: // With description
   // The main task of a model is to describe itself to the graphics scene.
 
   const G4ModelingParameters* GetModelingParameters () const;
+  static const G4ModelingParameters* GetCurrentModelingParameters ();
+  // The latter for static access
 
   const G4String& GetType() const;
   // The sub-class should set its type, which could be the class
@@ -80,27 +82,19 @@ public: // With description
   const G4VisExtent& GetExtent () const;
   // Extent of visible objects in local coordinate system.
 
-  const G4VisExtent& GetTransformedExtent () const;
-  // Extent of visible objects in transformed coordinate system.
-
   const G4String& GetGlobalDescription () const;
   // A description which does not change and lasts the life of the model.
 
   const G4String& GetGlobalTag () const;
   // A tag which does not change and lasts the life of the model.
 
-  const G4Transform3D& GetTransformation () const;
-  // Model transformation, i.e., position and orientation of model in
-  // world.  It is the responsibility of the model to apply this
-  // transformation before passing items to the graphics scene.
-
   // Set methods for above...
   void SetModelingParameters (const G4ModelingParameters*);
+  static void SetCurrentModelingParameters (const G4ModelingParameters*);
   void SetExtent (const G4VisExtent&);
   void SetType (const G4String&);
   void SetGlobalDescription (const G4String&);
   void SetGlobalTag (const G4String&);
-  void SetTransformation (const G4Transform3D&);
 
   virtual G4bool Validate (G4bool warn = true);
   // Validate, but allow internal changes (hence non-const function).
@@ -111,7 +105,6 @@ protected:
   G4String                    fGlobalTag;
   G4String                    fGlobalDescription;
   G4VisExtent                 fExtent;
-  G4Transform3D               fTransform;           
   const G4ModelingParameters* fpMP;
 
 private:
@@ -120,6 +113,8 @@ private:
   // assignment not allowed.  Keeps CodeWizard happy.
   G4VModel (const G4VModel&);
   G4VModel& operator = (const G4VModel&);
+
+  static const G4ModelingParameters* fpCurrentMP;
 };
 
 #include "G4VModel.icc"

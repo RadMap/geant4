@@ -36,7 +36,6 @@
 #define G4PreCompoundNeutron_h 1
 
 #include "G4PreCompoundNucleon.hh"
-#include "G4NeutronCoulombBarrier.hh"
 
 class G4PreCompoundNeutron : public G4PreCompoundNucleon
 {
@@ -44,24 +43,21 @@ public:
 
   G4PreCompoundNeutron();
 
-  virtual ~G4PreCompoundNeutron();
+  ~G4PreCompoundNeutron() override = default;
 
-  virtual G4double GetRj(G4int NumberParticles, G4int NumberCharged) const;
-
-  virtual G4double GetAlpha() const;
-
-  virtual G4double GetBeta() const;
-
-private:
-
-  // operators
-  G4PreCompoundNeutron(const G4PreCompoundNeutron &right);
+  G4PreCompoundNeutron(const G4PreCompoundNeutron &right) = delete;
   const G4PreCompoundNeutron& 
-  operator= (const G4PreCompoundNeutron &right);
-  G4bool operator==(const G4PreCompoundNeutron &right) const;
-  G4bool operator!=(const G4PreCompoundNeutron &right) const;    
+  operator= (const G4PreCompoundNeutron &right) = delete;
+  G4bool operator==(const G4PreCompoundNeutron &right) const = delete;
+  G4bool operator!=(const G4PreCompoundNeutron &right) const = delete;
 
-  G4NeutronCoulombBarrier theNeutronCoulombBarrier;
+protected:
+
+  G4double GetRj(G4int NumberParticles, G4int NumberCharged) const override;
+
+  G4double GetAlpha() const override;
+
+  G4double GetBeta() const override;
 };
  
 #endif

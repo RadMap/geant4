@@ -35,6 +35,8 @@
 // 19.06.2006 V.Ivanchenko add mu-nuclear process
 // 16.10.2012 A.Ribon: renamed G4EmExtraBertiniPhysics as G4EmExtraPhysics
 // 31.01.2018 V. Grichine: add neutrino-electron process and xsc
+// 19.11.2024 D.M.Wright: Removed function ConstructLENDGammaNuclear since
+//                        its functionality was moved to G4HadronPhysicsLEND
 //
 //----------------------------------------------------------------------------
 //
@@ -48,7 +50,7 @@
 #include "G4EmMessenger.hh"
 
 class G4CascadeInterface;
-class G4PhotoNuclearProcess;
+class G4HadronInelasticProcess;
 
 class G4EmExtraPhysics : public G4VPhysicsConstructor
 {
@@ -59,10 +61,10 @@ public:
   // obsolete
   G4EmExtraPhysics(const G4String& name);
 
-  virtual ~G4EmExtraPhysics();
+  ~G4EmExtraPhysics() override;
 
-  void ConstructParticle();
-  void ConstructProcess();
+  void ConstructParticle() override;
+  void ConstructProcess() override;
 
   void Synch(G4bool val);
   void SynchAll(G4bool val);
@@ -71,54 +73,41 @@ public:
   void ElectroNuclear(G4bool val);
   void MuonNuclear(G4bool val);
   void GammaToMuMu(G4bool val);
+  void MuonToMuMu(G4bool val);
   void PositronToMuMu(G4bool val);
   void PositronToHadrons(G4bool val);
   void GammaToMuMuFactor(G4double val);
   void PositronToMuMuFactor(G4double val);
   void PositronToHadronsFactor(G4double val);
+  void GammaNuclearLEModelLimit(G4double val);
+  void SetUseGammaNuclearXS(G4bool val);
 
-  void NeutrinoActivated(G4bool val);
-  void NuETotXscActivated(G4bool val);
-  void SetNuEleCcBias(G4double bf);
-  void SetNuEleNcBias(G4double bf);
-  void SetNuNucleusBias(G4double bf);
-  void SetNuDetectorName(const G4String& dn);
-
+  G4EmExtraPhysics& operator=(const G4EmExtraPhysics& right) = delete;
+  G4EmExtraPhysics(const G4EmExtraPhysics&) = delete;
+ 
 private:
 
   void ConstructGammaElectroNuclear();
 
-  void ConstructLENDGammaNuclear(G4CascadeInterface* cascade,
-                                 G4PhotoNuclearProcess* gnuc);
+  G4bool gnActivated{true};
+  G4bool eActivated{true};
+  G4bool gLENDActivated{false};
+  G4bool munActivated{true};
+  G4bool synActivated{false};
+  G4bool synActivatedForAll{false};
+  G4bool gmumuActivated{false};
+  G4bool mmumuActivated{false};
+  G4bool pmumuActivated{false};
+  G4bool phadActivated{false};
+  G4bool fUseGammaNuclearXS{true};
 
-  G4bool gnActivated;
-  G4bool eActivated;
-  G4bool gLENDActivated;
-  G4bool munActivated;
-  G4bool synActivated;
-  G4bool synActivatedForAll;
-  G4bool gmumuActivated;
-  G4bool pmumuActivated;
-  G4bool phadActivated;
-  G4bool fNuActivated;
-  G4bool fNuETotXscActivated;
-
-  G4double gmumuFactor;
-  G4double pmumuFactor;
-  G4double phadFactor;
-  G4double fNuEleCcBias;
-  G4double fNuEleNcBias;
-  G4double fNuNucleusBias;
-
-  G4String fNuDetectorName;
+  G4double gmumuFactor{1.0};
+  G4double pmumuFactor{1.0};
+  G4double phadFactor{1.0};
+  G4double fGNLowEnergyLimit;
 
   G4EmMessenger* theMessenger;
   G4int verbose;
 };
 
 #endif
-
-
-
-
-

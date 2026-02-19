@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm18/include/PhysicsList.hh
+/// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysicsList_h
 #define PhysicsList_h 1
@@ -41,26 +37,25 @@ class PhysicsListMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
   public:
     PhysicsList();
-   ~PhysicsList();
+    ~PhysicsList() override;
 
-    virtual void ConstructParticle();
-    virtual void ConstructProcess(); 
-               
+    void ConstructParticle() override;
+    void ConstructProcess() override;
+
     void AddPhysicsList(const G4String& name);
-    void AddStepMax();       
-          
-  private:  
-    PhysicsListMessenger*  fMessenger; 
+    void AddStepMax();
 
-    G4String               fEmName;
-    G4VPhysicsConstructor* fEmPhysicsList;
+  private:
+    PhysicsListMessenger* fMessenger = nullptr;
+
+    G4String fEmName;
+    G4VPhysicsConstructor* fEmPhysicsList = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

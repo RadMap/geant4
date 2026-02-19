@@ -23,13 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P01/include/ExP01RunAction.hh
+/// \file ExP01RunAction.hh
 /// \brief Definition of the ExP01RunAction class
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef ExP01RunAction_h
 #define ExP01RunAction_h 1
@@ -47,7 +42,7 @@ class ExP01RunAction : public G4UserRunAction
 {
   public:
     ExP01RunAction();
-   ~ExP01RunAction();
+    ~ExP01RunAction();
 
   public:
     virtual void BeginOfRunAction(const G4Run*);
@@ -57,4 +52,3 @@ class ExP01RunAction : public G4UserRunAction
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

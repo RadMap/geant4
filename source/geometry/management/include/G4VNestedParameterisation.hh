@@ -42,7 +42,7 @@
 //   - the mother volume, in which these copies are placed, must always be
 //     of the same dimensions
 
-// 24.02.05, J.Apostolakis - First created version.
+// Author: John Apostolakis (CERN), 24.02.2005 - First created version
 // --------------------------------------------------------------------
 #ifndef G4VNESTEDPARAMETERISATION_HH
 #define G4VNESTEDPARAMETERISATION_HH
@@ -50,9 +50,9 @@
 #include "G4Types.hh"
 #include "G4VPVParameterisation.hh" 
 #include "G4VVolumeMaterialScanner.hh"
+#include "G4VTouchable.hh"
 
 class G4VPhysicalVolume;
-class G4VTouchable; 
 class G4VSolid;
 class G4Material;
 
@@ -72,102 +72,142 @@ class G4Polycone;
 class G4Polyhedra;
 class G4Hype;
 
-class G4VNestedParameterisation: public G4VPVParameterisation, 
-                                 public G4VVolumeMaterialScanner
-{
-  public:  // with description
+/**
+ * @brief G4VNestedParameterisation is a base class for parameterisations that
+ * use information from the parent volume to compute the material of a
+ * copy/instance of this volume. This is in addition to using the current
+ * replication number. Such a volume can be nested inside a placement volume
+ * or a parameterised volume. The user can modify the solid type, size or
+ * transformation using only the replication number of this parameterised
+ * volume; it is NOT allowed to change these attributes using information of
+ * the parent volumes, otherwise incorrect results will occur.
+ */
 
-    G4VNestedParameterisation(); 
-    virtual ~G4VNestedParameterisation(); 
+class G4VNestedParameterisation : public G4VPVParameterisation, 
+                                  public G4VVolumeMaterialScanner
+{
+  public:
+
+    /**
+     * Default Constructor & Destructor.
+     */
+    G4VNestedParameterisation() = default; 
+    ~G4VNestedParameterisation() override = default; 
 
     // Methods required in derived classes
     // -----------------------------------
 
+    /**
+     * Computes the material for the 'currentVol' and replica number 'repNo'.
+     * It is a required method, as it is the reason for this class.
+     * Must cope with parentTouch=nullptr for navigator's SetupHierarchy().
+     *  @param[in] currentVol Pointer to the current physical volume.
+     *  @param[in] repNo The copy number index.
+     *  @param[in] parentTouch Pointer to the touchable of the parent volume.
+     *  @returns A pointer to the associated material.
+     */
     virtual G4Material* ComputeMaterial(G4VPhysicalVolume* currentVol,
                                  const G4int repNo, 
-                                 const G4VTouchable* parentTouch = nullptr) = 0;
-      // Required method, as it is the reason for this class.
-      // Must cope with parentTouch=nullptr for navigator's SetupHierarchy.
+                                 const G4VTouchable* parentTouch = nullptr)=0;
 
-    virtual G4int       GetNumberOfMaterials() const=0;
-    virtual G4Material* GetMaterial(G4int idx) const=0;
-      // Needed to define materials for instances of Nested Parameterisation 
-      // Current convention: each call should return the materials 
-      // of all instances with the same mother/ancestor volume.
+    /**
+     * Accessors needed to define materials for instances of a Nested
+     * Parameterisation. Eeach call should return the materials of all
+     * instances with the same mother/ancestor volume.
+     */
+    G4int GetNumberOfMaterials() const override =0;
+    G4Material* GetMaterial(G4int idx) const override =0;
 
-    virtual void ComputeTransformation(const G4int no,
-                                       G4VPhysicalVolume* currentPV) const = 0;
+    /**
+     * Computes the transformation for the 'currentPV' and replica number 'no'.
+     * It is a required method, as it is the reason for this class.
+     * Must cope with parentTouch=nullptr for navigator's SetupHierarchy().
+     *  @param[in] currentPV Pointer to the current physical volume.
+     *  @param[in] no The copy number index.
+     */
+     void ComputeTransformation(const G4int no,
+                                G4VPhysicalVolume* currentPV) const override=0;
 
     // Methods optional in derived classes
     // -----------------------------------
 
-    virtual G4VSolid* ComputeSolid(const G4int no, G4VPhysicalVolume* thisVol);
-      // Additional standard parameterisation methods, 
-      // which can be optionally defined, in case solid is used.
+    /**
+     * Computes the solid for the 'thisVol' volume and replica number 'no'.
+     * To be optionally defined in derived classes, for parameterisation of
+     * the solid type.
+     *  @param[in] no The copy number index.
+     *  @param[in] thisVol Pointer to the current physical volume.
+     */
+    G4VSolid* ComputeSolid(const G4int no, G4VPhysicalVolume* thisVol) override;
 
-    virtual void ComputeDimensions(G4Box &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
-
-    virtual void ComputeDimensions(G4Tubs &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
-
-    virtual void ComputeDimensions(G4Trd &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
-
-    virtual void ComputeDimensions(G4Trap &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
-
-    virtual void ComputeDimensions(G4Cons &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
-
-    virtual void ComputeDimensions(G4Sphere &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
-
-    virtual void ComputeDimensions(G4Orb &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
-
-    virtual void ComputeDimensions(G4Ellipsoid &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
-
-    virtual void ComputeDimensions(G4Torus &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
-
-    virtual void ComputeDimensions(G4Para &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
-
-    virtual void ComputeDimensions(G4Polycone &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
-
-    virtual void ComputeDimensions(G4Polyhedra &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
-
-    virtual void ComputeDimensions(G4Hype &,
-                                   const G4int,
-                                   const G4VPhysicalVolume *) const {}
- 
-
+    /**
+     * Method implemented in this class in terms of the above ComputeMaterial().
+     */
     G4Material* ComputeMaterial(const G4int repNo, 
-                                      G4VPhysicalVolume* currentVol,
-                                const G4VTouchable* parentTouch = nullptr);
-      // Method implemented in this class in terms of the above
-      // ComputeMaterial() method.
+                           G4VPhysicalVolume* currentVol,
+                           const G4VTouchable* parentTouch = nullptr) override;
 
-    virtual G4bool IsNested() const;
-    virtual G4VVolumeMaterialScanner* GetMaterialScanner(); 
-      // Methods to identify nested parameterisations. Required in order
-      // to enable material scan for nested parameterisations.
+    /**
+     * Methods to identify nested parameterisations. Required in order
+     * to enable material scan for nested parameterisations.
+     */
+    G4bool IsNested() const override;
+    G4VVolumeMaterialScanner* GetMaterialScanner() override; 
+
+  // Dispatch methods for the specific solids where parameterisation is allowed
+  // --------------------------------------------------------------------------
+
+    void ComputeDimensions(G4Box &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
+
+    void ComputeDimensions(G4Tubs &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
+
+    void ComputeDimensions(G4Trd &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
+
+    void ComputeDimensions(G4Trap &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
+
+    void ComputeDimensions(G4Cons &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
+
+    void ComputeDimensions(G4Sphere &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
+
+    void ComputeDimensions(G4Orb &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
+
+    void ComputeDimensions(G4Ellipsoid &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
+
+    void ComputeDimensions(G4Torus &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
+
+    void ComputeDimensions(G4Para &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
+
+    void ComputeDimensions(G4Polycone &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
+
+    void ComputeDimensions(G4Polyhedra &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
+
+    void ComputeDimensions(G4Hype &,
+                           const G4int,
+                           const G4VPhysicalVolume *) const override {}
 };
 
 #endif

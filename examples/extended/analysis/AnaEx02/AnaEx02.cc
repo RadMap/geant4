@@ -23,74 +23,48 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file analysis/AnaEx02/AnaEx02.cc
+/// \file AnaEx02.cc
 /// \brief Main program of the analysis/AnaEx02 example
-//
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include "G4RunManager.hh"
-#include "G4UImanager.hh"
-#include "FTFP_BERT.hh"
-
+#include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
+#include "EventAction.hh"
+#include "FTFP_BERT.hh"
+#include "HistoManager.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
-#include "EventAction.hh"
 #include "SteppingAction.hh"
-#include "HistoManager.hh"
 
-#include "G4VisExecutive.hh"
+#include "G4RunManagerFactory.hh"
 #include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
+#include "G4VisExecutive.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-int main(int argc,char** argv)
-{     
+int main(int argc, char** argv)
+{
   // Detect interactive mode (if no arguments) and define UI session
   //
-  G4UIExecutive* ui = 0;
-  if ( argc == 1 ) {
+  G4UIExecutive* ui = nullptr;
+  if (argc == 1) {
     ui = new G4UIExecutive(argc, argv);
   }
 
-  // Construct the default run manager
+  // Construct a serial run manager
   //
-  G4RunManager * runManager = new G4RunManager;
+  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::SerialOnly);
 
   // Set mandatory initialization classes
   //
-  DetectorConstruction* detector = new DetectorConstruction;
+  auto detector = new DetectorConstruction;
   runManager->SetUserInitialization(detector);
-  //
   runManager->SetUserInitialization(new FTFP_BERT);
- 
-  // set an HistoManager
-  //
-  HistoManager*  histo = new HistoManager();
-      
-  // Set user action classes
-  //
-  PrimaryGeneratorAction* gen_action = 
-                          new PrimaryGeneratorAction(detector);
-  runManager->SetUserAction(gen_action);
-  //
-  RunAction* run_action = new RunAction(histo);  
-  runManager->SetUserAction(run_action);
-  //
-  EventAction* event_action = new EventAction(run_action,histo);
-  runManager->SetUserAction(event_action);
-  //
-  SteppingAction* stepping_action =
-                    new SteppingAction(detector, event_action);
-  runManager->SetUserAction(stepping_action);
-  
+  runManager->SetUserInitialization(new ActionInitialization(detector));
+
   // Initialize G4 kernel
   //
-  runManager->Initialize();
+  // runManager->Initialize();
 
   // Initialize visualization
   //
@@ -100,23 +74,22 @@ int main(int argc,char** argv)
   // Get the pointer to the User Interface manager
   //
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
-  
-  if ( ! ui ) {
+
+  if (ui == nullptr) {
     // batch mode
     G4String command = "/control/execute ";
     G4String fileName = argv[1];
-    UImanager->ApplyCommand(command+fileName);    
+    UImanager->ApplyCommand(command + fileName);
   }
-  else {  
+  else {
     // interactive mode
-    UImanager->ApplyCommand("/control/execute init_vis.mac");     
+    UImanager->ApplyCommand("/control/execute init_vis.mac");
     ui->SessionStart();
     delete ui;
   }
-  
+
   // Job termination
   delete visManager;
-  delete histo;                
   delete runManager;
 
   return 0;

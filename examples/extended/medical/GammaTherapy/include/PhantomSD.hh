@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file medical/GammaTherapy/include/PhantomSD.hh
+/// \file PhantomSD.hh
 /// \brief Definition of the PhantomSD class
-//
+
 #ifndef PhantomSD_h
 #define PhantomSD_h 1
 
@@ -52,30 +51,27 @@ class G4HCofThisEvent;
 
 class PhantomSD : public G4VSensitiveDetector
 {
-public: 
+  public:
+    PhantomSD(const G4String&);
+    virtual ~PhantomSD();
 
-  PhantomSD(const G4String&);
-  virtual ~PhantomSD();
+    // virtual methods
+    void Initialize(G4HCofThisEvent*);
+    G4bool ProcessHits(G4Step*, G4TouchableHistory*);
+    void EndOfEvent(G4HCofThisEvent*);
+    void clear();
+    void PrintAll();
 
-  // virtual methods
-  void Initialize(G4HCofThisEvent*);
-  G4bool ProcessHits(G4Step*,G4TouchableHistory*);
-  void EndOfEvent(G4HCofThisEvent*);
-  void clear();
-  void PrintAll();
+    inline void SetShiftZ(G4double val) { fShiftZ = val; };
 
-  inline void SetShiftZ(G4double val) { fShiftZ = val;};
+  private:
+    PhantomSD& operator=(const PhantomSD& right);
+    PhantomSD(const PhantomSD&);
 
-private:
-
-  PhantomSD & operator=(const PhantomSD &right);
-  PhantomSD(const PhantomSD&);
-
-  G4double fShiftZ;
-  G4int    fCounter;
+    G4double fShiftZ;
+    G4int fCounter;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #endif
-

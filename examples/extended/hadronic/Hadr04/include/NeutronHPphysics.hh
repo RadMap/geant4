@@ -25,40 +25,34 @@
 //
 /// \file NeutronHPphysics.hh
 /// \brief Definition of the NeutronHPphysics class
-//
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef NeutronHPphysics_h
 #define NeutronHPphysics_h 1
 
-#include "globals.hh"
 #include "G4VPhysicsConstructor.hh"
+#include "globals.hh"
 
-class NeutronHPMessenger;
+class G4GenericMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class NeutronHPphysics : public G4VPhysicsConstructor
 {
   public:
-    NeutronHPphysics(const G4String& name="neutron");
-   ~NeutronHPphysics();
+    NeutronHPphysics(const G4String& name = "neutron");
+    ~NeutronHPphysics() override;
 
   public:
-    virtual void ConstructParticle() { };
-    virtual void ConstructProcess();
-    
-  public:
-    void SetThermalPhysics(G4bool flag) {fThermal = flag;};  
-    
+    void ConstructParticle() override {};
+    void ConstructProcess() override;
+
   private:
-    G4bool  fThermal;
-    NeutronHPMessenger* fNeutronMessenger;  
+    void DefineCommands();
+
+    G4bool fThermal = true;
+    G4GenericMessenger* fMessenger = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

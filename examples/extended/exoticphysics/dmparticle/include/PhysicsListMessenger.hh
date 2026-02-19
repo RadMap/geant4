@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/dmparticle/include/PhysicsListMessenger.hh
+/// \file PhysicsListMessenger.hh
 /// \brief Definition of the PhysicsListMessenger class
-//
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName:   PhysicsListMessenger
@@ -37,7 +35,7 @@
 // Author:      V.Ivanchenko 01.09.2010
 //
 //----------------------------------------------------------------------------
-// 
+//
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -45,8 +43,8 @@
 #ifndef PhysicsListMessenger_h
 #define PhysicsListMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class PhysicsList;
 class G4UIdirectory;
@@ -57,28 +55,25 @@ class G4UIcmdWithAnInteger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsListMessenger: public G4UImessenger
+class PhysicsListMessenger : public G4UImessenger
 {
-public:
-  
-  PhysicsListMessenger(PhysicsList* );
-  virtual ~PhysicsListMessenger();
-    
-  virtual void SetNewValue(G4UIcommand*, G4String);
-    
-private:
-  
-  PhysicsList* fPhysicsList;
+  public:
+    PhysicsListMessenger(PhysicsList*);
+    virtual ~PhysicsListMessenger();
 
-  G4UIdirectory*             fPhysDir;           
-  G4UIcmdWithADoubleAndUnit* fECmd;
-  G4UIcmdWithAnInteger*      fEBCmd;
-  G4UIcmdWithAString*        fListCmd;
-  G4UIcmdWithADoubleAndUnit* fPHCmd;
-  G4UIcmdWithADoubleAndUnit* fHCmd;
+    virtual void SetNewValue(G4UIcommand*, G4String);
+
+  private:
+    PhysicsList* fPhysicsList;
+
+    G4UIdirectory* fPhysDir;
+    G4UIcmdWithADoubleAndUnit* fECmd;
+    G4UIcmdWithAnInteger* fEBCmd;
+    G4UIcmdWithAString* fListCmd;
+    G4UIcmdWithADoubleAndUnit* fPHCmd;
+    G4UIcmdWithADoubleAndUnit* fHCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

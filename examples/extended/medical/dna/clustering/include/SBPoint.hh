@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file SBPoint.hh
+/// \brief Definition of the SBPoint class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -32,74 +35,51 @@
 // Authors: Henri Payno and Yann Perrot
 //
 //
-/// \file SBPoint.hh
-/// \brief Definition of the SBPoint class
 
 #ifndef SB_POINT_HH
 #define SB_POINT_HH
 
-#include <assert.h>
 #include <G4ThreeVector.hh>
+#include <assert.h>
 
 class ClusterSBPoints;
 /// \brief defines a point of energy deposition which defines a damage to the DNA.
 class SBPoint
 {
-public:
-  /// \brief constructor
-  SBPoint(unsigned int, G4ThreeVector pPos, G4double pEdep );
-  /// \brief destructor
-  ~SBPoint();
+  public:
+    SBPoint(unsigned int, G4ThreeVector pPos, G4double pEdep);
+    ~SBPoint();
 
-  // Get methods
-  G4int GetID() const
-  {
-    return fId;
-  }
-  G4ThreeVector GetPosition() const {
-    return fPosition;
-  }
-  G4double GetEdep() const {
-    return fEdep;
-  }
-  ClusterSBPoints* GetCluster() const {
-    return fpCluster;
-  }
-  G4int GetTouchedStrand() const {
-    return fStrand;
-  }
+    // Get methods
+    G4int GetID() const { return fId; }
+    G4ThreeVector GetPosition() const { return fPosition; }
+    G4double GetEdep() const { return fEdep; }
+    ClusterSBPoints* GetCluster() const { return fpCluster; }
+    G4int GetTouchedStrand() const { return fStrand; }
 
-  // Set methods
-  void SetCluster(ClusterSBPoints* pCluster)
-  {
-    assert(pCluster); fpCluster = pCluster;
-  }
+    // Set methods
+    void SetCluster(ClusterSBPoints* pCluster)
+    {
+      assert(pCluster);
+      fpCluster = pCluster;
+    }
 
-  void SetPosition(G4ThreeVector pPos)
-  {
-    fPosition=pPos;
-  }
+    void SetPosition(G4ThreeVector pPos) { fPosition = pPos; }
 
-  bool HasCluster() const {
-    return fpCluster != 0;
-  }
-  void CleanCluster() {
-    fpCluster = 0;
-  }
+    bool HasCluster() const { return fpCluster != 0; }
+    void CleanCluster() { fpCluster = 0; }
 
-  bool operator != (const SBPoint& ) const;
-  bool operator == (const SBPoint& ) const;
-  bool operator < (const SBPoint& ) const;
-  bool operator > (const SBPoint& ) const;
+    bool operator!=(const SBPoint&) const;
+    bool operator==(const SBPoint&) const;
+    bool operator<(const SBPoint&) const;
+    bool operator>(const SBPoint&) const;
 
-private:
-
-  unsigned int fId;             //ID
-  G4ThreeVector fPosition;      //Position
-  G4double fEdep;               //Edp
-  ClusterSBPoints* fpCluster;   // Associated clustered points
-  G4int fStrand;                // Strand
-
+  private:
+    unsigned int fId;  // ID
+    G4ThreeVector fPosition;  // Position
+    G4double fEdep;  // Edp
+    ClusterSBPoints* fpCluster;  // Associated clustered points
+    G4int fStrand;  // Strand
 };
 
-#endif // SB_POINT_HH
+#endif  // SB_POINT_HH

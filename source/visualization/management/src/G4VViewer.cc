@@ -25,57 +25,65 @@
 //
 //
 //
-// 
+//
 // John Allison  27th March 1996
 // Abstract interface class for graphics views.
 
 #include "G4VViewer.hh"
 
-#include "G4ios.hh"
-#include <sstream>
-
-#include "G4VisManager.hh"
-#include "G4VGraphicsSystem.hh"
-#include "G4VSceneHandler.hh"
+#include "G4PhysicalVolumeStore.hh"
 #include "G4Scene.hh"
-#include "G4VPhysicalVolume.hh"
+#include "G4Timer.hh"
 #include "G4Transform3D.hh"
 #include "G4UImanager.hh"
+#include "G4UIsession.hh"
+#include "G4VGraphicsSystem.hh"
+#include "G4VInteractiveSession.hh"
+#include "G4VPhysicalVolume.hh"
+#include "G4VSceneHandler.hh"
+#include "G4VisManager.hh"
+#include "G4ios.hh"
 
-G4VViewer::G4VViewer (G4VSceneHandler& sceneHandler,
-		      G4int id, const G4String& name):
-fSceneHandler (sceneHandler),
-fViewId (id),
-//fModified (true),
-fNeedKernelVisit (true)
+#include <sstream>
+
+G4VViewer::G4VViewer(G4VSceneHandler& sceneHandler, G4int id, const G4String& name)
+: fSceneHandler(sceneHandler)
+, fViewId(id)
+, fNeedKernelVisit(true)
+, fTransientsNeedRedrawing(false)
 {
   if (name == "") {
     std::ostringstream ost;
-    ost << fSceneHandler.GetName () << '-' << fViewId;
+    ost << fSceneHandler.GetName() << '-' << fViewId;
     fName = ost.str();
   }
   else {
     fName = name;
   }
-  fShortName = fName (0, fName.find (' '));
-  fShortName.strip ();
+  fShortName = fName.substr(0, fName.find(' '));
+  G4StrUtil::strip(fShortName);
 
   fVP = G4VisManager::GetInstance()->GetDefaultViewParameters();
   fDefaultVP = fVP;
+
+  fSceneTree.SetType(G4SceneTreeItem::root);
+  fSceneTree.SetDescription(fName);
 }
 
-G4VViewer::~G4VViewer () {
+G4VViewer::~G4VViewer()
+{
   fSceneHandler.RemoveViewerFromList(this);
 }
 
-void G4VViewer::SetName (const G4String& name) {
+void G4VViewer::SetName(const G4String& name)
+{
   fName = name;
-  fShortName = fName (0, fName.find (' '));
-  fShortName.strip ();
+  fShortName = fName.substr(0, fName.find(' '));
+  G4StrUtil::strip(fShortName);
 }
 
-void G4VViewer::NeedKernelVisit () {
-
+void G4VViewer::NeedKernelVisit()
+{
   fNeedKernelVisit = true;
 
   // At one time I thought we'd better notify all viewers.  But I guess
@@ -97,11 +105,11 @@ void G4VViewer::NeedKernelVisit () {
   // Feb 2005 - commented out.  Let's fix OpenGL if necessary.
 }
 
-void G4VViewer::FinishView () {}
+void G4VViewer::FinishView() {}
 
-void G4VViewer::ShowView () {}
+void G4VViewer::ShowView() {}
 
-void G4VViewer::ProcessView ()
+void G4VViewer::ProcessView()
 {
   // If the scene has changed, or if the concrete viewer has decided
   // that it necessary to visit the kernel, perhaps because the view
@@ -110,41 +118,134 @@ void G4VViewer::ProcessView ()
   if (fNeedKernelVisit) {
     // Reset flag.  This must be done before ProcessScene to prevent
     // recursive calls when recomputing transients...
+    G4Timer timer;
+    timer.Start();
     fNeedKernelVisit = false;
-    fSceneHandler.ClearStore ();
-    fSceneHandler.ProcessScene ();
+    fSceneHandler.ClearStore();
+    fSceneHandler.ProcessScene();
+    UpdateGUISceneTree();
+    UpdateGUIControlWidgets();
+    timer.Stop();
+    fKernelVisitElapsedTimeSeconds = timer.GetRealElapsed();
   }
 }
 
-void G4VViewer::SetViewParameters (const G4ViewParameters& vp) {
+void G4VViewer::ProcessTransients()
+{
+  // If transients change, e.g., a time window change...
+  if (fTransientsNeedRedrawing) {
+    // First, reset the flag - see comment above about recursive calls.
+    fTransientsNeedRedrawing = false;
+    fSceneHandler.ClearTransientStore();
+    fSceneHandler.ProcessTransients();
+  }
+}
+
+void G4VViewer::ZoomFromMouseWheel(G4double delta, G4bool shift, G4double xPos, G4double yPos) {
+  
+  G4double sceneWidth = GetSceneNearWidth();
+  unsigned int winWidth = 0, winHeight = 0;
+  G4bool winSizeOk = GetWindowSize(winWidth, winHeight);
+
+  if ((fVP.IsZoomToCursor() || shift) && sceneWidth > 0 && winSizeOk) {
+
+    // Compute mouse position in scene coordinates
+    G4double minWidth = winWidth > winHeight ? winHeight : winWidth;
+    G4double px = xPos - G4double(winWidth) / 2;
+    G4double py = -(yPos - G4double(winHeight) / 2);
+    G4double xi = px * sceneWidth / minWidth;
+    G4double yi = py * sceneWidth / minWidth;
+
+    // ZoomToCursor enabled
+    if (fVP.GetFieldHalfAngle() == 0.) {
+      // Orthographic projection
+      G4double zoomFactor = 1. + std::abs(double(delta)) / 1200;
+      if (delta < 0) zoomFactor = 1. / zoomFactor;
+
+      G4double xf = xi / zoomFactor;
+      G4double yf = yi / zoomFactor;
+
+      G4double deltaX = xf - xi;
+      G4double deltaY = yf - yi;
+
+      fVP.MultiplyZoomFactor(zoomFactor);
+      fVP.IncrementPan(-deltaX, -deltaY, 0);
+    }
+    else {
+      // Perspective projection
+      G4double radius = fSceneHandler.GetScene()->GetExtent().GetExtentRadius();
+      if (radius <= 0.) radius = 1.;
+      const G4double cameraDistance = fVP.GetCameraDistance(radius);
+      const G4double pnear = fVP.GetNearDistance(cameraDistance, radius);
+
+      G4double deltaDolly = 0.1 * cameraDistance * std::abs(delta) / 120;
+      if (delta < 0) deltaDolly = -deltaDolly;
+
+      G4double deltaX = -xi * deltaDolly / pnear;
+      G4double deltaY = -yi * deltaDolly / pnear;
+
+      // This condition prevents going too deeply into the scene, but what if there are volumes with very different sizes?
+      // if(deltaDolly<0 || cameraDistance > radius / std::sin(fVP.GetFieldHalfAngle()) * 1e-2)
+      fVP.IncrementDolly(deltaDolly);
+      fVP.IncrementPan(-deltaX, -deltaY, 0);
+    }
+  }
+  else {
+    // ZoomToCursor disabled
+    if (fVP.GetFieldHalfAngle() == 0.) {
+      // Orthographic projection
+      G4double zoomFactor = 1. + std::abs(double(delta)) / 1200;
+      if (delta < 0) zoomFactor = 1. / zoomFactor;
+      fVP.MultiplyZoomFactor(zoomFactor);
+    }
+    else {
+      // Perspective projection
+      G4double radius = fSceneHandler.GetScene()->GetExtent().GetExtentRadius();
+      if (radius <= 0.) radius = 1.;
+      const G4double cameraDistance = fVP.GetCameraDistance(radius);
+
+      G4double deltaDolly = 0.1 * cameraDistance * std::abs(delta) / 120;
+      if (delta < 0) deltaDolly = -deltaDolly;
+      // This condition prevents going too deeply into the scene, but what if there are volumes with very different sizes?
+      //if (deltaDolly < 0 || cameraDistance > radius / std::sin(fVP.GetFieldHalfAngle()) * 1e-2) 
+      fVP.IncrementDolly(deltaDolly);
+    }
+  }
+}
+
+void G4VViewer::SetViewParameters(const G4ViewParameters& vp)
+{
   fVP = vp;
 }
 
-void G4VViewer::SetTouchable
-(const std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>& fullPath)
+void G4VViewer::SetTouchable(
+  const std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>& fullPath)
 {
   // Set the touchable for /vis/touchable/set/... commands.
   std::ostringstream oss;
-  for (const auto& pvNodeId: fullPath) {
-    oss
-    << ' ' << pvNodeId.GetPhysicalVolume()->GetName()
-    << ' ' << pvNodeId.GetCopyNo();
+  const auto& pvStore = G4PhysicalVolumeStore::GetInstance();
+  for (const auto& pvNodeId : fullPath) {
+    const auto& pv = pvNodeId.GetPhysicalVolume();
+    auto iterator = find(pvStore->cbegin(), pvStore->cend(), pv);
+    if (iterator == pvStore->cend()) {
+      G4ExceptionDescription ed;
+      ed << "Volume no longer in physical volume store.";
+      G4Exception("G4VViewer::SetTouchable", "visman0401", JustWarning, ed);
+    }
+    else {
+      oss << ' ' << pvNodeId.GetPhysicalVolume()->GetName() << ' ' << pvNodeId.GetCopyNo();
+    }
   }
   G4UImanager::GetUIpointer()->ApplyCommand("/vis/set/touchable" + oss.str());
 }
 
-void G4VViewer::TouchableSetVisibility
-(const std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>& fullPath,
- G4bool visibiity)
+void G4VViewer::TouchableSetVisibility(
+  const std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>& fullPath, G4bool visibiity)
 {
-  // Changes the Vis Attribute Modifiers WITHOUT triggering a rebuild.
-
-  std::ostringstream oss;
-  oss << "/vis/touchable/set/visibility ";
-  if (visibiity) oss << "true"; else oss << "false";
+  // Changes the Vis Attribute Modifiers and scene tree WITHOUT triggering a rebuild.
 
   // The following is equivalent to
-  //  G4UImanager::GetUIpointer()->ApplyCommand(oss.str());
+  //  G4UImanager::GetUIpointer()->ApplyCommand("/vis/touchable/set/visibility ...");
   // (assuming the touchable has already been set), but avoids view rebuild.
 
   // Instantiate a working copy of a G4VisAttributes object...
@@ -152,34 +253,36 @@ void G4VViewer::TouchableSetVisibility
   // and set the visibility.
   workingVisAtts.SetVisibility(visibiity);
 
-  fVP.AddVisAttributesModifier
-  (G4ModelingParameters::VisAttributesModifier
-   (workingVisAtts,
-    G4ModelingParameters::VASVisibility,
+  fVP.AddVisAttributesModifier(G4ModelingParameters::VisAttributesModifier(
+    workingVisAtts, G4ModelingParameters::VASVisibility,
     G4PhysicalVolumeModel::GetPVNameCopyNoPath(fullPath)));
   // G4ModelingParameters::VASVisibility (VAS = Vis Attribute Signifier)
   // signifies that it is the visibility that should be picked out
   // and merged with the touchable's normal vis attributes.
 
-  // Record on G4cout (with #) for information.
-  if (G4UImanager::GetUIpointer()->GetVerboseLevel() >= 2) {
-    G4cout << "# " << oss.str() << G4endl;
+  // Find scene tree item and set visibility
+  // The scene tree works with strings
+  G4String fullPathString = G4PhysicalVolumeModel::GetPVNamePathString(fullPath);
+  std::list<G4SceneTreeItem>::iterator foundIter;
+  if (fSceneTree.FindTouchableFromRoot(fullPathString, foundIter)) {
+    foundIter->AccessVisAttributes().SetVisibility(visibiity);
+    UpdateGUISceneTree();
+  }
+  else {
+    G4ExceptionDescription ed;
+    ed << "Touchable \"" << fullPath << "\" not found";
+    G4Exception("G4VViewer::TouchableSetVisibility", "visman0402", JustWarning, ed);
   }
 }
 
-void G4VViewer::TouchableSetColour
-(const std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>& fullPath,
- const G4Colour& colour)
+void G4VViewer::TouchableSetColour(
+  const std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>& fullPath,
+  const G4Colour& colour)
 {
-  // Changes the Vis Attribute Modifiers WITHOUT triggering a rebuild.
-
-  std::ostringstream oss;
-  oss << "/vis/touchable/set/colour "
-  << colour.GetRed() << ' ' << colour.GetGreen()
-  << ' ' << colour.GetBlue() << ' ' << colour.GetAlpha();
+  // Changes the Vis Attribute Modifiers and scene tree WITHOUT triggering a rebuild.
 
   // The following is equivalent to
-  //  G4UImanager::GetUIpointer()->ApplyCommand(oss.str());
+  //  G4UImanager::GetUIpointer()->ApplyCommand("/vis/touchable/set/colour ...");
   // (assuming the touchable has already been set), but avoids view rebuild.
 
   // Instantiate a working copy of a G4VisAttributes object...
@@ -187,260 +290,269 @@ void G4VViewer::TouchableSetColour
   // and set the colour.
   workingVisAtts.SetColour(colour);
 
-  fVP.AddVisAttributesModifier
-  (G4ModelingParameters::VisAttributesModifier
-   (workingVisAtts,
-    G4ModelingParameters::VASColour,
+  fVP.AddVisAttributesModifier(G4ModelingParameters::VisAttributesModifier(
+    workingVisAtts, G4ModelingParameters::VASColour,
     G4PhysicalVolumeModel::GetPVNameCopyNoPath(fullPath)));
   // G4ModelingParameters::VASColour (VAS = Vis Attribute Signifier)
   // signifies that it is the colour that should be picked out
   // and merged with the touchable's normal vis attributes.
 
-  // Record on G4cout (with #) for information.
-  if (G4UImanager::GetUIpointer()->GetVerboseLevel() >= 2) {
-    G4cout << "# " << oss.str() << G4endl;
+  // Find scene tree item and set colour
+  // The scene tree works with strings
+  G4String fullPathString = G4PhysicalVolumeModel::GetPVNamePathString(fullPath);
+  std::list<G4SceneTreeItem>::iterator foundIter;
+  if (fSceneTree.FindTouchableFromRoot(fullPathString, foundIter)) {
+    foundIter->AccessVisAttributes().SetColour(colour);
+    UpdateGUISceneTree();
+  }
+  else {
+    G4ExceptionDescription ed;
+    ed << "Touchable \"" << fullPath << "\" not found";
+    G4Exception("G4VViewer::TouchableSetColour", "visman0403", JustWarning, ed);
   }
 }
 
-std::vector <G4ThreeVector> G4VViewer::ComputeFlyThrough(G4Vector3D* /*aVect*/)
+void G4VViewer::UpdateGUISceneTree()
 {
-    enum CurveType {
-        Bezier,
-        G4SplineTest};
-    
-    // Choose a curve type (for testing)
-//    int myCurveType = Bezier;
+  G4UImanager* UI = G4UImanager::GetUIpointer();
+  auto uiWindow = dynamic_cast<G4VInteractiveSession*>(UI->GetG4UIWindow());
+  if (uiWindow) uiWindow->UpdateSceneTree(fSceneTree);
+}
 
-    // number if step points
-    int stepPoints = 500;
+void G4VViewer::UpdateGUIControlWidgets() {
+  this->UpdateGUIDrawingStyle();
+  this->UpdateGUIProjectionStyle();
+  this->UpdateGUITransparencySlider();
+}
 
-    
-    G4Spline spline;
+void G4VViewer::UpdateGUIDrawingStyle()
+{
+  G4UImanager* UI = G4UImanager::GetUIpointer();
+  auto uiWindow = dynamic_cast<G4VInteractiveSession*>(UI->GetG4UIWindow());
+  if (uiWindow) uiWindow->UpdateDrawingStyle(fVP.GetDrawingStyle());
+}
+void G4VViewer::UpdateGUIProjectionStyle() {
+  G4UImanager* UI = G4UImanager::GetUIpointer();
+  auto uiWindow = dynamic_cast<G4VInteractiveSession*>(UI->GetG4UIWindow());
+  if (uiWindow) uiWindow->UpdateProjectionStyle(fVP.GetFieldHalfAngle() == 0 ? 0 : 1);
+}
+void G4VViewer::UpdateGUITransparencySlider() {
+  G4UImanager* UI = G4UImanager::GetUIpointer();
+  auto uiWindow = dynamic_cast<G4VInteractiveSession*>(UI->GetG4UIWindow());
+  if (uiWindow)
+    uiWindow->UpdateTransparencySlider(fVP.GetTransparencyByDepth(), fVP.GetTransparencyByDepthOption());
+}
 
-    
-    // At the moment we don't use the aVect parameters, but build it here :
-    // Good step points for exampleB5
-    spline.AddSplinePoint(G4Vector3D(0,1000,-14000));
-    spline.AddSplinePoint(G4Vector3D(0,1000,0));
-    spline.AddSplinePoint(G4Vector3D(-4000,1000,4000));
+void G4VViewer::InsertModelInSceneTree(G4VModel* model)
+{
+  const auto& modelType = model->GetType();
+  const auto& modelDescription = model->GetGlobalDescription();
 
-    
-    std::vector <G4ThreeVector> viewVect;
+  auto type = G4SceneTreeItem::model;
+  auto pvModel = dynamic_cast<G4PhysicalVolumeModel*>(model);
+  if (pvModel) type = G4SceneTreeItem::pvmodel;
 
-//    if(myCurveType == Bezier) {
-
-        
-        // Draw the spline
-        
-        for (int i = 0; i < stepPoints; i++) {
-            float t = (float)i / (float)stepPoints;
-            G4Vector3D cameraPosition = spline.GetInterpolatedSplinePoint(t);
-            //        G4Vector3D targetPoint = spline.GetInterpolatedSplinePoint(t);
-            
-            //        viewParam->SetViewAndLights(G4ThreeVector (cameraPosition.x(), cameraPosition.y(), cameraPosition.z()));
-            //        viewParam->SetCurrentTargetPoint(targetPoint);
-            G4cout << "FLY CR("<< i << "):" << cameraPosition << G4endl;
-            viewVect.push_back(G4ThreeVector (cameraPosition.x(), cameraPosition.y(), cameraPosition.z()));
+  fCurtailDescent = false;  // This is used later in SceneTreeScene::ProcessVolume
+  G4String furtherInfo;
+  static G4bool firstWarning = true;
+  G4bool warned = false;
+  if (pvModel) {
+    const auto& nAllTouchables = pvModel->GetTotalAllTouchables();
+    if (nAllTouchables > fMaxAllTouchables) {
+      std::ostringstream oss;
+      oss << nAllTouchables << " touchables - too many for scene tree";
+      furtherInfo = oss.str();
+      if (firstWarning) {
+        warned = true;
+        if (G4VisManager::GetInstance()->GetVerbosity() >= G4VisManager::warnings) {
+          G4ExceptionDescription ed;
+          ed << pvModel->GetGlobalDescription() <<
+          ":\n  Too many touchables (" << nAllTouchables
+          << ") for scene tree. Scene tree for this model will be empty.";
+          G4Exception("G4VViewer::InsertModelInSceneTree", "visman0404", JustWarning, ed);
         }
-        
-//    } else if (myCurveType == G4SplineTest) {
-        /*
-         This method is a inspire from a Bezier curve. The problem of the Bezier curve is that the path does not go straight between two waypoints.
-         This method add "stay straight" parameter which could be between 0 and 1 where the pass will follow exactly the line between the waypoints
-         Ex : stay straight = 50%
-         m1 = 3*(P1+P0)/2
-         
-         Ex : stay straight = 0%
-         m1 = (P1+P0)/2
-         
-         P1
-         /  \
-         /    \
-         a--x--b
-         /  °  °  \
-         / °      ° \
-         m1           m2
-         /              \
-         /                \
-         /                  \
-         /                    \
-         P0                     P2
-         
-         */
-//        G4Vector3D a;
-//        G4Vector3D b;
-//        G4Vector3D m1;
-//        G4Vector3D m2;
-//        G4Vector3D P0;
-//        G4Vector3D P1;
-//        G4Vector3D P2;
-//        G4double stayStraight = 0;
-//        G4double bezierSpeed = 0.4; // Spend 40% time in bezier curve (time between m1-m2 is 40% of time between P0-P1)
-//        
-//        G4Vector3D firstPoint;
-//        G4Vector3D lastPoint;
-//        
-//        float nbBezierSteps = (stepPoints * bezierSpeed*(1-stayStraight)) * (2./spline.GetNumPoints());
-//        float nbFirstSteps = ((stepPoints/2-nbBezierSteps/2) /(1+stayStraight)) * (2./spline.GetNumPoints());
-//        
-//        // First points
-//        firstPoint = spline.GetPoint(0);
-//        lastPoint = (firstPoint + spline.GetPoint(1))/2;
-//        
-//        for( float j=0; j<1; j+= 1/nbFirstSteps) {
-//            G4ThreeVector pt = firstPoint + (lastPoint - firstPoint) * j;
-//            viewVect.push_back(pt);
-//            G4cout << "FLY Bezier A1("<< viewVect.size()<< "):" << pt << G4endl;
-//        }
-//        
-//        for (int i = 0; i < spline.GetNumPoints()-2; i++) {
-//            P0 = spline.GetPoint(i);
-//            P1 = spline.GetPoint(i+1);
-//            P2 = spline.GetPoint(i+2);
-//            
-//            m1 = P1 - (P1-P0)*(1-stayStraight)/2;
-//            m2 = P1 + (P2-P1)*(1-stayStraight)/2;
-//            
-//            // We have to get straight path from (middile of P0-P1) to (middile of P0-P1 + (dist P0-P1) * stayStraight/2)
-//            if (stayStraight >0) {
-//                
-//                firstPoint = (P0 + P1)/2;
-//                lastPoint = (P0 + P1)/2 + (P1-P0)*stayStraight/2;
-//                
-//                for( float j=0; j<1; j+= 1/(nbFirstSteps*stayStraight)) {
-//                    G4ThreeVector pt = firstPoint + (lastPoint - firstPoint)* j;
-//                    viewVect.push_back(pt);
-//                    G4cout << "FLY Bezier A2("<< viewVect.size()<< "):" << pt << G4endl;
-//                }
-//            }
-//            // Compute Bezier curve
-//            for( float delta = 0 ; delta < 1 ; delta += 1/nbBezierSteps)
-//            {
-//                // The Green Line
-//                a = m1 + ( (P1 - m1) * delta );
-//                b = P1 + ( (m2 - P1) * delta );
-//                
-//                // Final point
-//                G4ThreeVector pt = a + ((b-a) * delta );
-//                viewVect.push_back(pt);
-//                G4cout << "FLY Bezier("<< viewVect.size()<< "):" << pt << G4endl;
-//            }
-//            
-//            // We have to get straight path
-//            if (stayStraight >0) {
-//                firstPoint = (P1 + P2)/2 - (P2-P1)*stayStraight/2;
-//                lastPoint = (P1 + P2)/2;
-//                
-//                for( float j=0; j<1; j+= 1/(nbFirstSteps*stayStraight)) {
-//                    G4ThreeVector pt = firstPoint + (lastPoint - firstPoint)* j;
-//                    viewVect.push_back(pt);
-//                    G4cout << "FLY Bezier B1("<< viewVect.size()<< "):" << pt << G4endl;
-//                }
-//            }
-//        }
-//        
-//        // last points
-//        firstPoint = spline.GetPoint(spline.GetNumPoints()-2);
-//        lastPoint = spline.GetPoint(spline.GetNumPoints()-1);
-//        for( float j=1; j>0; j-= 1/nbFirstSteps) {
-//            G4ThreeVector pt = lastPoint - ((lastPoint-firstPoint)*((1-stayStraight)/2) * j );
-//            viewVect.push_back(pt);
-//            G4cout << "FLY Bezier B2("<< viewVect.size()<< "):" << pt << G4endl;
-//        }
-//    }
-    return viewVect;
+      }
+      fCurtailDescent = true;  // This is used later in SceneTreeScene::ProcessVolume
+    }
+  }
+  if (warned) firstWarning = false;
+
+  // Find appropriate model
+  auto& modelItems = fSceneTree.AccessChildren();
+  auto modelIter = modelItems.begin();
+  auto pvModelIter = modelItems.end();
+  for (; modelIter != modelItems.end(); ++modelIter) {
+    if (modelIter->GetType() == G4SceneTreeItem::pvmodel) {
+      pvModelIter = modelIter;  // Last pre-existing PV model (if any)
+    }
+    if (modelIter->GetModelDescription() == modelDescription) break;
+  }
+
+  if (modelIter == modelItems.end()) {  // Model not seen before
+    G4SceneTreeItem modelItem(type);
+    modelItem.SetDescription("model");
+    modelItem.SetModelType(modelType);
+    modelItem.SetModelDescription(modelDescription);
+    modelItem.SetFurtherInfo(furtherInfo);
+    if (pvModelIter != modelItems.end() &&  // There was pre-existing PV Model...
+        type == G4SceneTreeItem::pvmodel) {   // ...and the new model is also PV...
+      fSceneTree.InsertChild(++pvModelIter, modelItem);  // ...insert after, else...
+    } else {
+      fSceneTree.InsertChild(modelIter, modelItem);  // ...insert at end
+    }
+  } else {  // Existing model - mark visible == active
+    modelIter->AccessVisAttributes().SetVisibility(true);
+  }
 }
 
+G4VViewer::SceneTreeScene::SceneTreeScene(G4VViewer* pViewer, G4PhysicalVolumeModel* pPVModel)
+: fpViewer (pViewer)
+, fpPVModel(pPVModel)
+{
+  if (fpPVModel == nullptr) {
+    G4Exception("G4VViewer::SceneTreeScene::SceneTreeScene", "visman0405", FatalException,
+                "G4PhysicalVolumeModel pointer is null");
+    return;  // To keep Coverity happy
+  }
+  
+  // Limit the expanded depth to limit the number expanded so as not to swamp the GUI
+  G4int expanded = 0;
+  for (const auto& dn : fpPVModel->GetMapOfDrawnTouchables()) {
+    expanded += dn.second;
+    if (fMaximumExpandedDepth < dn.first) fMaximumExpandedDepth = dn.first;
+    if (expanded > fMaximumExpanded) break;
+  }
 
-#ifdef G4MULTITHREADED
-
-void G4VViewer::DoneWithMasterThread () {
-  // G4cout << "G4VViewer::DoneWithMasterThread" << G4endl;
+  // Find appropriate model and its iterator
+  const auto& modelID = fpPVModel->GetGlobalDescription();
+  auto& modelItems = fpViewer->fSceneTree.AccessChildren();
+  fModelIter = modelItems.begin();
+  for (; fModelIter != modelItems.end(); ++fModelIter) {
+    if (fModelIter->GetModelDescription() == modelID) break;
+  }
+  if (fModelIter == modelItems.end()) {
+    G4Exception("G4VViewer::SceneTreeScene::SceneTreeScene", "visman0406", JustWarning,
+                "Model not found");
+  }
 }
 
-void G4VViewer::MovingToMasterThread () {
-  // G4cout << "G4VViewer::MovingToMasterThread" << G4endl;
+void G4VViewer::SceneTreeScene::ProcessVolume(const G4VSolid&)
+{
+  if (fpViewer->fCurtailDescent) {
+    fpPVModel->CurtailDescent();
+    return;
+  }
+
+  const auto& modelID = fpPVModel->GetGlobalDescription();
+
+  std::ostringstream oss;
+  oss << fpPVModel->GetFullPVPath();  // of this volume
+  G4String fullPathString(oss.str());  // Has a leading space
+
+  // Navigate scene tree and find or insert touchables one by one
+  // Work down the path - "name id", then "name id name id", etc.
+  const auto& nodeIDs = fpPVModel->GetFullPVPath();
+  G4String partialPathString;
+  auto currentIter = fModelIter;
+  G4int depth = 0;
+  for (const auto& nodeID : nodeIDs) {
+    std::ostringstream oss1;
+    oss1 << nodeID;
+    partialPathString += ' ' + oss1.str();
+    currentIter =
+    FindOrInsertTouchable(modelID, *currentIter, ++depth, partialPathString, fullPathString);
+  }
 }
 
-void G4VViewer::SwitchToVisSubThread () {
-  // G4cout << "G4VViewer::SwitchToVisSubThread" << G4endl;
+// clang-format off
+std::list<G4SceneTreeItem>::iterator G4VViewer::SceneTreeScene::FindOrInsertTouchable
+ (const G4String& modelID, G4SceneTreeItem& mother,
+  G4int depth, const G4String& partialPathString, const G4String& fullPathString)
+{
+  auto& children = mother.AccessChildren();
+  auto childIter = children.begin();
+  for (; childIter != children.end(); ++childIter) {
+    if (childIter->GetPVPath() == partialPathString) break;
+  }
+  if (childIter != children.end()) {
+
+    // Item already exists
+
+    if (childIter->GetType() == G4SceneTreeItem::ghost) {
+
+      // Previously it was a ghost - but maybe this time it's real
+
+      if (partialPathString == fullPathString) {
+        // Partial path string refers to the actual volume so it's a touchable
+        childIter->SetType(G4SceneTreeItem::touchable);
+        // Populate with information
+        childIter->SetDescription(fpPVModel->GetCurrentTag());
+        childIter->SetModelType(fpPVModel->GetType());
+        childIter->SetModelDescription(modelID);
+        childIter->SetPVPath(partialPathString);
+        if (fpVisAttributes) childIter->SetVisAttributes(*fpVisAttributes);
+        childIter->SetAttDefs(fpPVModel->GetAttDefs());
+        childIter->SetAttValues(fpPVModel->CreateCurrentAttValues());
+      }  // Partial path string refers to an ancester - do nothing
+
+    } else {
+
+      // Already a pre-existing full touchable
+
+      if (partialPathString == fullPathString) {
+        // Partial path string refers to the actual volume
+        // Replace vis attributes (if any) - they might have changed
+        if (fpVisAttributes) childIter->SetVisAttributes(*fpVisAttributes);
+      }  // Partial path string refers to an ancester - do nothing
+
+    }
+
+  } else {
+
+    // Item does not yet exist
+
+    if (partialPathString == fullPathString) {
+
+      // Partial path string refers to the actual volume
+      // Insert new touchable item
+      G4SceneTreeItem touchable(G4SceneTreeItem::touchable);
+      touchable.SetExpanded(depth > fMaximumExpandedDepth? false: true);
+      touchable.SetDescription(fpPVModel->GetCurrentTag());
+      touchable.SetModelType(fpPVModel->GetType());
+      touchable.SetModelDescription(modelID);
+      touchable.SetPVPath(partialPathString);
+      if (fpVisAttributes) touchable.SetVisAttributes(*fpVisAttributes);
+      touchable.SetAttDefs(fpPVModel->GetAttDefs());
+      touchable.SetAttValues(fpPVModel->CreateCurrentAttValues());
+      childIter = mother.InsertChild(childIter,touchable);
+
+    } else {
+
+      // Partial path string refers to an ancester - it's what we call a "ghost"
+      G4SceneTreeItem ghost(G4SceneTreeItem::ghost);
+      ghost.SetExpanded(depth > fMaximumExpandedDepth? false: true);
+      // Create a tag from the partial path
+      std::istringstream iss(partialPathString);
+      G4String name, copyNo;
+      while (iss >> name >> copyNo);
+      std::ostringstream oss;
+      oss << name << ':' << copyNo;
+      ghost.SetDescription(oss.str());
+      ghost.SetModelType(fpPVModel->GetType());
+      ghost.SetModelDescription(modelID);
+      ghost.SetPVPath(partialPathString);
+      ghost.AccessVisAttributes().SetVisibility(false);
+      childIter = mother.InsertChild(childIter,ghost);
+    }
+  }
+
+  return childIter;
 }
+// clang-format on
 
-void G4VViewer::DoneWithVisSubThread () {
-  // G4cout << "G4VViewer::DoneWithVisSubThread" << G4endl;
-}
-
-void G4VViewer::MovingToVisSubThread () {
-  // G4cout << "G4VViewer::MovingToVisSubThread" << G4endl;
-}
-
-void G4VViewer::SwitchToMasterThread () {
-  // G4cout << "G4VViewer::SwitchToMasterThread" << G4endl;
-}
-
-#endif
-
-std::ostream& operator << (std::ostream& os, const G4VViewer& v) {
+std::ostream& operator<<(std::ostream& os, const G4VViewer& v)
+{
   os << "View " << v.fName << ":\n";
   os << v.fVP;
   return os;
-}
-
-
-// ===== G4Spline class =====
-
-G4VViewer::G4Spline::G4Spline()
-: vp(), delta_t(0)
-{
-}
-
-
-G4VViewer::G4Spline::~G4Spline()
-{}
-
-// Solve the Catmull-Rom parametric equation for a given time(t) and vector quadruple (p1,p2,p3,p4)
-G4Vector3D G4VViewer::G4Spline::CatmullRom_Eq(float t, const G4Vector3D& p1, const G4Vector3D& p2, const G4Vector3D& p3, const G4Vector3D& p4)
-{
-    float t2 = t * t;
-    float t3 = t2 * t;
-    
-    float b1 = .5 * (  -t3 + 2*t2 - t);
-    float b2 = .5 * ( 3*t3 - 5*t2 + 2);
-    float b3 = .5 * (-3*t3 + 4*t2 + t);
-    float b4 = .5 * (   t3 -   t2    );
-    
-    return (p1*b1 + p2*b2 + p3*b3 + p4*b4);
-}
-
-void G4VViewer::G4Spline::AddSplinePoint(const G4Vector3D& v)
-{
-    vp.push_back(v);
-    delta_t = (float)1 / (float)vp.size();
-}
-
-
-G4Vector3D G4VViewer::G4Spline::GetPoint(int a)
-{
-    return vp[a];
-}
-
-int G4VViewer::G4Spline::GetNumPoints()
-{
-    return vp.size();
-}
-
-G4Vector3D G4VViewer::G4Spline::GetInterpolatedSplinePoint(float t)
-{
-    // Find out in which interval we are on the spline
-    int p = (int)(t / delta_t);
-    // Compute local control point indices
-#define BOUNDS(pp) { if (pp < 0) pp = 0; else if (pp >= (int)vp.size()-1) pp = vp.size() - 1; }
-    int p0 = p - 1;     BOUNDS(p0);
-    int p1 = p;         BOUNDS(p1);
-    int p2 = p + 1;     BOUNDS(p2);
-    int p3 = p + 2;     BOUNDS(p3);
-    // Relative (local) time
-    float lt = (t - delta_t*(float)p) / delta_t;
-    // Interpolate
-    return CatmullRom_Eq(lt, vp[p0], vp[p1], vp[p2], vp[p3]);
 }

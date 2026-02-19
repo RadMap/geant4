@@ -29,7 +29,7 @@
 //
 // Wrapper class for G4CutTubs to make use of VecGeom CutTube.
 
-// 07.07.17 G.Cosmo, CERN/PH
+// Author: G.Cosmo (CERN), 07.07.2017
 // --------------------------------------------------------------------
 #ifndef G4UCUTTUBS_HH
 #define G4UCUTTUBS_HH
@@ -38,31 +38,56 @@
 
 #if ( defined(G4GEOM_USE_USOLIDS) || defined(G4GEOM_USE_PARTIAL_USOLIDS) )
 
-#include <volumes/UnplacedCutTube.h>
+#include <VecGeom/volumes/UnplacedCutTube.h>
 
 #include "G4Polyhedron.hh"
+
+/**
+ * @brief G4UCutTubs is a wrapper class for G4CutTubs to make use of
+ * VecGeom CutTube.
+ */
 
 class G4UCutTubs : public G4UAdapter<vecgeom::UnplacedCutTube>
 {
   using Shape_t = vecgeom::UnplacedCutTube;
   using Base_t = G4UAdapter<vecgeom::UnplacedCutTube>;
 
-  public:  // with description
+  public:
 
+    /**
+     * Constructs a tube with the given name, dimensions and cuts.
+     *  @param[in] pName The name of the solid.
+     *  @param[in] pRmin Inner radius.
+     *  @param[in] pRmax Outer radius.
+     *  @param[in] pDZ Half length in Z.
+     *  @param[in] pSPhi Starting angle of the segment in radians.
+     *  @param[in] pDPhi Delta angle of the segment in radians.
+     *  @param[in] pLowNorm Outside normal vector at -Z.
+     *  @param[in] pHighNorm Outside normal vector at +Z.
+     */
     G4UCutTubs( const G4String& pName,
                       G4double pRMin,
                       G4double pRMax,
                       G4double pDz,
                       G4double pSPhi,
                       G4double pDPhi,
-                      G4ThreeVector pLowNorm,
-                      G4ThreeVector pHighNorm );
-      // Constructs a cut-tubs with the given name, dimensions and cuts
+                      const G4ThreeVector& pLowNorm,
+                      const G4ThreeVector& pHighNorm );
 
-   ~G4UCutTubs();
+    /**
+     * Default destructor.
+     */
+    ~G4UCutTubs() override = default;
 
-    G4VSolid* Clone() const;
+    /**
+     * Makes a clone of the object for use in multi-treading.
+     *  @returns A pointer to the new cloned allocated solid.
+     */
+    G4VSolid* Clone() const override;
 
+    /**
+     * Accessors.
+     */
     G4double GetInnerRadius   () const;
     G4double GetOuterRadius   () const;
     G4double GetZHalfLength   () const;
@@ -75,38 +100,59 @@ class G4UCutTubs : public G4UAdapter<vecgeom::UnplacedCutTube>
     G4ThreeVector GetLowNorm  () const;
     G4ThreeVector GetHighNorm () const;  
 
+    /**
+     * Modifiers.
+     */
     void SetInnerRadius   (G4double newRMin);
     void SetOuterRadius   (G4double newRMax);
     void SetZHalfLength   (G4double newDz);
     void SetStartPhiAngle (G4double newSPhi, G4bool trig=true);
     void SetDeltaPhiAngle (G4double newDPhi);
     
-    inline G4GeometryType GetEntityType() const;
+    /**
+     * Returns the type ID, "G4CutTubs" of the solid.
+     */
+    inline G4GeometryType GetEntityType() const override;
 
-    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const;
+    /**
+     * Computes the bounding limits of the solid.
+     *  @param[out] pMin The minimum bounding limit point.
+     *  @param[out] pMax The maximum bounding limit point.
+     */
+    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const override;
 
+    /**
+     * Calculates the minimum and maximum extent of the solid, when under the
+     * specified transform, and within the specified limits.
+     *  @param[in] pAxis The axis along which compute the extent.
+     *  @param[in] pVoxelLimit The limiting space dictated by voxels.
+     *  @param[in] pTransform The internal transformation applied to the solid.
+     *  @param[out] pMin The minimum extent value.
+     *  @param[out] pMax The maximum extent value.
+     *  @returns True if the solid is intersected by the extent region.
+     */
     G4bool CalculateExtent(const EAxis pAxis,
                            const G4VoxelLimits& pVoxelLimit,
                            const G4AffineTransform& pTransform,
-                           G4double& pMin, G4double& pMax) const;
+                           G4double& pMin, G4double& pMax) const override;
 
-    G4Polyhedron* CreatePolyhedron() const;
+    /**
+     * Returns a generated polyhedron as graphical representations.
+     */
+    G4Polyhedron* CreatePolyhedron() const override;
 
-  public:  // without description
-
-    G4UCutTubs(__void__&);
-      // Fake default constructor for usage restricted to direct object
-      // persistency for clients requiring preallocation of memory for
-      // persistifiable objects.
-
+    /**
+     * Copy constructor and assignment operator.
+     */
     G4UCutTubs(const G4UCutTubs& rhs);
     G4UCutTubs& operator=(const G4UCutTubs& rhs); 
-      // Copy constructor and assignment operator.
 
   private:
 
+    /**
+     * Get Z value of the point on Cutted Plane.
+     */
     G4double GetCutZ(const G4ThreeVector& p) const;
-      // Get Z value of the point on Cutted Plane
 };
 
 // --------------------------------------------------------------------

@@ -25,145 +25,86 @@
 //
 //
 // P. Arce, June-2014 Conversion neutron_hp to particle_hp
+// V. Ivanchenko, July-2023 Basic revision of particle HP classes
 //
 #ifndef G4ParticleHPEnAngCorrelation_h
 #define G4ParticleHPEnAngCorrelation_h 1
 
-#include <fstream>
-
-#include "globals.hh"
-#include "G4ParticleHPVector.hh"
-#include "Randomize.hh"
-#include "G4ios.hh"
-#include "globals.hh"
-#include "G4ParticleHPProduct.hh"
-#include "G4ReactionProduct.hh"
 #include "G4Cache.hh"
+#include "G4ParticleHPManager.hh"
+#include "G4ParticleHPProduct.hh"
+#include "G4ParticleHPVector.hh"
+#include "G4ReactionProduct.hh"
+#include "G4ios.hh"
+#include "Randomize.hh"
+#include "globals.hh"
+
+#include <fstream>
 
 class G4ParticleDefinition;
 
 class G4ParticleHPEnAngCorrelation
 {
-   struct toBeCached
-   {
-      G4ReactionProduct* theProjectileRP;
-      G4ReactionProduct* theTarget;
-      G4double theTotalMeanEnergy;
-      toBeCached()
-        : theProjectileRP(0), theTarget(0), theTotalMeanEnergy(-1.0) {}
-   };
-
-public:
-
-  G4ParticleHPEnAngCorrelation() // for G4ParticleHPCaptureFS::theMF6FinalState
-  {
-    theProjectile = G4Neutron::Neutron();
-    theProducts = 0;
-    inCharge = false;
-    toBeCached val;
-    fCache.Put( val );
-    //theTotalMeanEnergy = -1.;
-    fCache.Get().theTotalMeanEnergy = -1.;
-    targetMass = 0.0;
-    frameFlag = 0;
-    nProducts = 0;
-    bAdjustFinalState = true;
-  }
-
-  G4ParticleHPEnAngCorrelation(G4ParticleDefinition* proj)
-    : theProjectile(proj)
-  {
-    theProducts = 0;
-    inCharge = false;
-    toBeCached val;
-    fCache.Put( val );
-    //theTotalMeanEnergy = -1.;
-    fCache.Get().theTotalMeanEnergy = -1.;
-    targetMass = 0.0;
-    frameFlag = 0;
-    nProducts = 0;
-    bAdjustFinalState = true;
-  }
-
-  ~G4ParticleHPEnAngCorrelation()
-  {
-    if(theProducts!=0) delete [] theProducts;
-  }
-  
-  inline void Init(std::istream & aDataFile)
-  {
-    bAdjustFinalState = true;
-    const char* ctmp = std::getenv("G4PHP_DO_NOT_ADJUST_FINAL_STATE");
-    if( ctmp && G4String(ctmp) == "1" )
+    struct toBeCached
     {
-      bAdjustFinalState = false;
+      G4ReactionProduct* theProjectileRP{nullptr};
+      G4ReactionProduct* theTarget{nullptr};
+      G4double theTotalMeanEnergy{-1.0};
+      toBeCached() = default;
+    };
+
+  public:
+    explicit G4ParticleHPEnAngCorrelation(const G4ParticleDefinition* proj = nullptr);
+    ~G4ParticleHPEnAngCorrelation();
+
+    void Init(std::istream& aDataFile);
+
+    G4ReactionProduct* SampleOne(G4double anEnergy);
+
+    G4ReactionProductVector* Sample(G4double anEnergy);
+
+    void SetTarget(G4ReactionProduct& aTarget)
+    {
+      fCache.Get().theTarget = &aTarget;
+      for (G4int i = 0; i < nProducts; ++i)
+        theProducts[i].SetTarget(&aTarget);
     }
 
-// T.K. Comment out following line to keep the condition at the
-// validation efforts comparing NeutronHP and PartileHP for neutrons (2015 Sep.)
-//#ifdef PHP_AS_HP
-//    bAdjustFinalState = false;
-//#endif
- 
-    inCharge = true;
-    aDataFile>>targetMass>>frameFlag>>nProducts;
-    theProducts = new G4ParticleHPProduct[nProducts];
-    for(G4int i=0; i<nProducts; i++)
+    void SetProjectileRP(G4ReactionProduct& aIncidentPart)
     {
-      theProducts[i].Init(aDataFile,theProjectile);
+      fCache.Get().theProjectileRP = &aIncidentPart;
+      for (G4int i = 0; i < nProducts; ++i)
+        theProducts[i].SetProjectileRP(&aIncidentPart);
     }
-  }
-  
-  G4ReactionProduct * SampleOne(G4double anEnergy);
 
-  G4ReactionProductVector * Sample(G4double anEnergy);
-  
-  inline void SetTarget(G4ReactionProduct & aTarget)
-  {
-    fCache.Get().theTarget = &aTarget;
-    for (G4int i=0;i<nProducts;i++)
-      theProducts[i].SetTarget(fCache.Get().theTarget);
-  }
-  
-  inline void SetProjectileRP(G4ReactionProduct & aIncidentPart)
-  {
-    fCache.Get().theProjectileRP = &aIncidentPart;
-    for (G4int i=0;i<nProducts;i++)
-      theProducts[i].SetProjectileRP(fCache.Get().theProjectileRP);
-  }
-  
-  inline G4bool InCharge()
-  {
-    return inCharge;
-  }
-  
-  inline G4double GetTargetMass()
-  {
-    return targetMass;
-  }
-  
-  G4double GetTotalMeanEnergy()
-  {
-    return fCache.Get().theTotalMeanEnergy;  // cached in 'sample' call
-  }
+    G4bool InCharge() { return inCharge; }
 
-private:
-   
-  // data members
-  
-  G4double targetMass;
-  G4int frameFlag; // =1: Target rest frame; =2: CMS system; incident in lab
-  G4int nProducts;
-  G4ParticleHPProduct * theProducts;
-  G4bool inCharge;
-    
-  // cached values
-  //
-  G4Cache<toBeCached> fCache;
+    G4double GetTargetMass() { return targetMass; }
 
-  G4ParticleDefinition* theProjectile;
+    G4double GetNumberOfProducts() { return nProducts; }
 
-  G4bool bAdjustFinalState;
+    G4double GetTotalMeanEnergy()
+    {
+      return fCache.Get().theTotalMeanEnergy;  // cached in 'sample' call
+    }
+
+    G4ParticleHPEnAngCorrelation(G4ParticleHPEnAngCorrelation&) = delete;
+    G4ParticleHPEnAngCorrelation& operator=
+    (const G4ParticleHPEnAngCorrelation &right) = delete;
+
+  private:
+    const G4ParticleDefinition* theProjectile;
+    G4ParticleHPProduct* theProducts{nullptr};
+
+    G4double targetMass{0.0};
+
+    G4int frameFlag{1};  // =1: Target rest frame; =2: CMS system; incident in lab
+    G4int nProducts{0};
+    G4bool inCharge{false};
+
+    // cached values
+    //
+    G4Cache<toBeCached> fCache;
 };
 
 #endif

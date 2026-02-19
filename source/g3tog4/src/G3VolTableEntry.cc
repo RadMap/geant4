@@ -251,7 +251,7 @@ G3VolTableEntry::GetRpar() {
 
 G4int 
 G3VolTableEntry::NPCopies() {
-  return fG3Pos.size();
+  return (G4int)fG3Pos.size();
 }
 
 G3Pos* 
@@ -284,22 +284,22 @@ G3VolTableEntry::GetLV() {
 
 G4int
 G3VolTableEntry::GetNoDaughters() {
-  return fDaughters.size();
+  return (G4int)fDaughters.size();
 }
 
 G4int
 G3VolTableEntry::GetNoMothers() {
-  return fMothers.size();
+  return (G4int)fMothers.size();
 }
 
 G4int
 G3VolTableEntry::GetNoClones() {
-  return fClones.size();
+  return (G4int)fClones.size();
 }
 
 G4int
 G3VolTableEntry::GetNoOverlaps() {
-  return fOverlaps.size();
+  return (G4int)fOverlaps.size();
 }
 
 G3VolTableEntry* 
@@ -339,8 +339,8 @@ G3VolTableEntry*
 G3VolTableEntry::GetMasterClone(){
   G3VolTableEntry* master;
   G4String name = fVname;
-  if (name.contains(gSeparator)) {
-    name = name(0, name.first(gSeparator));
+  if (G4StrUtil::contains(name, gSeparator)) {
+    name = name.substr(0, name.find(gSeparator));
     master = G3Vol.GetVTE(name); 
   }
   else 

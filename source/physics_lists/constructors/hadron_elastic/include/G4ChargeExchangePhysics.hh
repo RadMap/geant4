@@ -41,25 +41,32 @@
 #include "globals.hh"
 #include "G4VPhysicsConstructor.hh"
 
+class G4ChargeExchangeMessenger;
+
 class G4ChargeExchangePhysics : public G4VPhysicsConstructor
 {
 public: 
-  explicit G4ChargeExchangePhysics(G4int ver = 0);
-  virtual ~G4ChargeExchangePhysics();
+  explicit G4ChargeExchangePhysics(G4int ver = 1);
+  ~G4ChargeExchangePhysics() override;
 
-public: 
-  // This method will be invoked in the Construct() method. 
-  // each particle type will be instantiated
   void ConstructParticle() override;
  
-  // This method will be invoked in the Construct() method.
-  // each physics process will be instantiated and
-  // registered to the process manager of each particle type 
   void ConstructProcess() override;
+
+  void SetLowEnergyLimit(G4double val) { fLowEnergyLimit = val; }
+
+  void SetCrossSectionFactor(G4double val) { fXSFactor = val; }
+
+  G4ChargeExchangePhysics& operator=
+  (const G4ChargeExchangePhysics& right) = delete;
+  G4ChargeExchangePhysics(const G4ChargeExchangePhysics&) = delete;
 
 private:
 
-  G4int    verbose;
+  G4ChargeExchangeMessenger* theMessenger;
+  
+  G4double fLowEnergyLimit;
+  G4double fXSFactor{1.0};
 };
 
 

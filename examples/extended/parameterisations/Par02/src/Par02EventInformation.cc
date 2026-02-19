@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file Par02EventInformation.cc
 /// \brief Implementation of the Par02EventInformation class
 
@@ -31,34 +30,35 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Par02EventInformation::Par02EventInformation() : fDoSmearing( true ) {}
+Par02EventInformation::Par02EventInformation() : fDoSmearing(true) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Par02EventInformation::Par02EventInformation( G4bool aSmear ): fDoSmearing( aSmear ) {}
+Par02EventInformation::Par02EventInformation(G4bool aSmear) : fDoSmearing(aSmear) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Par02EventInformation::~Par02EventInformation() {}
+Par02EventInformation::~Par02EventInformation() = default;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void Par02EventInformation::SetDoSmearing( G4bool aSmear ) {
+void Par02EventInformation::SetDoSmearing(G4bool aSmear)
+{
   fDoSmearing = aSmear;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4bool Par02EventInformation::GetDoSmearing() {
+G4bool Par02EventInformation::GetDoSmearing()
+{
   return fDoSmearing;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void Par02EventInformation::Print() const {
-  G4cout << "Par02EventInformation: " << G4endl
-         << "do smearing: " << fDoSmearing << G4endl;
+void Par02EventInformation::Print() const
+{
+  G4cout << "Par02EventInformation: " << G4endl << "do smearing: " << fDoSmearing << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

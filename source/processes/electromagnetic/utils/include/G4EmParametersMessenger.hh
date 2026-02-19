@@ -67,41 +67,48 @@ class G4EmParametersMessenger: public G4UImessenger
 public:   // with description
   
   explicit G4EmParametersMessenger(G4EmParameters*);
-  virtual ~G4EmParametersMessenger();
+  ~G4EmParametersMessenger() override;
 
-  virtual void SetNewValue(G4UIcommand*, G4String) override;
+  void SetNewValue(G4UIcommand*, G4String) override;
+
+  G4EmParametersMessenger & operator=
+  (const G4EmParametersMessenger &right) = delete;
+  G4EmParametersMessenger(const G4EmParametersMessenger&) = delete;
 
 private:
 
-  G4EmParameters*            theParameters;
+  G4EmParameters* theParameters;
 
-  G4UIdirectory*             gconvDirectory;
-  G4UIdirectory*             eLossDirectory;
-  G4UIdirectory*             mscDirectory;
-  G4UIdirectory*             emDirectory;
-  G4UIdirectory*             dnaDirectory;
+  G4UIdirectory* gconvDirectory;
+  G4UIdirectory* eLossDirectory;
+  G4UIdirectory* mscDirectory;
+  G4UIdirectory* emDirectory;
+  G4UIdirectory* dnaDirectory;
 
-  G4UIcmdWithABool*          flucCmd;
-  G4UIcmdWithABool*          rangeCmd;
-  G4UIcmdWithABool*          lpmCmd;
-  G4UIcmdWithABool*          splCmd;
-  G4UIcmdWithABool*          rsCmd;
-  G4UIcmdWithABool*          aplCmd;
-  G4UIcmdWithABool*          latCmd;
-  G4UIcmdWithABool*          lat96Cmd;
-  G4UIcmdWithABool*          mulatCmd;
-  G4UIcmdWithABool*          catCmd;
-  G4UIcmdWithABool*          delCmd;
-  G4UIcmdWithABool*          IntegCmd;
-  G4UIcmdWithABool*          mottCmd;
-  G4UIcmdWithABool*          birksCmd;
-  G4UIcmdWithABool*          sharkCmd;
-  G4UIcmdWithABool*          onIsolatedCmd;
-  G4UIcmdWithABool*          sampleTCmd;
-  G4UIcmdWithABool*          icru90Cmd;
-  G4UIcmdWithABool*          mudatCmd;
+  G4UIcmdWithABool* flucCmd;
+  G4UIcmdWithABool* intCmd;
+  G4UIcmdWithABool* rangeCmd;
+  G4UIcmdWithABool* lpmCmd;
+  G4UIcmdWithABool* rsCmd;
+  G4UIcmdWithABool* aplCmd;
+  G4UIcmdWithABool* latCmd;
+  G4UIcmdWithABool* lat96Cmd;
+  G4UIcmdWithABool* mulatCmd;
+  G4UIcmdWithABool* delCmd;
+  G4UIcmdWithABool* mottCmd;
+  G4UIcmdWithABool* birksCmd;
+  G4UIcmdWithABool* sharkCmd;
+  G4UIcmdWithABool* poCmd;
+  G4UIcmdWithABool* onIsolatedCmd;
+  G4UIcmdWithABool* sampleTCmd;
+  G4UIcmdWithABool* icru90Cmd;
+  G4UIcmdWithABool* mudatCmd;
+  G4UIcmdWithABool* peKCmd;
+  G4UIcmdWithABool* mscPCmd;
+  G4UIcmdWithABool* pepicsCmd;
+  G4UIcmdWithABool* f3gCmd;
+  G4UIcmdWithABool* fRiGeCmd;
 
-  G4UIcmdWithADouble*        minSubSecCmd;
   G4UIcmdWithADoubleAndUnit* minEnCmd;
   G4UIcmdWithADoubleAndUnit* maxEnCmd;
   G4UIcmdWithADoubleAndUnit* max5DCmd;
@@ -111,6 +118,7 @@ private:
   G4UIcmdWithADoubleAndUnit* lowhEnCmd;
   G4UIcmdWithADouble*        lllCmd;
   G4UIcmdWithADoubleAndUnit* brCmd;
+  G4UIcmdWithADoubleAndUnit* br1Cmd;
   G4UIcmdWithADouble*        labCmd;
   G4UIcmdWithADouble*        mscfCmd;
   G4UIcmdWithADoubleAndUnit* angCmd;
@@ -124,17 +132,22 @@ private:
   G4UIcmdWithADouble*        skinCmd;
   G4UIcmdWithADouble*        screCmd;
 
-  G4UIcmdWithAnInteger*      dedxCmd;
-  G4UIcmdWithAnInteger*      lamCmd;
   G4UIcmdWithAnInteger*      amCmd;
   G4UIcmdWithAnInteger*      verCmd;
   G4UIcmdWithAnInteger*      ver1Cmd;
   G4UIcmdWithAnInteger*      ver2Cmd;
+  G4UIcmdWithAnInteger*      nFreeCmd;
   G4UIcmdWithAnInteger*      tripletCmd;
 
+  G4UIcmdWithAString*        transWithMscCmd;
   G4UIcmdWithAString*        mscCmd;
   G4UIcmdWithAString*        msc1Cmd;
   G4UIcmdWithAString*        nffCmd;
+  G4UIcmdWithAString*        ssCmd;
+  G4UIcmdWithAString*        fluc1Cmd;
+  G4UIcmdWithAString*        fluc2Cmd;
+  G4UIcmdWithAString*        fluc3Cmd;
+  G4UIcmdWithAString*        posiCmd;
 
   G4UIcommand*               dumpCmd;
 

@@ -29,30 +29,42 @@
 //
 // Base class for G4ErrorTarget classes for which a tangent plane is defined.
 
-// Created: P.Arce, September 2004
+// Author: Pedro Arce (CIEMAT), September 2004
 // --------------------------------------------------------------------
-#ifndef G4ErrorTanPlaneTarget_hh
-#define G4ErrorTanPlaneTarget_hh
+#ifndef G4ERRORTANPLANETARGET_HH
+#define G4ERRORTANPLANETARGET_HH
 
 #include "globals.hh"
 #include "G4ThreeVector.hh"
 #include "G4ErrorTarget.hh"
 #include "G4Plane3D.hh"
 
+/**
+ * @brief G4ErrorTanPlaneTarget is a base class for G4ErrorTarget classes
+ * for which a tangent plane is defined.
+ */
+
 class G4ErrorTanPlaneTarget : public G4ErrorTarget
 {
+  public:
 
-  public:  // with description
+    /**
+     * Default Constructor and Destructor.
+     */
+    G4ErrorTanPlaneTarget() = default;
+    ~G4ErrorTanPlaneTarget() override = default;
 
-    G4ErrorTanPlaneTarget();
-    virtual ~G4ErrorTanPlaneTarget();
-
+    /**
+     * Computes the plane tangent to surface at a given point.
+     *  @param[in] point The point of reference.
+     *  @returns The tangent plane.
+     */
     virtual G4Plane3D GetTangentPlane( const G4ThreeVector& point ) const = 0;
-      // Get tangent plane at point
 
-    virtual void Dump( const G4String& msg ) const = 0;
-      // Dump surface
-
+    /**
+     * Dumps to standard output the surface parameters.
+     */
+    void Dump( const G4String& msg ) const override = 0;
 };
 
 #endif

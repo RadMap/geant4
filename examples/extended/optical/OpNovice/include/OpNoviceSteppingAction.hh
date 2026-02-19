@@ -23,32 +23,27 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file OpNoviceSteppingAction.hh
 /// \brief Definition of the OpNoviceSteppingAction class
 
 #ifndef OpNoviceSteppingAction_h
 #define OpNoviceSteppingAction_h 1
 
+#include "OpNoviceEventAction.hh"
+
 #include "G4UserSteppingAction.hh"
 #include "globals.hh"
-
-/// Stepping action class
-/// 
 
 class OpNoviceSteppingAction : public G4UserSteppingAction
 {
   public:
-    OpNoviceSteppingAction();
-    virtual ~OpNoviceSteppingAction();
+    OpNoviceSteppingAction(OpNoviceEventAction*);
+    ~OpNoviceSteppingAction() override = default;
 
-    // method from the base class
-    virtual void UserSteppingAction(const G4Step*);
+    void UserSteppingAction(const G4Step*) override;
 
   private:
-    G4int fScintillationCounter;
-    G4int fCerenkovCounter;
-    G4int fEventNumber;
+    OpNoviceEventAction* fEventAction = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -28,16 +28,16 @@
 //
 //
 
-#ifdef G4VIS_BUILD_RAYTRACERX_DRIVER
-
 #include "G4RayTracerX.hh"
 #include "G4RayTracerFeatures.hh"
 #include "G4RayTracerSceneHandler.hh"
 #include "G4RayTracerXViewer.hh"
 
+#define G4warn G4cerr
+
 G4RayTracerX::G4RayTracerX():
   G4VGraphicsSystem("RayTracerX",
-		    "RayTracerX",
+		    "RTX",
 		    RAYTRACER_FEATURES,
 		    G4VGraphicsSystem::threeD)
 {}
@@ -55,7 +55,7 @@ G4VViewer* G4RayTracerX::CreateViewer (G4VSceneHandler& sceneHandler,
   G4VViewer* pViewer = new G4RayTracerXViewer (sceneHandler, name);
   if (pViewer) {
     if (pViewer->GetViewId() < 0) {
-      G4cout <<
+      G4warn <<
         "G4RayTracerX::CreateViewer: ERROR flagged by negative"
         " view id in G4RayTracerXViewer creation."
         "\n Destroying view and returning null pointer."
@@ -65,11 +65,9 @@ G4VViewer* G4RayTracerX::CreateViewer (G4VSceneHandler& sceneHandler,
     }
   }
   else {
-    G4cout <<
+    G4warn <<
       "G4RayTracerX::CreateViewer: ERROR: null pointer on new G4RayTracerXViewer."
            << G4endl;
   }
   return pViewer;
 }
-
-#endif

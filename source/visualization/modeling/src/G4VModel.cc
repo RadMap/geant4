@@ -34,16 +34,21 @@
 #include "G4RotationMatrix.hh"
 #include "G4ModelingParameters.hh"
 
-G4VModel::G4VModel (const G4Transform3D& modelTransformation,
-		    const G4ModelingParameters* pMP):
+const G4ModelingParameters* G4VModel::fpCurrentMP = nullptr;
+
+G4VModel::G4VModel (const G4ModelingParameters* pMP):
   fType ("Other"),
   fGlobalTag ("Empty"),
-  fGlobalDescription ("Empty"),
-  fTransform (modelTransformation),
-  fpMP (pMP)
-{}
+  fGlobalDescription ("Empty")
+{
+  fpMP = pMP;
+}
 
 G4VModel::~G4VModel () {}
+
+const G4ModelingParameters* G4VModel::GetCurrentModelingParameters () {
+  return fpCurrentMP;
+}
 
 G4String G4VModel::GetCurrentTag () const {
   // Override in concrete class if concept of "current" is meaningful.
@@ -55,11 +60,8 @@ G4String G4VModel::GetCurrentDescription () const {
   return fGlobalDescription;
 }
 
-const G4VisExtent& G4VModel::GetTransformedExtent () const {
-  static G4VisExtent transformedExtent;
-  transformedExtent = fExtent;
-  transformedExtent.Transform(fTransform);
-  return transformedExtent;
+void G4VModel::SetCurrentModelingParameters (const G4ModelingParameters* pMP) {
+  fpCurrentMP = pMP;
 }
 
 G4bool G4VModel::Validate (G4bool) {
@@ -73,15 +75,5 @@ std::ostream& operator << (std::ostream& os, const G4VModel& model) {
   if (mp) os << "\n  " << *mp;
   else os << " none.";
   os << "\n  Extent: " << model.fExtent;
-  os << "\n  Transformation: ";
-  os << "\n    Rotation: ";
-  G4RotationMatrix rotation = model.fTransform.getRotation ();
-  os << rotation.thetaX() << ", "
-     << rotation.phiX() << ", "
-     << rotation.thetaY() << ", "
-     << rotation.phiY() << ", "
-     << rotation.thetaZ() << ", "
-     << rotation.phiZ();
-  os << "\n    Translation: " << model.fTransform.getTranslation ();
   return os;
 }

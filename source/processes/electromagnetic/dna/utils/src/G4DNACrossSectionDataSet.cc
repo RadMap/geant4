@@ -76,7 +76,7 @@ G4DNACrossSectionDataSet::~G4DNACrossSectionDataSet()
 {
   CleanUpComponents();
  
-  if (algorithm)
+  
     delete algorithm;
 }
 
@@ -100,7 +100,7 @@ G4bool G4DNACrossSectionDataSet::LoadData(const G4String & argFileName)
   std::vector<G4DataVector *> columns;
   std::vector<G4DataVector *> log_columns;
 
-  std::stringstream *stream(new std::stringstream);
+  auto stream(new std::stringstream);
   char c;
   G4bool comment(false);
   G4bool space(true);
@@ -187,7 +187,7 @@ G4bool G4DNACrossSectionDataSet::LoadData(const G4String & argFileName)
  
   delete stream;
  
-  std::vector<G4DataVector *>::size_type maxI(columns.size());
+  std::size_t maxI(columns.size());
  
   if (maxI<2)
     {
@@ -199,10 +199,10 @@ G4bool G4DNACrossSectionDataSet::LoadData(const G4String & argFileName)
       return false;
     }
  
-  std::vector<G4DataVector*>::size_type i(1);
+  std::size_t i(1);
   while (i<maxI)
     {
-      G4DataVector::size_type maxJ(columns[i]->size());
+      std::size_t maxJ(columns[i]->size());
 
       if (maxJ!=columns[0]->size())
 	{
@@ -214,12 +214,12 @@ G4bool G4DNACrossSectionDataSet::LoadData(const G4String & argFileName)
 	  return false;
 	}
 
-      G4DataVector::size_type j(0);
+      std::size_t j(0);
 
-      G4DataVector *argEnergies=new G4DataVector;
-      G4DataVector *argData=new G4DataVector;
-      G4DataVector *argLogEnergies=new G4DataVector;
-      G4DataVector *argLogData=new G4DataVector;
+      auto argEnergies=new G4DataVector;
+      auto argData=new G4DataVector;
+      auto argLogEnergies=new G4DataVector;
+      auto argLogData=new G4DataVector;
 
       while(j<maxJ)
 	{
@@ -230,7 +230,7 @@ G4bool G4DNACrossSectionDataSet::LoadData(const G4String & argFileName)
 	  j++;
 	}
 
-      AddComponent(new G4EMDataSet(i-1, argEnergies, argData, argLogEnergies, argLogData, GetAlgorithm()->Clone(), GetUnitEnergies(), GetUnitData()));
+      AddComponent(new G4EMDataSet(G4int(i-1), argEnergies, argData, argLogEnergies, argLogData, GetAlgorithm()->Clone(), GetUnitEnergies(), GetUnitData()));
   
       i++;
     }
@@ -266,7 +266,7 @@ G4bool G4DNACrossSectionDataSet::LoadNonLogData(const G4String & argFileName)
 
   std::vector<G4DataVector *> columns;
 
-  std::stringstream *stream(new std::stringstream);
+  auto stream(new std::stringstream);
   char c;
   G4bool comment(false);
   G4bool space(true);
@@ -337,7 +337,7 @@ G4bool G4DNACrossSectionDataSet::LoadNonLogData(const G4String & argFileName)
  
   delete stream;
  
-  std::vector<G4DataVector *>::size_type maxI(columns.size());
+  std::size_t maxI(columns.size());
  
   if (maxI<2)
     {
@@ -349,10 +349,10 @@ G4bool G4DNACrossSectionDataSet::LoadNonLogData(const G4String & argFileName)
       return false;
     }
  
-  std::vector<G4DataVector*>::size_type i(1);
+  std::size_t i(1);
   while (i<maxI)
     {
-      G4DataVector::size_type maxJ(columns[i]->size());
+      std::size_t maxJ(columns[i]->size());
 
       if (maxJ!=columns[0]->size())
 	{
@@ -364,10 +364,10 @@ G4bool G4DNACrossSectionDataSet::LoadNonLogData(const G4String & argFileName)
 	  return false;
 	}
 
-      G4DataVector::size_type j(0);
+      std::size_t j(0);
 
-      G4DataVector *argEnergies=new G4DataVector;
-      G4DataVector *argData=new G4DataVector;
+      auto argEnergies=new G4DataVector;
+      auto argData=new G4DataVector;
 
       while(j<maxJ)
 	{
@@ -376,7 +376,7 @@ G4bool G4DNACrossSectionDataSet::LoadNonLogData(const G4String & argFileName)
 	  j++;
 	}
 
-      AddComponent(new G4EMDataSet(i-1, argEnergies, argData, GetAlgorithm()->Clone(), GetUnitEnergies(), GetUnitData()));
+      AddComponent(new G4EMDataSet(G4int(i-1), argEnergies, argData, GetAlgorithm()->Clone(), GetUnitEnergies(), GetUnitData()));
   
       i++;
     }
@@ -394,7 +394,7 @@ G4bool G4DNACrossSectionDataSet::LoadNonLogData(const G4String & argFileName)
 
 G4bool G4DNACrossSectionDataSet::SaveData(const G4String & argFileName) const
 {
-  const size_t n(NumberOfComponents());
+  const std::size_t n(NumberOfComponents());
  
   if (n==0)
     {
@@ -417,16 +417,16 @@ G4bool G4DNACrossSectionDataSet::SaveData(const G4String & argFileName) const
       return false;
     }
  
-  G4DataVector::const_iterator iEnergies(GetComponent(0)->GetEnergies(0).begin());
-  G4DataVector::const_iterator iEnergiesEnd(GetComponent(0)->GetEnergies(0).end());
-  G4DataVector::const_iterator * iData(new G4DataVector::const_iterator[n]);
+  auto iEnergies(GetComponent(0)->GetEnergies(0).begin());
+  auto iEnergiesEnd(GetComponent(0)->GetEnergies(0).end());
+  auto  iData(new G4DataVector::const_iterator[n]);
  
-  size_t k(n);
+  std::size_t k(n);
  
   while (k>0)
     {
       k--;
-      iData[k]=GetComponent(k)->GetData(0).begin();
+      iData[k]=GetComponent((G4int)k)->GetData(0).cbegin();
     }
  
   while (iEnergies!=iEnergiesEnd)
@@ -463,8 +463,8 @@ G4bool G4DNACrossSectionDataSet::SaveData(const G4String & argFileName) const
 
 G4String G4DNACrossSectionDataSet::FullFileName(const G4String& argFileName) const
 {
-  char* path = std::getenv("G4LEDATA");
-  if (!path)
+  const char* path = G4FindDataDir("G4LEDATA");
+  if (path == nullptr)
   {
       G4Exception("G4DNACrossSectionDataSet::FullFileName","em0006",
                       FatalException,"G4LEDATA environment variable not set.");
@@ -485,8 +485,8 @@ G4double G4DNACrossSectionDataSet::FindValue(G4double argEnergy, G4int /* argCom
   // Returns the sum over the shells corresponding to e
   G4double value = 0.;
 
-  std::vector<G4VEMDataSet *>::const_iterator i(components.begin());
-  std::vector<G4VEMDataSet *>::const_iterator end(components.end());
+  auto i(components.begin());
+  auto end(components.end());
 
   while (i!=end)
     {
@@ -498,20 +498,20 @@ G4double G4DNACrossSectionDataSet::FindValue(G4double argEnergy, G4int /* argCom
 }
 
 
-void G4DNACrossSectionDataSet::PrintData(void) const
+void G4DNACrossSectionDataSet::PrintData() const
 {
-  const size_t n(NumberOfComponents());
+  const auto  n = (G4int)NumberOfComponents();
 
   G4cout << "The data set has " << n << " components" << G4endl;
   G4cout << G4endl;
  
-  size_t i(0);
+  G4int i(0);
  
   while (i<n)
     {
       G4cout << "--- Component " << i << " ---" << G4endl;
       GetComponent(i)->PrintData();
-      i++;
+      ++i;
     }
 }
 
@@ -522,7 +522,7 @@ void G4DNACrossSectionDataSet::SetEnergiesData(G4DataVector* argEnergies,
 {
   G4VEMDataSet * component(components[argComponentId]);
  
-  if (component)
+  if (component != nullptr)
     {
       component->SetEnergiesData(argEnergies, argData, 0);
       return;
@@ -545,7 +545,7 @@ void G4DNACrossSectionDataSet::SetLogEnergiesData(G4DataVector* argEnergies,
 {
   G4VEMDataSet * component(components[argComponentId]);
  
-  if (component)
+  if (component != nullptr)
     {
       component->SetLogEnergiesData(argEnergies, argData, argLogEnergies, argLogData, 0);
       return;
@@ -564,7 +564,7 @@ void G4DNACrossSectionDataSet::CleanUpComponents()
 {
   while (!components.empty())
     {
-      if (components.back()) delete components.back();
+      if (components.back() != nullptr) delete components.back();
       components.pop_back();
     }
 }

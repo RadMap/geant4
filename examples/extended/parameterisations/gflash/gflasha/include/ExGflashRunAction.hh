@@ -23,35 +23,35 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflashRunAction.hh
 /// \brief Definition of the ExGflashRunAction class
-//
+
 #ifndef ExGflashRunAction_h
 #define ExGflashRunAction_h
 
-#include "G4UserRunAction.hh"
 #include "ExGflashHistoManager.hh"
+
 #include "G4Timer.hh"
+#include "G4UserRunAction.hh"
 
 class G4Run;
 class ExGflashDetectorConstruction;
 
 class ExGflashRunAction : public G4UserRunAction
 {
-public:
-  ExGflashRunAction(ExGflashDetectorConstruction* det);
-  ~ExGflashRunAction();
+  public:
+    ExGflashRunAction(ExGflashDetectorConstruction* det);
+    ~ExGflashRunAction() override;
 
-  virtual void BeginOfRunAction(const G4Run* aRun);
-  virtual void EndOfRunAction(const G4Run* aRun);
+    void BeginOfRunAction(const G4Run* aRun) override;
+    void EndOfRunAction(const G4Run* aRun) override;
 
-private:
-  //  G4int fRunID;
-  ExGflashHistoManager*           fHistoManager;
-  ExGflashDetectorConstruction* fDetector;
+  private:
+    //  G4int fRunID;
+    ExGflashHistoManager* fHistoManager;
+    ExGflashDetectorConstruction* fDetector;
 
-  G4Timer fRunTimer;
+    G4Timer fRunTimer;
 };
 
 #endif

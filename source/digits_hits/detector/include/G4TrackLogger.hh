@@ -23,45 +23,37 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-// ----------------------------------------------------------------------
-// Class G4TrackLogger
+// G4TrackLogger
 //
 // Class description:
-// 
-// This class loggs every track via it's id. It may tell if
-// a track has been logged. The loggs are cleared when ever 
-// the object has been informed about a new event.
-// 
-// Author: Michael Dressel (Michael.Dressel@cern.ch)
-// ----------------------------------------------------------------------
 //
-
+// This class loggs every track via it's id. It may tell if
+// a track has been logged. The loggs are cleared when ever
+// the object has been informed about a new event.
+//
+// Author: Michael Dressel, CERN
+// --------------------------------------------------------------------
 #ifndef G4TrackLogger_hh
-#define G4TrackLogger_hh G4TrackLogger_hh
+#define G4TrackLogger_hh 1
 
 #include "globals.hh"
+
 #include <set>
 
-class G4TrackLogger {
-public:
-  G4TrackLogger();
-  ~G4TrackLogger();
-
+class G4TrackLogger
+{
+ public:
+  // inform the object about the event number
+  // if the event number changes the loggs are cleared.
   void SetEventID(G4int id);
-    // inform the object about the event number
-    // if the event number changes the loggs are cleared.
 
+  // returns true if the track is new to this event.
   G4bool FirstEnterance(G4int trid);
-    // returns true if the track is new to this event.
 
-  typedef std::set<G4int > TrackIDsSet;
-    // log for the track ids.
-
-private:
-  G4int fPreviousEventID;
+ private:
+  G4int fPreviousEventID = -1;
+  using TrackIDsSet = std::set<G4int>;
   TrackIDsSet fTrackIDsSet;
-
 };
 
 #endif

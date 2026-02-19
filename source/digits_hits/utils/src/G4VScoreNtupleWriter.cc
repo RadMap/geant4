@@ -23,67 +23,64 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4VScoreNtupleWriter
 //
-// Author: Ivana Hrivnacova, 11/09/2018  (ivana@ipno.in2p3.fr)
+// Author: Ivana Hrivnacova, 11/09/2018
 // ---------------------------------------------------------------------
 
 #include "G4VScoreNtupleWriter.hh"
 
 //_____________________________________________________________________________
-G4VScoreNtupleWriter* G4VScoreNtupleWriter::fgMasterInstance = 0;    
-G4ThreadLocal G4VScoreNtupleWriter* G4VScoreNtupleWriter::fgInstance = 0;    
+G4VScoreNtupleWriter* G4VScoreNtupleWriter::fgMasterInstance         = nullptr;
+G4ThreadLocal G4VScoreNtupleWriter* G4VScoreNtupleWriter::fgInstance = nullptr;
 
 //_____________________________________________________________________________
 G4VScoreNtupleWriter* G4VScoreNtupleWriter::Instance()
 {
-// This function invokes creating the objects on workes,
-// The master instance should be created by the user 
-// via the concrete class constructor
+  // This function invokes creating the objects on workes,
+  // The master instance should be created by the user
+  // via the concrete class constructor
 
-  G4bool isMaster = ! G4Threading::IsWorkerThread();
+  G4bool isMaster = !G4Threading::IsWorkerThread();
 
-  if ( ( ! isMaster ) && ( ! fgInstance ) ) {
-    if ( fgMasterInstance ) {
+  if((!isMaster) && (fgInstance == nullptr))
+  {
+    if(fgMasterInstance != nullptr)
+    {
       fgInstance = fgMasterInstance->CreateInstance();
     }
   }
 
   return fgInstance;
-}    
-
-//
-// ctor, dtor
-//
+}
 
 //_____________________________________________________________________________
 G4VScoreNtupleWriter::G4VScoreNtupleWriter()
 {
-  G4bool isMaster = ! G4Threading::IsWorkerThread();
+  G4bool isMaster = !G4Threading::IsWorkerThread();
 
-  if ( isMaster && fgMasterInstance  ) {
+  if(isMaster && (fgMasterInstance != nullptr))
+  {
     G4ExceptionDescription description;
-    description 
-      << "      " 
-      << "G4VScoreNtupleWriter on master already exists." 
-      << "Cannot create another instance.";
-    G4Exception("G4VScoreNtupleWriter::G4VScoreNtupleWriter()",
-                "Analysis_F001", FatalException, description);
+    description << "      "
+                << "G4VScoreNtupleWriter on master already exists."
+                << "Cannot create another instance.";
+    G4Exception("G4VScoreNtupleWriter::G4VScoreNtupleWriter()", "Analysis_F001",
+                FatalException, description);
   }
-  if ( fgInstance ) {
+  if(fgInstance != nullptr)
+  {
     G4ExceptionDescription description;
-    description 
-      << "      " 
-      << "G4VScoreNtupleWriter on worker already exists." 
-      << "Cannot create another instance.";
-    G4Exception("G4VScoreNtupleWriter::G4VScoreNtupleWriter()",
-                "Analysis_F001", FatalException, description);
+    description << "      "
+                << "G4VScoreNtupleWriter on worker already exists."
+                << "Cannot create another instance.";
+    G4Exception("G4VScoreNtupleWriter::G4VScoreNtupleWriter()", "Analysis_F001",
+                FatalException, description);
   }
-  if ( isMaster ) fgMasterInstance = this;
+  if(isMaster)
+    fgMasterInstance = this;
   fgInstance = this;
 }
 
 //_____________________________________________________________________________
-G4VScoreNtupleWriter::~G4VScoreNtupleWriter()
-{
-  fgInstance = 0;
-}
+G4VScoreNtupleWriter::~G4VScoreNtupleWriter() { fgInstance = nullptr; }

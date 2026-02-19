@@ -20,10 +20,6 @@
 #ifndef HEP_THREEVECTOR_H
 #define HEP_THREEVECTOR_H
 
-#ifdef GNUPRAGMA
-#pragma interface
-#endif
-
 #include <iostream>
 #include "CLHEP/Utility/defs.h"
 
@@ -296,7 +292,7 @@ public:
   double howOrthogonal (const Hep3Vector & v) const;
   // | v1.dot(v2) / v1.cross(v2) |, to a maximum of 1.
 
-  enum { ToleranceTicks = 100 };
+  static const int ToleranceTicks = 100;
 
 // 4 - Intrinsic properties 
 
@@ -392,9 +388,7 @@ protected:
 
 protected:
 
-  double dx;
-  double dy;
-  double dz;
+  double data[3];
   // The components.
 
   DLL_API static double tolerance;

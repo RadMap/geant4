@@ -23,32 +23,28 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/dmparticle/src/DetectorConstruction.cc
-/// \brief Implementation of the DetectorConstruction class
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
+/// \file ActionInitialization.cc
+/// \brief Implementation of the ActionInitialization class
 
 #include "ActionInitialization.hh"
 
-#include "RunAction.hh"
-#include "EventAction.hh"
-#include "StackingAction.hh"
-#include "PrimaryGeneratorAction.hh"
 #include "DetectorConstruction.hh"
+#include "EventAction.hh"
+#include "PrimaryGeneratorAction.hh"
+#include "RunAction.hh"
+#include "StackingAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 ActionInitialization::ActionInitialization(DetectorConstruction* det)
- : G4VUserActionInitialization()
+  : G4VUserActionInitialization()
 {
   fDetector = det;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::~ActionInitialization()
-{}
+ActionInitialization::~ActionInitialization() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

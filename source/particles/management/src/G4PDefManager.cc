@@ -23,61 +23,52 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4PDefManager class implementation
 //
-//
-//
-// ------------------------------------------------------------
-//
-//  GEANT4 class header file
-//
-// ---------------- G4PDefManager ----------------
-//
-// Utility template class for splitting RW data for thread-safety from
-// classes: G4ParticleDefinition, G4VDecayChannel.
-//
-// ------------------------------------------------------------
-// History:
-// 01.25.2009 Xin Dong: First implementation from automatic MT conversion.
-// ------------------------------------------------------------
-
-#include <stdlib.h>
+// Author: Xin Dong, 25.01.2009 - First implementation
+//                                from automatic MT conversion.
+// --------------------------------------------------------------------
 
 #include "G4PDefManager.hh"
-#include "globals.hh"
-#include "pwdefs.hh"
+
 #include "G4AutoLock.hh"
+#include "globals.hh"
+
+#include "pwdefs.hh"
+
+#include <cstdlib>
 
 void G4PDefData::initialize()
 {
-  theProcessManager = 0;
+  theProcessManager = nullptr;
+  theTrackingManager = nullptr;
 }
 
 G4int& G4PDefManager::slavetotalspace()
 {
-    G4ThreadLocalStatic G4int _instance = 0;
-    return _instance;
+  G4ThreadLocalStatic G4int _instance = 0;
+  return _instance;
 }
 
 G4PDefData*& G4PDefManager::offset()
 {
-    G4ThreadLocalStatic G4PDefData* _instance = nullptr;
-    return _instance;
+  G4ThreadLocalStatic G4PDefData* _instance = nullptr;
+  return _instance;
 }
 
-G4PDefManager::G4PDefManager() : totalobj(0)
+G4PDefManager::G4PDefManager()
 {
   G4MUTEXINIT(mutex);
 }
 
 G4int G4PDefManager::CreateSubInstance()
-  // Invoked by the master or work thread to create a new subinstance
-  // whenever a new split class instance is created. For each worker
-  // thread, ions are created dynamically.
+// Invoked by the master or work thread to create a new subinstance
+// whenever a new split class instance is created. For each worker
+// thread, ions are created dynamically.
 {
   G4AutoLock l(&mutex);
-  totalobj++;
-  if (totalobj > slavetotalspace())
-  {
+  ++totalobj;
+  if (totalobj > slavetotalspace()) {
     l.unlock();
     NewSubInstances();
     l.lock();
@@ -86,34 +77,35 @@ G4int G4PDefManager::CreateSubInstance()
 }
 
 void G4PDefManager::NewSubInstances()
-  // Invoked by each worker thread to grow the subinstance array and
-  // initialize each new subinstance using a particular method defined
-  // by the subclass.
+// Invoked by each worker thread to grow the subinstance array and
+// initialize each new subinstance using a particular method defined
+// by the subclass.
 {
   G4AutoLock l(&mutex);
-  if (slavetotalspace()  >= totalobj)  { return; }
+  if (slavetotalspace() >= totalobj) {
+    return;
+  }
   G4int originaltotalspace = slavetotalspace();
   slavetotalspace() = totalobj + 512;
-  offset() = (G4PDefData *) realloc(offset(), slavetotalspace() * sizeof(G4PDefData));
-
-  if (offset() == 0)
-  {
-    G4Exception("G4PDefManager::NewSubInstances()",
-                "OutOfMemory", FatalException, "Cannot malloc space!");
+  offset() = (G4PDefData*)realloc(offset(), slavetotalspace() * sizeof(G4PDefData));
+  if (offset() == nullptr) {
+    G4Exception("G4PDefManager::NewSubInstances()", "OutOfMemory", FatalException,
+                "Cannot malloc space!");
   }
 
-  for (G4int i = originaltotalspace; i < slavetotalspace(); i++)
-  {
+  for (G4int i = originaltotalspace; i < slavetotalspace(); ++i) {
     offset()[i].initialize();
   }
 }
 
+// Invoked by all threads to free the subinstance array.
 void G4PDefManager::FreeSlave()
-  // Invoked by all threads to free the subinstance array.
 {
-  if (!offset())  { return; }
+  if (offset() == nullptr) {
+    return;
+  }
   free(offset());
-  offset() = 0;
+  offset() = nullptr;
 }
 
 G4PDefData* G4PDefManager::GetOffset()
@@ -121,23 +113,21 @@ G4PDefData* G4PDefManager::GetOffset()
   return offset();
 }
 
-void G4PDefManager::UseWorkArea( G4PDefData* newOffset )
-  // Use recycled work area, which was created previously.
+// Use recycled work area, which was created previously.
+void G4PDefManager::UseWorkArea(G4PDefData* newOffset)
 {
-  if( offset() && offset()!=newOffset )
-  {
-    G4Exception("G4PDefManager::UseWorkspace()",
-                "InvalidCondition", FatalException,
+  if ((offset() != nullptr) && (offset() != newOffset)) {
+    G4Exception("G4PDefManager::UseWorkspace()", "InvalidCondition", FatalException,
                 "Thread already has workspace - cannot use another.");
   }
-  offset()= newOffset;
+  offset() = newOffset;
 }
 
+// Detach this thread from this Location
+// The object which calls this method is responsible for it.
 G4PDefData* G4PDefManager::FreeWorkArea()
-  // Detach this thread from this Location
-  // The object which calls this method is responsible for it.
 {
-  G4PDefData* offsetRet= offset();
-  offset()= 0;
+  G4PDefData* offsetRet = offset();
+  offset() = nullptr;
   return offsetRet;
 }

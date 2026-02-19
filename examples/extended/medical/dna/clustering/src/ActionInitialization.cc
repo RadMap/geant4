@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file ActionInitialization.cc
+/// \brief Implementation of the ActionInitialization class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -30,10 +33,9 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file ActionInitialization.cc
-/// \brief Implementation of the ActionInitialization class
 
 #include "ActionInitialization.hh"
+
 #include "EventAction.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
@@ -41,16 +43,11 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::ActionInitialization()
-: G4VUserActionInitialization()
-{
-}
+ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::~ActionInitialization()
-{
-}
+ActionInitialization::~ActionInitialization() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -68,4 +65,3 @@ void ActionInitialization::Build() const
   SetUserAction(new EventAction());
   SetUserAction(new SteppingAction());
 }
-

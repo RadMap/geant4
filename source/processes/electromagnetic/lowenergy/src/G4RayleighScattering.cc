@@ -44,7 +44,7 @@ G4RayleighScattering::G4RayleighScattering(const G4String& processName,
   SetStartFromNullFlag(false);
   SetBuildTableFlag(true);
   SetProcessSubType(fRayleigh);
-  SetMinKinEnergyPrim(100*keV);
+  SetMinKinEnergyPrim(150*CLHEP::keV);
   SetSplineFlag(false);
 }
 
@@ -70,11 +70,6 @@ void G4RayleighScattering::InitialiseProcess(const G4ParticleDefinition*)
     AddEmModel(1, EmModel());
   } 
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void G4RayleighScattering::PrintInfo()
-{}         
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

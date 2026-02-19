@@ -41,9 +41,13 @@
 #include "CLHEP/Random/engineIDulong.h"
 #include "CLHEP/Utility/atomic_int.h"
 
-#include <string.h>	// for strcmp
-#include <cmath>
+#include <atomic>
 #include <cstdlib>
+#include <cmath>
+#include <iostream>
+#include <string>
+#include <string.h>	// for strcmp
+#include <vector>
 
 namespace CLHEP {
 
@@ -112,7 +116,7 @@ void RanecuEngine::setSeed(long index, int dum)
   theSeed = seq;
   HepRandom::getTheTableSeeds(table[seq],seq);
   theSeeds = &table[seq][0];
-  further_randomize (seq, 0, index, shift1);     // mf 6/22/10
+  further_randomize (seq, 0, (int)index, shift1);     // mf 6/22/10
   further_randomize (seq, 1, dum,   shift2);     // mf 6/22/10
 }
 

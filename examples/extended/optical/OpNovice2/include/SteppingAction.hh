@@ -23,11 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/OpNovice2/include/SteppingAction.hh
+/// \file SteppingAction.hh
 /// \brief Definition of the SteppingAction class
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef SteppingAction_h
 #define SteppingAction_h 1
@@ -35,18 +32,27 @@
 #include "G4UserSteppingAction.hh"
 #include "globals.hh"
 
+class SteppingMessenger;
 
 class SteppingAction : public G4UserSteppingAction
 {
   public:
     SteppingAction();
-    virtual ~SteppingAction();
+    ~SteppingAction() override;
 
     // method from the base class
-    virtual void UserSteppingAction(const G4Step*);
+    void UserSteppingAction(const G4Step*) override;
+
+    inline void SetKillOnSecondSurface(G4bool val) { fKillOnSecondSurface = val; }
+    inline G4bool GetKillOnSecondSurface() { return fKillOnSecondSurface; }
 
   private:
-    G4int fVerbose;
+    SteppingMessenger* fSteppingMessenger = nullptr;
+
+    G4int fVerbose = 0;
+    size_t fIdxVelocity = 0;
+
+    G4bool fKillOnSecondSurface = false;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

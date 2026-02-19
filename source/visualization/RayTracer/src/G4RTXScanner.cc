@@ -27,8 +27,6 @@
 //
 //
 
-#ifdef G4VIS_BUILD_RAYTRACERX_DRIVER
-
 #include "G4RTXScanner.hh"
 
 #include "G4TheRayTracer.hh"
@@ -37,6 +35,8 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
+
+#define G4warn G4cout
 
 extern "C" {
   Bool G4RayTracerXScannerWaitForNotify (Display*, XEvent* e, char* arg) {
@@ -48,18 +48,9 @@ G4RTXScanner::G4RTXScanner():
   G4VRTScanner(), theNRow(0), theNColumn(0), theStep(0)
   ,theIRow(0), theIColumn(0)
   ,display(0), win(0), scmap(0)
-{
-  theGSName = "RayTracerX";
-  theGSNickname = "RayTracerX";
-}
+{}
 
 G4RTXScanner::~G4RTXScanner() {}
-
-const G4String& G4RTXScanner::GetGSName() const
-{return theGSName;}
-
-const G4String& G4RTXScanner::GetGSNickname() const
-{return theGSNickname;}
 
 void G4RTXScanner::Initialize(G4int nRow, G4int nColumn) {
   theNRow = nRow;
@@ -112,7 +103,7 @@ G4bool G4RTXScanner::GetXWindow(const G4String& name, G4ViewParameters& vp)
 {
   display = XOpenDisplay(0);  // Use display defined by DISPLAY environment.
   if (!display) {
-    G4cerr << "G4RTXScanner::Initialize(): cannot get display."
+    G4warn << "G4RTXScanner::Initialize(): cannot get display."
 	   << G4endl;
     return false;
   }
@@ -144,7 +135,7 @@ G4bool G4RTXScanner::GetXWindow(const G4String& name, G4ViewParameters& vp)
 	size_hints->y = yOffset;
       }
     } else {
-      G4cout << "ERROR: Geometry string \""
+      G4warn << "ERROR: Geometry string \""
 	     << XGeometryString
 	     << "\" invalid.  Using \"600x600\"."
 	     << G4endl;
@@ -152,7 +143,7 @@ G4bool G4RTXScanner::GetXWindow(const G4String& name, G4ViewParameters& vp)
       height = 600;
     }
   } else {
-    G4cout << "ERROR: Geometry string \""
+    G4warn << "ERROR: Geometry string \""
 	   << XGeometryString
 	   << "\" is empty.  Using \"600x600\"."
 	   << G4endl;
@@ -183,7 +174,7 @@ G4bool G4RTXScanner::GetXWindow(const G4String& name, G4ViewParameters& vp)
       (display, RootWindow(display, screen_num),
        &scmap, &nMaps, XA_RGB_BEST_MAP);
     if (!status) {
-      G4cerr <<
+      G4warn <<
 	"G4RTXScanner::Initialize(): cannot get color map."
 	"\n  Perhaps your system does not support XA_RGB_BEST_MAP."
 	     << G4endl;
@@ -191,7 +182,7 @@ G4bool G4RTXScanner::GetXWindow(const G4String& name, G4ViewParameters& vp)
     }
   }
   if (!scmap->colormap) {
-    G4cerr << "G4RTXScanner::Initialize(): color map empty."
+    G4warn << "G4RTXScanner::Initialize(): color map empty."
 	   << G4endl;
     return false;
   }
@@ -236,5 +227,3 @@ void G4RTXScanner::Draw
 
   XFlush(display);
 }
-
-#endif

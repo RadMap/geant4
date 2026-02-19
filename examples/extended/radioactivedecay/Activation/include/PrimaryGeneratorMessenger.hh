@@ -25,10 +25,6 @@
 //
 /// \file PrimaryGeneratorMessenger.hh
 /// \brief Definition of the PrimaryGeneratorMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PrimaryGeneratorMessenger_h
 #define PrimaryGeneratorMessenger_h 1
@@ -43,20 +39,20 @@ class G4UIcmdWithADoubleAndUnit;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PrimaryGeneratorMessenger: public G4UImessenger
+class PrimaryGeneratorMessenger : public G4UImessenger
 {
   public:
     PrimaryGeneratorMessenger(PrimaryGeneratorAction*);
-   ~PrimaryGeneratorMessenger();
-    
-    virtual void SetNewValue(G4UIcommand*, G4String);
-    
+    ~PrimaryGeneratorMessenger() override;
+
+    void SetNewValue(G4UIcommand*, G4String) override;
+
   private:
-    PrimaryGeneratorAction*    fAction;
-    G4UIdirectory*             fGunDir;
-    G4UIcmdWithoutParameter*   fDefaultCmd;
-    G4UIcmdWithADoubleAndUnit* fRndmCmd;
-    G4UIcmdWithADoubleAndUnit* fTimeCmd;
+    PrimaryGeneratorAction* fAction = nullptr;
+    G4UIdirectory* fGunDir = nullptr;
+    G4UIcmdWithoutParameter* fDefaultCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fRndmCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fTimeCmd = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

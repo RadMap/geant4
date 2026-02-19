@@ -22,7 +22,8 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
+/// @file G4MPIextraWorker.cc
+/// @brief Extra MPI worker
 
 // The extra MPI worker class defines actions on an extra MPI worker
 // which does not perform event processing.
@@ -32,8 +33,9 @@
 // Author: Ivana Hrivnacova, 21/11/2018 (ivana@ipno.in2p3.fr)
 
 #include "G4MPIextraWorker.hh"
-#include "G4UserRunAction.hh"
+
 #include "G4Run.hh"
+#include "G4UserRunAction.hh"
 #include "G4ios.hh"
 
 void G4MPIextraWorker::BeamOn()

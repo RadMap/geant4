@@ -42,28 +42,22 @@ class G4PreCompoundNucleon : public G4PreCompoundFragment
 public:  
 
   G4PreCompoundNucleon(const G4ParticleDefinition*,
-		       G4VCoulombBarrier * aCoulombBarrier);
+                       G4VCoulombBarrier* p = nullptr);
   
-  virtual ~G4PreCompoundNucleon();
-    
+  ~G4PreCompoundNucleon() override = default;
+
+  G4PreCompoundNucleon(const G4PreCompoundNucleon &right) = delete;
+  const G4PreCompoundNucleon& 
+  operator= (const G4PreCompoundNucleon &right) = delete;
+  G4bool operator==(const G4PreCompoundNucleon &right) const = delete;
+  G4bool operator!=(const G4PreCompoundNucleon &right) const = delete;
+
 protected:
 
+  G4double ProbabilityDistributionFunction(G4double eKin,
+					   const G4Fragment&) override;
   virtual G4double 
-  ProbabilityDistributionFunction(G4double eKin,
-				  const G4Fragment& aFragment);
-
-  virtual G4double 
-  GetRj(G4int NumberParticles, G4int NumberCharged) const = 0; 
-
-private:
-
-  G4PreCompoundNucleon();
-  G4PreCompoundNucleon(const G4PreCompoundNucleon &right);
-  const G4PreCompoundNucleon& 
-  operator= (const G4PreCompoundNucleon &right);
-  G4bool operator==(const G4PreCompoundNucleon &right) const;
-  G4bool operator!=(const G4PreCompoundNucleon &right) const;    
-
+  GetRj(G4int NumberParticles, G4int NumberCharged) const = 0;
 };
 
 #endif

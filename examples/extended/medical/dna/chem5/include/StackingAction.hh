@@ -19,10 +19,13 @@
 // * technical work of the GEANT4 collaboration.                      *
 // * By using,  copying,  modifying or  distributing the software (or *
 // * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your * 
+// * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file StackingAction.hh
+/// \brief Definition of the StackingAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -32,8 +35,6 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file StackingAction.hh
-/// \brief Definition of the StackingAction class
 
 #ifndef CHEM5_StackingAction_h
 #define CHEM5_StackingAction_h 1
@@ -46,10 +47,10 @@
 
 class StackingAction : public G4UserStackingAction
 {
-public:
-    StackingAction();
-    virtual ~StackingAction();
-    virtual void NewStage();
+  public:
+    StackingAction() = default;
+    ~StackingAction() override = default;
+    void NewStage() override;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -23,21 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm12/src/PrimaryGeneratorAction.cc
+/// \file PrimaryGeneratorAction.cc
 /// \brief Implementation of the PrimaryGeneratorAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "PrimaryGeneratorAction.hh"
 
 #include "PrimaryGeneratorMessenger.hh"
 
 #include "G4Event.hh"
+#include "G4ParticleDefinition.hh"
 #include "G4ParticleGun.hh"
 #include "G4ParticleTable.hh"
-#include "G4ParticleDefinition.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
@@ -45,23 +41,16 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 PrimaryGeneratorAction::PrimaryGeneratorAction()
-:G4VUserPrimaryGeneratorAction(),                                               
- fParticleGun(0),
- fRndmBeam(0),
- fGunMessenger(0)
 {
-  fParticleGun  = new G4ParticleGun(1);
-  G4ParticleDefinition* particle
-           = G4ParticleTable::GetParticleTable()->FindParticle("e-");
+  fParticleGun = new G4ParticleGun(1);
+  G4ParticleDefinition* particle = G4ParticleTable::GetParticleTable()->FindParticle("e-");
   fParticleGun->SetParticleDefinition(particle);
-  fParticleGun->SetParticleEnergy(4*MeV);  
+  fParticleGun->SetParticleEnergy(4 * MeV);
   fParticleGun->SetParticlePosition(G4ThreeVector());
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(1,0,0));
-          
-  fRndmBeam   = true;
-    
-  //create a messenger for this class
-  fGunMessenger = new PrimaryGeneratorMessenger(this);  
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(1, 0, 0));
+
+  // create a messenger for this class
+  fGunMessenger = new PrimaryGeneratorMessenger(this);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -69,29 +58,25 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
 PrimaryGeneratorAction::~PrimaryGeneratorAction()
 {
   delete fParticleGun;
-  delete fGunMessenger;  
+  delete fGunMessenger;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
-{    
-  //randomize the beam, if requested.
+{
+  // randomize the beam, if requested.
   //
-  if (fRndmBeam) 
-    {
-     //distribution uniform in solid angle
-     //
-     G4double cosTheta = 2*G4UniformRand() - 1., phi = twopi*G4UniformRand();
-     G4double sinTheta = std::sqrt(1. - cosTheta*cosTheta);
-     G4double ux = sinTheta*std::cos(phi),
-              uy = sinTheta*std::sin(phi),
-              uz = cosTheta;
-     fParticleGun->SetParticleMomentumDirection(G4ThreeVector(ux,uy,uz));    
-    }
+  if (fRndmBeam) {
+    // distribution uniform in solid angle
+    //
+    G4double cosTheta = 2 * G4UniformRand() - 1., phi = twopi * G4UniformRand();
+    G4double sinTheta = std::sqrt(1. - cosTheta * cosTheta);
+    G4double ux = sinTheta * std::cos(phi), uy = sinTheta * std::sin(phi), uz = cosTheta;
+    fParticleGun->SetParticleMomentumDirection(G4ThreeVector(ux, uy, uz));
+  }
 
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

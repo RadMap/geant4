@@ -51,7 +51,6 @@
 #include <vector>
 #include "globals.hh"
 #include "G4PhysicsTable.hh"
-#include "G4Threading.hh"
 
 class G4VEmModel;
 class G4ParticleDefinition;
@@ -62,9 +61,9 @@ class G4LossTableBuilder
 
 public:
 
-  G4LossTableBuilder(G4bool master=true);
+  explicit G4LossTableBuilder(G4bool master);
 
-  virtual ~G4LossTableBuilder();
+  ~G4LossTableBuilder();
 
   // build sum of all energy loss processes
   void BuildDEDXTable(G4PhysicsTable* dedxTable, 
@@ -72,13 +71,11 @@ public:
 
   // build range
   void BuildRangeTable(const G4PhysicsTable* dedxTable, 
-		       G4PhysicsTable* rangeTable,
-		       G4bool useBM = false);
+		       G4PhysicsTable* rangeTable);
 
   // build inverse range
   void BuildInverseRangeTable(const G4PhysicsTable* rangeTable,
-			      G4PhysicsTable* invRangeTable,
-			      G4bool useBM = false);
+			      G4PhysicsTable* invRangeTable);
 
   // build a table requested by any model class
   G4PhysicsTable* BuildTableForModel(G4PhysicsTable* table, 
@@ -91,43 +88,52 @@ public:
   void InitialiseBaseMaterials(const G4PhysicsTable* table=nullptr);
 
   // access methods
-  const std::vector<G4int>* GetCoupleIndexes() const;
+  static const std::vector<G4int>* GetCoupleIndexes();
 
-  const std::vector<G4double>* GetDensityFactors() const;
+  static const std::vector<G4double>* GetDensityFactors();
 
-  G4bool GetFlag(size_t idx);
+  static const std::vector<G4bool>* GetFluctuationFlags();
+
+  static G4bool GetFlag(std::size_t idx);
+
+  static G4bool GetBaseMaterialFlag();
 
   inline void SetSplineFlag(G4bool flag);
 
-  inline void SetInitialisationFlag(G4bool flag);
+  inline void SetBaseMaterialActive(G4bool flag);
+
+  G4LossTableBuilder & operator=(const G4LossTableBuilder &right) = delete;
+  G4LossTableBuilder(const G4LossTableBuilder&) = delete;
  
 private:
 
-  G4LossTableBuilder & operator=(const  G4LossTableBuilder &right);
-  G4LossTableBuilder(const  G4LossTableBuilder&);
-
   G4EmParameters* theParameters;
 
-  G4bool splineFlag;
-  G4bool isInitialized;
-  G4bool isMaster;
+  G4bool splineFlag = true;
+  G4bool isInitialized = false;
+  G4bool isBaseMatActive = true;
+  G4bool isInitializer;
 
+  static G4bool baseMatFlag;
   static std::vector<G4double>* theDensityFactor;
   static std::vector<G4int>*    theDensityIdx;
   static std::vector<G4bool>*   theFlag;
-#ifdef G4MULTITHREADED
-  static G4Mutex ltbMutex;
-#endif
+  static std::vector<G4bool>*   theFluct;
 };
 
 inline void G4LossTableBuilder::SetSplineFlag(G4bool flag)
 {
   splineFlag = flag;
 }
-
+/*
 inline void G4LossTableBuilder::SetInitialisationFlag(G4bool flag)
 {
   isInitialized = flag;
+}
+*/
+inline void G4LossTableBuilder::SetBaseMaterialActive(G4bool flag)
+{
+  isBaseMatActive = flag;
 }
 
 //....oooOO0OOooo.......oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

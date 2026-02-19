@@ -23,28 +23,19 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P01/src/ExP01SteppingAction.cc
+/// \file ExP01SteppingAction.cc
 /// \brief Implementation of the ExP01SteppingAction class
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "ExP01SteppingAction.hh"
+
 #include "G4SteppingManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ExP01SteppingAction::ExP01SteppingAction()
-: G4UserSteppingAction()
-{ }
+ExP01SteppingAction::ExP01SteppingAction() : G4UserSteppingAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void ExP01SteppingAction::UserSteppingAction(const G4Step*)
-{ 
-}
+void ExP01SteppingAction::UserSteppingAction(const G4Step*) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

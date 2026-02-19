@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field04/include/F04StackingAction.hh
+/// \file F04StackingAction.hh
 /// \brief Definition of the F04StackingAction class
-//
 
 #ifndef F04StackingAction_h
 #define F04StackingAction_h 1
@@ -36,16 +34,13 @@
 class F04StackingAction : public G4UserStackingAction
 {
   public:
-    F04StackingAction();
-    virtual ~F04StackingAction();
+    F04StackingAction() = default;
+    ~F04StackingAction() override = default;
 
   public:
-    virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack);
-    virtual void NewStage();
-    virtual void PrepareNewEvent();
-
-  private:
-
+    G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack) override;
+    void NewStage() override;
+    void PrepareNewEvent() override;
 };
 
 #endif

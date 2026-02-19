@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file DetectorMessenger.hh
 /// \brief Definition of the DetectorMessenger class
 
@@ -46,21 +45,20 @@ class G4UIcmdWithADouble;
 /// It implements commands:
 /// - /transform/setMethod method
 
-class DetectorMessenger: public G4UImessenger
+class DetectorMessenger : public G4UImessenger
 {
   public:
-    DetectorMessenger(DetectorConstruction* );
-   ~DetectorMessenger();
-    
-    virtual void SetNewValue(G4UIcommand* command, G4String newValue);
-    
+    DetectorMessenger(DetectorConstruction*);
+    ~DetectorMessenger() override;
+
+    void SetNewValue(G4UIcommand* command, G4String newValue) override;
+
   private:
-    DetectorConstruction*      fDetectorConstruction;
-    G4UIdirectory*             fDirectory;
-    G4UIcmdWithAString*        fSetMethodCmd;
+    DetectorConstruction* fDetectorConstruction = nullptr;
+    G4UIdirectory* fDirectory = nullptr;
+    G4UIcmdWithAString* fSetMethodCmd = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

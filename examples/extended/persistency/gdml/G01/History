@@ -1,22 +1,46 @@
--------------------------------------------------------------------
+# Example G01 History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                      Category History file
-                      ---------------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all category-tags.
-It DOES NOT substitute the  CVS log-message one should put at every
-committal in the CVS repository !
+-------------------------------------------------------------------------------
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2024-06-05 Gabriele Cosmo (G01-V11-02-00)
+- Updated GDML files to use short URL for schema validation.
 
-November 28th, 2019 I. Hrivnacova G01-V10-05-06
+## 2023-04-26 Gabriele Cosmo (G01-V11-01-00)
+- Added comment in main() to demonstrate how to set alternative schema file
+  for validation while parsing a GDML document.
+
+## 2021-12-10 Ben Morgan (G01-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+September 15th, 2021 Gabriele Cosmo G01-V10-07-02
+- Fixed minor overlaps in assembly.gdml and axes.gdml samples.
+
+February 3rd, 2021 Gabriele Cosmo G01-V10-07-01
+- Fixed auxiliary.gdml sample to define proper Region tags.
+
+January 11th, 2021 Gabriele Cosmo G01-V10-07-00
+- Added scaledSolids.gdml sample setup.
+
+November 10th, 2020 Ben Morgan G01-V10-06-02
+- Migration to G4RunManagerFactory.
+
+November 5th, 2020 Witek Pokorski G01-V10-06-01
+- Added a line (commented out) indicating the possibility to overwrite
+output files.
+
+May 14th, 2020 Gabriele Cosmo G01-V10-06-00
+- Use [] brackets in loop.gdml sample to show how to index names
+  and dimensions in loops.
+
+November 28th, 2019 Ivana Hrivnacova G01-V10-05-06
 - Fixed Doxygen warning in .README.txt
 
 September 24th, 2019 Gabriele Cosmo G01-V10-05-05
@@ -86,10 +110,10 @@ July 25th, 2012 Witek Pokorski G01-V09-05-02
 - a few more cosmetic changes to comply to coding convetions
 
 July 25th, 2012 Witek Pokorski G01-V09-05-01
-- making a number of cosmetic changes to comply to coding conventions 
+- making a number of cosmetic changes to comply to coding conventions
 
 April 4th, 2012 Witek Pokorski G01-V09-05-00
-- Added missing unit in opticalsurfaces.gdml 
+- Added missing unit in opticalsurfaces.gdml
 
 November 17th, 2010  Gabriele Cosmo  G01-V09-03-07
 - Added commented command for de-activating names stripping while reading.

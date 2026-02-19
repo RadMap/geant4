@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/HepMCEx01/include/ExN04StackingActionMessenger.hh
+/// \file ExN04StackingActionMessenger.hh
 /// \brief Definition of the ExN04StackingActionMessenger class
-//
-//
 
 #ifndef ExN04StackingActionMessenger_h
 #define ExN04StackingActionMessenger_h 1
@@ -38,22 +36,22 @@ class G4UIcmdWithADoubleAndUnit;
 #include "G4UImessenger.hh"
 #include "globals.hh"
 
-class ExN04StackingActionMessenger: public G4UImessenger {
-public:
-  ExN04StackingActionMessenger(ExN04StackingAction* msa);
-  ~ExN04StackingActionMessenger();
+class ExN04StackingActionMessenger : public G4UImessenger
+{
+  public:
+    ExN04StackingActionMessenger(ExN04StackingAction* msa);
+    ~ExN04StackingActionMessenger();
 
-  virtual void SetNewValue(G4UIcommand * command,G4String newValues);
-  virtual G4String GetCurrentValue(G4UIcommand * command);
+    virtual void SetNewValue(G4UIcommand* command, G4String newValues);
+    virtual G4String GetCurrentValue(G4UIcommand* command);
 
-private:
-  ExN04StackingAction * fMyAction;
+  private:
+    ExN04StackingAction* fMyAction;
 
-  G4UIcmdWithAnInteger * fMuonCmd;
-  G4UIcmdWithAnInteger * fIsoMuonCmd;
-  G4UIcmdWithAnInteger * fIsoCmd;
-  G4UIcmdWithADoubleAndUnit * fRoiCmd;
-
+    G4UIcmdWithAnInteger* fMuonCmd;
+    G4UIcmdWithAnInteger* fIsoMuonCmd;
+    G4UIcmdWithAnInteger* fIsoCmd;
+    G4UIcmdWithADoubleAndUnit* fRoiCmd;
 };
 
 #endif

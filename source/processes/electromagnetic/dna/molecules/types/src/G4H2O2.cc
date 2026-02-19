@@ -40,18 +40,18 @@
 // ######################################################################
 // ###                         Peroxyde                               ###
 // ######################################################################
-G4H2O2* G4H2O2::theInstance = 0;
+G4H2O2* G4H2O2::theInstance = nullptr;
 
 G4H2O2* G4H2O2::Definition()
 {
-  if (theInstance != 0) return theInstance;
+  if (theInstance != nullptr) return theInstance;
 
   const G4String name = "H2O2";
 
   // search in particle table]
   G4ParticleTable* pTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* anInstance = pTable->FindParticle(name);
-  if (anInstance == 0)
+  if (anInstance == nullptr)
   {
     const G4String formatedName = "H_{2}O_{2}";
 
@@ -86,6 +86,6 @@ G4H2O2* G4H2O2::Definition()
     ((G4MoleculeDefinition*) anInstance)->SetLevelOccupation(7);
     ((G4MoleculeDefinition*) anInstance)->SetFormatedName(formatedName);
   }
-  theInstance = reinterpret_cast<G4H2O2*>(anInstance);
+  theInstance = static_cast<G4H2O2*>(anInstance);
   return theInstance;
 }

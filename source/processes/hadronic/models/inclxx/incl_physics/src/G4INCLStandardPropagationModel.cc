@@ -43,6 +43,9 @@
  */
 
 #include "G4INCLStandardPropagationModel.hh"
+#include "G4INCLPbarAtrestEntryChannel.hh"
+#include "G4INCLNbarAtrestEntryChannel.hh"
+#include "G4INCLAntinucleiAtrestEntryChannel.hh"
 #include "G4INCLSurfaceAvatar.hh"
 #include "G4INCLBinaryCollisionAvatar.hh"
 #include "G4INCLDecayAvatar.hh"
@@ -59,6 +62,7 @@
 #include "G4INCLPionResonanceDecayChannel.hh"
 #include "G4INCLParticleEntryAvatar.hh"
 #include "G4INCLIntersection.hh"
+#include <vector>
 
 namespace G4INCL {
 
@@ -81,13 +85,172 @@ namespace G4INCL {
       return theNucleus;
     }
 
+//D
+
     G4double StandardPropagationModel::shoot(ParticleSpecies const &projectileSpecies, const G4double kineticEnergy, const G4double impactParameter, const G4double phi) {
-      if(projectileSpecies.theType==Composite)
-        return shootComposite(projectileSpecies, kineticEnergy, impactParameter, phi);
-      else
+      if(projectileSpecies.theType==Composite || projectileSpecies.theType==antiComposite){
+        if(theNucleus->getAnnihilationType()!=Def)
+          return shootCompositeAtrest(projectileSpecies,kineticEnergy);
+        else
+          return shootComposite(projectileSpecies, kineticEnergy, impactParameter, phi);
+      }
+      else if((projectileSpecies.theType==antiProton || projectileSpecies.theType==antiNeutron) && theNucleus->getAnnihilationType()!=Def){
+        return shootAtrest(projectileSpecies.theType, kineticEnergy);
+      }
+      else{
         return shootParticle(projectileSpecies.theType, kineticEnergy, impactParameter, phi);
+      }
     }
 
+//D
+
+    G4double StandardPropagationModel::shootAtrest(ParticleType const t, const G4double kineticEnergy) {
+      theNucleus->setParticleNucleusCollision(); 
+      currentTime = 0.0;
+
+      // Create final state particles
+      const G4double projectileMass = ParticleTable::getTableParticleMass(t);
+      G4double energy = kineticEnergy + projectileMass;
+      G4double momentumZ = std::sqrt(energy*energy - projectileMass*projectileMass);
+      ThreeVector momentum(0.0, 0.0, momentumZ);
+      Particle *pb = new G4INCL::Particle(t, energy, momentum, ThreeVector());
+      if (t == antiProton){
+      PbarAtrestEntryChannel *obj = new PbarAtrestEntryChannel(theNucleus, pb); 
+      ParticleList fslist = obj->makeMesonStar();
+      const G4bool isProton = obj->ProtonIsTheVictim();
+      delete pb;
+
+      //set Stopping time according to highest meson energy of the star
+      G4double temfin;
+      G4double TLab;
+      std::vector<G4double> energies;
+      std::vector<G4double> projections;
+      ThreeVector ab, cd;
+
+      for(ParticleIter pit = fslist.begin(), e = fslist.end(); pit!=e; ++pit){
+        energies.push_back((*pit)->getKineticEnergy());
+        ab = (*pit)->boostVector();
+        cd = (*pit)->getPosition();
+        projections.push_back(ab.dot(cd)); //projection length
+      }// make vector of energies
+      
+      temfin = 30.18 * std::pow(theNucleus->getA(), 0.17);
+      TLab = *max_element(energies.begin(), energies.end()); //choose max energy
+
+      // energy-dependent stopping time above 2 AGeV
+      if(TLab>2000.)
+        temfin *= (5.8E4-TLab)/5.6E4;
+
+      maximumTime = temfin;  
+
+      // If the incoming particle is slow, use a larger stopping time
+      const G4double rMax = theNucleus->getUniverseRadius();
+      const G4double distance = 2.*rMax;
+      const G4double maxMesonVelocityProjection = *max_element(energies.begin(), energies.end());
+      const G4double traversalTime = distance / maxMesonVelocityProjection;
+      if(maximumTime < traversalTime)
+        maximumTime = traversalTime;
+      INCL_DEBUG("Cascade stopping time is " << maximumTime << '\n');
+
+
+      // Fill in the relevant kinematic variables
+      theNucleus->setIncomingAngularMomentum(G4INCL::ThreeVector(0., 0., 0.));
+      theNucleus->setIncomingMomentum(G4INCL::ThreeVector(0., 0., 0.));
+      if(isProton){
+        theNucleus->setInitialEnergy(pb->getEnergy()
+          + ParticleTable::getTableMass(theNucleus->getA() + 1,theNucleus->getZ() + 1,theNucleus->getS()));
+      }
+      else{
+        theNucleus->setInitialEnergy(pb->getEnergy()
+          + ParticleTable::getTableMass(theNucleus->getA() + 1,theNucleus->getZ(),theNucleus->getS()));
+      }
+      //kinetic energy excluded from the balance
+
+      for(ParticleIter p = fslist.begin(), e = fslist.end(); p!=e; ++p){
+        (*p)->makeProjectileSpectator();                                        
+      }
+      
+      generateAllAvatars();
+      firstAvatar = false;
+
+      // Get the entry avatars for mesons
+      IAvatarList theAvatarList = obj->bringMesonStar(fslist, theNucleus);
+      delete obj;
+      theNucleus->getStore()->addParticleEntryAvatars(theAvatarList);
+      INCL_DEBUG("Avatars added" << '\n');
+       
+      } //end (t == antiProton)
+      else if (t == antiNeutron){
+        NbarAtrestEntryChannel *obj = new NbarAtrestEntryChannel(theNucleus, pb);
+        ParticleList fslist = obj->makeMesonStar();
+        const bool isProton = obj->ProtonIsTheVictim();
+        delete pb;
+
+        //set Stopping time according to highest meson energy of the star
+        G4double temfin;
+        G4double TLab;
+        std::vector<double> energies;
+        std::vector<double> projections;
+        ThreeVector ab, cd;
+
+        for(ParticleIter pit = fslist.begin(), e = fslist.end(); pit!=e; ++pit){
+          energies.push_back((*pit)->getKineticEnergy());
+          ab = (*pit)->boostVector();
+          cd = (*pit)->getPosition();
+          projections.push_back(ab.dot(cd)); //projection length
+        }// make vector of energies
+      
+        temfin = 30.18 * std::pow(theNucleus->getA(), 0.17);
+        TLab = *max_element(energies.begin(), energies.end()); //choose max energy
+
+        // energy-dependent stopping time above 2 AGeV
+        if(TLab>2000.)
+          temfin *= (5.8E4-TLab)/5.6E4;
+
+        maximumTime = temfin;  
+
+        // If the incoming particle is slow, use a larger stopping time
+        const G4double rMax = theNucleus->getUniverseRadius();
+        const G4double distance = 2.*rMax;
+        const G4double maxMesonVelocityProjection = *max_element(energies.begin(), energies.end());
+        const G4double traversalTime = distance / maxMesonVelocityProjection;
+        if(maximumTime < traversalTime)
+          maximumTime = traversalTime;
+        INCL_DEBUG("Cascade stopping time is " << maximumTime << '\n');
+
+
+        // Fill in the relevant kinematic variables
+        theNucleus->setIncomingAngularMomentum(G4INCL::ThreeVector(0., 0., 0.));
+        theNucleus->setIncomingMomentum(G4INCL::ThreeVector(0., 0., 0.));
+        if(isProton){
+          theNucleus->setInitialEnergy(pb->getEnergy()
+            + ParticleTable::getTableMass(theNucleus->getA() + 1,theNucleus->getZ() + 1,theNucleus->getS()));
+        }
+        else{
+          theNucleus->setInitialEnergy(pb->getEnergy()
+            + ParticleTable::getTableMass(theNucleus->getA() + 1,theNucleus->getZ(),theNucleus->getS()));
+        }
+        //kinetic energy excluded from the balance
+
+        for(ParticleIter p = fslist.begin(), e = fslist.end(); p!=e; ++p){
+          (*p)->makeProjectileSpectator();                                        
+        }
+      
+        generateAllAvatars();
+        firstAvatar = false;
+
+        // Get the entry avatars for mesons
+        IAvatarList theAvatarList = obj->bringMesonStar(fslist, theNucleus);
+        delete obj;
+        theNucleus->getStore()->addParticleEntryAvatars(theAvatarList);
+        INCL_DEBUG("Avatars added" << '\n');
+      } 
+      
+      return 99.;
+    } 
+       
+//D
+      
     G4double StandardPropagationModel::shootParticle(ParticleType const type, const G4double kineticEnergy, const G4double impactParameter, const G4double phi) {
       theNucleus->setParticleNucleusCollision();
       currentTime = 0.0;
@@ -123,6 +286,9 @@ namespace G4INCL {
       if(maximumTime < traversalTime)
         maximumTime = traversalTime;
       INCL_DEBUG("Cascade stopping time is " << maximumTime << '\n');
+ 
+      // If the incoming particle is an antinucleon use a larger stopping time
+      if( p->isAntiNucleon()) maximumTime *= 2.;
 
       // If Coulomb is activated, do not process events with impact
       // parameter larger than the maximum impact parameter, taking into
@@ -175,8 +341,17 @@ namespace G4INCL {
       // Same stopping time as for nucleon-nucleus
       maximumTime = 29.8 * std::pow(theNucleus->getA(), 0.16);
 
-      // If the incoming cluster is slow, use a larger stopping time
-      const G4double rms = ParticleTable::getLargestNuclearRadius(pr->getA(), pr->getZ());
+      // If the incoming cluster is slow, use a larger stopping 
+      G4double rms=0.;
+      if(species.theType == Composite){
+        rms = ParticleTable::getLargestNuclearRadius(pr->getA(), pr->getZ());
+      }
+      else if(species.theType == antiComposite){
+        rms = ParticleTable::getLargestNuclearRadius(-(pr->getA()), -(pr->getZ()));
+      }
+      else {
+        INCL_ERROR("a non-composite try to go through shootComposite : " << species.theType << '\n');
+      }
       const G4double rMax = theNucleus->getUniverseRadius();
       const G4double distance = 2.*rMax + 2.725*rms;
       const G4double projectileVelocity = pr->boostVector().mag();
@@ -238,6 +413,254 @@ namespace G4INCL {
 
       return pr->getTransversePosition().mag();
     }
+ 
+    G4double StandardPropagationModel::shootCompositeAtrest(ParticleSpecies const &species, const G4double kineticEnergy){
+      if(theNucleus->getAnnihilationType()==PType || theNucleus->getAnnihilationType()==NType){
+        INCL_DEBUG("Antideuteron annihilation Model B chosen, Annihilation of one antinucleon " << '\n');
+        theNucleus->setParticleNucleusCollision();
+        currentTime = 0.0;
+        
+        //Dummy Cluster to intialise the anticomposite and distribute the energy and positio
+        Cluster *DummyC = new Cluster(-1,-2,0);
+        DummyC->setTableMass();
+        DummyC->initializeParticles();
+        DummyC->internalBoostToCM();
+        const G4double projectileMass = DummyC->getMass();
+        const G4double energy = kineticEnergy + projectileMass;
+        const G4double momentumZ = std::sqrt(energy*energy - projectileMass*projectileMass);
+        const ThreeVector aBoostVector = ThreeVector(0.0, 0.0, momentumZ / energy);
+        DummyC->boost(-aBoostVector);
+        DummyC->makeProjectileSpectator();
+
+        Particle *pb = new Particle(antiProton, 1, ThreeVector(), ThreeVector());
+        Particle *nb= new Particle(antiNeutron, 1, ThreeVector(), ThreeVector());
+        ParticleList Antis = DummyC->getParticles();
+        for(ParticleIter i = Antis.begin(), e=Antis.end();i!=e;++i){
+          if((*i)->getType()==antiProton){
+            pb = (*i);
+            DummyC->removeParticle((*i));
+          }
+          else if((*i)->getType()==antiNeutron){
+            nb = (*i);
+            DummyC->removeParticle((*i));
+          }
+        }
+        delete DummyC;
+        Config const *theConfig=theNucleus->getStore()->getConfig();
+        if(nb->getKineticEnergy() <= theConfig->getnbAtrestThreshold() && (pb->getEnergy() >= pb->getMass())){
+          INCL_DEBUG("Annihilation of the Antineutron " << '\n');
+          NbarAtrestEntryChannel *obj = new NbarAtrestEntryChannel(theNucleus,  nb);
+          ParticleList fslist = obj->makeMesonStar();
+          const G4bool isProton = obj->ProtonIsTheVictim();
+          //delete nb;
+
+          //set Stopping time according to highest meson energy of the star
+          G4double temfin;
+          G4double TLab;
+          std::vector<G4double> energies;
+          std::vector<G4double> projections;
+          ThreeVector ab, cd;
+          for(ParticleIter pit = fslist.begin(), e = fslist.end(); pit!=e; ++pit){
+            energies.push_back((*pit)->getKineticEnergy());
+            ab = (*pit)->boostVector();
+            cd = (*pit)->getPosition();
+            projections.push_back(ab.dot(cd)); //projection length
+          }// make vector of energies
+          temfin = 30.18 * std::pow(theNucleus->getA(), 0.17);
+          TLab = *max_element(energies.begin(), energies.end()); //choose max energy
+          if(TLab>2000.)
+            temfin *= (5.8E4-TLab)/5.6E4;
+          maximumTime = temfin;  
+          // If the incoming particle is slow, use a larger stopping time
+          const G4double rMax = theNucleus->getUniverseRadius();
+          const G4double distance = 2.*rMax;
+          const G4double maxMesonVelocityProjection = *max_element(energies.begin(), energies.end());
+          const G4double traversalTime = distance / maxMesonVelocityProjection;
+          if(maximumTime < traversalTime)
+            maximumTime = traversalTime;
+          INCL_DEBUG("Cascade stopping time is " << maximumTime << '\n');
+
+          // Fill in the relevant kinematic variables
+          theNucleus->setIncomingAngularMomentum(pb->getAngularMomentum());
+          theNucleus->setIncomingMomentum(pb->getMomentum());
+          if(isProton){
+            theNucleus->setInitialEnergy(nb->getMass() + pb->getEnergy()
+              + ParticleTable::getTableMass(theNucleus->getA() + 1,theNucleus->getZ() + 1,theNucleus->getS()));
+          }
+          else{
+            theNucleus->setInitialEnergy(nb->getMass() + pb->getEnergy()
+              + ParticleTable::getTableMass(theNucleus->getA() + 1,theNucleus->getZ(),theNucleus->getS()));
+          }
+          // Reset the particle kinematics to the INCL values
+          for(ParticleIter p = fslist.begin(), e = fslist.end(); p!=e; ++p){
+            (*p)->makeProjectileSpectator();                                        
+          }
+          pb->makeProjectileSpectator();
+        
+          generateAllAvatars();
+          firstAvatar = false;
+
+          // Get the entry avatars for mesons
+          IAvatarList theAvatarList = obj->bringMesonStar(fslist, theNucleus);
+          delete obj;
+          theNucleus->getStore()->addParticleEntryAvatars(theAvatarList);
+          // Get the entry avatars from Coulomb and put them in the Store
+          ParticleEntryAvatar *theEntryAvatar = CoulombDistortion::bringToSurfaceAbar(pb, theNucleus);
+          if(theEntryAvatar) {
+            theNucleus->getStore()->addParticleEntryAvatar(theEntryAvatar);
+            INCL_DEBUG("Avatars added" << '\n');
+            return pb->getTransversePosition().mag();
+          } else {
+            INCL_DEBUG("Antiproton is transparent, not entering the nucleus " << '\n');
+            //Transparent event 
+            theNucleus->getStore()->addToMissed(pb);
+            delete nb;
+            return 99.;
+          }
+
+        }
+        else{
+          INCL_DEBUG("Annihilation of the Antiproton " << '\n');
+          PbarAtrestEntryChannel *obj = new PbarAtrestEntryChannel(theNucleus, pb);
+          ParticleList fslist = obj->makeMesonStar();
+          const G4bool isProton = obj->ProtonIsTheVictim();
+          //delete pb;
+        
+          //set Stopping time according to highest meson energy of the star
+          G4double temfin;
+          G4double TLab;
+          std::vector<G4double> energies;
+          std::vector<G4double> projections;
+          ThreeVector ab, cd;
+          for(ParticleIter pit = fslist.begin(), e = fslist.end(); pit!=e; ++pit){
+            energies.push_back((*pit)->getKineticEnergy());
+            ab = (*pit)->boostVector();
+            cd = (*pit)->getPosition();
+            projections.push_back(ab.dot(cd)); //projection length
+          }// make vector of energies
+          temfin = 30.18 * std::pow(theNucleus->getA(), 0.17);
+          TLab = *max_element(energies.begin(), energies.end()); //choose max energy
+          if(TLab>2000.)
+            temfin *= (5.8E4-TLab)/5.6E4;
+          maximumTime = temfin;  
+          // If the incoming particle is slow, use a larger stopping time
+          const G4double rMax = theNucleus->getUniverseRadius();
+          const G4double distance = 2.*rMax;
+          const G4double maxMesonVelocityProjection = *max_element(energies.begin(), energies.end());
+          const G4double traversalTime = distance / maxMesonVelocityProjection;
+          if(maximumTime < traversalTime)
+            maximumTime = traversalTime;
+          INCL_DEBUG("Cascade stopping time is " << maximumTime << '\n');
+
+
+
+          // Fill in the relevant kinematic variables
+          theNucleus->setIncomingAngularMomentum(nb->getAngularMomentum());
+          theNucleus->setIncomingMomentum(nb->getMomentum());
+          if(isProton){
+            theNucleus->setInitialEnergy(pb->getMass() + nb->getEnergy()
+              + ParticleTable::getTableMass(theNucleus->getA() + 1,theNucleus->getZ() + 1,theNucleus->getS()));
+          }
+          else{
+            theNucleus->setInitialEnergy(pb->getMass() + nb->getEnergy()
+              + ParticleTable::getTableMass(theNucleus->getA() + 1,theNucleus->getZ(),theNucleus->getS()));
+          }
+          // Reset the particle kinematics to the INCL values
+          for(ParticleIter p = fslist.begin(), e = fslist.end(); p!=e; ++p){
+            (*p)->makeProjectileSpectator();                                        
+          }
+          nb->makeProjectileSpectator();
+        
+          generateAllAvatars();
+          firstAvatar = false;
+
+          // Get the entry avatars for mesons
+          IAvatarList theAvatarList = obj->bringMesonStar(fslist, theNucleus);
+          delete obj;
+          theNucleus->getStore()->addParticleEntryAvatars(theAvatarList);
+          // Get the entry avatars from Coulomb and put them in the Store
+          ParticleEntryAvatar *theEntryAvatar = CoulombDistortion::bringToSurfaceAbar(nb, theNucleus);
+          if(theEntryAvatar) {
+            theNucleus->getStore()->addParticleEntryAvatar(theEntryAvatar);
+            INCL_DEBUG("Avatars added" << '\n');
+            return nb->getTransversePosition().mag();
+          } else {
+            INCL_DEBUG("Antineutron is transparent, not entering the nucleus " << '\n');
+            theNucleus->setIncomingAngularMomentum(ThreeVector(0.,0.,0.));
+            theNucleus->setIncomingMomentum(ThreeVector(0.,0.,0.));
+            //Transparent event 
+            theNucleus->getStore()->addToMissed(nb);
+            delete pb;
+            return 99.;
+          }
+          delete theConfig;
+        }
+      } else{
+        theNucleus->setNucleusNucleusCollision();
+        currentTime =0.0;
+        maximumTime = 29.8 * std::pow(theNucleus->getA(), 0.16);
+
+        ProjectileRemnant *pr = new ProjectileRemnant(species, kineticEnergy);
+        INCL_DEBUG("Antideuteron annihilation Model A chosen, Annihilation of Antideuteron as a whole" << '\n');
+        AntinucleiAtrestEntryChannel *obj = new AntinucleiAtrestEntryChannel(theNucleus, pr, ThreeVector(), ThreeVector());
+        ParticleList fslist = obj->makeMesonStar();
+        //set Stopping time according to highest meson energy of the star
+        G4double temfin;
+        G4double TLab;
+        std::vector<G4double> energies;
+        std::vector<G4double> projections;
+        ThreeVector ab, cd;
+
+        for(ParticleIter pit = fslist.begin(), e = fslist.end(); pit!=e; ++pit){
+          energies.push_back((*pit)->getKineticEnergy());
+          ab = (*pit)->boostVector();
+          cd = (*pit)->getPosition();
+          projections.push_back(ab.dot(cd)); //projection length
+        }// make vector of energies
+      
+        temfin = 30.18 * std::pow(theNucleus->getA(), 0.17);
+        TLab = *max_element(energies.begin(), energies.end()); //choose max energy
+
+        // energy-dependent stopping time above 2 AGeV
+        if(TLab>2000.)
+          temfin *= (5.8E4-TLab)/5.6E4;
+
+        maximumTime = temfin;  
+
+        // If the incoming particle is slow, use a larger stopping time
+        const G4double rMax = theNucleus->getUniverseRadius();
+        const G4double distance = 2.*rMax;
+        const G4double maxMesonVelocityProjection = *max_element(energies.begin(), energies.end());
+        const G4double traversalTime = distance / maxMesonVelocityProjection;
+        if(maximumTime < traversalTime)
+          maximumTime = traversalTime;
+        INCL_DEBUG("Cascade stopping time is " << maximumTime << '\n');
+
+        // Fill in the relevant kinematic variables
+        theNucleus->setIncomingAngularMomentum(G4INCL::ThreeVector(0., 0., 0.));
+        theNucleus->setIncomingMomentum(G4INCL::ThreeVector(0.,0.,0.));
+        if(theNucleus->getAnnihilationType()==DNbarNPbarNType)
+          theNucleus->setInitialEnergy(pr->getMass() + ParticleTable::getTableMass(theNucleus->getA() + 2, theNucleus->getZ(), theNucleus->getS()));
+        else if(theNucleus->getAnnihilationType()==DNbarPPbarPType)
+          theNucleus->setInitialEnergy(pr->getMass() + ParticleTable::getTableMass(theNucleus->getA() + 2, theNucleus->getZ() + 2,theNucleus->getS()));
+        else if(theNucleus->getAnnihilationType() == DNbarNPbarPType || theNucleus->getAnnihilationType()==DNbarPPbarNType)
+          theNucleus->setInitialEnergy(pr->getMass() + ParticleTable::getTableMass(theNucleus->getA() + 2, theNucleus->getZ() +1, theNucleus->getS()));
+
+        for(ParticleIter p = fslist.begin(), e = fslist.end(); p!=e; ++p){
+            (*p)->makeProjectileSpectator();                                        
+        }
+      
+        generateAllAvatars();
+        firstAvatar = false;
+
+        IAvatarList theAvatarList = obj->bringMesonStar(fslist, theNucleus);
+        delete pr;
+        delete obj;
+        theNucleus->getStore()->addParticleEntryAvatars(theAvatarList);
+        INCL_DEBUG("Avatars added" << '\n');
+        return 99.;
+      }
+    }
 
     G4double StandardPropagationModel::getStoppingTime() {
       return maximumTime;
@@ -270,6 +693,10 @@ namespace G4INCL {
       if((p1->isResonance() && p2->isPion()) || (p1->isPion() && p2->isResonance()))
         return NULL;
 
+      // Is it a photon collision (we don't treat them)?
+      if(p1->isPhoton() || p2->isPhoton())
+        return NULL;
+
       // Will the avatar take place between now and the end of the cascade?
       G4double minDistOfApproachSquared = 0.0;
       G4double t = getTime(p1, p2, &minDistOfApproachSquared);
@@ -286,8 +713,8 @@ namespace G4INCL {
         hasLocalEnergy = ((theLocalEnergyType == FirstCollisionLocalEnergy &&
               theNucleus->getStore()->getBook().getAcceptedCollisions()==0) ||
             theLocalEnergyType == AlwaysLocalEnergy);
-      const G4bool p1HasLocalEnergy = (hasLocalEnergy && !p1->isMeson());
-      const G4bool p2HasLocalEnergy = (hasLocalEnergy && !p2->isMeson());
+      const G4bool p1HasLocalEnergy = (hasLocalEnergy && !p1->isMeson() && !p1->isAntiNucleon());
+      const G4bool p2HasLocalEnergy = (hasLocalEnergy && !p2->isMeson() && !p2->isAntiNucleon());
 
       if(p1HasLocalEnergy) {
         backupParticle1 = *p1;
@@ -297,7 +724,7 @@ namespace G4INCL {
           return NULL;
         }
         KinematicsUtils::transformToLocalEnergyFrame(theNucleus, p1);
-      }
+      } 
       if(p2HasLocalEnergy) {
         backupParticle2 = *p2;
         p2->propagate(t - currentTime);
@@ -359,6 +786,20 @@ namespace G4INCL {
 					     G4INCL::Particle const * const particleB, G4double *minDistOfApproach) const
     {
       G4double time;
+
+      // When annihilation is forced for antinucleons below the threshold energy, set the time step at 0.001 (when to have the smallest avatar time)
+      Config const *theConfig=theNucleus->getStore()->getConfig();
+      if (((particleA->getType()==antiProton)  && (particleA->getKineticEnergy() <= theConfig->getAtrestThreshold()))   ||
+          ((particleB->getType()==antiProton)  && (particleB->getKineticEnergy() <= theConfig->getAtrestThreshold()))   ||
+          ((particleA->getType()==antiNeutron) && (particleA->getKineticEnergy() <= particleA->getPotentialEnergy())) ||
+          ((particleB->getType()==antiNeutron) && (particleB->getKineticEnergy() <= particleB->getPotentialEnergy())) ||
+          ((particleA->getType()==antiProton  && particleA->getEnergy() <= particleA->getINCLMass()))   ||
+          ((particleB->getType()==antiProton  && particleB->getEnergy() <= particleB->getINCLMass()))   ||
+          ((particleA->getType()==antiNeutron && particleA->getEnergy() <= particleA->getINCLMass())) ||
+          ((particleB->getType()==antiNeutron && particleB->getEnergy() <= particleB->getINCLMass())))
+      {
+        return currentTime + 0.001;
+      }
       G4INCL::ThreeVector t13 = particleA->getPropagationVelocity();
       t13 -= particleB->getPropagationVelocity();
       G4INCL::ThreeVector distance = particleA->getPosition();

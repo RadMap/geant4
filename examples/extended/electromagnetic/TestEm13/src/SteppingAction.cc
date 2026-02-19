@@ -23,28 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm13/src/SteppingAction.cc
+/// \file SteppingAction.cc
 /// \brief Implementation of the SteppingAction class
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "SteppingAction.hh"
+
 #include "Run.hh"
 
 #include "G4RunManager.hh"
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-SteppingAction::SteppingAction()
-:G4UserSteppingAction()
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-SteppingAction::~SteppingAction()
-{ }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -52,16 +38,13 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
 {
   G4StepPoint* endPoint = aStep->GetPostStepPoint();
   G4String procName = endPoint->GetProcessDefinedStep()->GetProcessName();
-  
-  Run* run = static_cast<Run*>(
-             G4RunManager::GetRunManager()->GetNonConstCurrentRun()); 
-  run->CountProcesses(procName);  
-           
+
+  Run* run = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+  run->CountProcesses(procName);
+
   // kill event after first interaction
   //
-  G4RunManager::GetRunManager()->AbortEvent();  
+  G4RunManager::GetRunManager()->AbortEvent();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-

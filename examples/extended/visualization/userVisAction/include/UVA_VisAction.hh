@@ -23,19 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file visualization/userVisAction/include/UVA_VisAction.hh
+/// \file UVA_VisAction.hh
 /// \brief Definition of the UVA_VisAction class
-//
-//
 
 #ifndef UVA_VISACTION_HH
 #define UVA_VISACTION_HH
 
 #include "G4VUserVisAction.hh"
 
-class UVA_VisAction: public G4VUserVisAction {
-  virtual void Draw();
+class UVA_VisAction : public G4VUserVisAction
+{
+    virtual void Draw();
 };
 
 #endif
-

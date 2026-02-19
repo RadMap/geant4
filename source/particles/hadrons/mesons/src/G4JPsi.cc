@@ -23,9 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
 // ----------------------------------------------------------------------
 //      GEANT 4 class implementation file
 //
@@ -33,56 +30,54 @@
 // **********************************************************************
 //  New impelemenataion as an utility class  M.Asai, 26 July 2004
 // ----------------------------------------------------------------------
+//  Update mass and width (PDG2025)          S.Okada, 4 Nov. 2025
 
 #include "G4JPsi.hh"
-#include "G4SystemOfUnits.hh"
+
 #include "G4ParticleTable.hh"
+#include "G4String.hh"
+#include "G4SystemOfUnits.hh"
 
-// ######################################################################
-// ###                                JPsi                            ###
-// ######################################################################
-
-G4JPsi* G4JPsi::theInstance = 0;
+G4JPsi* G4JPsi::theInstance = nullptr;
 
 G4JPsi* G4JPsi::Definition()
 {
-  if (theInstance !=0) return theInstance;
+  if (theInstance != nullptr) return theInstance;
   const G4String name = "J/psi";
   // search in particle table]
   G4ParticleTable* pTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* anInstance = pTable->FindParticle(name);
-  if (anInstance ==0)
-  {
-  // create particle
-  //
-  //    Arguments for constructor are as follows
-  //               name             mass          width         charge
-  //             2*spin           parity  C-conjugation
-  //          2*Isospin       2*Isospin3       G-parity
-  //               type    lepton number  baryon number   PDG encoding
-  //             stable         lifetime    decay table
-  //             shortlived      subType    anti_encoding
+  if (anInstance == nullptr) {
+    // create particle
+    //
+    //    Arguments for constructor are as follows
+    //               name             mass          width         charge
+    //             2*spin           parity  C-conjugation
+    //          2*Isospin       2*Isospin3       G-parity
+    //               type    lepton number  baryon number   PDG encoding
+    //             stable         lifetime    decay table
+    //             shortlived      subType    anti_encoding
 
+    // clang-format off
    anInstance = new G4ParticleDefinition(
-                 name,    3.096916*GeV,    0.0929*MeV,          0.,
+                 name,    3.096900*GeV,    0.0926*MeV,          0.,
                     2,              -1,            -1,
                     0,               0,            -1,
               "meson",               0,             0,         443,
-                false,          0.0*ns,          NULL,
+                false,          0.0*ns,          nullptr,
                 false,         "J/psi",           443);
+    // clang-format on
   }
-  theInstance = reinterpret_cast<G4JPsi*>(anInstance);
+  theInstance = static_cast<G4JPsi*>(anInstance);
   return theInstance;
 }
 
-G4JPsi*  G4JPsi::JPsiDefinition()
+G4JPsi* G4JPsi::JPsiDefinition()
 {
   return Definition();
 }
 
-G4JPsi*  G4JPsi::JPsi()
+G4JPsi* G4JPsi::JPsi()
 {
   return Definition();
 }
-
-

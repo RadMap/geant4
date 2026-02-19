@@ -22,48 +22,53 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
+/// @file G4MPIhistoMerger.cc
+/// @brief Histo merger
+
 // Merge G4analysis histogram objects via MPI
 //
 // History:
 // Jun 27, 2015 : Ivana Hrivnacova - new implementation using g4analysis
 
 #include "G4MPIhistoMerger.hh"
+
+#include "toolx/mpi/hmpi"
+
 #include "G4MPImanager.hh"
-#include "G4ios.hh"
-#include "tools/mpi/hmpi"
-#include <mpi.h>
 #include "G4VAnalysisManager.hh"
+#include "G4ios.hh"
 
-G4MPIhistoMerger::G4MPIhistoMerger() :
-manager(0),destination(G4MPImanager::kRANK_MASTER),
-verboseLevel(0) {}
+#include <mpi.h>
 
-G4MPIhistoMerger::G4MPIhistoMerger(G4VAnalysisManager* m,
-    G4int dest, G4int v) : manager(m), destination(dest),verboseLevel(v) {}
+G4MPIhistoMerger::G4MPIhistoMerger()
+  : manager(0), destination(G4MPImanager::kRANK_MASTER), verboseLevel(0)
+{}
+
+G4MPIhistoMerger::G4MPIhistoMerger(G4VAnalysisManager* m, G4int dest, G4int v)
+  : manager(m), destination(dest), verboseLevel(v)
+{}
 
 void G4MPIhistoMerger::Merge()
 {
-  if ( verboseLevel > 0 ) {
+  if (verboseLevel > 0) {
     G4cout << "Starting merging of histograms" << G4endl;
   }
 
-  const MPI::Intracomm* parentComm = G4MPImanager::GetManager()->GetComm();
-  MPI::Intracomm comm = parentComm->Dup();
+  const MPI_Comm* parentComm = G4MPImanager::GetManager()->GetComm();
+  MPI_Comm comm;
+  MPI_Comm_dup(*parentComm, &comm);
 
-  G4bool verbose = ( verboseLevel > 1 );
+  G4bool verbose = (verboseLevel > 1);
   G4int tag = G4MPImanager::kTAG_HISTO;
-  //const MPI::Intracomm* comm = &COMM_G4COMMAND_;
-  tools::mpi::hmpi* hmpi 
-    = new tools::mpi::hmpi(G4cout, destination, tag, comm, verbose);
-  if ( ! manager->Merge(hmpi) ) {
-      G4cout<<" Merge FAILED"<<G4endl;
+  toolx::mpi::hmpi* hmpi = new toolx::mpi::hmpi(G4cout, destination, tag, comm, verbose);
+  if (!manager->Merge(hmpi)) {
+    G4cout << " Merge FAILED" << G4endl;
   }
 
   delete hmpi;
 
-  if ( verboseLevel > 0 ) {
+  if (verboseLevel > 0) {
     G4cout << "End merging of histograms" << G4endl;
   }
-  comm.Free();
+  MPI_Comm_free(&comm);
 }

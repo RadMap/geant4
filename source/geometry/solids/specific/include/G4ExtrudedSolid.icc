@@ -29,16 +29,16 @@
 inline 
 G4int G4ExtrudedSolid::GetNofVertices() const
 {
-  return fNv;
+  return (G4int)fNv;
 }
 
 inline G4TwoVector G4ExtrudedSolid::GetVertex(G4int index) const
 {
-  if ( index<0 || index >= fNv )
+  if ( index<0 || index >= (G4int)fNv )
   {
     G4Exception ("G4ExtrudedSolid::GetVertex()", "GeomSolids0003",
                  FatalException, "Index outside range.");
-    return G4TwoVector();
+    return {};
   }
   return fPolygon[index];
 }  
@@ -52,13 +52,13 @@ std::vector<G4TwoVector> G4ExtrudedSolid::GetPolygon() const
 inline 
 G4int  G4ExtrudedSolid::GetNofZSections() const
 {
-  return fNz;
+  return (G4int)fNz;
 }
   
 inline 
 G4ExtrudedSolid::ZSection  G4ExtrudedSolid::GetZSection(G4int index) const
 {
-  if ( index<0 || index >= fNz )
+  if ( index<0 || index >= (G4int)fNz )
   {
     G4Exception ("G4ExtrudedSolid::GetZSection()", "GeomSolids0003",
                  FatalException, "Index outside range.");
@@ -76,14 +76,14 @@ std::vector<G4ExtrudedSolid::ZSection> G4ExtrudedSolid::GetZSections() const
 inline
 G4bool G4ExtrudedSolid::PointInPolygon(const G4ThreeVector& p) const
 {
-  G4bool in = 0;
-  G4int icur = (fPolygon[fNv-1].y() > p.y()), iprev = 0;
-  for (G4int i = 0; i < fNv; ++i)
+  G4bool in = false;
+  G4int icur = static_cast<G4int>(fPolygon[fNv-1].y() > p.y()), iprev = 0;
+  for (std::size_t i = 0; i < fNv; ++i)
   {
     iprev = icur;
-    if ((icur = (fPolygon[i].y() > p.y())) != iprev)
+    if ((icur = static_cast<G4int>(fPolygon[i].y() > p.y())) != iprev)
     {
-      in ^= (p.y()*fLines[i].k + fLines[i].m < p.x());
+      in ^= static_cast<int>(p.y()*fLines[i].k + fLines[i].m < p.x());
     }
   }
   return in;
@@ -93,7 +93,7 @@ inline
 G4double G4ExtrudedSolid::DistanceToPolygonSqr(const G4ThreeVector& p) const
 {
   G4double dd = DBL_MAX;
-  for (G4int i=0, k=fNv-1; i<fNv; k=i++)
+  for (std::size_t i=0, k=fNv-1; i<fNv; k=i++)
   {
     G4double ix = p.x() - fPolygon[i].x();
     G4double iy = p.y() - fPolygon[i].y();
@@ -101,20 +101,20 @@ G4double G4ExtrudedSolid::DistanceToPolygonSqr(const G4ThreeVector& p) const
     if (u < 0)
     {
       G4double tmp = ix*ix + iy*iy;
-      if (tmp < dd) dd = tmp;
+      if (tmp < dd) { dd = tmp; }
     }
     else if (u > fLengths[i])
     {
       G4double kx = p.x() - fPolygon[k].x();
       G4double ky = p.y() - fPolygon[k].y();
       G4double tmp = kx*kx + ky*ky;
-      if (tmp < dd) dd = tmp;
+      if (tmp < dd) { dd = tmp; }
     }
     else
     {
       G4double tmp = fPlanes[i].a*p.x() + fPlanes[i].b*p.y() + fPlanes[i].d;
       tmp *= tmp;
-      if (tmp < dd) dd = tmp;
+      if (tmp < dd) { dd = tmp; }
     }
   }
   return dd;

@@ -23,16 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field04/include/F04FieldMessenger.hh
+/// \file F04FieldMessenger.hh
 /// \brief Definition of the F04FieldMessenger class
-//
 
 #ifndef F04FieldMessenger_h
 #define F04FieldMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class F04GlobalField;
 class G4UIdirectory;
@@ -43,33 +41,32 @@ class G4UIcmdWithoutParameter;
 
 class F04DetectorConstruction;
 
-class F04FieldMessenger: public G4UImessenger
+class F04FieldMessenger : public G4UImessenger
 {
   public:
-    F04FieldMessenger(F04GlobalField*, F04DetectorConstruction* );
-    virtual ~F04FieldMessenger();
+    F04FieldMessenger(F04GlobalField*, F04DetectorConstruction*);
+    ~F04FieldMessenger() override;
 
-    virtual void SetNewValue(G4UIcommand*, G4String);
- 
+    void SetNewValue(G4UIcommand*, G4String) override;
+
   private:
+    F04GlobalField* fGlobalField = nullptr;
 
-    F04GlobalField*            fGlobalField;
- 
-    G4UIdirectory*             fDetDir;
+    G4UIdirectory* fDetDir = nullptr;
 
-    G4UIcmdWithADoubleAndUnit* fCaptureB1Cmd;
-    G4UIcmdWithADoubleAndUnit* fCaptureB2Cmd;
-    G4UIcmdWithADoubleAndUnit* fTransferBCmd;
+    G4UIcmdWithADoubleAndUnit* fCaptureB1Cmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fCaptureB2Cmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fTransferBCmd = nullptr;
 
-    G4UIcmdWithAnInteger*      fStepperCMD;
-    G4UIcmdWithADoubleAndUnit* fMinStepCMD;
-    G4UIcmdWithADoubleAndUnit* fDeltaChordCMD;
-    G4UIcmdWithADoubleAndUnit* fDeltaOneStepCMD;
-    G4UIcmdWithADoubleAndUnit* fDeltaIntersectionCMD;
-    G4UIcmdWithADoubleAndUnit* fEpsMinCMD;
-    G4UIcmdWithADoubleAndUnit* fEpsMaxCMD;
+    G4UIcmdWithAnInteger* fStepperCMD = nullptr;
+    G4UIcmdWithADoubleAndUnit* fMinStepCMD = nullptr;
+    G4UIcmdWithADoubleAndUnit* fDeltaChordCMD = nullptr;
+    G4UIcmdWithADoubleAndUnit* fDeltaOneStepCMD = nullptr;
+    G4UIcmdWithADoubleAndUnit* fDeltaIntersectionCMD = nullptr;
+    G4UIcmdWithADoubleAndUnit* fEpsMinCMD = nullptr;
+    G4UIcmdWithADoubleAndUnit* fEpsMaxCMD = nullptr;
 
-    F04DetectorConstruction*   fDetector;
+    F04DetectorConstruction* fDetector = nullptr;
 };
 
 #endif

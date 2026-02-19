@@ -23,49 +23,32 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm2/src/EventAction.cc
+/// \file EventAction.cc
 /// \brief Implementation of the EventAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "EventAction.hh"
 
 #include "Run.hh"
+
 #include "G4Event.hh"
 #include "G4RunManager.hh"
 #include "G4UnitsTable.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-EventAction::EventAction()
-:G4UserEventAction()
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-EventAction::~EventAction()
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 void EventAction::BeginOfEventAction(const G4Event*)
 {
- //additional initializations 
- Run* run 
-   = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
- run->InitializePerEvent();
+  // additional initializations
+  Run* run = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+  run->InitializePerEvent();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void EventAction::EndOfEventAction(const G4Event*)
-{  
- Run* run 
-   = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
- run->FillPerEvent();  
+{
+  Run* run = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+  run->FillPerEvent();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

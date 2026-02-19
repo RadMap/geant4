@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file parallel/ThreadsafeScorers/ts_scorers.cc
-/// \brief Main of the ThreadsafeScorers example
-//
-//
-//
-//
+/// \file ts_scorers.cc
+/// \brief Main program of the parallel/ThreadsafeScorers example
+///
 /// ts_scorers example shows how to use global scorers. The benefit of using
 ///     global scorers in memory-savings for problems with very large amounts
 ///     of scoring volumes. Additionally, the global scorers are more precise
@@ -43,116 +40,95 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+#include "G4RunManagerFactory.hh"
+#include "G4Threading.hh"
 #include "G4Types.hh"
-
-#ifdef G4MULTITHREADED
-    #include "G4MTRunManager.hh"
-    #include "G4Threading.hh"
-    typedef G4MTRunManager RunManager;
-#else
-    #include "G4RunManager.hh"
-    typedef G4RunManager RunManager;
-#endif
-
 #include "Randomize.hh"
 
 // User Defined Classes
+#include "TSActionInitialization.hh"
 #include "TSDetectorConstruction.hh"
 #include "TSPhysicsList.hh"
-#include "TSActionInitialization.hh"
 
+#include "G4Step.hh"
+#include "G4Track.hh"
+#include "G4UIExecutive.hh"
 #include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
-#include "G4UIExecutive.hh"
-#include "G4TiMemory.hh"
 
 // for std::system(const char*)
 #include <cstdlib>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void message(RunManager* runmanager)
+void message(G4RunManager* runmanager)
 {
-#ifdef G4MULTITHREADED
-    runmanager->SetNumberOfThreads(G4Threading::G4GetNumberOfCores());
-    G4cout << "\n\n\t--> Running in multithreaded mode with "
-           << runmanager->GetNumberOfThreads()
-           << " threads\n\n" << G4endl;
-#else
-    // get rid of unused variable warning
-    runmanager->SetVerboseLevel(runmanager->GetVerboseLevel());
+  G4MTRunManager* man = dynamic_cast<G4MTRunManager*>(runmanager);
+  if (man) {
+    man->SetNumberOfThreads(G4Threading::G4GetNumberOfCores());
+    G4cout << "\n\n\t--> Running in multithreaded mode with " << man->GetNumberOfThreads()
+           << " threads\n\n"
+           << G4endl;
+  }
+  else {
     G4cout << "\n\n\t--> Running in serial mode\n\n" << G4endl;
-#endif
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 int main(int argc, char** argv)
 {
-    TIMEMORY_INIT(argc, argv);
+  G4String macro;
+  if (argc > 1) macro = argv[argc - 1];
 
-#if defined(GEANT4_USE_TIMEMORY)
-    // override environment settings
-    tim::settings::json_output() = true;
-    tim::settings::dart_output() = true;
-    tim::settings::dart_type() = "peak_rss";
-    tim::settings::dart_count() = 1;
-#endif
+  // Detect interactive mode (if no arguments) and define UI session
+  //
+  G4UIExecutive* ui = 0;
+  if (macro.empty()) ui = new G4UIExecutive(argc, argv);
 
-    // Detect interactive mode (if no arguments) and define UI session
-    //
-    G4UIExecutive* ui = 0;
-    if(argc == 1)
-        ui = new G4UIExecutive(argc, argv);
+  // Set the random seed
+  CLHEP::HepRandom::setTheSeed(1245214UL);
 
-    // Set the random seed
-    CLHEP::HepRandom::setTheSeed(1245214UL);
+  G4RunManager* runmanager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::Tasking);
 
-    RunManager* runmanager = new RunManager();
+  message(runmanager);
 
-    message(runmanager);
+  runmanager->SetUserInitialization(new TSDetectorConstruction);
 
-    runmanager->SetUserInitialization(new TSDetectorConstruction);
+  runmanager->SetUserInitialization(new TSPhysicsList);
 
-    runmanager->SetUserInitialization(new TSPhysicsList);
+  runmanager->SetUserInitialization(new TSActionInitialization);
 
-    runmanager->SetUserInitialization(new TSActionInitialization);
+  runmanager->Initialize();
 
-    runmanager->Initialize();
+  // Initialize visualization
+  //
+  G4VisManager* visManager = new G4VisExecutive;
+  // G4VisExecutive can take a verbosity argument - see /vis/verbose guidance.
+  // G4VisManager* visManager = new G4VisExecutive("Quiet");
+  visManager->Initialize();
 
+  // Get the pointer to the User Interface manager
+  G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-    // Initialize visualization
-    //
-    G4VisManager* visManager = new G4VisExecutive;
-    // G4VisExecutive can take a verbosity argument - see /vis/verbose guidance.
-    // G4VisManager* visManager = new G4VisExecutive("Quiet");
-    visManager->Initialize();
+  // Process macro or start UI session
+  //
+  if (!ui) {
+    // batch mode
+    G4String command = "/control/execute ";
+    UImanager->ApplyCommand(command + macro);
+  }
+  else {
+    ui->SessionStart();
+  }
 
-    // Get the pointer to the User Interface manager
-    G4UImanager* UImanager = G4UImanager::GetUIpointer();
+  // Job termination
+  // Free the store: user actions, physics_list and detector_description are
+  // owned and deleted by the run manager, so they should not be deleted
+  // in the main() program !
+  delete visManager;
+  delete runmanager;
 
-    // Process macro or start UI session
-    //
-    if (!ui)
-    {
-        // batch mode
-        G4String command = "/control/execute ";
-        G4String fileName = argv[argc-1];
-        UImanager->ApplyCommand(command+fileName);
-    } else
-    {
-        // interactive mode
-        UImanager->ApplyCommand("/control/execute vis.mac");
-        ui->SessionStart();
-        delete ui;
-    }
-
-    // Job termination
-    // Free the store: user actions, physics_list and detector_description are
-    // owned and deleted by the run manager, so they should not be deleted
-    // in the main() program !
-    delete visManager;
-    delete runmanager;
-
-    return 0;
+  return 0;
 }

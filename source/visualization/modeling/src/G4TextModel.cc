@@ -39,15 +39,19 @@
 
 G4TextModel::~G4TextModel () {}
 
-G4TextModel::G4TextModel (const G4Text& g4Text): fG4Text(g4Text) {
+G4TextModel::G4TextModel (const G4Text& g4Text, const G4Transform3D& transform)
+: fG4Text(g4Text)
+{
   fType = "G4TextModel";
   std::ostringstream oss;
-  oss << "G4TextModel: \"" << fG4Text.GetText()
-      << "\" at " << G4BestUnit(g4Text.GetPosition(),"Length")
+  oss << "G4TextModel: '" << fG4Text.GetText()
+      << "' at " << G4BestUnit(g4Text.GetPosition(),"Length")
       << "with size " << g4Text.GetScreenSize()
       << " with offsets " << g4Text.GetXOffset() << ',' << g4Text.GetYOffset();
   fGlobalTag = oss.str();
   fGlobalDescription = fGlobalTag;
+
+  fG4Text.SetPosition(fG4Text.GetPosition().transform(transform));
 }
 
 void G4TextModel::DescribeYourselfTo (G4VGraphicsScene& sceneHandler) {

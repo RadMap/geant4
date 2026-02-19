@@ -23,19 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P01/include/ExP01DetectorMessenger.hh
+/// \file ExP01DetectorMessenger.hh
 /// \brief Definition of the ExP01DetectorMessenger class
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef ExP01DetectorMessenger_h
 #define ExP01DetectorMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class ExP01DetectorConstruction;
 class G4UIdirectory;
@@ -46,25 +41,24 @@ class G4UIcmdWithADoubleAndUnit;
 
 /// Detector messenger for the persistency example
 
-class ExP01DetectorMessenger: public G4UImessenger
+class ExP01DetectorMessenger : public G4UImessenger
 {
   public:
     ExP01DetectorMessenger(ExP01DetectorConstruction*);
-   ~ExP01DetectorMessenger();
-    
+    ~ExP01DetectorMessenger();
+
     virtual void SetNewValue(G4UIcommand*, G4String);
-    
+
   private:
     ExP01DetectorConstruction* fDetector;
-    
-    G4UIdirectory*             fN02Dir;
-    G4UIdirectory*             fDetDir;
-    G4UIcmdWithAString*        fTargMatCmd;
-    G4UIcmdWithAString*        fChamMatCmd;    
+
+    G4UIdirectory* fN02Dir;
+    G4UIdirectory* fDetDir;
+    G4UIcmdWithAString* fTargMatCmd;
+    G4UIcmdWithAString* fChamMatCmd;
     G4UIcmdWithADoubleAndUnit* fFieldCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

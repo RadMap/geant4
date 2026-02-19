@@ -23,62 +23,56 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/LXe/include/LXePMTSD.hh
+/// \file LXePMTSD.hh
 /// \brief Definition of the LXePMTSD class
-//
-//
+
 #ifndef LXePMTSD_h
 #define LXePMTSD_h 1
 
-#include "G4DataVector.hh"
-#include "G4VSensitiveDetector.hh"
 #include "LXePMTHit.hh"
+
+#include "G4VSensitiveDetector.hh"
 
 #include <vector>
 
-class G4Step;
+class G4DataVector;
 class G4HCofThisEvent;
+class G4Step;
 
 class LXePMTSD : public G4VSensitiveDetector
 {
-
   public:
-
     LXePMTSD(G4String name);
-    virtual ~LXePMTSD();
- 
-    virtual void Initialize(G4HCofThisEvent* );
-    virtual G4bool ProcessHits(G4Step* aStep, G4TouchableHistory* );
- 
-    //A version of processHits that keeps aStep constant
-    G4bool ProcessHits_constStep(const G4Step* ,
-                                 G4TouchableHistory* );
-    virtual void EndOfEvent(G4HCofThisEvent* );
-    virtual void clear();
-    void DrawAll();
-    void PrintAll();
- 
-    //Initialize the arrays to store pmt possitions
-    inline void InitPMTs(){
-      if(fPMTPositionsX)delete fPMTPositionsX;
-      if(fPMTPositionsY)delete fPMTPositionsY;
-      if(fPMTPositionsZ)delete fPMTPositionsZ;
+    ~LXePMTSD() override;
+
+    void Initialize(G4HCofThisEvent*) override;
+    G4bool ProcessHits(G4Step* aStep, G4TouchableHistory*) override;
+
+    // A version of processHits active on boundary
+    G4bool ProcessHits_boundary(const G4Step*, G4TouchableHistory*);
+
+    // Initialize the arrays to store pmt possitions
+    inline void InitPMTs()
+    {
+      if (fPMTPositionsX) delete fPMTPositionsX;
+      if (fPMTPositionsY) delete fPMTPositionsY;
+      if (fPMTPositionsZ) delete fPMTPositionsZ;
       fPMTPositionsX = new G4DataVector();
       fPMTPositionsY = new G4DataVector();
       fPMTPositionsZ = new G4DataVector();
     }
 
-    //Store a pmt position
+    // Store a pmt position
     void SetPmtPositions(const std::vector<G4ThreeVector>& positions);
 
   private:
+    LXePMTHitsCollection* fPMTHitCollection = nullptr;
 
-    LXePMTHitsCollection* fPMTHitCollection;
+    G4DataVector* fPMTPositionsX = nullptr;
+    G4DataVector* fPMTPositionsY = nullptr;
+    G4DataVector* fPMTPositionsZ = nullptr;
 
-    G4DataVector* fPMTPositionsX;
-    G4DataVector* fPMTPositionsY;
-    G4DataVector* fPMTPositionsZ;
+    G4int fHitCID = -1;
 };
 
 #endif

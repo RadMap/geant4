@@ -23,89 +23,78 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// ------------------------------------------------------------
-//      GEANT 4 class header file
+// G4MuonDecayChannelWithSpin
 //
-//      History:
-//               17 August 2004 P.Gumplinger and T.MacPhail
-//               samples Michel spectrum including 1st order
-//               radiative corrections
-//               Reference: Florian Scheck "Muon Physics", in Physics Reports
-//                          (Review Section of Physics Letters) 44, No. 4 (1978)
-//                          187-248. North-Holland Publishing Company, Amsterdam
-//                          at page 210 cc.
+// Class decription:
 //
-//                          W.E. Fisher and F. Scheck, Nucl. Phys. B83 (1974) 25.
-//
-// ------------------------------------------------------------
+// This class describes muon decay kinematics.
+// It assumes V-A coupling with 1st order radiative corrections, the
+// standard model parameter values, but gives incorrect energy spectrum
+// for neutrinos.
+// References:
+// - Florian Scheck "Muon Physics", in Physics Reports
+//   (Review Section of Physics Letters) 44, No. 4 (1978)
+//   187-248. North-Holland Publishing Company, Amsterdam at page 210 cc.
+// - W.E. Fisher and F. Scheck, Nucl. Phys. B83 (1974) 25.
+
+// Authors: P.Gumplinger and T.MacPhail, 17 August 2004
+// --------------------------------------------------------------------
 #ifndef G4MuonDecayChannelWithSpin_hh
 #define G4MuonDecayChannelWithSpin_hh 1
 
-#include <CLHEP/Units/PhysicalConstants.h>
-
-#include "globals.hh"
-#include "G4ThreeVector.hh"
 #include "G4MuonDecayChannel.hh"
+#include "G4ThreeVector.hh"
+#include "globals.hh"
+
+#include <CLHEP/Units/PhysicalConstants.h>
 
 class G4MuonDecayChannelWithSpin : public G4MuonDecayChannel
 {
-  // Class Decription
-  // This class describes muon decay kinemtics.
-  // This version assumes V-A coupling with 1st order radiative correctons,
-  //              the standard model Michel parameter values, but 
-  //              gives incorrect energy spectrum for neutrinos
+  public:
+    G4MuonDecayChannelWithSpin(const G4String& theParentName, G4double theBR);
+    ~G4MuonDecayChannelWithSpin() override = default;
 
-public:  // With Description
+    G4DecayProducts* DecayIt(G4double) override;
 
-  //Constructors 
-  G4MuonDecayChannelWithSpin(const G4String& theParentName,
-	  		     G4double        theBR);
-  //  Destructor
-  virtual ~G4MuonDecayChannelWithSpin();
+  protected:
+    // Copy constructor and assignment operator
+    G4MuonDecayChannelWithSpin(const G4MuonDecayChannelWithSpin&) = default;
+    G4MuonDecayChannelWithSpin& operator=(const G4MuonDecayChannelWithSpin&);
 
-protected:
-  // Copy constructor and assignment operator
-  G4MuonDecayChannelWithSpin(const G4MuonDecayChannelWithSpin &);
-  G4MuonDecayChannelWithSpin & operator=(const G4MuonDecayChannelWithSpin &);
-  
-private:
-  G4MuonDecayChannelWithSpin();
+  private:
+    G4MuonDecayChannelWithSpin() = default;
 
-public:  // With Description
-
-  virtual G4DecayProducts *DecayIt(G4double);
-
-private:
-// Radiative Correction Factors
-
-  G4double F_c(G4double x, G4double x0 , G4double omega);
-  G4double F_theta(G4double x, G4double x0 , G4double omega);
-  G4double R_c(G4double x , G4double omega);
-
+    // Radiative Correction Factors
+    inline G4double F_c(G4double x, G4double x0, G4double omega);
+    inline G4double F_theta(G4double x, G4double x0, G4double omega);
+    G4double R_c(G4double x, G4double omega);
 };
 
-inline G4double G4MuonDecayChannelWithSpin::F_c(G4double x, G4double x0 , G4double omega)
-{
+// ------------------------
+// Inline methods
+// ------------------------
 
+inline G4double G4MuonDecayChannelWithSpin::F_c(G4double x, G4double x0, G4double omega)
+{
   G4double f_c;
 
-  f_c = (5.+17.*x-34.*x*x)*(omega+std::log(x))-22.*x+34.*x*x;
-  f_c = (1.-x)/(3.*x*x)*f_c;
-  f_c = (6.-4.*x)*R_c(x,omega)+(6.-6.*x)*std::log(x) + f_c;
-  f_c = (CLHEP::fine_structure_const/CLHEP::twopi) * (x*x-x0*x0) * f_c;
+  f_c = (5. + 17. * x - 34. * x * x) * (omega + std::log(x)) - 22. * x + 34. * x * x;
+  f_c = (1. - x) / (3. * x * x) * f_c;
+  f_c = (6. - 4. * x) * R_c(x, omega) + (6. - 6. * x) * std::log(x) + f_c;
+  f_c = (CLHEP::fine_structure_const / CLHEP::twopi) * (x * x - x0 * x0) * f_c;
 
   return f_c;
 }
 
-inline G4double G4MuonDecayChannelWithSpin::F_theta(G4double x, G4double x0,G4double omega)
+inline G4double G4MuonDecayChannelWithSpin::F_theta(G4double x, G4double x0, G4double omega)
 {
   G4double f_theta;
 
-  f_theta = (1.+x+34*x*x)*(omega+std::log(x))+3.-7.*x-32.*x*x;
-  f_theta = f_theta + ((4.*(1.-x)*(1.-x))/x)*std::log(1.-x);
-  f_theta = (1.-x)/(3.*x*x) * f_theta;
-  f_theta = (2.-4.*x)*R_c(x,omega)+(2.-6.*x)*std::log(x)-f_theta;
-  f_theta = (CLHEP::fine_structure_const/CLHEP::twopi) * (x*x-x0*x0) * f_theta;
+  f_theta = (1. + x + 34 * x * x) * (omega + std::log(x)) + 3. - 7. * x - 32. * x * x;
+  f_theta = f_theta + ((4. * (1. - x) * (1. - x)) / x) * std::log(1. - x);
+  f_theta = (1. - x) / (3. * x * x) * f_theta;
+  f_theta = (2. - 4. * x) * R_c(x, omega) + (2. - 6. * x) * std::log(x) - f_theta;
+  f_theta = (CLHEP::fine_structure_const / CLHEP::twopi) * (x * x - x0 * x0) * f_theta;
 
   return f_theta;
 }

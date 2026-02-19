@@ -37,6 +37,7 @@
 #include "Randomize.hh"
 #include "G4Electron.hh"
 #include "G4HadronicParameters.hh"
+#include "G4PhysicsModelCatalog.hh"
 
 using namespace std;
 using namespace CLHEP;
@@ -44,6 +45,8 @@ using namespace CLHEP;
 G4NeutrinoElectronNcModel::G4NeutrinoElectronNcModel(const G4String& name) 
   : G4HadronElastic(name)
 {
+  secID = G4PhysicsModelCatalog::GetModelID( "model_" + name );
+
   SetMinEnergy( 0.0*GeV );
   SetMaxEnergy( G4HadronicParameters::Instance()->GetMaxEnergy() );
   SetLowestEnergyLimit(1.e-6*eV);  
@@ -54,31 +57,27 @@ G4NeutrinoElectronNcModel::G4NeutrinoElectronNcModel(const G4String& name)
   fSin2tW = 0.23129; // 0.2312;
 
   fCutEnergy = 0.; // default value
-
 }
 
 
 G4NeutrinoElectronNcModel::~G4NeutrinoElectronNcModel()
 {}
 
-
 void G4NeutrinoElectronNcModel::ModelDescription(std::ostream& outFile) const
 {
-
-    outFile << "G4NeutrinoElectronNcModel is a neutrino-electron (neutral current) elastic scattering\n"
-            << "model which uses the standard model \n"
-            << "transfer parameterization.  The model is fully relativistic\n";
-
+  outFile << "G4NeutrinoElectronNcModel is a neutrino-electron (neutral current) elastic scattering\n"
+	  << "model which uses the standard model \n"
+	  << "transfer parameterization.  The model is fully relativistic\n";
 }
 
 /////////////////////////////////////////////////////////
 
-G4bool G4NeutrinoElectronNcModel::IsApplicable(const G4HadProjectile & aTrack, 
-  			      G4Nucleus & targetNucleus)
+G4bool G4NeutrinoElectronNcModel::IsApplicable(const G4HadProjectile & aTrack, G4Nucleus&)
 {
   G4bool result  = false;
   G4String pName = aTrack.GetDefinition()->GetParticleName();
-  G4double minEnergy = 0., energy = aTrack.GetTotalEnergy();
+  G4double minEnergy = 0.;
+  G4double energy = aTrack.GetTotalEnergy();
 
   if( fCutEnergy > 0. ) // min detected recoil electron energy
   {
@@ -91,9 +90,6 @@ G4bool G4NeutrinoElectronNcModel::IsApplicable(const G4HadProjectile & aTrack,
   {
     result = true;
   }
-  G4int Z = targetNucleus.GetZ_asInt();
-        Z *= 1;
-
   return result;
 }
 
@@ -102,7 +98,7 @@ G4bool G4NeutrinoElectronNcModel::IsApplicable(const G4HadProjectile & aTrack,
 //
 
 G4HadFinalState* G4NeutrinoElectronNcModel::ApplyYourself(
-		 const G4HadProjectile& aTrack, G4Nucleus& targetNucleus)
+		 const G4HadProjectile& aTrack, G4Nucleus&)
 {
   theParticleChange.Clear();
 
@@ -137,7 +133,7 @@ G4HadFinalState* G4NeutrinoElectronNcModel::ApplyYourself(
     eP *= ePlab;
     G4LorentzVector lvt2( eP, eTkin + electron_mass_c2 );
     G4DynamicParticle * aSec = new G4DynamicParticle( theElectron, lvt2 );
-    theParticleChange.AddSecondary( aSec );
+    theParticleChange.AddSecondary( aSec, secID );
 
     G4LorentzVector lvp1 = aParticle->Get4Momentum();
     G4LorentzVector lvt1(0.,0.,0.,electron_mass_c2);
@@ -164,9 +160,6 @@ G4HadFinalState* G4NeutrinoElectronNcModel::ApplyYourself(
     theParticleChange.SetEnergyChange( nuTkin );
     theParticleChange.SetMomentumChange( aTrack.Get4Momentum().vect().unit() );
   }
-  G4int Z = targetNucleus.GetZ_asInt();
-        Z *= 1;
- 
   return &theParticleChange;
 }
 

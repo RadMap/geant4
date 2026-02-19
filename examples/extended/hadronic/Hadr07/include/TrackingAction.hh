@@ -25,10 +25,6 @@
 //
 /// \file TrackingAction.hh
 /// \brief Definition of the TrackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef TrackingAction_h
 #define TrackingAction_h 1
@@ -36,16 +32,27 @@
 #include "G4UserTrackingAction.hh"
 #include "globals.hh"
 
+class TrackingMessenger;
+class EventAction;
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class TrackingAction : public G4UserTrackingAction {
+class TrackingAction : public G4UserTrackingAction
+{
+  public:
+    TrackingAction(EventAction*);
+    ~TrackingAction() override;
 
-  public:  
-    TrackingAction();
-   ~TrackingAction() {};
-   
-    virtual void  PreUserTrackingAction(const G4Track*);  
-    virtual void PostUserTrackingAction(const G4Track*);
+    void PreUserTrackingAction(const G4Track*) override;
+    void PostUserTrackingAction(const G4Track*) override;
+
+    void SetParticleCount(G4bool flag) { fParticleCount = flag; };
+
+  private:
+    TrackingMessenger* fTrackMessenger = nullptr;
+    EventAction* fEventAct = nullptr;
+
+    G4bool fParticleCount = true;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

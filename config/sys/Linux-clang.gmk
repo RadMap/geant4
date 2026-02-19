@@ -1,27 +1,18 @@
 #
-# ------ GNU/LINUX ------ clang 3.6 and higher
+# ------ GNU/LINUX ------ clang 17.0 and higher
 #
 # Original author: Gabriele Cosmo - CERN
 #
 ifeq ($(G4SYSTEM),Linux-clang)
-  CXX       := clang++
+  GCCBASE   := $(shell which g++ | sed -e "s=/bin/g++==")
+  CXX       := clang++ --gcc-toolchain=$(GCCBASE)
   CXXFLAGS  := -Wall -Wno-non-virtual-dtor -Wno-long-long
   CXXFLAGS  += -Wwrite-strings -Wpointer-arith -Woverloaded-virtual
   CXXFLAGS  += -Wno-variadic-macros -Wshadow -pipe
   CXXFLAGS  += -fno-trapping-math -ftree-vectorize -fno-math-errno
-  G4USE_STD11 := 1
-  ifdef G4USE_STD14
-    CPPFLAGS  += -std=c++14
-    CXXFLAGS  += -std=c++14
-  else
-    ifdef G4USE_STD17
-      CPPFLAGS  += -std=c++17
-      CXXFLAGS  += -std=c++17
-    else
-      CXXFLAGS  += -std=c++11
-      CPPFLAGS  += -std=c++11
-    endif
-  endif
+  CPPFLAGS  += -std=c++17
+  CXXFLAGS  += -std=c++17
+  G4USE_STD17 := 1
   ifdef G4MULTITHREADED
     CXXFLAGS += -ftls-model=initial-exec -pthread
   endif
@@ -47,6 +38,7 @@ ifeq ($(G4SYSTEM),Linux-clang)
     CCFLAGS   += -O2 -g
   endif
   ifdef G4LIB_BUILD_SHARED
+    CPPFLAGS  += -fPIC
     CXXFLAGS  += -fPIC
     FCFLAGS   += -fPIC
     CCFLAGS   += -fPIC
@@ -54,7 +46,7 @@ ifeq ($(G4SYSTEM),Linux-clang)
   G4RUNPATHOPTION := -Wl,-rpath, 
   G4STATIC_MODE += -Wl,--whole-archive
   G4NOSTATIC_MODE += -Wl,--no-whole-archive
-  CC := clang
+  CC := clang --gcc-toolchain=$(GCCBASE)
   FC := gfortran
   FCFLAGS += -fno-automatic -fno-backslash -fno-second-underscore
   FCLIBS := -lg2c -lnsl
@@ -66,7 +58,7 @@ ifeq ($(G4SYSTEM),Linux-clang)
     X11FLAGS  := -I/usr/include/X11/extensions -I/usr/include/X11
   endif
   ifndef X11LIBS
-    X11LIBS   := -L/usr/lib$(ARCH)  -lXmu -lXt -lXext -lX11 -lXi -lSM -lICE
+    X11LIBS   := -L/usr/lib$(ARCH)  -lXmu -lXt -lXext -lX11 -lSM -lICE
   endif
   ifndef XMFLAGS
     XMFLAGS   := -I/usr/include
@@ -88,7 +80,7 @@ ifeq ($(G4SYSTEM),Linux-clang)
     OGLFLAGS  := -I$(OGLHOME)/include 
   endif
   ifndef OGLLIBS
-    OGLLIBS   := -L$(OGLHOME)/lib$(ARCH) -lGLU -lGL
+    OGLLIBS   := -L$(OGLHOME)/lib$(ARCH) -lGL
   endif
 
 # ---- QT Setup block -------------------------------------------------------
@@ -101,24 +93,17 @@ ifeq ($(G4SYSTEM),Linux-clang)
   endif
 
   ifndef QT_VERSION
-    QT_VERSION := 5
+    QT_VERSION := 6
   endif
 
-  ifeq ($(QT_VERSION),5)
-    ifndef QTFLAGS              # Qt5
-      QTFLAGS   := -I $(QTHOME)/include -I$(QTHOME)/include/Qt
-      QTFLAGS   += -I $(QTHOME)/include/QtCore
-      QTFLAGS   += -I $(QTHOME)/include/QtGui
-      QTFLAGS   += -I $(QTHOME)/include/QtWidgets
-      QTFLAGS   += -I $(QTHOME)/include/QtOpenGL
-      QTFLAGS   += -I $(QTHOME)/include/QtPrintSupport
-    endif
-  else                          # Qt4
-    ifndef QTFLAGS
-      QTFLAGS   := -I$(QTHOME)/include -I$(QTHOME)/include/Qt
-      QTFLAGS   += -I$(QTHOME)/include/QtCore 
-      QTFLAGS   += -I$(QTHOME)/include/QtGui 
-      QTFLAGS   += -I$(QTHOME)/include/QtOpenGL 
+  ifndef QTFLAGS
+    QTFLAGS   := -I $(QTHOME)/include -I$(QTHOME)/include/Qt
+    QTFLAGS   += -I $(QTHOME)/include/QtCore
+    QTFLAGS   += -I $(QTHOME)/include/QtGui
+    QTFLAGS   += -I $(QTHOME)/include/QtWidgets
+    QTFLAGS   += -I $(QTHOME)/include/QtOpenGL
+    ifeq ($(QT_VERSION),6)
+      QTFLAGS   += -I $(QTHOME)/include/QtOpenGLWidgets
     endif
   endif
   ifndef QTLIBPATH
@@ -128,19 +113,19 @@ ifeq ($(G4SYSTEM),Linux-clang)
       QTLIBPATH := $(QTHOME)/lib/qt$(QT_VERSION)
     endif
   endif
-  ifeq ($(QT_VERSION),5)
-    ifndef QTLIBS              # Qt5
-      QTLIBS   := -L$(QTLIBPATH) -lQt5Core -lQt5Gui -lQt5Widgets -lQt5PrintSupport
-    endif
-    ifndef GLQTLIBS
-      GLQTLIBS := -L$(QTLIBPATH) -lQt5Core -lQt5Gui -lQt5Widgets  -lQt5OpenGL -lQt5PrintSupport
-    endif
-  else                         # Qt4
+  ifeq ($(QT_VERSION),5)       # Qt5
     ifndef QTLIBS
-      QTLIBS   := -L$(QTLIBPATH) -lQtCore -lQtGui
+      QTLIBS   := -L$(QTLIBPATH) -lQt5Core -lQt5Gui -lQt5Widgets
     endif
     ifndef GLQTLIBS
-      GLQTLIBS := -L$(QTLIBPATH) -lQtCore -lQtGui -lQtOpenGL
+      GLQTLIBS := -L$(QTLIBPATH) -lQt5Core -lQt5Gui -lQt5Widgets -lQt5OpenGL
+    endif
+  else                         # Qt6
+    ifndef QTLIBS
+      QTLIBS   := -L$(QTLIBPATH) -lQt6Core -lQt6Gui -lQt6Widgets
+    endif
+    ifndef GLQTLIBS
+      GLQTLIBS := -L$(QTLIBPATH) -lQt6Core -lQt6Gui -lQt6Widgets -lQt6OpenGL -lQt6OpenGLWidgets
     endif
   endif
 

@@ -1,30 +1,50 @@
+# Category had-abrasion History
 
-       ==========================================================
-       Geant4 - an Object-Oriented Toolkit for Physics Simulation
-       ==========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-        History file for hadronic/models/abrasion directory
-        --------------------------------------------------------
+-------------------------------------------------------------------------------
 
-This file should be used to summarize modifications introduced in the 
-code and to keep track of all tags.
+## 2022-11-26 Gabriele Cosmo (hadr-abrasion-V11-00-01)
+- Fixed compilation warnings for implicit type conversions on macOS/XCode 14.1.
 
-     ---------------------------------------------------------------
-     * Please list in reverse chronological order (last date on top)
-     ---------------------------------------------------------------
+## 2021-12-10 Ben Morgan (hadr-abrasion-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+04-Aug-2021 Alberto Ribon (had-abrasion-V10-07-02)
+--------------------------------------------------
+- G4WilsonAbrasionModel : migrated to the new version of
+  G4PhysicsModelCatalog
+
+16-Apr-2021 Ben Morgan (had-abrasion-V10-07-01)
+--------------------------------------------------
+- Migrate build to modular CMake API
+
+13-Apr-2021  Alberto Ribon (had-abrasion-V10-07-00)
+----------------------------------------------------
+- GNUmakefile, sources.cmake : removed the subdirectories
+  hadronic/models/management and hadronic/models/util
+  (that have been now deleted, with their classes moved to
+   hadronic/util and hadronic/management).
+  Removed also the useless dependency to hadronic/process.
 
 28-Jul-2017  Vladimir Ivanchenko (had-abrasion-V10-03-03)
 ----------------------------------------------------
-- G4WilsonAbrasionModel - fixed Coverity warning (memory leak), 
+- G4WilsonAbrasionModel - fixed Coverity warning (memory leak),
     substitute NULL by nullptr
 
 01-Jul-2017  Vladimir Ivanchenko (had-abrasion-V10-03-02)
 ----------------------------------------------------
-- G4WilsonAbrasionModel - fixed Coverity warning 
+- G4WilsonAbrasionModel - fixed Coverity warning
 
 19-Jun-2017  Vladimir Ivanchenko (had-abrasion-V10-03-01)
 ----------------------------------------------------
-- G4WilsonAbrasionModel - C. Mancini Terracciano fixed crash at 
+- G4WilsonAbrasionModel - C. Mancini Terracciano fixed crash at
     initialisation
 
 07-Mar-2017  Vladimir Ivanchenko (had-abrasion-V10-03-00)
@@ -61,7 +81,7 @@ code and to keep track of all tags.
 
 12-Jun-2012  Alberto Ribon  (had-abrasion-V09-05-00)
 ----------------------------------------------------
-- Fixed warnings of shadowed variables.  File affected: 
+- Fixed warnings of shadowed variables.  File affected:
     G4NuclearAbrasionGeometry.cc , G4WilsonAbrasionModel.cc
 
 08-Nov-2011  Dennis Wright  (had-abrasion-V09-04-01)

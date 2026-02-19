@@ -31,8 +31,6 @@
 //                            an OpenGL view, for inheritance by
 //                            derived (X, Xm...) classes.
 
-#ifdef G4VIS_BUILD_OPENGL_DRIVER
-
 #include "G4OpenGLStoredViewer.hh"
 
 #include "G4PhysicalConstants.hh"
@@ -50,8 +48,7 @@ G4OpenGLViewer (sceneHandler),
 fG4OpenGLStoredSceneHandler (sceneHandler),
 fDepthTestEnable(true)
 {
-  fLastVP = fDefaultVP; // Not sure if this gets executed before or
-  // after G4VViewer::G4VViewer!!  Doesn't matter much.
+  fLastVP = fDefaultVP;  // Update in sub-class after KernelVisitDecision
 }
 
 G4OpenGLStoredViewer::~G4OpenGLStoredViewer () {}
@@ -65,7 +62,6 @@ void G4OpenGLStoredViewer::KernelVisitDecision () {
       CompareForKernelVisit(fLastVP)) {
     NeedKernelVisit ();
   }
-  fLastVP = fVP;
 }
 
 G4bool G4OpenGLStoredViewer::CompareForKernelVisit(G4ViewParameters& lastVP) {
@@ -80,15 +76,20 @@ G4bool G4OpenGLStoredViewer::CompareForKernelVisit(G4ViewParameters& lastVP) {
       (lastVP.IsCullingCovered ()   != fVP.IsCullingCovered ())   ||
       (lastVP.GetCBDAlgorithmNumber() !=
        fVP.GetCBDAlgorithmNumber())                               ||
+      // Note: Section and Cutaway can reveal back-facing faces. If
+      // backface culling is implemented, the image can look strange because
+      // the back-facing faces are not there. For the moment, we have disabled
+      // (commented out) backface culling (it seems not to affect performance -
+      // in fact, performance seems to improve), so there is no problem.
       (lastVP.IsSection ()          != fVP.IsSection ())          ||
-      // Section (DCUT) implemented locally.  But still need to visit
-      // kernel if status changes so that back plane culling can be
-      // switched.
-      (lastVP.IsCutaway ()          != fVP.IsCutaway ())          ||
-      // Cutaways implemented locally.  But still need to visit kernel
-      // if status changes so that back plane culling can be switched.
+      // Section (DCUT) is NOT implemented locally so we need to visit the kernel.
+      // (lastVP.IsCutaway ()          != fVP.IsCutaway ())          ||
+      // Cutaways are implemented locally so we do not need to visit the kernel.
       (lastVP.IsExplode ()          != fVP.IsExplode ())          ||
       (lastVP.GetNoOfSides ()       != fVP.GetNoOfSides ())       ||
+      (lastVP.GetGlobalMarkerScale()    != fVP.GetGlobalMarkerScale())    ||
+      (lastVP.GetGlobalLineWidthScale() != fVP.GetGlobalLineWidthScale()) ||
+      (lastVP.IsMarkerNotHidden ()  != fVP.IsMarkerNotHidden ())  ||
       (lastVP.GetDefaultVisAttributes()->GetColour() !=
        fVP.GetDefaultVisAttributes()->GetColour())                ||
       (lastVP.GetDefaultTextVisAttributes()->GetColour() !=
@@ -96,7 +97,14 @@ G4bool G4OpenGLStoredViewer::CompareForKernelVisit(G4ViewParameters& lastVP) {
       (lastVP.GetBackgroundColour ()!= fVP.GetBackgroundColour ())||
       (lastVP.IsPicking ()          != fVP.IsPicking ())          ||
       (lastVP.GetVisAttributesModifiers() !=
-       fVP.GetVisAttributesModifiers())
+       fVP.GetVisAttributesModifiers())                           ||
+      (lastVP.IsSpecialMeshRendering() !=
+       fVP.IsSpecialMeshRendering())                              ||
+      (lastVP.GetSpecialMeshRenderingOption() !=
+       fVP.GetSpecialMeshRenderingOption())                       ||
+      (lastVP.GetTransparencyByDepth() != fVP.GetTransparencyByDepth()) ||
+      (lastVP.IsDotsSmooth()        != fVP.IsDotsSmooth())        ||
+      (lastVP.GetDotsSize()         != fVP.GetDotsSize())
       )
   return true;
   
@@ -114,6 +122,7 @@ G4bool G4OpenGLStoredViewer::CompareForKernelVisit(G4ViewParameters& lastVP) {
   /**************************************************************
    If cutaways are implemented locally, comment this out.
    if (lastVP.IsCutaway ()) {
+   if (vp.GetCutawayMode() != fVP.GetCutawayMode()) return true;
    if (lastVP.GetCutawayPlanes ().size () !=
    fVP.GetCutawayPlanes ().size ()) return true;
    for (size_t i = 0; i < lastVP.GetCutawayPlanes().size(); ++i)
@@ -131,6 +140,14 @@ G4bool G4OpenGLStoredViewer::CompareForKernelVisit(G4ViewParameters& lastVP) {
       (lastVP.GetExplodeFactor () != fVP.GetExplodeFactor ()))
     return true;
 
+  if (lastVP.IsSpecialMeshRendering() &&
+      (lastVP.GetSpecialMeshVolumes() != fVP.GetSpecialMeshVolumes()))
+    return true;
+
+  if (lastVP.GetTransparencyByDepth() > 0. &&
+      lastVP.GetTransparencyByDepthOption() != fVP.GetTransparencyByDepthOption())
+    return true;
+
   // Time window parameters operate on the existing database so no need
   // to rebuild even if they change.
   
@@ -141,8 +158,8 @@ void G4OpenGLStoredViewer::DrawDisplayLists () {
   
   // We moved these from G4OpenGLViewer to G4ViewParamaters. To avoid
   // editing many lines below we introduce these convenient aliases.
-#define CONVENIENT_DOUBLE_ALIAS(q) const G4double& f##q = fVP.Get##q();
-#define CONVENIENT_BOOL_ALIAS(q) const G4bool& f##q = fVP.Is##q();
+#define CONVENIENT_DOUBLE_ALIAS(q) const G4double& f##q = fVP.GetTimeParameters().f##q;
+#define CONVENIENT_BOOL_ALIAS(q) const G4bool& f##q = fVP.GetTimeParameters().f##q;
   CONVENIENT_DOUBLE_ALIAS(StartTime)
   CONVENIENT_DOUBLE_ALIAS(EndTime)
   CONVENIENT_DOUBLE_ALIAS(FadeFactor)
@@ -469,20 +486,16 @@ void G4OpenGLStoredViewer::AddPrimitiveForASingleFrame(const G4Text& text)
 {
   // We don't want this to get into a display list or a TODL or a PODL so
   // use the fMemoryForDisplayLists flag.
-  G4bool memoryForDisplayListsKeep = fG4OpenGLStoredSceneHandler.fMemoryForDisplayLists;
-  fG4OpenGLStoredSceneHandler.fMemoryForDisplayLists = false;
+  fG4OpenGLStoredSceneHandler.fDoNotUseDisplayList = true;
   fG4OpenGLStoredSceneHandler.G4OpenGLStoredSceneHandler::AddPrimitive(text);
-  fG4OpenGLStoredSceneHandler.fMemoryForDisplayLists = memoryForDisplayListsKeep;
+  fG4OpenGLStoredSceneHandler.fDoNotUseDisplayList = false;
 }
 
 void G4OpenGLStoredViewer::AddPrimitiveForASingleFrame(const G4Circle& circle)
 {
   // We don't want this to get into a display list or a TODL or a PODL so
   // use the fMemoryForDisplayLists flag.
-  G4bool memoryForDisplayListsKeep = fG4OpenGLStoredSceneHandler.fMemoryForDisplayLists;
-  fG4OpenGLStoredSceneHandler.fMemoryForDisplayLists = false;
+  fG4OpenGLStoredSceneHandler.fDoNotUseDisplayList = true;
   fG4OpenGLStoredSceneHandler.G4OpenGLStoredSceneHandler::AddPrimitive(circle);
-  fG4OpenGLStoredSceneHandler.fMemoryForDisplayLists = memoryForDisplayListsKeep;
+  fG4OpenGLStoredSceneHandler.fDoNotUseDisplayList = false;
 }
-
-#endif

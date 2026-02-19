@@ -24,7 +24,6 @@
 // ********************************************************************
 //
 //
-//
 // -------------------------------------------------------------------
 //
 // GEANT4 Class header file
@@ -57,8 +56,6 @@
 
 #include <vector>
 #include "globals.hh"
-#include "G4DataVector.hh"
-#include "G4DynamicParticle.hh"
 #include "G4VAtomDeexcitation.hh"
 
 class G4LossTableManager;
@@ -98,7 +95,7 @@ public:
                    const G4Region* r = nullptr);
   inline G4double GetDEDX(G4double kinEnergy, const G4String& part, 
 		   const G4String& mat,
-                   const G4String& s = "world");
+                   const G4String& regname = "world");
 
   G4double GetRangeFromRestricteDEDX(G4double kinEnergy, 
 				     const G4ParticleDefinition*, 
@@ -107,28 +104,28 @@ public:
   inline G4double GetRangeFromRestricteDEDX(G4double kinEnergy, 
 					    const G4String& part, 
 					    const G4String& mat,
-					    const G4String& s = "world");
+					    const G4String& regname = "world");
 
   G4double GetCSDARange(G4double kinEnergy, const G4ParticleDefinition*, 
 			const G4Material*,
 			const G4Region* r = nullptr);
   inline G4double GetCSDARange(G4double kinEnergy, const G4String& part, 
 			const G4String& mat,
-			const G4String& s = "world");
+			const G4String& regname = "world");
 
   G4double GetRange(G4double kinEnergy, const G4ParticleDefinition*, 
 			const G4Material*,
 			const G4Region* r = nullptr);
   inline G4double GetRange(G4double kinEnergy, const G4String& part, 
 			const G4String& mat,
-			const G4String& s = "world");
+			const G4String& regname = "world");
 
   G4double GetKinEnergy(G4double range, const G4ParticleDefinition*, 
 			const G4Material*,
 			const G4Region* r = nullptr);
   inline G4double GetKinEnergy(G4double range, const G4String& part, 
 			const G4String& mat,
-			const G4String& s = "world");
+			const G4String& regname = "world");
 
   G4double GetCrossSectionPerVolume(
                    G4double kinEnergy, const G4ParticleDefinition*,
@@ -136,7 +133,7 @@ public:
 		   const G4Region* r = nullptr);
   inline G4double GetCrossSectionPerVolume(
                    G4double kinEnergy, const G4String& part, const G4String& proc,
-                   const G4String& mat, const G4String& s = "world");
+                   const G4String& mat, const G4String& regname = "world");
 
   G4double GetShellIonisationCrossSectionPerAtom(
                    const G4String& part, G4int Z, 
@@ -148,7 +145,7 @@ public:
 			   const G4Region* r = nullptr);
   inline G4double GetMeanFreePath(G4double kinEnergy, const G4String& part, 
 				  const G4String& proc, const G4String& mat, 
-				  const G4String& s = "world");
+				  const G4String& regname = "world");
 
   void PrintDEDXTable(const G4ParticleDefinition*);
 
@@ -267,9 +264,11 @@ public:
 
   void SetVerbose(G4int val);
 
-  //===========================================================================
-  // Private methods 
-  //===========================================================================
+  inline void SetApplySmoothing(G4int val);
+
+  // hide copy and assign
+  G4EmCalculator & operator=(const  G4EmCalculator &right) = delete;
+  G4EmCalculator(const  G4EmCalculator&) = delete;
 
 private:
 
@@ -285,8 +284,6 @@ private:
                      const G4String& processName,
                            G4double kinEnergy);
 
-  G4VEnergyLossProcess* FindEnergyLossProcess(const G4ParticleDefinition*);
-
   G4VEnergyLossProcess* FindEnLossProcess(const G4ParticleDefinition*,
 					  const G4String& processName);
 
@@ -301,55 +298,53 @@ private:
 
   void CheckMaterial(G4int Z);
 
-  // hide copy and assign
-  G4EmCalculator & operator=(const  G4EmCalculator &right) = delete;
-  G4EmCalculator(const  G4EmCalculator&) = delete;
-
-  std::vector<const G4Material*>            localMaterials;
-  std::vector<const G4MaterialCutsCouple*>  localCouples;
-
   G4EmParameters*              theParameters;
   G4LossTableManager*          manager;
   G4NistManager*               nist;
   G4IonTable*                  ionTable;
   G4EmCorrections*             corr; 
-  G4DataVector                 localCuts;
-  G4int                        nLocalMaterials;
-
-  G4int                        verbose;
 
   // cache
-  G4int                        currentCoupleIndex;
-  const G4MaterialCutsCouple*  currentCouple;
-  const G4Material*            currentMaterial;
-  const G4Material*            cutMaterial;
-  const G4ParticleDefinition*  currentParticle;
-  const G4ParticleDefinition*  lambdaParticle;
-  const G4ParticleDefinition*  baseParticle;
-  const G4PhysicsTable*        currentLambda;
+  const G4MaterialCutsCouple*  currentCouple = nullptr;
+  const G4Material*            currentMaterial = nullptr;
+  const G4Material*            cutMaterial = nullptr;
+  const G4ParticleDefinition*  currentParticle = nullptr;
+  const G4ParticleDefinition*  lambdaParticle = nullptr;
+  const G4ParticleDefinition*  baseParticle = nullptr;
+  const G4PhysicsTable*        currentLambda = nullptr;
 
-  G4VEmModel*                  currentModel;
-  G4VEmModel*                  loweModel;
-  G4VEnergyLossProcess*        currentProcess;
-  G4VProcess*                  curProcess;
+  G4VEmModel*                  currentModel = nullptr;
+  G4VEmModel*                  loweModel = nullptr;
+  G4VEnergyLossProcess*        currentProcess = nullptr;
+  G4VProcess*                  curProcess = nullptr;
+  G4DynamicParticle*           dynParticle = nullptr;
 
   const G4ParticleDefinition*  theGenericIon;
   G4ionEffectiveCharge*        ionEffCharge;
-  G4DynamicParticle            dynParticle;
 
-  G4String                     currentName;
-  G4String                     lambdaName;
-  G4double                     currentCut;
-  G4double                     chargeSquare;
-  G4double                     massRatio;
-  G4double                     mass;
+  G4double                     currentCut = DBL_MAX;
+  G4double                     chargeSquare = 1.0;
+  G4double                     massRatio = 1.0;
+  G4double                     mass = 0;
   G4double                     cutenergy[3];
-  G4bool                       isIon;
-  G4bool                       isApplicable;
 
-  G4String                     currentParticleName;
-  G4String                     currentMaterialName;
-  G4String                     currentProcessName;
+  G4int                        currentCoupleIndex = 0;
+  G4int                        nLocalMaterials = 0;
+  G4int                        verbose = 0;
+
+  G4bool                       isIon = false;
+  G4bool                       isApplicable = false;
+  G4bool                       applySmoothing = true;
+
+  std::vector<const G4Material*>            localMaterials;
+  std::vector<const G4MaterialCutsCouple*>  localCouples;
+  std::vector<G4double>                     localCuts;
+
+  G4String                     currentName = "";
+  G4String                     lambdaName = "";
+  G4String                     currentParticleName = "";
+  G4String                     currentMaterialName = "";
+  G4String                     currentProcessName = "";
 };
 
 //....oooOO0OOooo.......oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -556,6 +551,13 @@ G4double G4EmCalculator::ComputeMeanFreePath(G4double kinEnergy,
 {
   return ComputeMeanFreePath(kinEnergy,FindParticle(particle),processName,
                              FindMaterial(material),cut);
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+inline void G4EmCalculator::SetApplySmoothing(G4int val)
+{
+  applySmoothing = val;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

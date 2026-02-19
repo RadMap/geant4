@@ -52,6 +52,7 @@
 #include <limits>
 #include <vector>
 
+#define G4warn G4cout
 
 // Constructor and destructor
 
@@ -61,12 +62,12 @@ G4VFieldModel::G4VFieldModel
 (const G4String& typeOfField, const G4String& symbol,
  const G4VisExtent& extentForField,
  const std::vector<G4PhysicalVolumesSearchScene::Findings>& pvFindings,
- G4int nDataPointsPerMaxHalfScene,
+ G4int nDataPointsPerMaxHalfExtent,
  Representation representation,
  G4int arrow3DLineSegmentsPerCircle)
 : fExtentForField(extentForField)
 , fPVFindings(pvFindings)
-, fNDataPointsPerMaxHalfScene(nDataPointsPerMaxHalfScene)
+, fNDataPointsPerMaxHalfExtent(nDataPointsPerMaxHalfExtent)
 , fRepresentation(representation)
 , fArrow3DLineSegmentsPerCircle(arrow3DLineSegmentsPerCircle)
 , fTypeOfField(typeOfField)
@@ -76,7 +77,7 @@ G4VFieldModel::G4VFieldModel
   fGlobalTag = fType;
 
   std::ostringstream oss;
-  oss << ':' << fNDataPointsPerMaxHalfScene
+  oss << ':' << fNDataPointsPerMaxHalfExtent
   << ':' << fArrow3DLineSegmentsPerCircle;
   if (fExtentForField == G4VisExtent::GetNullExtent()) {
     oss << " whole scene";
@@ -124,7 +125,7 @@ void G4VFieldModel::DescribeYourselfTo(G4VGraphicsScene& sceneHandler) {
       if (!globalField) {
         static G4bool warned = false;
         if (!warned) {
-          G4cout << intro << "Null global field pointer." << G4endl;
+          G4warn << intro << "Null global field pointer." << G4endl;
           warned = true;
         }
       }
@@ -132,18 +133,23 @@ void G4VFieldModel::DescribeYourselfTo(G4VGraphicsScene& sceneHandler) {
   } else {
     static G4bool warned = false;
     if (!warned) {
-      G4cout << intro << "No global field manager." << G4endl;
+      G4warn << intro << "No global field manager." << G4endl;
       warned = true;
     }
   }
 
-  G4VisExtent sceneExtent = sceneHandler.GetExtent();
-  const G4double& xMin = sceneExtent.GetXmin();
-  const G4double& yMin = sceneExtent.GetYmin();
-  const G4double& zMin = sceneExtent.GetZmin();
-  const G4double& xMax = sceneExtent.GetXmax();
-  const G4double& yMax = sceneExtent.GetYmax();
-  const G4double& zMax = sceneExtent.GetZmax();
+  G4VisExtent extent = sceneHandler.GetExtent();
+  if (fExtentForField == G4VisExtent::GetNullExtent()) {
+    extent = sceneHandler.GetExtent();
+  } else {
+    extent = fExtentForField;
+  }
+  const G4double& xMin = extent.GetXmin();
+  const G4double& yMin = extent.GetYmin();
+  const G4double& zMin = extent.GetZmin();
+  const G4double& xMax = extent.GetXmax();
+  const G4double& yMax = extent.GetYmax();
+  const G4double& zMax = extent.GetZmax();
   const G4double xHalfScene = 0.5 * (xMax - xMin);
   const G4double yHalfScene = 0.5 * (yMax - yMin);
   const G4double zHalfScene = 0.5 * (zMax - zMin);
@@ -153,12 +159,12 @@ void G4VFieldModel::DescribeYourselfTo(G4VGraphicsScene& sceneHandler) {
   const G4double maxHalfScene =
   std::max(xHalfScene,std::max(yHalfScene,zHalfScene));
   if (maxHalfScene <= 0.) {
-    G4cout << "Scene extent non-positive." << G4endl;
+    G4warn << "Scene extent non-positive." << G4endl;
     return;
   }
 
   // Constants
-  const G4double interval = maxHalfScene / fNDataPointsPerMaxHalfScene;
+  const G4double interval = maxHalfScene / fNDataPointsPerMaxHalfExtent;
   const G4int nDataPointsPerXHalfScene = G4int(xHalfScene / interval);
   const G4int nDataPointsPerYHalfScene = G4int(yHalfScene / interval);
   const G4int nDataPointsPerZHalfScene = G4int(zHalfScene / interval);
@@ -188,15 +194,6 @@ void G4VFieldModel::DescribeYourselfTo(G4VGraphicsScene& sceneHandler) {
 	xyz[ijk].set(x,y,z);
 
         G4ThreeVector pos(x,y,z);
-
-        // Check if point is in extent for field
-        if (fExtentForField != G4VisExtent::GetNullExtent()) {
-          const auto& ext = fExtentForField;  // Alias
-          if (x < ext.GetXmin() || x > ext.GetXmax() ||
-              y < ext.GetYmin() || y > ext.GetYmax() ||
-              z < ext.GetZmin() || z > ext.GetZmax())
-            continue;
-        }
 
         // Check if point is in findings
         if (!fPVFindings.empty()) {
@@ -263,7 +260,7 @@ void G4VFieldModel::DescribeYourselfTo(G4VGraphicsScene& sceneHandler) {
   }	// for (i, x
 
   if (FieldMagnitudeMax <= 0.) {
-    G4cout << "No " << fTypeOfField << " field in this extent." << G4endl;
+    G4warn << "No " << fTypeOfField << " field in this extent." << G4endl;
     return;
   }
 

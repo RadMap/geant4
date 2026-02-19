@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/MCTruth/include/MCTruthTrackInformation.hh
+/// \file MCTruthTrackInformation.hh
 /// \brief Definition of the MCTruthTrackInformation class
-//
-//
-//
-//
+
 // --------------------------------------------------------------
 //      GEANT 4 - MCTruthTrackInformation class
 // --------------------------------------------------------------
@@ -37,7 +34,7 @@
 // Date  : 2006-03-06
 //
 // --------------------------------------------------------------
-#ifndef INCLUDE_MCTRUTHTRACKINFORMATION_H 
+#ifndef INCLUDE_MCTRUTHTRACKINFORMATION_H
 #define INCLUDE_MCTRUTHTRACKINFORMATION_H 1
 
 #include "G4Types.hh"
@@ -45,21 +42,18 @@
 
 class MCTruthTrackInformation : public G4VUserTrackInformation
 {
-public:
+  public:
+    MCTruthTrackInformation();
 
-  MCTruthTrackInformation(); 
+    virtual ~MCTruthTrackInformation();
 
-  virtual ~MCTruthTrackInformation();
+    void Print() const {};
 
-  void Print() const {};
+    void SetDirectParent(G4bool value) { fDirectParent = value; }
+    G4bool GetDirectParent() const { return fDirectParent; }
 
-  void SetDirectParent(G4bool value) { fDirectParent = value; }
-  G4bool GetDirectParent() const { return fDirectParent; }
-
-private:
-
-  G4bool fDirectParent;
-
+  private:
+    G4bool fDirectParent;
 };
 
-#endif // INCLUDE_MCTRUTHTRACKINFORMATION_H
+#endif  // INCLUDE_MCTRUTHTRACKINFORMATION_H

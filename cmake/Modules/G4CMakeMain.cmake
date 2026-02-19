@@ -56,22 +56,29 @@ include(G4BuildSettings)
 include(G4DeveloperAPI)
 
 # - Provide interface to control use of optional components
-include(Geant4OptionalComponents)
+include(G4OptionalComponents)
 
 # - Provide interface to control use of UI/Vis components
 #   Written in a separate module from other optional components because
 #   there are many complex options to handle.
-include(Geant4InterfaceOptions)
+include(G4InterfaceOptions)
 
-# - Provide options to enable wrapping of Geant4 by other languages
-include(Geant4Wrapping)
+# - Installation of optional read-only architecture independent data files.
+include(G4InstallData)
+
+# - Include testing up front so both source and environments can use it if required
+include(G4CTest)
 
 #-----------------------------------------------------------------------
 # Add the source and environments subdirectories
 # source       : Process all the Geant4 core targets
-# environments : Process optional wrappings of Geant4 (NOTYETIMPLEMENTED)
 add_subdirectory(source)
-#add_subdirectory(environments)
+
+if(GEANT4_USE_PYTHON)
+  message(WARNING "Geant4Py is no longer distributed with the Geant4 toolkit."
+  " It can be downloaded from:\n  https://github.com/koichi-murakami/g4python \n"
+  "and requests for support on installation and use should be directed there.\n")
+endif()
 
 #-----------------------------------------------------------------------
 # - Perform all post build tasks
@@ -79,16 +86,7 @@ add_subdirectory(source)
 # and other properties processed in source and environments trees before
 # these tasks can be performed.
 #
-# - Installation of optional read-only architecture independent data files.
-# E.g. Examples, data libraries, documentation.
-# Done before toolchain generation because it may affect what we have to do
-# there!
-#
-include(Geant4InstallData)
-
 # - Generate any Use/Config/Support files here once everything else has
-# been processed e.g. "UseGeant4.cmake", "Geant4Config.cmake", library
-# dependencies etc.
 # - Geant4Make.gmk
 include(G4ConfigureGNUMakeHelpers)
 
@@ -101,13 +99,14 @@ include(G4ConfigureCMakeHelpers)
 #-----------------------------------------------------------------------
 # - Testing configuration.
 # Done here, as projects under 'tests' require Geant4Config.
-include(Geant4CTest)
 if(GEANT4_ENABLE_TESTING)
-  add_subdirectory(tests)
-  if(EXISTS ${CMAKE_SOURCE_DIR}/benchmarks)
+  if(EXISTS ${PROJECT_SOURCE_DIR}/tests)
+    add_subdirectory(tests)
+  endif()
+  if(EXISTS ${PROJECT_SOURCE_DIR}/benchmarks)
     add_subdirectory(benchmarks)
   endif()
-  if(EXISTS ${CMAKE_SOURCE_DIR}/verification)
+  if(EXISTS ${PROJECT_SOURCE_DIR}/verification)
     add_subdirectory(verification)
   endif()
 endif()
@@ -121,7 +120,7 @@ mark_as_advanced(GEANT4_INSTALL_EXAMPLES)
 
 if(GEANT4_INSTALL_EXAMPLES)
   install(DIRECTORY examples
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/Geant4-${Geant4_VERSION}
+    DESTINATION ${CMAKE_INSTALL_DATADIR}
     COMPONENT Examples
     PATTERN "CVS" EXCLUDE
     PATTERN ".svn" EXCLUDE
@@ -130,11 +129,11 @@ endif()
 
 #-----------------------------------------------------------------------
 # - CPack-aging
-include(Geant4CPackBase)
+include(G4CPack)
 
 #-----------------------------------------------------------------------
 # Final output - show what's been enabled so that user knows what's
 # happening - also useful for later problem solving!
 #
-GEANT4_PRINT_ENABLED_FEATURES()
+geant4_print_enabled_features()
 

@@ -29,29 +29,20 @@
 #include "G4RayTracerFeatures.hh"
 #include "G4RayTracerSceneHandler.hh"
 #include "G4RayTracerViewer.hh"
-#ifdef G4MULTITHREADED
-#include "G4TheMTRayTracer.hh"
-#else
-#include "G4TheRayTracer.hh"
-#endif
+
+#define G4warn G4cout
 
 G4RayTracer::G4RayTracer():
   G4VGraphicsSystem("RayTracer",
-		     "RayTracer",
+		     "RT",
 		     RAYTRACER_FEATURES,
 		     G4VGraphicsSystem::threeD)
+, theRayTracer(nullptr)
 {
-#ifdef G4MULTITHREADED
-  theRayTracer = new G4TheMTRayTracer;  // Establish default ray tracer.
-#else
-  theRayTracer = new G4TheRayTracer;  // Establish default ray tracer.
-#endif
 }
 
 G4RayTracer::~G4RayTracer()
-{
-  delete theRayTracer;
-}
+{}
 
 G4VSceneHandler* G4RayTracer::CreateSceneHandler (const G4String& name) {
   G4VSceneHandler* pScene = new G4RayTracerSceneHandler (*this, name);
@@ -64,7 +55,7 @@ G4VViewer* G4RayTracer::CreateViewer (G4VSceneHandler& sceneHandler,
   (sceneHandler, name, theRayTracer);
   if (pViewer) {
     if (pViewer->GetViewId() < 0) {
-      G4cout <<
+      G4warn <<
         "G4RayTracer::CreateViewer: ERROR flagged by negative"
         " view id in G4RayTracerViewer creation."
         "\n Destroying view and returning null pointer."
@@ -74,7 +65,7 @@ G4VViewer* G4RayTracer::CreateViewer (G4VSceneHandler& sceneHandler,
     }
   }
   else {
-    G4cout <<
+    G4warn <<
       "G4RayTracer::CreateViewer: ERROR: null pointer on new G4RayTracerViewer."
            << G4endl;
   }

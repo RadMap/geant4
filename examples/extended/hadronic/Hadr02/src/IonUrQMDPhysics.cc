@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/src/IonUrQMDPhysics.cc
+/// \file IonUrQMDPhysics.cc
 /// \brief Implementation of the IonUrQMDPhysics class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // Class:    IonUrQMDPhysics
@@ -37,98 +36,82 @@
 // Modified:
 //
 // ------------------------------------------------------------
-// 
+//
 #ifdef G4_USE_URQMD
-#include "IonUrQMDPhysics.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4ProcessManager.hh"
-#include "G4Deuteron.hh"
-#include "G4Triton.hh"
-#include "G4He3.hh"
-#include "G4Alpha.hh"
-#include "G4GenericIon.hh"
+#  include "IonUrQMDPhysics.hh"
 
-#include "G4HadronInelasticProcess.hh"
-#include "G4TripathiCrossSection.hh"
-#include "G4TripathiLightCrossSection.hh"
-#include "G4IonsShenCrossSection.hh"
-#include "G4IonProtonCrossSection.hh"
-
-#include "G4UrQMD1_3Model.hh"
-
-#include "G4BuilderType.hh"
-#include "G4HadronicParameters.hh"
-#include "G4SystemOfUnits.hh"
+#  include "G4Alpha.hh"
+#  include "G4BuilderType.hh"
+#  include "G4ComponentGGNuclNuclXsc.hh"
+#  include "G4CrossSectionInelastic.hh"
+#  include "G4Deuteron.hh"
+#  include "G4GenericIon.hh"
+#  include "G4HadronInelasticProcess.hh"
+#  include "G4HadronicParameters.hh"
+#  include "G4He3.hh"
+#  include "G4ParticleDefinition.hh"
+#  include "G4ProcessManager.hh"
+#  include "G4SystemOfUnits.hh"
+#  include "G4Triton.hh"
+#  include "G4UrQMD1_3Model.hh"
 
 using namespace std;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 IonUrQMDPhysics::IonUrQMDPhysics(G4int ver)
-  : G4VHadronPhysics("ionInelasticUrQMD"),verbose(ver),
-    fWasActivated(false)
+  : G4VHadronPhysics("ionInelasticUrQMD"), verbose(ver), fWasActivated(false)
 {
-  fTripathi = fTripathiLight = fShen = fIonH = 0;
-  fModel = 0;
+  fIonXS = nullptr;
+  fModel = nullptr;
   SetPhysicsType(bIons);
-  if(fVerbose > 1) { G4cout << "### IonUrQMDPhysics" << G4endl; }
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-IonUrQMDPhysics::~IonUrQMDPhysics()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void IonUrQMDPhysics::ConstructProcess()
-{
-  if(fWasActivated) { return; }
-  fWasActivated = true;
-
-  G4double emin = 0.*MeV;
-  G4double emax = G4HadronicParameters::Instance()->GetMaxEnergy();
-
-  fModel = new G4UrQMD1_3Model();
-  fModel->SetMinEnergy( emin );
-  fModel->SetMaxEnergy( emax );
-
-  fShen = new G4IonsShenCrossSection();
-  fTripathi = new G4TripathiCrossSection();
-  fTripathiLight = new G4TripathiLightCrossSection();
-  fIonH = new G4IonProtonCrossSection();
-  fShen->SetMaxKinEnergy( emax );
-  fTripathi->SetMaxKinEnergy( emax );
-  fTripathiLight->SetMaxKinEnergy( emax );
-  fIonH->SetMaxKinEnergy( emax );
-
-
-  AddProcess("dInelastic", G4Deuteron::Deuteron(),false);
-  AddProcess("tInelastic",G4Triton::Triton(),false);
-  AddProcess("He3Inelastic",G4He3::He3(),true);
-  AddProcess("alphaInelastic", G4Alpha::Alpha(),true);
-  AddProcess("ionInelastic",G4GenericIon::GenericIon(),true);
-
-  if(fVerbose > 1) {
-    G4cout << "IonUrQMDPhysics::ConstructProcess done! " 
-           << G4endl;
+  if (fVerbose > 1) {
+    G4cout << "### IonUrQMDPhysics" << G4endl;
   }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void IonUrQMDPhysics::AddProcess(const G4String& name, 
-                                 G4ParticleDefinition* part, 
-                                 G4bool isIon)
+IonUrQMDPhysics::~IonUrQMDPhysics() {}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+void IonUrQMDPhysics::ConstructProcess()
+{
+  if (fWasActivated) {
+    return;
+  }
+  fWasActivated = true;
+
+  G4double emin = 0. * MeV;
+  G4double emax = G4HadronicParameters::Instance()->GetMaxEnergy();
+
+  fModel = new G4UrQMD1_3Model();
+  fModel->SetMinEnergy(emin);
+  fModel->SetMaxEnergy(emax);
+
+  fIonXS = new G4CrossSectionInelastic(new G4ComponentGGNuclNuclXsc);
+
+  AddProcess("dInelastic", G4Deuteron::Deuteron());
+  AddProcess("tInelastic", G4Triton::Triton());
+  AddProcess("He3Inelastic", G4He3::He3());
+  AddProcess("alphaInelastic", G4Alpha::Alpha());
+  AddProcess("ionInelastic", G4GenericIon::GenericIon());
+
+  if (fVerbose > 1) {
+    G4cout << "IonUrQMDPhysics::ConstructProcess done! " << G4endl;
+  }
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void IonUrQMDPhysics::AddProcess(const G4String& name, G4ParticleDefinition* part)
 {
   G4HadronInelasticProcess* hadi = new G4HadronInelasticProcess(name, part);
   G4ProcessManager* pManager = part->GetProcessManager();
   pManager->AddDiscreteProcess(hadi);
-  hadi->AddDataSet(fShen);
-  //  hadi->AddDataSet(fTripathi);
-  // hadi->AddDataSet(fTripathiLight);
-  if(isIon) { hadi->AddDataSet(fIonH); }
-  hadi->RegisterMe( fModel );
+  hadi->AddDataSet(fIonXS);
+  hadi->RegisterMe(fModel);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-#endif //URQMD
+#endif  // URQMD

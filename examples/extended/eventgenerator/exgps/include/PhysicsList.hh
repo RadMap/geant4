@@ -23,13 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/exgps/include/PhysicsList.hh
+/// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysicsList_h
 #define PhysicsList_h 1
@@ -39,22 +34,19 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VUserPhysicsList
+class PhysicsList : public G4VUserPhysicsList
 {
   public:
     PhysicsList();
-   ~PhysicsList();
+    ~PhysicsList();
 
   protected:
     // Construct particle and physics
     virtual void ConstructParticle();
-    virtual void ConstructProcess(); 
-    virtual void SetCuts();   
+    virtual void ConstructProcess();
+    virtual void SetCuts();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-
-

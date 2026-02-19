@@ -23,15 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm10/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-//
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef RunAction_h
 #define RunAction_h 1
@@ -53,18 +46,18 @@ class RunAction : public G4UserRunAction
 
   public:
     virtual void BeginOfRunAction(const G4Run*);
-    virtual void   EndOfRunAction(const G4Run*);
+    virtual void EndOfRunAction(const G4Run*);
 
-    void  SetRndmFreq(G4int val) { fRndmFreq = val; }
-    G4int GetRndmFreq()          { return fRndmFreq; }    
+    void SetRndmFreq(G4int val) { fRndmFreq = val; }
+    G4int GetRndmFreq() { return fRndmFreq; }
+
   private:
     // methods
     void BookHisto();
 
     // data members
     RunMessenger* fRunMessenger;
-    G4int fRndmFreq;    
+    G4int fRndmFreq;
 };
 
 #endif
-

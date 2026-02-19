@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file EventActionMessenger.hh
+/// \brief Definition of the EventActionMessenger class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -33,35 +36,33 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file EventActionMessenger.hh
-/// \brief Definition of the EventActionMessenger class
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef EventActionMessenger_h
-#define EventActionMessenger_h 1
+#  define EventActionMessenger_h 1
 
-#include "G4UImessenger.hh"
-#include "globals.hh"
+#  include "G4UImessenger.hh"
+#  include "globals.hh"
 
 class EventAction;
 class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWithAnInteger;
 class G4UIdirectory;
 
-class EventActionMessenger: public G4UImessenger
+class EventActionMessenger : public G4UImessenger
 {
-public:
-  EventActionMessenger(EventAction*);
-  ~EventActionMessenger();
+  public:
+    EventActionMessenger(EventAction*);
+    ~EventActionMessenger();
 
-  virtual void SetNewValue(G4UIcommand*, G4String);
+    virtual void SetNewValue(G4UIcommand*, G4String);
 
-private:
-  EventAction*                  fpEventAction;
-  G4UIdirectory*                fpPDBDir;
-  G4UIcmdWithADoubleAndUnit*    fpThresEdepCmd;
-  G4UIcmdWithAnInteger*         fpThresDistCmd;
+  private:
+    EventAction* fpEventAction;
+    G4UIdirectory* fpPDBDir;
+    G4UIcmdWithADoubleAndUnit* fpThresEdepCmd;
+    G4UIcmdWithAnInteger* fpThresDistCmd;
 };
 
 #endif

@@ -36,9 +36,12 @@
 #include "G4LogicalVolume.hh"
 #include "G4TransportationManager.hh"
 
-#ifdef G4MULTITHREADED
-G4Mutex G4IStore::IStoreMutex = G4MUTEX_INITIALIZER;
-#endif
+#include "G4AutoLock.hh"
+
+namespace
+{
+  G4Mutex IStoreMutex = G4MUTEX_INITIALIZER;
+}
 
 // ***************************************************************************
 // Static class variable: ptr to single instance of class
@@ -61,10 +64,6 @@ G4IStore::G4IStore(const G4String& ParallelWorldName)
   G4cout << " G4IStore:: fParallelWorldVolume = "
          << fWorldVolume->GetName() << G4endl;
 #endif
-}
-
-G4IStore::~G4IStore()
-{
 }
 
 void G4IStore::Clear()
@@ -161,9 +160,7 @@ void G4IStore::ChangeImportance(G4double importance,
 G4double G4IStore::GetImportance(const G4VPhysicalVolume& aVolume,
                                  G4int aRepNum) const
 {  
-#ifdef G4MULTITHREADED
-  G4MUTEXLOCK(&G4IStore::IStoreMutex);
-#endif
+  G4AutoLock l(&IStoreMutex);
   SetInternalIterator(G4GeometryCell(aVolume, aRepNum));
   auto gCellIterator = fCurrentIterator;
   if (gCellIterator == fGeometryCelli.cend())
@@ -172,17 +169,14 @@ G4double G4IStore::GetImportance(const G4VPhysicalVolume& aVolume,
     return 0.;
   }
   G4double importance_value = (*fCurrentIterator).second;
-#ifdef G4MULTITHREADED
-  G4MUTEXUNLOCK(&G4IStore::IStoreMutex);
-#endif
+  l.unlock();
+
   return importance_value;
 }
 
 G4double G4IStore::GetImportance(const G4GeometryCell& gCell) const
 {
-#ifdef G4MULTITHREADED
-  G4MUTEXLOCK(&G4IStore::IStoreMutex);
-#endif
+  G4AutoLock l(&IStoreMutex);
   SetInternalIterator(gCell);
   auto gCellIterator = fCurrentIterator;
   if (gCellIterator == fGeometryCelli.cend())
@@ -195,18 +189,14 @@ G4double G4IStore::GetImportance(const G4GeometryCell& gCell) const
     return 0.;
   }
   G4double importance_value = (*fCurrentIterator).second;
-#ifdef G4MULTITHREADED
-  G4MUTEXUNLOCK(&G4IStore::IStoreMutex);
-#endif
+  l.unlock();
+
   return importance_value;
-  // return (*fCurrentIterator).second;
 }
 
 G4bool G4IStore::IsKnown(const G4GeometryCell& gCell) const
 {
-#ifdef G4MULTITHREADED
-  G4MUTEXLOCK(&G4IStore::IStoreMutex);
-#endif
+  G4AutoLock l(&IStoreMutex);
   G4bool inWorldKnown(IsInWorld(gCell.GetPhysicalVolume()));
                       
   if ( inWorldKnown )
@@ -214,9 +204,8 @@ G4bool G4IStore::IsKnown(const G4GeometryCell& gCell) const
     SetInternalIterator(gCell);
     inWorldKnown = (fCurrentIterator != fGeometryCelli.cend());
   }
-#ifdef G4MULTITHREADED
-  G4MUTEXUNLOCK(&G4IStore::IStoreMutex);
-#endif
+  l.unlock();
+
   return inWorldKnown;
 }
 

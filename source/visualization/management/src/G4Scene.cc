@@ -38,6 +38,8 @@
 
 #include <set>
 
+#define G4warn G4cout
+
 G4Scene::G4Scene (const G4String& name):
   fName (name),
   fRefreshAtEndOfEvent(true),
@@ -46,53 +48,6 @@ G4Scene::G4Scene (const G4String& name):
 {} // Note all other data members have default initial values.
 
 G4Scene::~G4Scene () {}
-
-G4bool G4Scene::AddRunDurationModel (G4VModel* pModel, G4bool warn)
-{
-  std::vector<Model>::const_iterator i;
-  for (i = fRunDurationModelList.begin ();
-       i != fRunDurationModelList.end (); ++i) {
-    if (pModel -> GetGlobalDescription () ==
-	i->fpModel->GetGlobalDescription ()) break;
-  }
-  if (i != fRunDurationModelList.end ()) {
-    if (warn) {
-      G4cout << "G4Scene::AddRunDurationModel: model \""
-	     << pModel -> GetGlobalDescription ()
-	     << "\"\n  is already in the run-duration list of scene \""
-	     << fName
-	     << "\"."
-	     << G4endl;
-    }
-    return false;
-  }
-
-  for (i = fRunDurationModelList.begin ();
-       i != fRunDurationModelList.end (); ++i) {
-    if (pModel -> GetGlobalTag () ==
-        i->fpModel->GetGlobalTag ()) break;
-  }
-  if (i != fRunDurationModelList.end ()) {
-    if (warn) {
-      G4cout
-      << "G4Scene::AddRunDurationModel: The tag \""
-      << pModel->GetGlobalTag()
-      << "\"\n  duplicates one already in scene \""
-      << fName
-      <<
-  "\".\n  This may be intended but if not, you may inspect the scene with"
-  "\n  \"/vis/scene/list\" and deactivate unwanted models with"
-  "\n  \"/vis/scene/activateModel\". Or create a new scene."
-      << G4endl;
-    }
-  }
-
-  fRunDurationModelList.push_back (Model(pModel));
-
-  CalculateExtent ();
-
-  return true;
-}
 
 namespace {
   void PrintInvalidModel(const G4VModel* model)
@@ -110,36 +65,42 @@ void G4Scene::CalculateExtent ()
 {
   G4BoundingExtentScene boundingExtentScene;
 
-  for (size_t i = 0; i < fRunDurationModelList.size(); i++) {
-    if (fRunDurationModelList[i].fActive) {
-      G4VModel* model = fRunDurationModelList[i].fpModel;
-      if (model -> Validate()) {  // Validates and also recomputes extent.
-        const G4VisExtent& thisExtent = model -> GetTransformedExtent ();
-        boundingExtentScene.AccrueBoundingExtent(thisExtent);
+  for (auto& i : fRunDurationModelList) {
+    if (i.fActive) {
+      G4VModel* model = i.fpModel;
+      if (model -> Validate()) {
+        const G4VisExtent& thisExtent = model -> GetExtent ();
+        if (thisExtent != G4VisExtent::GetNullExtent()) {
+          boundingExtentScene.AccrueBoundingExtent(thisExtent);
+        }
       } else {
         PrintInvalidModel(model);
       }
     }
   }
 
-  for (size_t i = 0; i < fEndOfEventModelList.size(); i++) {
-    if (fEndOfEventModelList[i].fActive) {
-      G4VModel* model = fEndOfEventModelList[i].fpModel;
-      if (model -> Validate()) {  // Validates and also recomputes extent.
-        const G4VisExtent& thisExtent = model -> GetTransformedExtent ();
-        boundingExtentScene.AccrueBoundingExtent(thisExtent);
+  for (auto & i : fEndOfEventModelList) {
+    if (i.fActive) {
+      G4VModel* model = i.fpModel;
+      if (model -> Validate()) {
+        const G4VisExtent& thisExtent = model -> GetExtent ();
+        if (thisExtent != G4VisExtent::GetNullExtent()) {
+          boundingExtentScene.AccrueBoundingExtent(thisExtent);
+        }
       } else {
         PrintInvalidModel(model);
       }
     }
   }
 
-  for (size_t i = 0; i < fEndOfRunModelList.size(); i++) {
-    if (fEndOfRunModelList[i].fActive) {
-      G4VModel* model = fEndOfRunModelList[i].fpModel;
-      if (model -> Validate()) {  // Validates and also recomputes extent.
-        const G4VisExtent& thisExtent = model -> GetTransformedExtent ();
-        boundingExtentScene.AccrueBoundingExtent(thisExtent);
+  for (auto & i : fEndOfRunModelList) {
+    if (i.fActive) {
+      G4VModel* model = i.fpModel;
+      if (model -> Validate()) {
+        const G4VisExtent& thisExtent = model -> GetExtent ();
+        if (thisExtent != G4VisExtent::GetNullExtent()) {
+          boundingExtentScene.AccrueBoundingExtent(thisExtent);
+        }
       } else {
         PrintInvalidModel(model);
       }
@@ -172,7 +133,7 @@ G4bool G4Scene::AddWorldIfEmpty (G4bool warn) {
 	pWorld -> GetLogicalVolume () -> GetVisAttributes ();
       if (!pVisAttribs || pVisAttribs -> IsVisible ()) {
 	if (warn) {
-	  G4cout << 
+	  G4warn <<
 	    "Your \"world\" has no vis attributes or is marked as visible."
 	    "\n  For a better view of the contents, mark the world as"
 	    " invisible, e.g.,"
@@ -185,10 +146,10 @@ G4bool G4Scene::AddWorldIfEmpty (G4bool warn) {
       // Note: default depth and no modeling parameters.
       if (successful) {
 	if (warn) {
-	  G4cout <<
-    "G4Scene::AddWorldIfEmpty: The scene was empty of run-duration models."
+	  G4warn <<
+    "G4Scene::AddWorldIfEmpty: The scene had no extent."
     "\n  \"world\" has been added.";
-	  G4cout << G4endl;
+	  G4warn << G4endl;
 	}
       }
     }
@@ -196,15 +157,39 @@ G4bool G4Scene::AddWorldIfEmpty (G4bool warn) {
   return successful;
 }
 
+G4bool G4Scene::AddRunDurationModel (G4VModel* pModel, G4bool warn)
+{
+  std::vector<Model>::const_iterator i;
+  for (i = fRunDurationModelList.begin ();
+       i != fRunDurationModelList.end (); ++i) {
+    if (pModel -> GetGlobalDescription () ==
+	i->fpModel->GetGlobalDescription ()) break;
+  }
+  if (i != fRunDurationModelList.end ()) {
+    if (warn) {
+      G4warn << "G4Scene::AddRunDurationModel: model \""
+      << pModel -> GetGlobalDescription ()
+      << "\"\n  is already in the run-duration list of scene \""
+      << fName
+      << "\"."
+      << G4endl;
+    }
+    return false;
+  }
+  fRunDurationModelList.push_back (Model(pModel));
+  CalculateExtent ();
+  return true;
+}
+
 G4bool G4Scene::AddEndOfEventModel (G4VModel* pModel, G4bool warn) {
-  G4int i, nModels = fEndOfEventModelList.size ();
-  for (i = 0; i < nModels; i++) {
+  std::size_t i, nModels = fEndOfEventModelList.size ();
+  for (i = 0; i < nModels; ++i) {
     if (pModel -> GetGlobalDescription () ==
 	fEndOfEventModelList[i].fpModel -> GetGlobalDescription ()) break;
   }
   if (i < nModels) {
     if (warn) {
-      G4cout << "G4Scene::AddEndOfEventModel: a model \""
+      G4warn << "G4Scene::AddEndOfEventModel: a model \""
 	     << pModel -> GetGlobalDescription ()
 	     << "\"\n  is already in the end-of-event list of scene \""
 	     << fName << "\"."
@@ -213,18 +198,19 @@ G4bool G4Scene::AddEndOfEventModel (G4VModel* pModel, G4bool warn) {
     return false;
   }
   fEndOfEventModelList.push_back (Model(pModel));
+  CalculateExtent ();
   return true;
 }
 
 G4bool G4Scene::AddEndOfRunModel (G4VModel* pModel, G4bool warn) {
-  G4int i, nModels = fEndOfRunModelList.size ();
-  for (i = 0; i < nModels; i++) {
+  std::size_t i, nModels = fEndOfRunModelList.size ();
+  for (i = 0; i < nModels; ++i) {
     if (pModel -> GetGlobalDescription () ==
 	fEndOfRunModelList[i].fpModel -> GetGlobalDescription ()) break;
   }
   if (i < nModels) {
     if (warn) {
-      G4cout << "G4Scene::AddEndOfRunModel: a model \""
+      G4warn << "G4Scene::AddEndOfRunModel: a model \""
 	     << pModel -> GetGlobalDescription ()
 	     << "\"\n  is already in the end-of-run list of scene \""
 	     << fName << "\"."
@@ -233,6 +219,7 @@ G4bool G4Scene::AddEndOfRunModel (G4VModel* pModel, G4bool warn) {
     return false;
   }
   fEndOfRunModelList.push_back (pModel);
+  CalculateExtent ();
   return true;
 }
 

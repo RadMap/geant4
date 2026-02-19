@@ -23,14 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 // 
-// G4VSolid inline implementation
+// G4VSolid inline implementations
 //
+// Author: Paul Kent (CERN), 30.06.1995 - Initial version
 // --------------------------------------------------------------------
 
 inline
 G4bool G4VSolid::operator==( const G4VSolid& right) const
 {
-  return (this==&right) ? true : false;
+  return this==&right;
 }
 
 inline
@@ -43,12 +44,6 @@ inline
 G4String G4VSolid::GetName() const
 {
   return fshapeName;
-}	
-
-inline
-void G4VSolid::SetName(const G4String& name)
-{
-  fshapeName = name;
 }	
 
 inline

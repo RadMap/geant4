@@ -32,7 +32,7 @@
 // frame ... or extending the class to include additional Forces,
 // eg an electric field
 
-// Created: J.Apostolakis, CERN - 13.01.1997
+// Author: John Apostolakis (CERN), 13.01.1997
 // --------------------------------------------------------------------
 #ifndef G4MAG_USUAL_EQRHS
 #define G4MAG_USUAL_EQRHS
@@ -42,23 +42,48 @@
 
 class G4MagneticField;
 
+/**
+ * @brief G4Mag_UsualEqRhs defines the standard right-hand side
+ * for equation of motion.
+ */
+
 class G4Mag_UsualEqRhs : public G4Mag_EqRhs
 {
-   public:  // with description
+  public:
 
-     G4Mag_UsualEqRhs( G4MagneticField* MagField );
-     virtual ~G4Mag_UsualEqRhs();
-       // Constructor and destructor. No actions.
+    /**
+     * Constructor for G4Mag_UsualEqRhs.
+     *  @param[in] MagField Pointer to the associated magnetic field.
+     */
+    G4Mag_UsualEqRhs( G4MagneticField* MagField );
 
-     void EvaluateRhsGivenB( const G4double y[],
-                             const G4double B[3],
-                                   G4double dydx[] ) const;
-       // Given the value of the magnetic field B, this function 
-       // calculates the value of the derivative dydx.
+    /**
+     * Default Destructor.
+     */
+    ~G4Mag_UsualEqRhs() override = default;
+      // Constructor and destructor. No actions.
 
-     virtual void SetChargeMomentumMass( G4ChargeState particleCharge,
-                                         G4double MomentumXc,
-                                         G4double mass);
+    /**
+     * Calculates the value of the derivative, given the value of the field.
+     *  @param[in] y Coefficients array.
+     *  @param[in] B Field value.
+     *  @param[out] dydx Derivatives array.
+     */
+    void EvaluateRhsGivenB( const G4double y[],
+                            const G4double B[3],
+                                  G4double dydx[] ) const override;
+
+    /**
+     * Sets the charge momentum mass value.
+     */
+    void SetChargeMomentumMass( G4ChargeState particleCharge,
+                                G4double MomentumXc,
+                                G4double mass ) override;
+
+    /**
+     * Returns the equation of motion type ID, i.e. "kEqMagnetic".
+     */
+    inline G4EquationType GetEquationType() const override { return kEqMagnetic; }
 };
 
 #endif

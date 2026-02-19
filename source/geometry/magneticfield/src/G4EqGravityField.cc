@@ -28,8 +28,8 @@
 // This is the right-hand side for equation of motion for a
 // massive particle in a gravitational field.
 //
-// Created: P.Gumplinger, 14.06.11 - Adopted from G4EqMagElectricField
-//          Thanks to P.Fierlinger (PSI) and A.Capra and A.Fontana (INFN Pavia)
+// Author: Peter Gumplinger (TRIUMF), 14.06.11 - Adopted from G4EqMagElectricField
+//         Thanks to P.Fierlinger (PSI) and A.Capra and A.Fontana (INFN Pavia)
 // -------------------------------------------------------------------
 
 #include "G4EqGravityField.hh"
@@ -38,10 +38,6 @@
 
 G4EqGravityField::G4EqGravityField(G4UniformGravityField* gField) 
   : G4EquationOfMotion( gField )
-{
-}
-
-G4EqGravityField::~G4EqGravityField()
 {
 }
 

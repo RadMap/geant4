@@ -23,11 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE02/include/RE02PSNofStep.hh
+/// \file RE02PSNofStep.hh
 /// \brief Definition of the RE02PSNofStep class
-//
-//
-//
 
 #ifndef RE02PSNofStep_h
 #define RE02PSNofStep_h 1
@@ -43,15 +40,14 @@
 
 class RE02PSNofStep : public G4PSNofStep
 {
-   public: // with description
-      RE02PSNofStep(G4String name,G4int nx,G4int ny, G4int nz);
-      virtual ~RE02PSNofStep();
+  public:  // with description
+    RE02PSNofStep(G4String name, G4int nx, G4int ny, G4int nz);
+    virtual ~RE02PSNofStep();
 
-  protected: // with description
-      virtual G4int GetIndex(G4Step*);
+  protected:  // with description
+    virtual G4int GetIndex(G4Step*);
 
   private:
-      G4int fNx, fNy, fNz;
+    G4int fNx, fNy, fNz;
 };
 #endif
-

@@ -23,62 +23,52 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4MultiFunctionalDetector
 //
+// Class description:
 //
-
+// This is the base class of the sensitive detector which owns
+// one or more G4VPrimitiveScorer class objects.
+//
+// Author: Makoto Asai
+// --------------------------------------------------------------------
 #ifndef G4MultiFunctionalDetector_h
 #define G4MultiFunctionalDetector_h 1
 
-#include "G4VSensitiveDetector.hh"
-#include "G4VHit.hh"
-#include "G4Step.hh"
 #include "G4HCofThisEvent.hh"
-#include "G4VReadOutGeometry.hh"
+#include "G4Step.hh"
 #include "G4TouchableHistory.hh"
-#include "G4CollectionNameVector.hh"
+#include "G4VHit.hh"
+#include "G4VReadOutGeometry.hh"
+#include "G4VSensitiveDetector.hh"
+
 #include <vector>
 class G4VPrimitiveScorer;
 
-// class description:
-//
-//  This is the base class of the sensitive detector which owns
-// one or more G4VPrimitiveScorer class objects.
-
 class G4MultiFunctionalDetector : public G4VSensitiveDetector
 {
+ public:
+  G4MultiFunctionalDetector(const G4String&);
+  ~G4MultiFunctionalDetector() override;
 
-  public: // with description
-      G4MultiFunctionalDetector(G4String);
+  G4bool RegisterPrimitive(G4VPrimitiveScorer*);
 
-  protected: // with description
-      virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
+  G4bool RemovePrimitive(G4VPrimitiveScorer*);
 
-      std::vector<G4VPrimitiveScorer*> primitives;
+  inline G4int GetNumberOfPrimitives() const { return G4int(primitives.size()); }
 
-  public: // with description
-      G4bool RegisterPrimitive(G4VPrimitiveScorer*);
-      G4bool RemovePrimitive(G4VPrimitiveScorer*);
-      inline G4int GetNumberOfPrimitives() const
-      { return G4int(primitives.size()); }
-      G4VPrimitiveScorer* GetPrimitive(G4int id) const
-      { return primitives[id]; }
+  G4VPrimitiveScorer* GetPrimitive(G4int id) const { return primitives[id]; }
 
-  public:
-      virtual ~G4MultiFunctionalDetector();
+  void Initialize(G4HCofThisEvent*) override;
+  void EndOfEvent(G4HCofThisEvent*) override;
+  void clear() override;
+  void DrawAll() override;
+  void PrintAll() override;
 
-  public: 
-      virtual void Initialize(G4HCofThisEvent*);
-      virtual void EndOfEvent(G4HCofThisEvent*);
-      virtual void clear();
+ protected:
+  G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
 
-  public:
-      virtual void DrawAll();
-      virtual void PrintAll();
-
-
+  std::vector<G4VPrimitiveScorer*> primitives;
 };
 
-
-
 #endif
-

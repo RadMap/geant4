@@ -67,15 +67,13 @@ namespace {
 
 // Singleton accessor
 
-G4CascadeParameters* G4CascadeParameters::fpInstance = 0;
-
 const G4CascadeParameters* G4CascadeParameters::Instance() {
-  if (!fpInstance) {
-    fpInstance = new G4CascadeParameters;
-    G4AutoDelete::Register(fpInstance);
-  }
-
-  return fpInstance;
+  static auto _instance = []() {
+    auto _ptr = new G4CascadeParameters{};
+    G4AutoDelete::Register(_ptr);
+    return _ptr;
+  }();
+  return _instance;
 }
 
 
@@ -87,6 +85,7 @@ G4CascadeParameters::G4CascadeParameters()
   : G4CASCADE_VERBOSE(std::getenv("G4CASCADE_VERBOSE")),
     G4CASCADE_CHECK_ECONS(std::getenv("G4CASCADE_CHECK_ECONS")),
     G4CASCADE_USE_PRECOMPOUND(std::getenv("G4CASCADE_USE_PRECOMPOUND")),
+    G4CASCADE_USE_ABLA(std::getenv("G4CASCADE_USE_ABLA")),
     G4CASCADE_DO_COALESCENCE(std::getenv("G4CASCADE_DO_COALESCENCE")),
     G4CASCADE_SHOW_HISTORY(std::getenv("G4CASCADE_SHOW_HISTORY")),
     G4CASCADE_USE_3BODYMOM(std::getenv("G4CASCADE_USE_3BODYMOM")),
@@ -115,6 +114,7 @@ void G4CascadeParameters::Initialize() {
   CHECK_ECONS = (0!=G4CASCADE_CHECK_ECONS);
   USE_PRECOMPOUND = (0!=G4CASCADE_USE_PRECOMPOUND &&
 		     G4CASCADE_USE_PRECOMPOUND[0]!='0');
+  USE_ABLA = (0!=G4CASCADE_USE_ABLA && G4CASCADE_USE_ABLA[0]!='0');
   DO_COALESCENCE = (0==G4CASCADE_DO_COALESCENCE ||
 		    G4CASCADE_DO_COALESCENCE[0]!='0');
   SHOW_HISTORY = (0!=G4CASCADE_SHOW_HISTORY);
@@ -162,6 +162,8 @@ void G4CascadeParameters::DumpConfig(std::ostream& os) const {
     os << "G4CASCADE_CHECK_ECONS = " << G4CASCADE_CHECK_ECONS << endl;
   if (G4CASCADE_USE_PRECOMPOUND)
     os << "G4CASCADE_USE_PRECOMPOUND = " << G4CASCADE_USE_PRECOMPOUND << endl;
+  if (G4CASCADE_USE_ABLA)
+    os << "G4CASCADE_USE_ABLA = " << G4CASCADE_USE_ABLA << endl;
   if (G4CASCADE_DO_COALESCENCE)
     os << "G4CASCADE_DO_COALESCENCE = " << G4CASCADE_DO_COALESCENCE << endl;
   if (G4CASCADE_PIN_ABSORPTION)

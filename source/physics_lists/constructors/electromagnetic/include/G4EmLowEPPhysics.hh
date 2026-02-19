@@ -22,13 +22,25 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
+// ********************************************************************
+// |                                                                   |
+// | History:                                                          |
+// | --------                                                          |
+// |                                                                   |
+// | Feb. 2021 JMCB  - Adapted for polarized gamma ray transport.      |
+// |                   See "An electromagnetic physics constructor     |
+// |                   for low energy polarised X-/gamma ray transport |
+// |                   in Geant4", J. M. C. Brown and M. R. Dimmock,   |
+// |                   arXiv:2102.02721 (2021).                        |
+// |                   https://arxiv.org/abs/2102.02721                |
+// |                                                                   |
+// *********************************************************************
 //
 
 #ifndef G4EmLowEPPhysics_h
 #define G4EmLowEPPhysics_h 1
 
 #include "G4VPhysicsConstructor.hh"
-#include "G4EmParticleList.hh"
 #include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -39,14 +51,10 @@ public:
 
   explicit G4EmLowEPPhysics(G4int ver=1, const G4String& name= "");
 
-  virtual ~G4EmLowEPPhysics();
+  ~G4EmLowEPPhysics() override;
 
-  virtual void ConstructParticle();
-  virtual void ConstructProcess();
-
-private:
-  G4int  verbose;
-  G4EmParticleList partList;
+  void ConstructParticle() override;
+  void ConstructProcess() override;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

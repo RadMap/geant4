@@ -50,8 +50,8 @@ class G4VEvaporationChannel
 {
 public:
 
-  explicit G4VEvaporationChannel(const G4String & aName = "");
-  virtual ~G4VEvaporationChannel();
+  G4VEvaporationChannel(const G4String & aName = "");
+  virtual ~G4VEvaporationChannel() = default;
 
   virtual G4double GetEmissionProbability(G4Fragment* theNucleus) = 0;
 
@@ -75,6 +75,12 @@ public:
   // but not included in this vector
   inline G4FragmentVector* BreakUpFragment(G4Fragment* theNucleus);
 
+  // methods for unit tests
+  virtual G4double ComputeInverseXSection(G4Fragment* theNucleus, 
+					  G4double kinEnergy);
+  virtual G4double ComputeProbability(G4Fragment* theNucleus, 
+				      G4double kinEnergy);
+
   virtual void Dump() const;
 
   // enable internal conversion
@@ -84,22 +90,20 @@ public:
   virtual void RDMForced(G4bool);
 
   // for cross section selection
-  inline void SetOPTxs(G4int opt);
+  inline void SetOPTxs(G4int);
   // for superimposed Coulomb Barrier for inverse cross sections 	
-  inline void UseSICB(G4bool use);
+  inline void UseSICB(G4bool);
+
+  G4VEvaporationChannel(const G4VEvaporationChannel & right) = delete;
+  const G4VEvaporationChannel & operator= 
+  (const G4VEvaporationChannel & right) = delete;
+  G4bool operator==(const G4VEvaporationChannel & right) const = delete;
+  G4bool operator!=(const G4VEvaporationChannel & right) const = delete;
 
 protected:
 
-  G4int OPTxs;
-  G4bool useSICB;
-
-private:
-
-  G4VEvaporationChannel(const G4VEvaporationChannel & right);
-  const G4VEvaporationChannel & operator=
-  (const G4VEvaporationChannel & right);
-  G4bool operator==(const G4VEvaporationChannel & right) const;
-  G4bool operator!=(const G4VEvaporationChannel & right) const;
+  G4int OPTxs{3};
+  G4bool useSICB{true};
 };
 
 inline G4FragmentVector* 
@@ -110,10 +114,15 @@ G4VEvaporationChannel::BreakUpFragment(G4Fragment* theNucleus)
   return results;
 }
 
-inline void G4VEvaporationChannel::SetOPTxs(G4int) 
-{}
 
-inline void G4VEvaporationChannel::UseSICB(G4bool) 
-{}
+inline void G4VEvaporationChannel::SetOPTxs(G4int val) 
+{
+  if(val >= 0) { OPTxs = val; } 
+}
+
+inline void G4VEvaporationChannel::UseSICB(G4bool val)
+{
+  useSICB = val;
+}
 
 #endif

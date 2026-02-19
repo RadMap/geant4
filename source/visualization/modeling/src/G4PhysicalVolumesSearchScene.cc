@@ -36,7 +36,7 @@
 #include <regex>
 
 G4PhysicalVolumesSearchScene::G4PhysicalVolumesSearchScene
-(G4PhysicalVolumeModel* pSearchVolumesModel,      // usually a world
+(G4PhysicalVolumeModel* pSearchVolumesModel,
  const G4String&        requiredPhysicalVolumeName,
  G4int                  requiredCopyNo)
 : fpSearchVolumesModel  (pSearchVolumesModel)
@@ -56,15 +56,18 @@ void G4PhysicalVolumesSearchScene::ProcessVolume (const G4VSolid&)
   if (fMatcher.Match(name)) {
     if ((fRequiredCopyNo < 0 ||  // I.e., ignore negative request
          fRequiredCopyNo == copyNo)) {
-      auto path = fpSearchVolumesModel->GetFullPVPath();
-      path.pop_back();  // Base node is one up from found node
+      auto basePath = fpSearchVolumesModel->GetFullPVPath();
+      basePath.pop_back();  // Base node is one up from found node
+      // Mark base path nodes as not drawn
+      for (auto& node: basePath) node.SetDrawn(false);
       fFindings.push_back
       (Findings
        (fpSearchVolumesModel->GetTopPhysicalVolume(),
         pCurrentPV,
         copyNo,
         fpSearchVolumesModel->GetCurrentDepth(),
-        path,
+        basePath,
+        fpSearchVolumesModel->GetFullPVPath(),
         *fpCurrentObjectTransformation));
     }
   }
@@ -74,10 +77,10 @@ G4PhysicalVolumesSearchScene::Matcher::Matcher(const G4String& requiredMatch)
 : fRegexFlag(false)
 {
   if (requiredMatch.size()) {
-    size_t last = requiredMatch.size() - 1;
+    std::size_t last = requiredMatch.size() - 1;
     // If required name begins and ends with '/', treat as a regular expression.
     // 0 causes a conversion ambiguity that upsets the Windows compiler, so use 0U.
-    if (requiredMatch[0U] == '/' && requiredMatch[last] == '/') {
+    if (requiredMatch[0U] == '/' && requiredMatch[(G4int)last] == '/') {
       if (last > 1) {  // Non-null regexp
         // regex match required
         fRegexFlag = true;
@@ -89,7 +92,7 @@ G4PhysicalVolumesSearchScene::Matcher::Matcher(const G4String& requiredMatch)
       fRequiredMatch = requiredMatch;
     }
   }
-  if (fRequiredMatch.isNull()) {
+  if (fRequiredMatch.empty()) {
     G4Exception
     ("G4PhysicalVolumesSearchScene::Matcher::Matcher",
      "modeling0013", JustWarning, "Required match is null");

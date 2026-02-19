@@ -23,15 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file optical/OpNovice2/include/PrimaryGeneratorMessenger.hh
+/// \file PrimaryGeneratorMessenger.hh
 /// \brief Definition of the PrimaryGeneratorMessenger class
-//
-//
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PrimaryGeneratorMessenger_h
 #define PrimaryGeneratorMessenger_h 1
@@ -42,21 +35,23 @@
 class PrimaryGeneratorAction;
 class G4UIdirectory;
 class G4UIcmdWithADoubleAndUnit;
+class G4UIcmdWithABool;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PrimaryGeneratorMessenger: public G4UImessenger
+class PrimaryGeneratorMessenger : public G4UImessenger
 {
   public:
-    PrimaryGeneratorMessenger(PrimaryGeneratorAction* );
-    virtual ~PrimaryGeneratorMessenger();
- 
-    virtual void SetNewValue(G4UIcommand*, G4String);
- 
+    PrimaryGeneratorMessenger(PrimaryGeneratorAction*);
+    ~PrimaryGeneratorMessenger() override;
+
+    void SetNewValue(G4UIcommand*, G4String) override;
+
   private:
-    PrimaryGeneratorAction*         fPrimaryAction;
-    G4UIdirectory*                  fGunDir;
-    G4UIcmdWithADoubleAndUnit*      fPolarCmd;
+    PrimaryGeneratorAction* fPrimaryAction = nullptr;
+    G4UIdirectory* fGunDir = nullptr;
+    G4UIcmdWithADoubleAndUnit* fPolarCmd = nullptr;
+    G4UIcmdWithABool* fRandomDirectionCmd = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

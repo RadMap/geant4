@@ -33,36 +33,31 @@
 // -------------------------------------------------------------------
 
 #include "G4ITStepProcessor.hh"
-#include "G4UImanager.hh"
+
 #include "G4ForceCondition.hh"
 #include "G4GPILSelection.hh"
-#include "G4ITTransportationManager.hh"
-// #include "G4VSensitiveDetector.hh"    // Include from 'hits/digi'
 #include "G4GeometryTolerance.hh"
-#include "G4ParticleTable.hh"
-#include "G4ITTrackingManager.hh"
-#include "G4TrackingInformation.hh"
 #include "G4IT.hh"
 #include "G4ITNavigator.hh"             // Include from 'geometry'
-
-#include "G4VITProcess.hh"
-#include "G4VProcess.hh"
-#include "G4ITTransportation.hh"
-
-#include "G4ITTrackHolder.hh"
-
 #include "G4ITSteppingVerbose.hh"
-#include "G4VITSteppingVerbose.hh"
+#include "G4ITTrackHolder.hh"
 #include "G4ITTrackingInteractivity.hh"
-
+#include "G4ITTrackingManager.hh"
+#include "G4ITTransportation.hh"
+#include "G4ITTransportationManager.hh"
+#include "G4ParticleTable.hh"
 #include "G4TrackingInformation.hh"
+#include "G4UImanager.hh"
+#include "G4VITProcess.hh"
+#include "G4VITSteppingVerbose.hh"
+#include "G4VProcess.hh"
 
 #include <iomanip>              // Include from 'system'
 #include <vector>               // Include from 'system'
 
 using namespace std;
 
-static const size_t SizeOfSelectedDoItVector = 100;
+static const std::size_t SizeOfSelectedDoItVector = 100;
 
 template<typename T>
   inline bool IsInf(T value)
@@ -75,16 +70,16 @@ template<typename T>
 
 G4ITStepProcessor::G4ITStepProcessor()
 {
-  fpVerbose = 0;
+  fpVerbose = nullptr;
   // fpUserSteppingAction = 0 ;
   fStoreTrajectory = 0;
-  fpTrackingManager = 0;
-  fpNavigator = 0;
+  fpTrackingManager = nullptr;
+  fpNavigator = nullptr;
   kCarTolerance = -1.;
   fInitialized = false;
   fPreviousTimeStep = DBL_MAX;
   fILTimeStep = DBL_MAX;
-  fpTrackContainer = 0;
+  fpTrackContainer = nullptr;
 
   CleanProcessor();
   ResetSecondaries();
@@ -107,7 +102,7 @@ G4ITStepProcessorState::G4ITStepProcessorState() :
 
   fStepStatus = fUndefined;
 
-  fTouchableHandle = 0;
+  fTouchableHandle = nullptr;
 }
 
 //______________________________________________________________________________
@@ -174,7 +169,7 @@ void G4ITStepProcessor::ClearProcessInfo()
   for(it = fProcessGeneralInfoMap.begin(); it != fProcessGeneralInfoMap.end();
       it++)
   {
-    if(it->second)
+    if(it->second != nullptr)
     {
       delete it->second;
       it->second = 0;
@@ -208,11 +203,11 @@ void G4ITStepProcessor::Initialize()
   kCarTolerance = 0.5
       * G4GeometryTolerance::GetInstance()->GetSurfaceTolerance();
 
-  if(fpVerbose == 0)
+  if(fpVerbose == nullptr)
   {
     G4ITTrackingInteractivity* interactivity = fpTrackingManager->GetInteractivity();
 
-    if(interactivity)
+    if(interactivity != nullptr)
     {
       fpVerbose = interactivity->GetSteppingVerbose();
       fpVerbose->SetStepProcessor(this);
@@ -227,13 +222,13 @@ void G4ITStepProcessor::Initialize()
 
 G4ITStepProcessor::~G4ITStepProcessor()
 {
-  if(fpStep)
+  if(fpStep != nullptr)
   {
     fpStep->DeleteSecondaryVector();
     delete fpStep;
   }
 
-  if(fpSecondary) delete fpSecondary;
+  delete fpSecondary;
   ClearProcessInfo();
   //G4ITTransportationManager::DeleteInstance();
 
@@ -247,8 +242,8 @@ G4ITStepProcessor::G4ITStepProcessor(const G4ITStepProcessor& rhs)
   fStoreTrajectory = rhs.fStoreTrajectory;
 
   //    fpUserSteppingAction = 0 ;
-  fpTrackingManager = 0;
-  fpNavigator = 0;
+  fpTrackingManager = nullptr;
+  fpNavigator = nullptr;
   fInitialized = false;
 
   kCarTolerance = rhs.kCarTolerance;
@@ -257,7 +252,7 @@ G4ITStepProcessor::G4ITStepProcessor(const G4ITStepProcessor& rhs)
 
   CleanProcessor();
   ResetSecondaries();
-  fpTrackContainer = 0;
+  fpTrackContainer = nullptr;
   fILTimeStep = DBL_MAX;
 }
 
@@ -304,7 +299,7 @@ void G4ITStepProcessor::ActiveOnlyITProcess()
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pm = particle->GetProcessManager();
 
-    if(!pm)
+    if(pm == nullptr)
     {
       G4cerr << "ERROR - G4ITStepProcessor::GetProcessNumber()" << G4endl<< "        ProcessManager is NULL for particle = "
       << particle->GetParticleName() << ", PDG_code = "
@@ -325,13 +320,13 @@ void G4ITStepProcessor::ActiveOnlyITProcess(G4ProcessManager* processManager)
   // Method not used for the time being
   G4ProcessVector* processVector = processManager->GetProcessList();
 
-  G4VITProcess* itProcess = 0;
-  for(std::size_t i = 0; i < processVector->size(); ++i)
+  G4VITProcess* itProcess = nullptr;
+  for(G4int i = 0; i < (G4int)processVector->size(); ++i)
   {
     G4VProcess* base_process = (*processVector)[i];
     itProcess = dynamic_cast<G4VITProcess*>(base_process);
 
-    if(!itProcess)
+    if(itProcess == nullptr)
     {
       processManager->SetProcessActivation(base_process, false);
     }
@@ -347,7 +342,7 @@ void G4ITStepProcessor::SetupGeneralProcessInfo(G4ParticleDefinition* particle,
 #ifdef debug
   G4cout<<"G4ITStepProcessor::GetProcessNumber: is called track"<<G4endl;
 #endif
-  if(!pm)
+  if(pm == nullptr)
   {
     G4cerr << "ERROR - G4SteppingManager::GetProcessNumber()" << G4endl<< "        ProcessManager is NULL for particle = "
     << particle->GetParticleName() << ", PDG_code = "
@@ -357,7 +352,7 @@ void G4ITStepProcessor::SetupGeneralProcessInfo(G4ParticleDefinition* particle,
     return;
   }
 
-  std::map<const G4ParticleDefinition*, ProcessGeneralInfo*>::iterator it =
+  auto it =
   fProcessGeneralInfoMap.find(particle);
   if(it != fProcessGeneralInfoMap.end())
   {
@@ -418,9 +413,9 @@ void G4ITStepProcessor::SetupGeneralProcessInfo(G4ParticleDefinition* particle,
         "The array size is smaller than the actual No of processes.");
   }
 
-  if(!fpProcessInfo->fpAtRestDoItVector &&
-      !fpProcessInfo->fpAlongStepDoItVector &&
-      !fpProcessInfo->fpPostStepDoItVector)
+  if((fpProcessInfo->fpAtRestDoItVector == nullptr) &&
+      (fpProcessInfo->fpAlongStepDoItVector == nullptr) &&
+      (fpProcessInfo->fpPostStepDoItVector == nullptr))
   {
     G4ExceptionDescription exceptionDescription;
     exceptionDescription << "No DoIt process found ";
@@ -429,14 +424,14 @@ void G4ITStepProcessor::SetupGeneralProcessInfo(G4ParticleDefinition* particle,
     return;
   }
 
-  if(fpProcessInfo->fpAlongStepGetPhysIntVector
+  if((fpProcessInfo->fpAlongStepGetPhysIntVector != nullptr)
       && fpProcessInfo->MAXofAlongStepLoops>0)
   {
     fpProcessInfo->fpTransportation = dynamic_cast<G4ITTransportation*>
     ((*fpProcessInfo->fpAlongStepGetPhysIntVector)
-        [fpProcessInfo->MAXofAlongStepLoops-1]);
+        [G4int(fpProcessInfo->MAXofAlongStepLoops-1)]);
 
-    if(fpProcessInfo->fpTransportation == 0)
+    if(fpProcessInfo->fpTransportation == nullptr)
     {
       G4ExceptionDescription exceptionDescription;
       exceptionDescription << "No transportation process found ";
@@ -454,18 +449,18 @@ void G4ITStepProcessor::SetupGeneralProcessInfo(G4ParticleDefinition* particle,
 void G4ITStepProcessor::SetTrack(G4Track* track)
 {
   fpTrack = track;
-  if(fpTrack)
+  if(fpTrack != nullptr)
   {
     fpITrack = GetIT(fpTrack);
     fpStep = const_cast<G4Step*>(fpTrack->GetStep());
 
-    if(fpITrack)
+    if(fpITrack != nullptr)
     {
       fpTrackingInfo = fpITrack->GetTrackingInfo();
     }
     else
     {
-      fpTrackingInfo = 0;
+      fpTrackingInfo = nullptr;
       G4cerr << "Track ID : " << fpTrack->GetTrackID() << G4endl;
 
       G4ExceptionDescription errMsg;
@@ -478,8 +473,8 @@ void G4ITStepProcessor::SetTrack(G4Track* track)
   }
   else
   {
-    fpITrack = 0;
-    fpStep = 0;
+    fpITrack = nullptr;
+    fpStep = nullptr;
   }
 }
 //______________________________________________________________________________
@@ -487,14 +482,14 @@ void G4ITStepProcessor::SetTrack(G4Track* track)
 void G4ITStepProcessor::GetProcessInfo()
 {
   G4ParticleDefinition* particle = fpTrack->GetDefinition();
-  std::map<const G4ParticleDefinition*, ProcessGeneralInfo*>::iterator it =
+  auto it =
       fProcessGeneralInfoMap.find(particle);
 
   if(it == fProcessGeneralInfoMap.end())
   {
     SetupGeneralProcessInfo(particle,
                             fpTrack->GetDefinition()->GetProcessManager());
-    if(fpProcessInfo == 0)
+    if(fpProcessInfo == nullptr)
     {
       G4ExceptionDescription exceptionDescription("...");
       G4Exception("G4ITStepProcessor::GetProcessNumber",
@@ -549,10 +544,10 @@ void G4ITStepProcessor::GetAtRestIL()
 
   unsigned int NofInactiveProc=0;
 
-  for( size_t ri=0; ri < fpProcessInfo->MAXofAtRestLoops; ri++ )
+  for( G4int ri=0; ri < (G4int)fpProcessInfo->MAXofAtRestLoops; ++ri )
   {
     fpCurrentProcess = dynamic_cast<G4VITProcess*>((*fpProcessInfo->fpAtRestGetPhysIntVector)[ri]);
-    if (fpCurrentProcess== 0)
+    if (fpCurrentProcess== nullptr)
     {
       (fpState->fSelectedAtRestDoItVector)[ri] = InActivated;
       NofInactiveProc++;
@@ -635,7 +630,7 @@ G4double G4ITStepProcessor::ComputeInteractionLength(double previousTimeStep)
 void G4ITStepProcessor::ExtractILData()
 {
   assert(fpTrack != 0);
-  if (fpTrack == 0)
+  if (fpTrack == nullptr)
   {
     CleanProcessor();
     return;
@@ -657,7 +652,7 @@ void G4ITStepProcessor::ExtractILData()
     CleanProcessor();
     return;
   }
-  else if (fTimeStep < fILTimeStep - DBL_EPSILON)
+  if (fTimeStep < fILTimeStep - DBL_EPSILON)
   {
     // G4cout << "!!!!!!!!!!!! TEMPS DIFFERENTS "
     //    << track->GetTrackID() << G4endl;
@@ -746,7 +741,7 @@ void G4ITStepProcessor::SetInitialStep()
     // Create OR set navigator state
     //==========================================================================
 
-    if(fpITrack->GetTrackingInfo()->GetNavigatorState())
+    if(fpITrack->GetTrackingInfo()->GetNavigatorState() != nullptr)
     {
       fpNavigator->SetNavigatorState(fpITrack->GetTrackingInfo()
           ->GetNavigatorState());
@@ -820,7 +815,7 @@ void G4ITStepProcessor::SetInitialStep()
   }
   //________________________________________________________
   // If track is already outside the world boundary, kill it
-  if(fpCurrentVolume == 0)
+  if(fpCurrentVolume == nullptr)
   {
     // If the track is a primary, stop processing
     if(fpTrack->GetParentID() == 0)
@@ -850,7 +845,7 @@ void G4ITStepProcessor::SetInitialStep()
 void G4ITStepProcessor::InitDefineStep()
 {
 
-  if(!fpStep)
+  if(fpStep == nullptr)
   {
     // Create new Step and give it to the track
     fpStep = new G4Step();
@@ -904,7 +899,7 @@ void G4ITStepProcessor::InitDefineStep()
      << G4endl;
      */
     // Reset the step's auxiliary points vector pointer
-    fpStep->SetPointerToVectorOfAuxiliaryPoints(0);
+    fpStep->SetPointerToVectorOfAuxiliaryPoints(nullptr);
 
     // Switch next touchable in track to current one
     fpTrack->SetTouchableHandle(fpTrack->GetNextTouchableHandle());
@@ -960,7 +955,7 @@ void G4ITStepProcessor::DoDefinePhysicalStepLength()
 
 #ifdef G4VERBOSE
   // !!!!! Verbose
-  if(fpVerbose) fpVerbose->DPSLStarted();
+  if(fpVerbose != nullptr) fpVerbose->DPSLStarted();
 #endif
 
   G4TrackStatus trackStatus = fpTrack->GetTrackStatus();
@@ -985,8 +980,8 @@ void G4ITStepProcessor::DoDefinePhysicalStepLength()
   fpState->fPhysicalStep = DBL_MAX; // Initialize by a huge number
   fPhysIntLength = DBL_MAX; // Initialize by a huge number
 
-  double proposedTimeStep = DBL_MAX;
-  G4VProcess* processWithPostStepGivenByTimeStep(0);
+  G4double proposedTimeStep = DBL_MAX;
+  G4VProcess* processWithPostStepGivenByTimeStep(nullptr);
 
   // GPIL for PostStep
   fPostStepDoItProcTriggered = fpProcessInfo->MAXofPostStepLoops;
@@ -998,11 +993,11 @@ void G4ITStepProcessor::DoDefinePhysicalStepLength()
   //         << " id : " << fpTrack->GetTrackID()
   //         << G4endl;
 
-  for(size_t np = 0; np < fpProcessInfo->MAXofPostStepLoops; np++)
+  for(std::size_t np = 0; np < fpProcessInfo->MAXofPostStepLoops; ++np)
   {
     fpCurrentProcess = dynamic_cast<G4VITProcess*>((*fpProcessInfo
-        ->fpPostStepGetPhysIntVector)[np]);
-    if(fpCurrentProcess == 0)
+        ->fpPostStepGetPhysIntVector)[(G4int)np]);
+    if(fpCurrentProcess == nullptr)
     {
       (fpState->fSelectedPostStepDoItVector)[np] = InActivated;
       continue;
@@ -1021,7 +1016,7 @@ void G4ITStepProcessor::DoDefinePhysicalStepLength()
 
 #ifdef G4VERBOSE
     // !!!!! Verbose
-    if(fpVerbose) fpVerbose->DPSLPostStep();
+    if(fpVerbose != nullptr) fpVerbose->DPSLPostStep();
 #endif
 
     fpCurrentProcess->ResetProcessState();
@@ -1058,37 +1053,35 @@ void G4ITStepProcessor::DoDefinePhysicalStepLength()
 
     if(fCondition == ExclusivelyForced)
     {
-      for(size_t nrest = np + 1; nrest < fpProcessInfo->MAXofPostStepLoops;
-          nrest++)
+      for(std::size_t nrest = np + 1; nrest < fpProcessInfo->MAXofPostStepLoops;
+          ++nrest)
       {
         (fpState->fSelectedPostStepDoItVector)[nrest] = InActivated;
       }
       return; // Please note the 'return' at here !!!
     }
-    else
+    
+    if(fPhysIntLength < fpState->fPhysicalStep)
     {
-      if(fPhysIntLength < fpState->fPhysicalStep)
+      // To avoid checking whether the process is actually
+      // proposing a time step, the returned time steps are
+      // negative (just for tagging)
+      if(fpCurrentProcess->ProposesTimeStep())
       {
-        // To avoid checking whether the process is actually
-        // proposing a time step, the returned time steps are
-        // negative (just for tagging)
-        if(fpCurrentProcess->ProposesTimeStep())
+        fPhysIntLength *= -1;
+        if(fPhysIntLength < proposedTimeStep)
         {
-          fPhysIntLength *= -1;
-          if(fPhysIntLength < proposedTimeStep)
-          {
-            proposedTimeStep = fPhysIntLength;
-            fPostStepAtTimeDoItProcTriggered = np;
-            processWithPostStepGivenByTimeStep = fpCurrentProcess;
-          }
+          proposedTimeStep = fPhysIntLength;
+          fPostStepAtTimeDoItProcTriggered = np;
+          processWithPostStepGivenByTimeStep = fpCurrentProcess;
         }
-        else
-        {
-          fpState->fPhysicalStep = fPhysIntLength;
-          fpState->fStepStatus = fPostStepDoItProc;
-          fPostStepDoItProcTriggered = G4int(np);
-          fpStep->GetPostStepPoint()->SetProcessDefinedStep(fpCurrentProcess);
-        }
+      }
+      else
+      {
+        fpState->fPhysicalStep = fPhysIntLength;
+        fpState->fStepStatus = fPostStepDoItProc;
+        fPostStepDoItProcTriggered = G4int(np);
+        fpStep->GetPostStepPoint()->SetProcessDefinedStep(fpCurrentProcess);
       }
     }
   }
@@ -1097,11 +1090,11 @@ void G4ITStepProcessor::DoDefinePhysicalStepLength()
   fpState->fProposedSafety = DBL_MAX;
   G4double safetyProposedToAndByProcess = fpState->fProposedSafety;
 
-  for(size_t kp = 0; kp < fpProcessInfo->MAXofAlongStepLoops; kp++)
+  for(std::size_t kp = 0; kp < fpProcessInfo->MAXofAlongStepLoops; ++kp)
   {
     fpCurrentProcess = dynamic_cast<G4VITProcess*>((*fpProcessInfo
-        ->fpAlongStepGetPhysIntVector)[kp]);
-    if(fpCurrentProcess == 0) continue;
+        ->fpAlongStepGetPhysIntVector)[(G4int)kp]);
+    if(fpCurrentProcess == nullptr) continue;
     // NULL means the process is inactivated by a user on fly.
 
     fpCurrentProcess->SetProcessState(
@@ -1115,7 +1108,7 @@ void G4ITStepProcessor::DoDefinePhysicalStepLength()
 
 #ifdef G4VERBOSE
     // !!!!! Verbose
-    if(fpVerbose) fpVerbose->DPSLAlongStep();
+    if(fpVerbose != nullptr) fpVerbose->DPSLAlongStep();
 #endif
 
     if(fPhysIntLength < fpState->fPhysicalStep)
@@ -1136,7 +1129,7 @@ void G4ITStepProcessor::DoDefinePhysicalStepLength()
       {
         fpTransportation = dynamic_cast<G4ITTransportation*>(fpCurrentProcess);
 
-        if(!fpTransportation)
+        if(fpTransportation == nullptr)
         {
           G4ExceptionDescription exceptionDescription;
           exceptionDescription << "No transportation process found ";
@@ -1148,7 +1141,7 @@ void G4ITStepProcessor::DoDefinePhysicalStepLength()
 
         fTimeStep = fpTransportation->GetInteractionTimeLeft();
 
-        if(fpTrack->GetNextVolume() != 0) fpState->fStepStatus = fGeomBoundary;
+        if(fpTrack->GetNextVolume() != nullptr) fpState->fStepStatus = fGeomBoundary;
         else fpState->fStepStatus = fWorldBoundary;
       }
     }
@@ -1158,7 +1151,7 @@ void G4ITStepProcessor::DoDefinePhysicalStepLength()
       {
         fpTransportation = dynamic_cast<G4ITTransportation*>(fpCurrentProcess);
 
-        if(!fpTransportation)
+        if(fpTransportation == nullptr)
         {
           G4ExceptionDescription exceptionDescription;
           exceptionDescription << "No transportation process found ";

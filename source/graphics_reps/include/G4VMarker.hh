@@ -99,20 +99,23 @@ public: // With description
   //////////////////////////////////////////////////////
   // Constructors...
   G4VMarker ();
-  G4VMarker (const G4VMarker&);
+  G4VMarker (const G4VMarker&) = default;
+  G4VMarker (G4VMarker&& ) = default;
   G4VMarker (const G4Point3D& position);
 
   //////////////////////////////////////////////////////
   // Destructor...
-  virtual ~G4VMarker ();
+  ~G4VMarker () override;
 
   //////////////////////////////////////////////////////
   // Assignment...
-  G4VMarker& operator = (const G4VMarker&);
+  G4VMarker& operator = (const G4VMarker&) = default;
+  G4VMarker& operator = (G4VMarker&&) = default;
 
   //////////////////////////////////////////////////////
   // Logical...
   G4bool operator != (const G4VMarker&) const;
+  G4bool operator == (const G4VMarker&) const;
 
   /////////////////////////////////////////////////////
   // Get functions...
@@ -140,19 +143,11 @@ public: // With description
   void SetScreenRadius   (G4double);
   void SetFillStyle      (FillStyle);
 
-  // Access functions to the string for user customizable information
-  virtual   const G4String&  GetInfo() const;
-  virtual   void             SetInfo( const G4String& info );
-
 private:
   G4Point3D fPosition;
   G4double  fWorldSize;   // Default 0. means use screen size.
   G4double  fScreenSize;  // Default 0. means use global default.
   FillStyle fFillStyle;
-
-  // String for user customizable information
-  G4String  fInfo ;
-
 };
 
 #include "G4VMarker.icc"

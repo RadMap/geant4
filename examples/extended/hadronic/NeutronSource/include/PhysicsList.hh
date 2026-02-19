@@ -25,8 +25,6 @@
 //
 /// \file PhysicsList.hh
 /// \brief Definition of the PhysicsList class
-//
-//
 
 #ifndef PhysicsList_h
 #define PhysicsList_h 1
@@ -36,25 +34,25 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
-public:
-  PhysicsList();
- ~PhysicsList();
+  public:
+    PhysicsList();
+    ~PhysicsList() override = default;
 
-public:
-  virtual void ConstructProcess();
-  virtual void SetCuts();
+  public:
+    void ConstructProcess() override;
+    void SetCuts() override;
 
-private:
-   G4VPhysicsConstructor* fHadronElastic;
-   G4VPhysicsConstructor* fHadronInelastic;
-   G4VPhysicsConstructor* fIonElastic;
-   G4VPhysicsConstructor* fIonInelastic;
-   G4VPhysicsConstructor* fGammaNuclear;
-   G4VPhysicsConstructor* fElectromagnetic;
-   G4VPhysicsConstructor* fDecay;
-   G4VPhysicsConstructor* fRadioactiveDecay;
+  private:
+    G4VPhysicsConstructor* fHadronElastic = nullptr;
+    G4VPhysicsConstructor* fHadronInelastic = nullptr;
+    G4VPhysicsConstructor* fIonElastic = nullptr;
+    G4VPhysicsConstructor* fIonInelastic = nullptr;
+    G4VPhysicsConstructor* fGammaNuclear = nullptr;
+    G4VPhysicsConstructor* fElectromagnetic = nullptr;
+    G4VPhysicsConstructor* fDecay = nullptr;
+    G4VPhysicsConstructor* fRadioactiveDecay = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

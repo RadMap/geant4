@@ -32,8 +32,10 @@
 // 23.02.96 Created
 // 26.03.96 Added constants for standard conditions of temperature
 //          and pressure; also added Gas threshold.
-// 29.04.08   use PDG 2006 values
-// 03.11.08   use PDG 2008 values
+// 29.04.08 Use PDG 2006 values
+// 03.11.08 Use PDG 2008 values
+// 17.07.20 Use PDG 2019 values
+// 06.05.21 Added Bohr_magneton and nuclear_magneton constants
 
 #ifndef HEP_PHYSICAL_CONSTANTS_H
 #define HEP_PHYSICAL_CONSTANTS_H
@@ -45,7 +47,7 @@ namespace CLHEP {
 //
 // 
 //
-static constexpr double Avogadro = 6.02214179e+23/mole;
+static constexpr double Avogadro = 6.02214076e+23/mole;
 
 //
 // c   = 299.792458 mm/ns
@@ -59,7 +61,7 @@ static constexpr double c_squared = c_light * c_light;
 // hbar  = 6.58212e-13 MeV*ns
 // hbarc = 197.32705e-12 MeV*mm
 //
-static constexpr double h_Planck      = 6.62606896e-34 * joule*s;
+static constexpr double h_Planck      = 6.62607015e-34 * joule*s;
 static constexpr double hbar_Planck   = h_Planck/twopi;
 static constexpr double hbarc         = hbar_Planck * c_light;
 static constexpr double hbarc_squared = hbarc * hbarc;
@@ -104,10 +106,14 @@ static constexpr double alpha_rcl2 = fine_structure_const
 static constexpr double twopi_mc2_rcl2 = twopi*electron_mass_c2
                                              *classic_electr_radius
                                              *classic_electr_radius;
+
+static constexpr double Bohr_magneton = (eplus*hbarc*c_light)/(2*electron_mass_c2);
+static constexpr double nuclear_magneton = (eplus*hbarc*c_light)/(2*proton_mass_c2);
+
 //
 //
 //
-static constexpr double k_Boltzmann = 8.617343e-11 * MeV/kelvin;
+static constexpr double k_Boltzmann = 8.617333e-11 * MeV/kelvin;
 
 //
 //

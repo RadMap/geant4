@@ -23,9 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
 // ----------------------------------------------------------------------
 //      GEANT 4 class implementation file
 //
@@ -33,15 +30,9 @@
 //      4th April 1996, G.Cosmo
 // **********************************************************************
 
-#include <fstream>
-#include <iomanip>
-
 #include "G4Quarks.hh"
 
- // ######################################################################
-// ###                           Quarks                                ###
-// ######################################################################
-
+// clang-format off
 G4Quarks::G4Quarks(
        const G4String&     aName,        G4double            mass,
        G4double            width,        G4double            charge,   
@@ -58,6 +49,3 @@ G4Quarks::G4Quarks(
 {
    SetParticleSubType("quark");
 }
-
-G4Quarks::~G4Quarks() {}
-

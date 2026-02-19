@@ -25,7 +25,7 @@
 //
 // Implementation for G4UOrb wrapper class
 //
-// 30.10.13 G.Cosmo, CERN/PH
+// 30.10.13 G.Cosmo, CERN
 // --------------------------------------------------------------------
 
 #include "G4Orb.hh"
@@ -50,24 +50,6 @@ using namespace CLHEP;
 
 G4UOrb::G4UOrb( const G4String& pName, G4double pRmax )
   : Base_t(pName, pRmax)
-{
-}
-
-///////////////////////////////////////////////////////////////////////
-//
-// Fake default constructor - sets only member data and allocates memory
-//                            for usage restricted to object persistency.
-//
-G4UOrb::G4UOrb( __void__& a )
-  : Base_t(a)
-{
-}
-
-/////////////////////////////////////////////////////////////////////
-//
-// Destructor
-
-G4UOrb::~G4UOrb()
 {
 }
 
@@ -186,7 +168,7 @@ G4UOrb::CalculateExtent(const EAxis pAxis,
 #endif
   if (bbox.BoundingBoxVsVoxelLimits(pAxis,pVoxelLimit,pTransform,pMin,pMax))
   {
-    return exist = (pMin < pMax) ? true : false;
+    return exist = pMin < pMax;
   }
 
   // Find bounding envelope and calculate extent
@@ -210,9 +192,9 @@ G4UOrb::CalculateExtent(const EAxis pAxis,
   G4TwoVector xy[NPHI];
   G4double sinCurPhi = sinHalfPhi;
   G4double cosCurPhi = cosHalfPhi;
-  for (G4int k=0; k<NPHI; ++k)
+  for (auto & k : xy)
   {
-    xy[k].set(cosCurPhi,sinCurPhi);
+    k.set(cosCurPhi,sinCurPhi);
     G4double sinTmpPhi = sinCurPhi;
     sinCurPhi = sinCurPhi*cosStepPhi + cosCurPhi*sinStepPhi;
     cosCurPhi = cosCurPhi*cosStepPhi - sinTmpPhi*sinStepPhi;
@@ -220,17 +202,17 @@ G4UOrb::CalculateExtent(const EAxis pAxis,
   
   // set bounding circles
   G4ThreeVectorList circles[NTHETA];
-  for (G4int i=0; i<NTHETA; ++i) circles[i].resize(NPHI);
+  for (auto & circle : circles) circle.resize(NPHI);
 
   G4double sinCurTheta = sinHalfTheta;
   G4double cosCurTheta = cosHalfTheta;
-  for (G4int i=0; i<NTHETA; ++i)
+  for (auto & circle : circles)
   {
     G4double z = rtheta*cosCurTheta;
     G4double rho = rphi*sinCurTheta;
     for (G4int k=0; k<NPHI; ++k)
     {
-      circles[i][k].set(rho*xy[k].x(),rho*xy[k].y(),z);
+      circle[k].set(rho*xy[k].x(),rho*xy[k].y(),z);
     }
     G4double sinTmpTheta = sinCurTheta;
     sinCurTheta = sinCurTheta*cosStepTheta + cosCurTheta*sinStepTheta;

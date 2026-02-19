@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm13/include/PhysListEmPenelope.hh
+/// \file PhysListEmPenelope.hh
 /// \brief Definition of the PhysListEmPenelope class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysListEmPenelope_h
 #define PhysListEmPenelope_h 1
@@ -40,28 +36,20 @@
 
 class PhysListEmPenelope : public G4VPhysicsConstructor
 {
-  public: 
+  public:
     PhysListEmPenelope(const G4String& name = "penelope");
-   ~PhysListEmPenelope();
+    ~PhysListEmPenelope() override = default;
 
-  public: 
+  public:
     // This method is dummy for physics
-    virtual void ConstructParticle() {};
- 
+    void ConstructParticle() override {};
+
     // This method will be invoked in the Construct() method.
     // each physics process will be instantiated and
-    // registered to the process manager of each particle type 
-    virtual void ConstructProcess();
+    // registered to the process manager of each particle type
+    void ConstructProcess() override;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-
-
-
-
-
-
-

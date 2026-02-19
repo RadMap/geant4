@@ -36,107 +36,101 @@
 #include "globals.hh"
 
 #include <vector>
+#include <string_view>
 
-template <typename TNTUPLE>
+// NT - ntuple type, FT - file type
+template <typename NT, typename FT>
 class G4TNtupleManager : public G4BaseNtupleManager {
 
   public:
     explicit G4TNtupleManager(const G4AnalysisManagerState& state);
-    ~G4TNtupleManager();
+    G4TNtupleManager() = delete;
+    ~G4TNtupleManager() override;
 
   protected:
-    // Methods to manipulate ntuples  
-    virtual void CreateNtuplesFromBooking();
-    G4bool IsEmpty() const;
-    virtual G4bool Reset(G4bool deleteNtuple);
+    // Methods to manipulate ntuples
+    G4int CreateNtuple(G4NtupleBooking* ntupleBooking) override;
+
+    virtual void CreateNtuplesFromBooking(
+                   const std::vector<G4NtupleBooking*>& ntupleBookings);
+
+    virtual G4bool Reset();
+    void Clear() override;
+
+    // Method to delete selected ntuple
+    G4bool Delete(G4int id) override;
 
     // Methods to create ntuples
-    //
-    virtual G4int CreateNtuple(const G4String& name, const G4String& title) override;
-
-    // Create columns in the last created ntuple (from base class)
-    using G4BaseNtupleManager::CreateNtupleIColumn;
-    using G4BaseNtupleManager::CreateNtupleFColumn;
-    using G4BaseNtupleManager::CreateNtupleDColumn;
-    using G4BaseNtupleManager::CreateNtupleSColumn;
-    using G4BaseNtupleManager::FinishNtuple; 
-    // Create columns in the ntuple with given id
-    virtual G4int CreateNtupleIColumn(G4int ntupleId, 
-                    const G4String& name, std::vector<int>* vector) final;
-    virtual G4int CreateNtupleFColumn(G4int ntupleId, 
-                    const G4String& name, std::vector<float>* vector) final;
-    virtual G4int CreateNtupleDColumn(G4int ntupleId, 
-                    const G4String& name, std::vector<double>* vector) final;
-    virtual G4int CreateNtupleSColumn(G4int ntupleId, const G4String& name) final;
-    virtual void  FinishNtuple(G4int ntupleId) final;   
+    // are implemented in G4NtupleBookingManager base class
 
     // Methods to fill ntuples
-    // Methods for ntuple with id = FirstNtupleId (from base class)                    
+    // Methods for ntuple with id = FirstNtupleId (from base class)
     using G4BaseNtupleManager::FillNtupleIColumn;
     using G4BaseNtupleManager::FillNtupleFColumn;
     using G4BaseNtupleManager::FillNtupleDColumn;
     using G4BaseNtupleManager::FillNtupleSColumn;
     using G4BaseNtupleManager::AddNtupleRow;
-    // Methods for ntuple with id > FirstNtupleId (when more ntuples exist)                      
-    virtual G4bool FillNtupleIColumn(G4int ntupleId, G4int columnId, G4int value) final;
-    virtual G4bool FillNtupleFColumn(G4int ntupleId, G4int columnId, G4float value) final;
-    virtual G4bool FillNtupleDColumn(G4int ntupleId, G4int columnId, G4double value) final;
-    virtual G4bool FillNtupleSColumn(G4int ntupleId, G4int columnId, 
-                                     const G4String& value) final;
-    virtual G4bool AddNtupleRow(G4int ntupleId) override;
+    // Methods for ntuple with id > FirstNtupleId (when more ntuples exist)
+    G4bool FillNtupleIColumn(G4int ntupleId, G4int columnId, G4int value) final;
+    G4bool FillNtupleFColumn(G4int ntupleId, G4int columnId, G4float value) final;
+    G4bool FillNtupleDColumn(G4int ntupleId, G4int columnId, G4double value) final;
+    G4bool FillNtupleSColumn(G4int ntupleId, G4int columnId, const G4String& value) final;
+    G4bool AddNtupleRow(G4int ntupleId) override;
 
     // Activation option
     //
-    virtual void  SetActivation(G4bool activation) final;
-    virtual void  SetActivation(G4int ntupleId, G4bool activation) final;
-    virtual G4bool  GetActivation(G4int ntupleId) const final;
+    void SetActivation(G4bool activation) final;
+    void SetActivation(G4int ntupleId, G4bool activation) final;
+    G4bool GetActivation(G4int ntupleId) const final;
+
+    // New cycle option
+    void SetNewCycle(G4bool value) override;
+    G4bool GetNewCycle() const override;
 
     // Access methods
-    TNTUPLE* GetNtuple() const;
-    TNTUPLE* GetNtuple(G4int ntupleId) const;
-    virtual G4int GetNofNtuples() const final;
-    virtual G4int GetNofNtupleBookings() const override;
+    NT* GetNtuple() const;
+    NT* GetNtuple(G4int ntupleId) const;
 
     // Iterators
-    typename std::vector<TNTUPLE*>::iterator BeginNtuple();  
-    typename std::vector<TNTUPLE*>::iterator EndNtuple();
-    typename std::vector<TNTUPLE*>::const_iterator BeginConstNtuple() const;
-    typename std::vector<TNTUPLE*>::const_iterator EndConstNtuple() const;
- 
+    typename std::vector<NT*>::iterator BeginNtuple();
+    typename std::vector<NT*>::iterator EndNtuple();
+    typename std::vector<NT*>::const_iterator BeginConstNtuple() const;
+    typename std::vector<NT*>::const_iterator EndConstNtuple() const;
+
     // Data members
-    std::vector<G4TNtupleDescription<TNTUPLE>*> fNtupleDescriptionVector;
-    std::vector<TNTUPLE*> fNtupleVector;
+    std::vector<G4TNtupleDescription<NT, FT>*> fNtupleDescriptionVector;
+    std::vector<NT*> fNtupleVector;
+    const std::vector<G4NtupleBooking*>* fNtupleBookingVector { nullptr };
+    G4bool fNewCycle { false };
 
   private:
-    // methods
-   
+    // Methods
+
     // Fuctions which are specific to output type
     //
     virtual void CreateTNtupleFromBooking(
-                    G4TNtupleDescription<TNTUPLE>* ntupleDescription) = 0;
+                    G4TNtupleDescription<NT, FT>* ntupleDescription) = 0;
 
     virtual void FinishTNtuple(
-                    G4TNtupleDescription<TNTUPLE>* ntupleDescription,
+                    G4TNtupleDescription<NT, FT>* ntupleDescription,
                     G4bool fromBooking) = 0;
 
     // Common implementation
     //
 
-    G4TNtupleDescription<TNTUPLE>*  GetNtupleDescriptionInFunction(G4int id, 
-                                        G4String function,
+    G4TNtupleDescription<NT, FT>*  GetNtupleDescriptionInFunction(G4int id,
+                                        std::string_view function,
                                         G4bool warn = true) const;
-    TNTUPLE*  GetNtupleInFunction(G4int id, 
-                                  G4String function,
-                                  G4bool warn = true) const;
+    NT*  GetNtupleInFunction(G4int id,
+                             std::string_view function,
+                             G4bool warn = true) const;
 
-    // template functions for creating/filling ntuple columns
-
-    template <typename T> 
-    G4int CreateNtupleTColumn(G4int ntupleId, 
-                    const G4String& name, std::vector<T>* vector);
-
-    template <typename T> 
+    // template functions for filling ntuple columns
+    template <typename T>
     G4bool FillNtupleTColumn(G4int ntupleId, G4int columnId, const T& value);
+
+    // Static data members
+    static constexpr std::string_view fkClass { "G4TNtupleManager<NT,FT>" };
 };
 
 #include "G4TNtupleManager.icc"

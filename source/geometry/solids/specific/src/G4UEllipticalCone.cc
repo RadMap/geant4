@@ -54,21 +54,6 @@ G4UEllipticalCone::G4UEllipticalCone(const G4String& pName,
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Fake default constructor - sets only member data and allocates memory
-//                            for usage restricted to object persistency.
-
-G4UEllipticalCone::G4UEllipticalCone( __void__& a )
-  : Base_t(a)
-{ }
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Destructor
-
-G4UEllipticalCone::~G4UEllipticalCone() { }
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Copy constructor
 
 G4UEllipticalCone::G4UEllipticalCone(const G4UEllipticalCone& rhs)
@@ -200,7 +185,7 @@ G4UEllipticalCone::CalculateExtent(const EAxis pAxis,
 #endif
   if (bbox.BoundingBoxVsVoxelLimits(pAxis,pVoxelLimit,pTransform,pMin,pMax))
   {
-    return exist = (pMin < pMax) ? true : false;
+    return exist = pMin < pMax;
   }
 
   // Set bounding envelope (benv) and calculate extent

@@ -23,52 +23,40 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/wls/include/WLSMaterials.hh
+/// \file WLSMaterials.hh
 /// \brief Definition of the WLSMaterials class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef WLSMaterials_h
 #define WLSMaterials_h 1
 
 #include "globals.hh"
-#include "G4Material.hh"
-#include "G4NistManager.hh"
+
+class G4Material;
+class G4NistManager;
 
 class WLSMaterials
 {
   public:
+    ~WLSMaterials();
 
-    virtual ~WLSMaterials();
- 
     static WLSMaterials* GetInstance();
-
     G4Material* GetMaterial(const G4String);
- 
+
   private:
- 
     WLSMaterials();
-
     void CreateMaterials();
-
-  private:
 
     static WLSMaterials* fInstance;
 
-    G4NistManager*     fNistMan;
+    G4NistManager* fNistMan = nullptr;
 
-    G4Material*        fAir;
-
-    G4Material*        fPMMA;
-    G4Material*        fPethylene;
-    G4Material*        fFPethylene;
-    G4Material*        fPolystyrene;
-    G4Material*        fSilicone;
-    G4Material*        fCoating;
-
+    G4Material* fAir = nullptr;
+    G4Material* fPMMA = nullptr;
+    G4Material* fPethylene = nullptr;
+    G4Material* fFPethylene = nullptr;
+    G4Material* fPolystyrene = nullptr;
+    G4Material* fSilicone = nullptr;
+    G4Material* fCoating = nullptr;
 };
 
 #endif /*WLSMaterials_h*/

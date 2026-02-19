@@ -57,7 +57,7 @@
 #include "G4memory.hh"
 
 //typedef G4ReferenceCountedHandle< std::vector<G4Track*> > G4TrackVectorHandle;
-typedef G4shared_ptr< std::vector<G4Track*> > G4TrackVectorHandle;
+using G4TrackVectorHandle = std::shared_ptr<std::vector<G4Track *>>;
 
 /**
   * Before stepping all tracks G4Scheduler calls all the G4VITModel
@@ -88,6 +88,7 @@ public:
     inline virtual void Prepare() ;
 
     virtual G4double CalculateStep(const G4Track&, const G4double&) = 0;
+    virtual G4double CalculateMinTimeStep(G4double, G4double) = 0;
 
     inline G4TrackVectorHandle GetReactants();
     inline virtual void ResetReactants()
@@ -99,6 +100,7 @@ public:
     
     inline void SetReactionTable(const G4ITReactionTable*);
     inline const G4ITReactionTable* GetReactionTable();
+
 
 protected :
     static G4ThreadLocal G4double fCurrentGlobalTime ;

@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE04/include/RE04EventAction.hh
+/// \file RE04EventAction.hh
 /// \brief Definition of the RE04EventAction class
-//
-//
+
 #ifndef RE04EventAction_h
 #define RE04EventAction_h 1
 
@@ -46,17 +45,15 @@ class G4PrimaryParticle;
 //
 class RE04EventAction : public G4UserEventAction
 {
-public:
-  RE04EventAction();
-  ~RE04EventAction();
+  public:
+    RE04EventAction();
+    ~RE04EventAction();
 
-public:
-  virtual void BeginOfEventAction(const G4Event*);
-  virtual void EndOfEventAction(const G4Event*);
+  public:
+    virtual void BeginOfEventAction(const G4Event*);
+    virtual void EndOfEventAction(const G4Event*);
 
-//  private:
+    //  private:
 };
 
 #endif
-
-    

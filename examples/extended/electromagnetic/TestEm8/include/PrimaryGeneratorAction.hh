@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm8/include/PrimaryGeneratorAction.hh
+/// \file PrimaryGeneratorAction.hh
 /// \brief Definition of the PrimaryGeneratorAction class
-//
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // TestEm8: Gaseous detector
@@ -45,8 +43,8 @@
 #ifndef PrimaryGeneratorAction_h
 #define PrimaryGeneratorAction_h 1
 
-#include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4ParticleGun.hh"
+#include "G4VUserPrimaryGeneratorAction.hh"
 #include "globals.hh"
 
 class G4Event;
@@ -56,24 +54,20 @@ class TestParameters;
 
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
+  public:
+    PrimaryGeneratorAction();
+    ~PrimaryGeneratorAction() override;
 
-  PrimaryGeneratorAction();
-  virtual ~PrimaryGeneratorAction();
+    void GeneratePrimaries(G4Event*) override;
 
-  virtual void GeneratePrimaries(G4Event*);
+    PrimaryGeneratorAction& operator=(const PrimaryGeneratorAction& right) = delete;
+    PrimaryGeneratorAction(const PrimaryGeneratorAction&) = delete;
 
-private:
-
-  PrimaryGeneratorAction & operator=(const PrimaryGeneratorAction &right);
-  PrimaryGeneratorAction(const PrimaryGeneratorAction&);
-
-  G4ParticleGun*    fParticleGun;
-  TestParameters*   fParam;
+  private:
+    G4ParticleGun* fParticleGun;
+    TestParameters* fParam;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-

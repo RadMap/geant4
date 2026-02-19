@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/monopole/include/G4Monopole.hh
+/// \file G4Monopole.hh
 /// \brief Definition of the G4Monopole class
-//
-//
 
 #ifndef G4Monopole_h
 #define G4Monopole_h 1
@@ -37,7 +35,7 @@
 //
 // ClassName:   G4Monopole
 //
-// Authors:   21.03.05  V.Ivanchenko 
+// Authors:   21.03.05  V.Ivanchenko
 //
 // Modified:
 //
@@ -48,10 +46,10 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+#include "CLHEP/Units/SystemOfUnits.h"
+
 #include "G4ParticleDefinition.hh"
 #include "globals.hh"
-
-#include "CLHEP/Units/SystemOfUnits.h"
 
 // ######################################################################
 // ###                       Monopole                                 ###
@@ -59,36 +57,26 @@
 
 class G4Monopole : public G4ParticleDefinition
 {
-private:
+  private:
+    static G4Monopole* theMonopole;
 
-  static G4Monopole*  theMonopole;
+    G4Monopole(const G4String& aName, G4double mass, G4double width, G4double charge, G4int iSpin,
+               G4int iParity, G4int iConjugation, G4int iIsospin, G4int iIsospin3, G4int gParity,
+               const G4String& pType, G4int lepton, G4int baryon, G4int encoding, G4bool stable,
+               G4double lifetime, G4DecayTable* decaytable);
 
-  G4Monopole(
-       const G4String&     aName,        G4double            mass,
-       G4double            width,        G4double            charge,   
-       G4int               iSpin,        G4int               iParity,    
-       G4int               iConjugation, G4int               iIsospin,   
-       G4int               iIsospin3,    G4int               gParity,
-       const G4String&     pType,        G4int               lepton,      
-       G4int               baryon,       G4int               encoding,
-       G4bool              stable,       G4double            lifetime,
-       G4DecayTable        *decaytable );
+    virtual ~G4Monopole();
 
-  virtual ~G4Monopole();
+  public:
+    static G4Monopole* MonopoleDefinition(G4double mass = 100. * CLHEP::GeV,
+                                          G4double magCharge = 1.0, G4double elCharge = 0.0);
 
-public: 
-  
-  static G4Monopole* MonopoleDefinition(G4double mass = 100.*CLHEP::GeV, 
-                                        G4double magCharge = 1.0, 
-                                        G4double elCharge  = 0.0);
+    static G4Monopole* Monopole();
 
-  static G4Monopole* Monopole();
+    G4double MagneticCharge() const;
 
-  G4double MagneticCharge() const;
-
-private:
-
-  static G4double magCharge;
+  private:
+    static G4double magCharge;
 };
 
 #endif

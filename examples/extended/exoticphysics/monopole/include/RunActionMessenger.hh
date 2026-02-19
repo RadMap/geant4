@@ -23,18 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/monopole/include/RunActionMessenger.hh
+/// \file RunActionMessenger.hh
 /// \brief Definition of the RunActionMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef RunActionMessenger_h
 #define RunActionMessenger_h 1
 
-#include "globals.hh"
 #include "G4UImessenger.hh"
+#include "globals.hh"
 
 class RunAction;
 class G4UIdirectory;
@@ -42,24 +38,21 @@ class G4UIcmdWithADouble;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class RunActionMessenger: public G4UImessenger
+class RunActionMessenger : public G4UImessenger
 {
-public:
-  
-  RunActionMessenger(RunAction* );
-  ~RunActionMessenger();
-    
-  virtual void SetNewValue(G4UIcommand*, G4String);
-    
-private:
-  
-  RunAction*             fRunAction;
-    
-  G4UIdirectory*         fActDir;    
-  G4UIcmdWithADouble*    fBinSizeCmd;
+  public:
+    RunActionMessenger(RunAction*);
+    ~RunActionMessenger();
+
+    virtual void SetNewValue(G4UIcommand*, G4String);
+
+  private:
+    RunAction* fRunAction;
+
+    G4UIdirectory* fActDir;
+    G4UIcmdWithADouble* fBinSizeCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

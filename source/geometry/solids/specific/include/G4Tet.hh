@@ -31,10 +31,10 @@
 //
 // Class description:
 //
-// A G4Tet is a tetrahedra solid.
+// A G4Tet is a tetrahedra solid, defined by 4 points in space.
 
-// 03.09.2004 - M.H.Mendenhall & R.A.Weller (Vanderbilt University, USA)
-// 08.01.2020 - E.Tcherniaev, complete revision, speed up
+// Author: M.H.Mendenhall & R.A.Weller (Vanderbilt University, USA), 03.09.2004
+//         E.Tcherniaev (CERN), 08.01.2020 - Complete revision, speed up
 // --------------------------------------------------------------------
 #ifndef G4TET_HH
 #define G4TET_HH
@@ -52,106 +52,176 @@
 
 #include "G4VSolid.hh"
 
+/**
+ * @brief G4Tet is a tetrahedra solid, defined by 4 points in space.
+ */
+
 class G4Tet : public G4VSolid
 {
+  public:
 
-  public:  // with description
-
-    // Constructor
+    /**
+     * Constructs a tetrahedra, given its parameters.
+     *  @param[in] pName The solid name.
+     *  @param[in] anchor The anchor point.
+     *  @param[in] p2 Point 2.
+     *  @param[in] p3 Point 3.
+     *  @param[in] p4 Point 4.
+     *  @param[in] degeneracyFlag Flag indicating degeneracy of points.
+     */
     G4Tet(const G4String& pName,
           const G4ThreeVector& anchor,
-          const G4ThreeVector& p1,
           const G4ThreeVector& p2,
           const G4ThreeVector& p3,
+          const G4ThreeVector& p4,
                 G4bool* degeneracyFlag = nullptr);
 
-    // Destructor
-    virtual ~G4Tet();
+    /**
+     * Destructor.
+     */
+    ~G4Tet() override;
 
-    // Modifier
+    /**
+     * Modifier and accessors, for the four vertices of the shape.
+     */
     void SetVertices(const G4ThreeVector& anchor,
                      const G4ThreeVector& p1,
                      const G4ThreeVector& p2,
-                     const G4ThreeVector& p3);
-
-    // Accessors, return the four vertices of the shape
+                     const G4ThreeVector& p3,
+                     G4bool* degeneracyFlag = nullptr);
     void GetVertices(G4ThreeVector& anchor,
                      G4ThreeVector& p1,
                      G4ThreeVector& p2,
                      G4ThreeVector& p3) const;
     std::vector<G4ThreeVector> GetVertices() const;
 
-    // Set warning flag - depricated (dummy)
-    void PrintWarnings(G4bool) {};
-
-    // Return true if the tetrahedron is degenerate
+    /**
+     * Checks if the tetrahedron is degenerate. A tetrahedron is considered
+     * as degenerate in case its minimal height is less than the degeneracy
+     * tolerance
+     *  @returns true if the tetrahedron is degenerate.
+     */
     G4bool CheckDegeneracy(const G4ThreeVector& p0,
                            const G4ThreeVector& p1,
                            const G4ThreeVector& p2,
                            const G4ThreeVector& p3) const;
 
-    // Standard methods
+    /**
+     * Dispatch method for parameterisation replication mechanism and
+     * dimension computation.
+     */
     void ComputeDimensions(G4VPVParameterisation* p,
                            const G4int n,
-                           const G4VPhysicalVolume* pRep);
+                           const G4VPhysicalVolume* pRep) override;
 
-    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const;
+    /**
+     * Computes the bounding limits of the solid.
+     *  @param[out] pMin The minimum bounding limit point.
+     *  @param[out] pMax The maximum bounding limit point.
+     */
+    void SetBoundingLimits(const G4ThreeVector& pMin, const G4ThreeVector& pMax);
+    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const override;
+
+    /**
+     * Calculates the minimum and maximum extent of the solid, when under the
+     * specified transform, and within the specified limits.
+     *  @param[in] pAxis The axis along which compute the extent.
+     *  @param[in] pVoxelLimit The limiting space dictated by voxels.
+     *  @param[in] pTransform The internal transformation applied to the solid.
+     *  @param[out] pMin The minimum extent value.
+     *  @param[out] pMax The maximum extent value.
+     *  @returns True if the solid is intersected by the extent region.
+     */
     G4bool CalculateExtent(const EAxis pAxis,
                            const G4VoxelLimits& pVoxelLimit,
                            const G4AffineTransform& pTransform,
-                                 G4double& pmin, G4double& pmax) const;
+                                 G4double& pmin, G4double& pmax) const override;
 
-    EInside Inside(const G4ThreeVector& p) const;
-    G4ThreeVector SurfaceNormal( const G4ThreeVector& p) const;
+    /**
+     * Concrete implementations of the expected query interfaces for
+     * solids, as defined in the base class G4VSolid.
+     */
+    EInside Inside(const G4ThreeVector& p) const override;
+    G4ThreeVector SurfaceNormal( const G4ThreeVector& p) const override;
     G4double DistanceToIn(const G4ThreeVector& p,
-                          const G4ThreeVector& v) const;
-    G4double DistanceToIn(const G4ThreeVector& p) const;
+                          const G4ThreeVector& v) const override;
+    G4double DistanceToIn(const G4ThreeVector& p) const override;
     G4double DistanceToOut(const G4ThreeVector& p,
                            const G4ThreeVector& v,
                            const G4bool calcNorm = false,
                                  G4bool* validNorm = nullptr,
-                                 G4ThreeVector* n = nullptr) const;
-    G4double DistanceToOut(const G4ThreeVector& p) const;
+                                 G4ThreeVector* n = nullptr) const override;
+    G4double DistanceToOut(const G4ThreeVector& p) const override;
 
-    G4GeometryType GetEntityType() const;
+    /**
+     * Returns the type ID, "G4Tet" of the solid.
+     */
+    G4GeometryType GetEntityType() const override;
 
-    G4VSolid* Clone() const;
+    /**
+     * Returns true as the solid has only planar faces.
+     */
+    G4bool IsFaceted () const override;
 
-    std::ostream& StreamInfo(std::ostream& os) const;
+    /**
+     * Makes a clone of the object for use in multi-treading.
+     *  @returns A pointer to the new cloned allocated solid.
+     */
+    G4VSolid* Clone() const override;
 
-    G4double GetCubicVolume();
-    G4double GetSurfaceArea();
+    /**
+     * Streams the object contents to an output stream.
+     */
+    std::ostream& StreamInfo(std::ostream& os) const override;
 
-    G4ThreeVector GetPointOnSurface() const;
+    /**
+     * Returning an estimation of the solid volume (capacity) and
+     * surface area, in internal units.
+     */
+    G4double GetCubicVolume() override;
+    G4double GetSurfaceArea() override;
 
-    // Methods for visualization
-    void DescribeYourselfTo (G4VGraphicsScene& scene) const;
-    G4VisExtent GetExtent () const;
-    G4Polyhedron* CreatePolyhedron () const;
-    G4Polyhedron* GetPolyhedron () const;
+    /**
+     * Returns a random point located and uniformly distributed on the
+     * surface of the solid.
+     */
+    G4ThreeVector GetPointOnSurface() const override;
 
-  public:   // without description
+    /**
+     * Methods for creating graphical representations (i.e. for visualisation).
+     */
+    void DescribeYourselfTo (G4VGraphicsScene& scene) const override;
+    G4VisExtent GetExtent () const override;
+    G4Polyhedron* CreatePolyhedron () const override;
+    G4Polyhedron* GetPolyhedron () const override;
 
-    // Fake default constructor for usage restricted to direct object
-    // persistency for clients requiring preallocation of memory for
-    // persistifiable objects
+    /**
+     * Fake default constructor for usage restricted to direct object
+     * persistency for clients requiring preallocation of memory for
+     * persistifiable objects.
+     */
     G4Tet(__void__&);
 
-    // Copy constructor
+    /**
+     * Copy constructor and assignment operator.
+     */
     G4Tet(const G4Tet& rhs);
-
-    // Assignment operator
     G4Tet& operator=(const G4Tet& rhs);
 
   private:
 
-    // Set data members
+    /**
+     * Initialises the data members.
+     */
     void Initialize(const G4ThreeVector& p0,
                     const G4ThreeVector& p1,
                     const G4ThreeVector& p2,
                     const G4ThreeVector& p3);
 
-    // Return normal to surface closest to p
+    /**
+     * Algorithm for SurfaceNormal() following the original specification
+     * for points not on the surface.
+     */
     G4ThreeVector ApproxSurfaceNormal(const G4ThreeVector& p) const;
 
   private:

@@ -23,50 +23,60 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// This example is provided by the Geant4-DNA collaboration
-// Any report or published results obtained using the Geant4-DNA software 
-// shall cite the following Geant4-DNA collaboration publication:
-// Med. Phys. 37 (2010) 4692-4708
-// The Geant4-DNA web site is available at http://geant4-dna.org
-//
-//
 /// \file DetectorConstruction.hh
 /// \brief Definition of the DetectorConstruction class
+
+// This example is provided by the Geant4-DNA collaboration
+// Any report or published results obtained using the Geant4-DNA software
+// shall cite the following Geant4-DNA collaboration publications:
+// Med. Phys. 45 (2018) e722-e739
+// Phys. Med. 31 (2015) 861-874
+// Med. Phys. 37 (2010) 4692-4708
+// Int. J. Model. Simul. Sci. Comput. 1 (2010) 157–178
+//
+// The Geant4-DNA web site is available at http://geant4-dna.org
+//
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
 
-#include "G4VUserDetectorConstruction.hh"
 #include "G4Box.hh"
 #include "G4NistManager.hh"
 #include "G4PVPlacement.hh"
+#include "G4VUserDetectorConstruction.hh"
 #include "G4VisAttributes.hh"
 
-class G4Region;
 class DetectorMessenger;
+class PhysicsList;
 class G4LogicalVolume;
 class G4PVPlacement;
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
+  public:
+    DetectorConstruction(PhysicsList*);
 
-  DetectorConstruction();
+    ~DetectorConstruction() override;
+    G4VPhysicalVolume* Construct() override;
+    
+    void SetMaterial(const G4String&);
+    void SetSize(G4double); 
 
-  virtual ~DetectorConstruction();
-  virtual G4VPhysicalVolume* Construct();
+  public:
+    
+    G4Material* 
+    MaterialWithDensity(G4String, G4double); 
+    G4double GetSize() {return fWorldSize;};
+     
+  private:
+   
+    G4double fWorldSize = 0.;
+    
+    void DefineMaterials();
 
-  void SetMaterial(G4String);
-
-private:
-
-  G4Material* fpWaterMaterial;
-
-  void DefineMaterials();
-
-  G4VPhysicalVolume* ConstructDetector();
-  DetectorMessenger* fDetectorMessenger;
-  G4LogicalVolume*   fLogicWorld;
-  G4PVPlacement*     fPhysiWorld;
+    DetectorMessenger* fDetectorMessenger;
+    G4Material* fpWaterMaterial;
+    G4LogicalVolume* fLogicWorld;
+    G4PVPlacement* fPhysiWorld;
 };
 #endif

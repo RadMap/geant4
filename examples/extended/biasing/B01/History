@@ -1,20 +1,19 @@
--------------------------------------------------------------------
+# Example B01 History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top). It must **not**
+be used as a substitute for writing good git commit messages!
 
-                      Category History file
-                      ---------------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all category-tags.
-It DOES NOT substitute the  CVS log-message one should put at every
-committal in the CVS repository !
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2021-12-10 Ben Morgan (B01-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+November 10th, 2020 Ben Morgan - B01-V10-06-00
+- Migration to G4RunManagerFactory.
 
 May 8th, 2018 B. Morgan - B01-V10-04-00
 - Include G4Types before use of G4MULTITHREADED. For forward
@@ -32,35 +31,35 @@ Nov 22nd, 2013 A. Howard - B01-V09-06-12
 
 Nov 22nd, 2013 A. Howard - B01-V09-06-11
 - changed main() to standard number of threads
-- co-working with 
+- co-working with
   	     	  geombias-V09-06-05
   	     	  phys-ctor-limiters-V09-06-012
   	     	  procbiasing-V09-06-09
 
 Nov 22nd, 2013 A. Howard - B01-V09-06-10
 - updated History file for the co-working tags
-- co-working with 
+- co-working with
   	     	  geombias-V09-06-05
   	     	  phys-ctor-limiters-V09-06-012
   	     	  procbiasing-V09-06-09
 
 Nov 22nd, 2013 A. Howard - B01-V09-06-09
 - updated History file for the co-working tags
-- co-working with 
+- co-working with
   	     	  geombias-V09-06-05
   	     	  phys-ctor-limiters-V09-06-012
   	     	  procbiasing-V09-06-09
 
 Nov 22nd, 2013 A. Howard - B01-V09-06-08
 - fixed erroneous pointer reference and cleaned code a little
-- co-working with 
+- co-working with
   	     	  geombias-V09-06-05
   	     	  phys-ctor-limiters-V09-06-012
   	     	  procbiasing-V09-06-09
 
 Nov 22nd, 2013 A. Howard - B01-V09-06-07
 - migrated to MT (new modular physicslist based implementation)
-- co-working with 
+- co-working with
   	     	  geombias-V09-06-05
   	     	  phys-ctor-limiters-V09-06-012
   	     	  procbiasing-V09-06-09
@@ -81,7 +80,7 @@ May 22nd, 2013 A.Howard - B01-V09-06-02
 - Applied coding guidelines for extended examples more correctly
 
 May 22nd, 2013 A.Howard - B01-V09-06-01
-- Applied coding guidelines for extended examples 
+- Applied coding guidelines for extended examples
 
 Dec 17th, 2012 A.Howard - B01-V09-06-00
 - Removed reference to obsolete G4CellScorer classes

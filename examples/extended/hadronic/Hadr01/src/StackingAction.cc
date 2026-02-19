@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr01/src/StackingAction.cc
+/// \file StackingAction.cc
 /// \brief Implementation of the StackingAction class
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // StackingAction
@@ -37,26 +36,24 @@
 // 04.06.2006 Adoptation of Hadr01 (V.Ivanchenko)
 //
 ////////////////////////////////////////////////////////////////////////
-// 
+//
 
 #include "StackingAction.hh"
+
 #include "HistoManager.hh"
 #include "StackingMessenger.hh"
-#include "G4Track.hh"
+
 #include "G4ParticleDefinition.hh"
 #include "G4ParticleTable.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4Track.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-StackingAction::StackingAction()
- : G4UserStackingAction(),
-   fHistoManager(0), fStackMessenger(0), fParticle(0) 
+StackingAction::StackingAction() : G4UserStackingAction()
 {
   fStackMessenger = new StackingMessenger(this);
-  fHistoManager   = HistoManager::GetPointer();
-  fKillSecondary  = false;
-  fParticle       = 0; 
+  fHistoManager = HistoManager::GetPointer();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -68,8 +65,7 @@ StackingAction::~StackingAction()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4ClassificationOfNewTrack
-StackingAction::ClassifyNewTrack(const G4Track* aTrack)
+G4ClassificationOfNewTrack StackingAction::ClassifyNewTrack(const G4Track* aTrack)
 {
   G4ClassificationOfNewTrack status = fUrgent;
 
@@ -79,32 +75,32 @@ StackingAction::ClassifyNewTrack(const G4Track* aTrack)
 
   const G4ParticleDefinition* part = aTrack->GetDefinition();
 
-  if(fHistoManager->GetVerbose() > 1 ) {
-    G4cout << "Track #"
-           << aTrack->GetTrackID() << " of " << part->GetParticleName()
-           << " E(MeV)= " << aTrack->GetKineticEnergy()/MeV
-           << " produced by Track ID= " << aTrack->GetParentID()
-           << G4endl;
+  if (fHistoManager->GetVerbose() > 1) {
+    G4cout << "Track #" << aTrack->GetTrackID() << " of " << part->GetParticleName()
+           << " E(MeV)= " << aTrack->GetKineticEnergy() / MeV
+           << " produced by Track ID= " << aTrack->GetParentID() << G4endl;
   }
 
-  //stack or delete secondaries
-  if(aTrack->GetTrackID() > 1) {  
-    if (fKillSecondary || fParticle == part) { status = fKill; }
+  // stack or delete secondaries
+  if (aTrack->GetTrackID() > 1) {
+    if (fKillSecondary || fParticle == part) {
+      status = fKill;
+    }
   }
   return status;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void StackingAction::SetKillStatus(G4bool value)    
-{ 
+void StackingAction::SetKillStatus(G4bool value)
+{
   fKillSecondary = value;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void StackingAction::SetKill(const G4String& name)  
-{ 
+void StackingAction::SetKill(const G4String& name)
+{
   fParticle = G4ParticleTable::GetParticleTable()->FindParticle(name);
 }
 

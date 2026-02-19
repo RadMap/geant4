@@ -1,6 +1,6 @@
 #
-# ------ MacOS-X ------
-#                                 MacOS 10.8/9/10/11, clang-3.6 and higher
+# ------ macOS ------
+#                                 macOS, Apple clang-17 and higher
 #
 # Original author: Gabriele Cosmo - CERN
 #
@@ -11,21 +11,11 @@ ifeq ($(G4SYSTEM),Darwin-clang)
   CXXFLAGS  += -Wno-variadic-macros -Wshadow -pipe
   CXXFLAGS  += -fno-trapping-math -ftree-vectorize -fno-math-errno
   CPPFLAGS  += -DGL_SILENCE_DEPRECATION
-  G4USE_STD11 := 1
-  ifdef G4USE_STD14
-    CPPFLAGS  += -std=c++14
-    CXXFLAGS  += -std=c++14
-  else
-    ifdef G4USE_STD17
-      CPPFLAGS  += -std=c++17
-      CXXFLAGS  += -std=c++17
-    else
-      CXXFLAGS  += -std=c++11
-      CPPFLAGS  += -std=c++11
-    endif
-  endif
+  CPPFLAGS  += -std=c++17
+  CXXFLAGS  += -std=c++17
+  G4USE_STD17 := 1
   ifdef G4MULTITHREADED
-    CXXFLAGS += -ftls-model=initial-exec
+    CXXFLAGS += -ftls-model=initial-exec -pthread
   endif
   ifdef G4OPTIMISE
     CXXFLAGS  += -O3
@@ -60,7 +50,7 @@ ifeq ($(G4SYSTEM),Darwin-clang)
     X11FLAGS  := -I/usr/X11/include
   endif
   ifndef X11LIBS
-    X11LIBS   := -L/usr/X11/lib  -lXmu -lXt -lXext -lX11 -lXi -lSM -lICE
+    X11LIBS   := -L/usr/X11/lib  -lXmu -lXt -lXext -lX11 -lSM -lICE
   endif
   ifndef XMFLAGS
     XMFLAGS   := -I/usr/local/include
@@ -92,7 +82,7 @@ ifeq ($(G4SYSTEM),Darwin-clang)
     ifneq ($(OGLPATH),)
       OGLLIBS := -F$(OGLPATH)/.. -framework OpenGL -framework AGL 
     else
-      OGLLIBS := -L$(OGLHOME)/lib -lGLU -lGL
+      OGLLIBS := -L$(OGLHOME)/lib -lGL
     endif
   endif
 
@@ -101,14 +91,21 @@ ifeq ($(G4SYSTEM),Darwin-clang)
   ifndef QTHOME
     QTHOME := /Library/Frameworks
   endif
+  ifndef QT_VERSION
+    QT_VERSION := 6
+  endif
   ifeq ($(QTHOME),/Library/Frameworks)
     ifndef QTMOC
       QTMOC      := /usr/bin/moc
     endif
     ifndef QTFLAGS
-      QTFLAGS   := -I $(QTHOME)/QtCore.framework/Headers 
-      QTFLAGS   += -I $(QTHOME)/QtGui.framework/Headers 
+      QTFLAGS   := -I $(QTHOME)/QtCore.framework/Headers
+      QTFLAGS   += -I $(QTHOME)/QtGui.framework/Headers
+      QTFLAGS   += -I $(QTHOME)/QtWidgets.framework/Headers
       QTFLAGS   += -I $(QTHOME)/QtOpenGL.framework/Headers
+      ifeq ($(QT_VERSION),6)
+        QTFLAGS   += -I $(QTHOME)/QtOpenGLWidgets.framework/Headers
+      endif
       QTFLAGS   += -I $(QTHOME)/include/Qt -I$(QTHOME)/include
     endif
     ifndef QTLIBPATH
@@ -125,10 +122,15 @@ ifeq ($(G4SYSTEM),Darwin-clang)
     endif
     ifndef GLQTLIBS  
       ifdef QT_AS_FRAMEWORK
-        GLQTLIBS    := $(QTLIBPATH) -framework QtCore -framework QtGui
-        GLQTLIBS    += -framework QtOpenGL
+        GLQTLIBS  := $(QTLIBPATH) -framework QtCore -framework QtGui -framework QtOpenGL
+        ifeq ($(QT_VERSION),6)
+          GLQTLIBS += -framework QtOpenGLWidgets
+        endif
       else
-        GLQTLIBS    := -L$(QTLPATH) -lQtCore -lQtGui -lQtOpenGL
+        GLQTLIBS  := -L$(QTLPATH) -lQtCore -lQtGui -lQtOpenGL
+        ifeq ($(QT_VERSION),6)
+          GLQTLIBS += -lQtOpenGLWidgets
+        endif
       endif   
     endif
   else
@@ -136,22 +138,27 @@ ifeq ($(G4SYSTEM),Darwin-clang)
       QTMOC      := $(QTHOME)/bin/moc
     endif
     QTLPATH  := $(QTHOME)/lib
-    ifndef QTFLAGS                          # Qt5
+    ifndef QTFLAGS
       QTFLAGS   := -I $(QTLPATH)/QtCore.framework/Headers 
       QTFLAGS   += -I $(QTLPATH)/QtGui.framework/Headers 
       QTFLAGS   += -I $(QTLPATH)/QtWidgets.framework/Headers
       QTFLAGS   += -I $(QTLPATH)/QtOpenGL.framework/Headers
-      QTFLAGS   += -I $(QTLPATH)/QtPrintSupport.framework/Headers
       QTFLAGS   += -I $(QTHOME)/include/Qt -I$(QTHOME)/include
+      ifeq ($(QT_VERSION),6)
+        QTFLAGS   += -I $(QTHOME)/QtOpenGLWidgets.framework/Headers
+      endif
     endif
     ifndef QTLIBS
        QTLIBS    := -F$(QTLPATH) -framework QtCore -framework QtGui
-       QTLIBS    += -framework QtWidgets -framework QtPrintSupport
+       QTLIBS    += -framework QtWidgets
     endif   
     ifndef GLQTLIBS  
       GLQTLIBS    := -F$(QTLPATH) -framework QtCore -framework QtGui
       GLQTLIBS    += -framework QtWidgets
-      GLQTLIBS    += -framework QtOpenGL -framework QtPrintSupport
+      GLQTLIBS    += -framework QtOpenGL
+      ifeq ($(QT_VERSION),6)
+        GLQTLIBS  += -framework QtOpenGLWidgets
+      endif
     endif   
   endif
 
@@ -168,13 +175,13 @@ ifeq ($(G4SYSTEM),Darwin-clang)
   define build-granular-shared-lib
     @libdir=`(cd $(@D);/bin/pwd)`; \
      cd $(G4TMPDIR); \
-     $(CXX) -dynamiclib -single_module -undefined dynamic_lookup \
+     $(CXX) -Wl,-w -dynamiclib -single_module -undefined dynamic_lookup \
          -o $$libdir/$(@F) $(INTYLIBS) *.o
   endef
   define build-global-shared-lib
     @libdir=`(cd $(@D);/bin/pwd)`; \
      cd $(G4TMP)/$(G4SYSTEM); \
-     $(CXX) -dynamiclib -single_module -undefined dynamic_lookup \
+     $(CXX) -Wl,-w -dynamiclib -single_module -undefined dynamic_lookup \
          -o $$libdir/$(@F) $(INTYLIBS) $(foreach dir,$(SUBLIBS),$(dir)/*.o);
   endef
 

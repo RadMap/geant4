@@ -23,16 +23,12 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm9/src/TrackingAction.cc
+/// \file TrackingAction.cc
 /// \brief Implementation of the TrackingAction class
-//
-//
 
 //---------------------------------------------------------------------------
 //
 // ClassName:   TrackingAction
-//
-// Description: Implementation file for MC truth.
 //
 // Author:      V.Ivanchenko 17/03/01
 //
@@ -45,55 +41,32 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #include "TrackingAction.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4DynamicParticle.hh"
-#include "G4Track.hh"
-#include "G4ThreeVector.hh"
-#include "G4Gamma.hh"
-#include "G4Electron.hh"
-#include "G4EventManager.hh"
-#include "G4Event.hh"
-#include "G4SystemOfUnits.hh"
+
 #include "HistoManager.hh"
 
+#include "G4Event.hh"
+#include "G4EventManager.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4Track.hh"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-TrackingAction::TrackingAction():
-  G4UserTrackingAction(),fHisto(HistoManager::GetPointer())
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-TrackingAction::~TrackingAction()
-{}
+TrackingAction::TrackingAction() : G4UserTrackingAction(), fHisto(HistoManager::GetPointer()) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void TrackingAction::PreUserTrackingAction(const G4Track* aTrack)
 {
-  fHisto->ScoreNewTrack(aTrack);
-
-  if(1 < fHisto->GetVerbose()) {
-
+  if (1 < fHisto->GetVerbose()) {
     G4int pid = aTrack->GetParentID();
-    const G4String name = aTrack->GetDefinition()->GetParticleName();
-
     if (fHisto->GetMaxEnergy() < aTrack->GetKineticEnergy() && pid > 0) {
-      G4cout << "Track #"
-             << aTrack->GetTrackID() << " of " << name
-             << " Emax(MeV)= " << fHisto->GetMaxEnergy()/MeV
-             << " Ekin(MeV)= " << aTrack->GetKineticEnergy()/MeV
-             << " ## EventID= "
-             << (G4EventManager::GetEventManager())->GetConstCurrentEvent()
-                ->GetEventID()
-             << G4endl;
+      const G4String name = aTrack->GetDefinition()->GetParticleName();
+      G4cout << "Track #" << aTrack->GetTrackID() << " of " << name
+             << " Emax(MeV)= " << fHisto->GetMaxEnergy() / MeV
+             << " Ekin(MeV)= " << aTrack->GetKineticEnergy() / MeV << " ## EventID= "
+             << (G4EventManager::GetEventManager())->GetConstCurrentEvent()->GetEventID() << G4endl;
     }
   }
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-void TrackingAction::PostUserTrackingAction(const G4Track*)
-{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

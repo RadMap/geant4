@@ -24,7 +24,8 @@
 // ********************************************************************
 //
 // G4SextupoleMagField implementation
-//   by H. Burkhardt 23/10/2019
+//
+// Author: Helmut Burkhardt (CERN), 23.10.2019
 // -------------------------------------------------------------------
 
 #include "G4SextupoleMagField.hh"
@@ -44,7 +45,7 @@ G4SextupoleMagField::G4SextupoleMagField(G4double pGradient)
 }
 
 G4SextupoleMagField::G4SextupoleMagField(G4double pGradient,
-                                         G4ThreeVector pOrigin,
+                                         const G4ThreeVector& pOrigin,
                                          G4RotationMatrix* pMatrix)
 {
   fGradient = pGradient ;
@@ -59,12 +60,8 @@ G4Field* G4SextupoleMagField::Clone() const
 
 // -------------------------------------------------------------------
 
-G4SextupoleMagField::~G4SextupoleMagField()
-{
-}
-
-void G4SextupoleMagField::GetFieldValue( const G4double y[4],
-                                        G4double B[3]  ) const
+void G4SextupoleMagField::GetFieldValue( const G4double y[],         // [4]
+                                               G4double B[]  ) const // [3]
 //  with displaced origin and rotation
 {
   G4ThreeVector r_global = G4ThreeVector(

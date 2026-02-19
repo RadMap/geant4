@@ -23,35 +23,26 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ActionInitialization.cc
 /// \brief Implementation of the ActionInitialization class
 
 #include "ActionInitialization.hh"
+
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
-#include "TrackingAction.hh"
-#include "SteppingAction.hh"
-#include "SteppingVerbose.hh"
 #include "StackingAction.hh"
+#include "SteppingAction.hh"
+#include "TrackingAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::ActionInitialization(DetectorConstruction* detector)
- : G4VUserActionInitialization(),
-   fDetector(detector)
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-ActionInitialization::~ActionInitialization()
-{}
+ActionInitialization::ActionInitialization(DetectorConstruction* detector) : fDetector(detector) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void ActionInitialization::BuildForMaster() const
 {
-  RunAction* runAction = new RunAction(fDetector, 0);
+  RunAction* runAction = new RunAction(fDetector, nullptr);
   SetUserAction(runAction);
 }
 
@@ -61,25 +52,18 @@ void ActionInitialization::Build() const
 {
   PrimaryGeneratorAction* primary = new PrimaryGeneratorAction();
   SetUserAction(primary);
-    
-  RunAction* runAction = new RunAction(fDetector, primary );
+
+  RunAction* runAction = new RunAction(fDetector, primary);
   SetUserAction(runAction);
-  
+
   TrackingAction* trackingAction = new TrackingAction();
   SetUserAction(trackingAction);
-  
+
   SteppingAction* steppingAction = new SteppingAction(trackingAction);
   SetUserAction(steppingAction);
-  
+
   StackingAction* stackingAction = new StackingAction();
-  SetUserAction(stackingAction);    
-}  
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-G4VSteppingVerbose* ActionInitialization::InitializeSteppingVerbose() const
-{
-  return new SteppingVerbose();
-}  
+  SetUserAction(stackingAction);
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

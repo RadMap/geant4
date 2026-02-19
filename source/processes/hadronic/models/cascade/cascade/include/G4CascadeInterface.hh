@@ -111,6 +111,7 @@ public:
   // Select betweeen different post-cascade de-excitation models
   void useCascadeDeexcitation();
   void usePreCompoundDeexcitation();
+  void useAblaDeexcitation();
 
   virtual void ModelDescription(std::ostream& outFile) const;
   virtual void DumpConfiguration(std::ostream& outFile) const;
@@ -180,7 +181,8 @@ private:
   G4InuclElementaryParticle hadronTarget;
   G4InuclNuclei             nucleusTarget;
 
-
+  G4int secID;  // Creator model ID for the secondaries
+  
 private:
   // Copying of modules is forbidden
   G4CascadeInterface(const G4CascadeInterface&);

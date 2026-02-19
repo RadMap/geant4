@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G02/include/G02DetectorConstruction.hh
+/// \file G02DetectorConstruction.hh
 /// \brief Definition of the G02DetectorConstruction class
-//
-//
-//
+
 // Class G02DetectorConstruction
 //
 // A detector construction class loading the geometry from GDML files.
@@ -37,12 +35,9 @@
 #ifndef G02DetectorConstruction_H
 #define G02DetectorConstruction_H 1
 
-
-#include "G4VUserDetectorConstruction.hh"
 #include "G4GDMLParser.hh"
-
 #include "G4Material.hh"
-
+#include "G4VUserDetectorConstruction.hh"
 #include "globals.hh"
 
 class G02DetectorMessenger;
@@ -54,11 +49,10 @@ class G02DetectorMessenger;
 class G02DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-
     // Constructor and destructor
     //
     G02DetectorConstruction();
-   ~G02DetectorConstruction();
+    ~G02DetectorConstruction();
 
     // Construction of SubDetectors
     //
@@ -66,7 +60,7 @@ class G02DetectorConstruction : public G4VUserDetectorConstruction
     G4LogicalVolume* ConstructSubDetector1();
     G4LogicalVolume* ConstructSubDetector2();
     G4VPhysicalVolume* ConstructDetector();
-    G4LogicalVolume* ConstructAssembly(); 
+    G4LogicalVolume* ConstructAssembly();
     G4LogicalVolume* ConstructParametrisationChamber();
 
     // Make List of materials
@@ -75,24 +69,23 @@ class G02DetectorConstruction : public G4VUserDetectorConstruction
 
     // Writing and Reading GDML
     //
-    void SetReadFile( const G4String& File );
-    void SetWriteFile( const G4String& File );
+    void SetReadFile(const G4String& File);
+    void SetWriteFile(const G4String& File);
 
     // Reading STEP File
     //
-    void SetStepFile( const G4String& File );
+    void SetStepFile(const G4String& File);
 
   private:
-
-    G4Material* fAir ;
-    G4Material* fAluminum ;
+    G4Material* fAir;
+    G4Material* fAluminum;
     G4Material* fPb;
     G4Material* fXenon;
 
     // GDMLparser
     //
     G4GDMLParser fParser;
-        
+
     // Reading and Writing Settings
     //
     G4String fReadFile;
@@ -103,10 +96,10 @@ class G02DetectorConstruction : public G4VUserDetectorConstruction
     // Detector Messenger
     //
     G02DetectorMessenger* fDetectorMessenger;
-      
+
     // World Dimentions
     //
-    G4double fExpHall_x; 
+    G4double fExpHall_x;
 };
 
 // ----------------------------------------------------------------------------

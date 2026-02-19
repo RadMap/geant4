@@ -23,86 +23,19 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4ParticleChangeForRadDecay
 //
+// Class description:
 //
-// 
-// ------------------------------------------------------------
-//	GEANT 4 class header file 
-//
-// 
-// ------------------------------------------------------------
-//   Implemented for the new scheme                 25 Jan. 2000  H.Kurahige
-//
-// Class Description
-//  This class is a concrete class for ParticleChange for RadDecay
-//        
-#ifndef G4ParticleChangeForRadDecay_h
-#define G4ParticleChangeForRadDecay_h 1
+// Concrete class for ParticleChange for Radioactive Decay.
 
-#include "globals.hh"
-#include "G4ios.hh"
-class G4VTouchable;
+// Author: Hisaya Kurashige, 25 January 2000
+// --------------------------------------------------------------------
+#ifndef G4ParticleChangeForRadDecay_hh
+#define G4ParticleChangeForRadDecay_hh 1
+
 #include "G4ParticleChangeForDecay.hh"
 
-class G4ParticleChangeForRadDecay: public G4ParticleChangeForDecay
-{ 
-  public:
-    // default constructor
-    G4ParticleChangeForRadDecay(){}
-
-    // destructor
-    virtual ~G4ParticleChangeForRadDecay(){}
-
-  protected:
-    // hide copy constructor and assignment operaor as protected
-    G4ParticleChangeForRadDecay(const G4ParticleChangeForRadDecay &) : G4ParticleChangeForDecay() {}
-    G4ParticleChangeForRadDecay & operator=(const G4ParticleChangeForRadDecay &){return *this;}
-
-
-  public: // with description
-  void AddSecondary(G4Track* aSecondary);
-    //  Add a secondary particle to theListOfSecondaries.
-    // ------------------------------------------------------   
-
-
-};
-
-inline void G4ParticleChangeForRadDecay::AddSecondary(G4Track *aTrack)
-{
-  // add a secondary after size check
-  if (theSizeOftheListOfSecondaries > theNumberOfSecondaries) {
-    theListOfSecondaries->SetElement(theNumberOfSecondaries, aTrack);
-    theNumberOfSecondaries++;
-  } else {
-#ifdef G4VERBOSE
-    if (verboseLevel>0) {
-      G4cout << "G4VParticleChange::AddSecondary() Warning  ";
-      G4cout << "theListOfSecondaries is full !! " << G4endl;
-      G4cout << " The track is deleted " << G4endl;
-    }
-#endif
-    G4Exception("G4ParticleChangeForRadDecay::AddSecondary",
-                "TRACK101", JustWarning,
-                "Secondary Bug is full. The track is deleted"); 
-  }
-}
-
-
+using G4ParticleChangeForRadDecay = G4ParticleChangeForDecay;
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

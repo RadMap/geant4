@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G03/gdml_ext.cc
-/// \brief Main program of the persistency/gdml/G03 example
-//
-//
-//
-//
+/// \file gdml_ext.cc
+/// \brief Main program of the gdml/G03 example
+
 // --------------------------------------------------------------
 //      GEANT 4 - read_ext
 //
@@ -36,7 +33,7 @@
 
 // Geant4 includes
 //
-#include "G4RunManager.hh"
+#include "G4RunManagerFactory.hh"
 #include "G4UImanager.hh"
 #include "globals.hh"
 
@@ -50,17 +47,16 @@
 #include "G03PrimaryGeneratorAction.hh"
 #include "G03RunAction.hh"
 
-#include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
+#include "G4VisExecutive.hh"
 
 // --------------------------------------------------------------
 
 int main(int argc, char** argv)
 {
-       
-  // Construct the default run manager
+  // Construct a serial run manager
   //
-  G4RunManager* runManager = new G4RunManager;
+  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::SerialOnly);
 
   // Set mandatory initialization and user action classes
   //
@@ -70,10 +66,10 @@ int main(int argc, char** argv)
   runManager->SetUserAction(new G03PrimaryGeneratorAction);
   G03RunAction* runAction = new G03RunAction;
   runManager->SetUserAction(runAction);
-      
+
   // Initialisation of runManager via macro for the interactive mode
   // This gives possibility to give different names for GDML file to READ
- 
+
   // Initialize visualization
   //
   G4VisManager* visManager = new G4VisExecutive;
@@ -83,19 +79,19 @@ int main(int argc, char** argv)
   //
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if ( argc==1 )   // Define UI session for interactive mode. 
+  if (argc == 1)  // Define UI session for interactive mode.
   {
     G4UIExecutive* ui = new G4UIExecutive(argc, argv);
-    UImanager->ApplyCommand("/control/execute vis.mac");     
+    UImanager->ApplyCommand("/control/execute vis.mac");
     ui->SessionStart();
     delete ui;
   }
-  else             // Batch mode
-  { 
+  else  // Batch mode
+  {
     G4UIExecutive* ui = new G4UIExecutive(argc, argv);
-    G4String command = "/control/execute "; 
-    G4String fileName = argv[1]; 
-    UImanager->ApplyCommand(command+fileName); 
+    G4String command = "/control/execute ";
+    G4String fileName = argv[1];
+    UImanager->ApplyCommand(command + fileName);
     ui->SessionStart();
     delete ui;
   }

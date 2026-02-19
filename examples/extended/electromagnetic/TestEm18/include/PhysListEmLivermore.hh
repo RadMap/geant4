@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm18/include/PhysListEmLivermore.hh
+/// \file PhysListEmLivermore.hh
 /// \brief Definition of the PhysListEmLivermore class
-//
-//
 
 #ifndef PhysListEmLivermore_h
 #define PhysListEmLivermore_h 1
@@ -38,20 +36,14 @@
 
 class PhysListEmLivermore : public G4VPhysicsConstructor
 {
-public:
-  PhysListEmLivermore(const G4String& name = "Livermore");
- ~PhysListEmLivermore();
+  public:
+    PhysListEmLivermore(const G4String& name = "Livermore");
+    ~PhysListEmLivermore() override = default;
 
-  virtual void ConstructParticle() { };
-  virtual void ConstructProcess();
+    void ConstructParticle() override {};
+    void ConstructProcess() override;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-
-
-
-
-

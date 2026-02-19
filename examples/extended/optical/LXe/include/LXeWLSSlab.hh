@@ -23,47 +23,34 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/LXe/include/LXeWLSSlab.hh
+/// \file LXeWLSSlab.hh
 /// \brief Definition of the LXeWLSSlab class
-//
-//
-#ifndef LXeWLSSlab_H
-#define LXeWLSSlab_H 1
 
-#include "G4PVPlacement.hh"
-#include "G4Box.hh"
-#include "G4Tubs.hh"
-#include "G4Material.hh"
-#include "G4LogicalVolume.hh"
-#include "G4OpticalSurface.hh"
+#ifndef LXeWLSSlab_h
+#define LXeWLSSlab_h 1
 
 #include "LXeDetectorConstruction.hh"
+
+#include "G4PVPlacement.hh"
 
 class LXeWLSSlab : public G4PVPlacement
 {
   public:
-
-    LXeWLSSlab(G4RotationMatrix *pRot,
-               const G4ThreeVector &tlate,
-               G4LogicalVolume *pMotherLogical,
-               G4bool pMany,
-               G4int pCopyNo,
-               LXeDetectorConstruction* c);
+    LXeWLSSlab(G4RotationMatrix* pRot, const G4ThreeVector& tlate, G4LogicalVolume* pMotherLogical,
+               G4bool pMany, G4int pCopyNo, LXeDetectorConstruction* c);
 
   private:
-
     void CopyValues();
 
-    LXeDetectorConstruction* fConstructor;
+    LXeDetectorConstruction* fConstructor = nullptr;
 
     static G4LogicalVolume* fScintSlab_log;
 
-    G4int fNfibers;
-    G4double fScint_x;
-    G4double fScint_y;
-    G4double fScint_z;
-    G4double fSlab_z;
+    G4int fNfibers = 0;
+    G4double fScint_x = 0.;
+    G4double fScint_y = 0.;
+    G4double fScint_z = 0.;
+    G4double fSlab_z = 0.;
 };
 
 #endif

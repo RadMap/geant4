@@ -1,41 +1,11 @@
-#------------------------------------------------------------------------------
-# CMakeLists.txt
-# Module : G4persistency
-# Package: Geant4.src.G4persistency
-#
-# Top level CMakeLists.txt for a Geant4 Global Library
-# or collection of sublibraries
-#
-# Generated on : 24/9/2010
-#
-#
-#------------------------------------------------------------------------------
+# - G4persistency category build
+include(ascii/sources.cmake)
+geant4_add_category(G4geomtext MODULES G4geomtext)
 
-add_subdirectory(ascii)
+include(mctruth/sources.cmake)
+geant4_add_category(G4mctruth MODULES G4mctruth)
 
-# GDML only if required
 if(GEANT4_USE_GDML)
-    add_subdirectory(gdml)
+  include(gdml/sources.cmake)
+  geant4_add_category(G4gdml MODULES G4gdml)
 endif()
-
-add_subdirectory(mctruth)
-
-
-if(NOT GEANT4_BUILD_GRANULAR_LIBS)
-    include(Geant4MacroLibraryTargets)
-    if(GEANT4_USE_GDML)
-        GEANT4_GLOBAL_LIBRARY_TARGET(NAME G4persistency
-            COMPONENTS
-                ascii/sources.cmake
-                gdml/sources.cmake
-                mctruth/sources.cmake
-        )
-    else()
-        GEANT4_GLOBAL_LIBRARY_TARGET(NAME G4persistency
-            COMPONENTS
-                ascii/sources.cmake
-                mctruth/sources.cmake
-        )
-    endif()
-endif()
-

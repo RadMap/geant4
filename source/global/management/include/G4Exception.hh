@@ -23,57 +23,33 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
-// ----------------------------------------------------------------------
 // G4Exception
 //
 // Global error function prints string to G4cerr (or G4cout in case of
 // warning). May abort program according to severity.
-// ----------------------------------------------------------------------
 
+// Authors: G.Cosmo, M.Asai - May 1999 - First implementation
+// --------------------------------------------------------------------
 #ifndef G4EXCEPTION_HH
 #define G4EXCEPTION_HH
 
-#include "G4ios.hh"
-#include "G4String.hh"
-#include "G4VExceptionHandler.hh"
+#include "G4ExceptionSeverity.hh"
 
-typedef std::ostringstream G4ExceptionDescription;
+#include <sstream>
 
-inline const G4String G4ExceptionErrBannerStart()
-{
-  return "\n-------- EEEE ------- G4Exception-START -------- EEEE -------\n";
-}
-inline const G4String G4ExceptionWarnBannerStart()
-{
-  return "\n-------- WWWW ------- G4Exception-START -------- WWWW -------\n";
-}
+using G4ExceptionDescription = std::ostringstream;
 
-inline const G4String G4ExceptionErrBannerEnd()
-{
-  return "\n-------- EEEE ------- G4Exception-END -------- EEEE -------\n";
-}
-inline const G4String G4ExceptionWarnBannerEnd()
-{
-  return "\n-------- WWWW ------- G4Exception-END -------- WWWW -------\n";
-}
+void G4Exception(const char* originOfException,
+                 const char* exceptionCode, G4ExceptionSeverity severity,
+                 const char* description);
 
-extern void G4Exception(const char* originOfException,
-                        const char* exceptionCode,
-                                    G4ExceptionSeverity severity,
-                        const char* description);
+void G4Exception(const char* originOfException,
+                 const char* exceptionCode, G4ExceptionSeverity severity,
+                 G4ExceptionDescription& description);
 
-extern void G4Exception(const char* originOfException,
-                        const char* exceptionCode,
-                                    G4ExceptionSeverity severity,
-                                    G4ExceptionDescription & description);
+void G4Exception(const char* originOfException,
+                 const char* exceptionCode, G4ExceptionSeverity severity,
+                 G4ExceptionDescription& description,
+                 const char* comments);
 
-extern void G4Exception(const char* originOfException,
-                        const char* exceptionCode,
-                                    G4ExceptionSeverity severity,
-                                    G4ExceptionDescription & description,
-                        const char* comments);
-
-#endif /* G4EXCEPTION_HH */
+#endif

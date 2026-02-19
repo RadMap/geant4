@@ -23,19 +23,12 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/HepMC/HepMCEx01/HepMCEx01.cc
-/// \brief Main program of the eventgenerator/HepMC/HepMCEx01 example
-//
-//
+/// \file HepMCEx01.cc
+/// \brief Main program of the HepMC/HepMCEx01 example
+
 // --------------------------------------------------------------
 //      GEANT 4 - example derived from novice exampleN04
 // --------------------------------------------------------------
-
-#include "G4Types.hh"
-
-#include "FTFP_BERT.hh"
-#include "G4RunManager.hh"
-#include "G4UImanager.hh"
 
 #include "ExN04DetectorConstruction.hh"
 #include "ExN04EventAction.hh"
@@ -45,15 +38,19 @@
 #include "ExN04SteppingAction.hh"
 #include "ExN04SteppingVerbose.hh"
 #include "ExN04TrackingAction.hh"
+#include "FTFP_BERT.hh"
 
-#include "G4VisExecutive.hh"
+#include "G4RunManagerFactory.hh"
+#include "G4Types.hh"
 #include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
+#include "G4VisExecutive.hh"
 
-int main(int argc,char** argv)
+int main(int argc, char** argv)
 {
   // Instantiate G4UIExecutive if there are no arguments (interactive mode)
   G4UIExecutive* ui = nullptr;
-  if ( argc == 1 ) {
+  if (argc == 1) {
     ui = new G4UIExecutive(argc, argv);
   }
 
@@ -62,9 +59,9 @@ int main(int argc,char** argv)
   G4VSteppingVerbose* verbosity = new ExN04SteppingVerbose;
   G4VSteppingVerbose::SetInstance(verbosity);
 
-  // Run manager
+  // Serial only Run manager
   //
-  G4RunManager* runManager = new G4RunManager;
+  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::SerialOnly);
 
   // User Initialization classes (mandatory)
   //
@@ -99,27 +96,26 @@ int main(int argc,char** argv)
   G4VisManager* visManager = new G4VisExecutive;
   visManager->Initialize();
 
-  //get the pointer to the User Interface manager
+  // get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if (!ui)   // batch mode
-    {
-      visManager->SetVerboseLevel("quiet");
-      G4String command = "/control/execute ";
-      G4String fileName = argv[1];
-      UImanager->ApplyCommand(command+fileName);
-    }
-  else
-    {  // interactive mode : define UI session
-      ui->SessionStart();
-      delete ui;
-    }
+  if (!ui)  // batch mode
+  {
+    visManager->SetVerboseLevel("quiet");
+    G4String command = "/control/execute ";
+    G4String fileName = argv[1];
+    UImanager->ApplyCommand(command + fileName);
+  }
+  else {  // interactive mode : define UI session
+    ui->SessionStart();
+    delete ui;
+  }
 
   // Free the store: user actions, physics_list and detector_description are
   //                 owned and deleted by the run manager, so they should not
   //                 be deleted in the main() program !
 
+  delete verbosity;
   delete visManager;
   delete runManager;
-  delete verbosity;
 }

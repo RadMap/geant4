@@ -41,6 +41,8 @@
 #include "G4PhysicalVolumeModel.hh"
 #include "G4UnitsTable.hh"
 
+#define G4warn G4cout
+
 G4ModelingParameters::G4ModelingParameters ():
   fWarning               (true),
   fpDefaultVisAttributes (0),
@@ -55,8 +57,12 @@ G4ModelingParameters::G4ModelingParameters ():
   fExplodeFactor         (1.),
   fNoOfSides             (24),
   fpSectionSolid         (0),
+  fCutawayMode           (cutawayUnion),
   fpCutawaySolid         (0),
-  fpEvent                (0)
+  fpEvent                (0),
+  fSpecialMeshRendering  (false),
+  fTransparencyByDepth   (0.),
+  fTransparencyByDepthOption (1)
 {}
 
 G4ModelingParameters::G4ModelingParameters
@@ -82,8 +88,12 @@ G4ModelingParameters::G4ModelingParameters
   fExplodeFactor  (1.),
   fNoOfSides      (noOfSides),
   fpSectionSolid  (0),
+  fCutawayMode    (cutawayUnion),
   fpCutawaySolid  (0),
-  fpEvent         (0)
+  fpEvent         (0),
+  fSpecialMeshRendering (false),
+  fTransparencyByDepth (0.),
+  fTransparencyByDepthOption (1)
 {}
 
 G4ModelingParameters::~G4ModelingParameters ()
@@ -115,12 +125,12 @@ G4ModelingParameters::~G4ModelingParameters ()
 void G4ModelingParameters::SetVisibleDensity (G4double visibleDensity) {
   const G4double reasonableMaximum = 10.0 * g / cm3;
   if (visibleDensity < 0 && fWarning) {
-    G4cout << "G4ModelingParameters::SetVisibleDensity: attempt to set negative "
+    G4warn << "G4ModelingParameters::SetVisibleDensity: attempt to set negative "
       "density - ignored." << G4endl;
   }
   else {
     if (fVisibleDensity > reasonableMaximum && fWarning) {
-      G4cout << "G4ModelingParameters::SetVisibleDensity: density > "
+      G4warn << "G4ModelingParameters::SetVisibleDensity: density > "
 	   << reasonableMaximum
 	   << " g / cm3 - did you mean this?"
 	   << G4endl;
@@ -134,7 +144,7 @@ G4int G4ModelingParameters::SetNoOfSides (G4int nSides) {
   if (nSides < nSidesMin) {
     nSides = nSidesMin;
     if (fWarning)
-      G4cout << "G4ModelingParameters::SetNoOfSides: attempt to set the"
+      G4warn << "G4ModelingParameters::SetNoOfSides: attempt to set the"
 	"\nnumber of sides per circle < " << nSidesMin
 	     << "; forced to" << nSides << G4endl;
   }
@@ -222,6 +232,10 @@ std::ostream& operator << (std::ostream& os, const G4ModelingParameters& mp)
   if (!mp.fpSectionSolid) os << "non-";
   os << "null";
 
+  os << "\n  Cutaway mode: ";
+  if (mp.GetCutawayMode() == G4ModelingParameters::cutawayUnion) os << "union";
+  else if (mp.GetCutawayMode() == G4ModelingParameters::cutawayIntersection) os << "intersection";
+
   os << "\n  Cutaway (DCUT) shape (G4DisplacedSolid) pointer: ";
   if (!mp.fpCutawaySolid) os << "non-";
   os << "null";
@@ -236,6 +250,22 @@ std::ostream& operator << (std::ostream& os, const G4ModelingParameters& mp)
   } else {
     os << vams;
   }
+
+  os << "\n  Special Mesh Rendering: ";
+  if (mp.fSpecialMeshRendering) {
+    os << "on: ";
+    if (mp.fSpecialMeshVolumes.empty()) {
+      os << "all meshes";
+    } else {
+      os << "selected meshes";
+      for (const auto& vol: mp.fSpecialMeshVolumes) {
+        os << "\n    " << vol.GetName() << ':' << vol.GetCopyNo();
+      }
+    }
+  } else os << "off";
+
+  os << "\nTransparency by depth: " << mp.fTransparencyByDepth
+  << ", option: " << mp.fTransparencyByDepthOption;
 
   return os;
 }
@@ -257,8 +287,12 @@ G4bool G4ModelingParameters::operator !=
       (fExplodeCentre          != mp.fExplodeCentre)          ||
       (fNoOfSides              != mp.fNoOfSides)              ||
       (fpSectionSolid          != mp.fpSectionSolid)          ||
+      (fCutawayMode            != mp.fCutawayMode)            ||
       (fpCutawaySolid          != mp.fpCutawaySolid)          ||
-      (fpEvent                 != mp.fpEvent)
+      (fpEvent                 != mp.fpEvent)                 ||
+      (fSpecialMeshRendering   != mp.fSpecialMeshRendering)   ||
+      (fTransparencyByDepth    != mp.fTransparencyByDepth)    ||
+      (fTransparencyByDepthOption != mp.fTransparencyByDepthOption)
       )
     return true;
 
@@ -272,6 +306,11 @@ G4bool G4ModelingParameters::operator !=
 
   if (fVisAttributesModifiers != mp.fVisAttributesModifiers)
     return true;
+
+  if (fSpecialMeshRendering) {
+    if (fSpecialMeshVolumes != mp.fSpecialMeshVolumes)
+      return true;;
+  }
 
   return false;
 }

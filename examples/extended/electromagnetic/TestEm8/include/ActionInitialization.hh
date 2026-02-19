@@ -23,34 +23,28 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+/// \file ActionInitialization.hh
+/// \brief Definition of the ActionInitialization class
 
 #ifndef ActionInitialization_h
 #define ActionInitialization_h 1
 
 #include "G4VUserActionInitialization.hh"
 
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class ActionInitialization : public G4VUserActionInitialization
 {
-public:
-  
-  ActionInitialization();
-  virtual ~ActionInitialization();
+  public:
+    ActionInitialization();
+    ~ActionInitialization() override = default;
 
-  virtual void Build() const;
+    void Build() const override;
 
-  virtual void BuildForMaster() const;
+    void BuildForMaster() const override;
 
-private:
-
+    ActionInitialization& operator=(const ActionInitialization& right) = delete;
+    ActionInitialization(const ActionInitialization&) = delete;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

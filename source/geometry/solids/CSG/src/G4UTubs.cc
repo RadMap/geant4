@@ -25,7 +25,7 @@
 //
 // Implementation for G4UTubs wrapper class
 //
-// 30.10.13 G.Cosmo, CERN/PH
+// 30.10.13 G.Cosmo, CERN
 // --------------------------------------------------------------------
 
 #include "G4Tubs.hh"
@@ -50,24 +50,6 @@ G4UTubs::G4UTubs( const G4String& pName,
                         G4double pDz,
                         G4double pSPhi, G4double pDPhi )
   : Base_t(pName, pRMin, pRMax, pDz, pSPhi, pDPhi)
-{
-}
-
-///////////////////////////////////////////////////////////////////////
-//
-// Fake default constructor - sets only member data and allocates memory
-//                            for usage restricted to object persistency.
-//
-G4UTubs::G4UTubs( __void__& a )
-  : Base_t(a)
-{
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Destructor
-
-G4UTubs::~G4UTubs()
 {
 }
 
@@ -277,7 +259,7 @@ G4UTubs::CalculateExtent(const EAxis pAxis,
 #endif
   if (bbox.BoundingBoxVsVoxelLimits(pAxis,pVoxelLimit,pTransform,pMin,pMax))
   {
-    return exist = (pMin < pMax) ? true : false;
+    return exist = pMin < pMax;
   }
 
   // Get parameters of the solid

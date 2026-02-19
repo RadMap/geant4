@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file visualization/perspective/include/PerspectiveVisActionMessenger.hh
+/// \file PerspectiveVisActionMessenger.hh
 /// \brief Definition of the PerspectiveVisActionMessenger class
-//
-//
 
 #ifndef PERSPECTIVEVISACTIONMESSENGER_HH
 #define PERSPECTIVEVISACTIONMESSENGER_HH
@@ -37,18 +35,18 @@ class PerspectiveVisAction;
 class G4UIdirectory;
 class G4UIcmdWithAString;
 
-class PerspectiveVisActionMessenger: public G4UImessenger {
-public:
-  PerspectiveVisActionMessenger(PerspectiveVisAction*);
-  ~PerspectiveVisActionMessenger();
-  virtual void SetNewValue (G4UIcommand*, G4String);
+class PerspectiveVisActionMessenger : public G4UImessenger
+{
+  public:
+    PerspectiveVisActionMessenger(PerspectiveVisAction*);
+    ~PerspectiveVisActionMessenger();
+    virtual void SetNewValue(G4UIcommand*, G4String);
 
-private:
-  PerspectiveVisAction* fPVA;
-  G4UIdirectory* fpDirectory;
-  G4UIcmdWithAString* fpCommandOS;
-  G4UIcmdWithAString* fpCommandScene;
+  private:
+    PerspectiveVisAction* fPVA;
+    G4UIdirectory* fpDirectory;
+    G4UIcmdWithAString* fpCommandOS;
+    G4UIcmdWithAString* fpCommandScene;
 };
 
 #endif
-

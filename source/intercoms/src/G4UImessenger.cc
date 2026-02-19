@@ -23,47 +23,46 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4UImessenger
 //
-//
+// Author: Makoto Asai, 1998
+// --------------------------------------------------------------------
 
 #include "G4UImessenger.hh"
-#include "G4UImanager.hh"
+
 #include "G4UIcommand.hh"
-#include "G4UIdirectory.hh"
 #include "G4UIcommandTree.hh"
+#include "G4UIdirectory.hh"
+#include "G4UImanager.hh"
+#include "G4UIparsing.hh"
 #include "G4ios.hh"
+
 #include <sstream>
+#include <utility>
 
-G4UImessenger::G4UImessenger()
-  : baseDir(NULL), baseDirName(""), commandsShouldBeInMaster(false)
-{ 
-}
-
+// --------------------------------------------------------------------
 G4UImessenger::G4UImessenger(const G4String& path, const G4String& dsc,
                              G4bool commandsToBeBroadcasted)
-  : baseDir(NULL), baseDirName(""), commandsShouldBeInMaster(false)
 {
   CreateDirectory(path, dsc, commandsToBeBroadcasted);
 }
 
+// --------------------------------------------------------------------
 G4UImessenger::~G4UImessenger()
 {
-  if(baseDir) delete baseDir;
+  delete baseDir;
 }
 
-G4String G4UImessenger::GetCurrentValue(G4UIcommand*) 
-{ 
-  G4String nullString;
-  return nullString;
+// --------------------------------------------------------------------
+G4String G4UImessenger::GetCurrentValue(G4UIcommand*)
+{
+  return G4String{};
 }
 
-void G4UImessenger::SetNewValue(G4UIcommand*,G4String) 
-{ ; }
+// --------------------------------------------------------------------
+void G4UImessenger::SetNewValue(G4UIcommand*, G4String) {}
 
-G4bool G4UImessenger::operator == (const G4UImessenger& messenger) const {
-  return this == &messenger;
-}
-
+// --------------------------------------------------------------------
 G4String G4UImessenger::ItoS(G4int i)
 {
   std::ostringstream os;
@@ -71,6 +70,15 @@ G4String G4UImessenger::ItoS(G4int i)
   return G4String(os.str());
 }
 
+// --------------------------------------------------------------------
+G4String G4UImessenger::LtoS(G4long l)
+{
+  std::ostringstream os;
+  os << l;
+  return G4String(os.str());
+}
+
+// --------------------------------------------------------------------
 G4String G4UImessenger::DtoS(G4double a)
 {
   std::ostringstream os;
@@ -78,62 +86,62 @@ G4String G4UImessenger::DtoS(G4double a)
   return G4String(os.str());
 }
 
+// --------------------------------------------------------------------
 G4String G4UImessenger::BtoS(G4bool b)
 {
-  G4String vl = "0";
-  if(b) vl = "true";
-  return vl;
+  return b ? "true" : "0";
 }
 
-G4int G4UImessenger::StoI(G4String str)
+// --------------------------------------------------------------------
+G4int G4UImessenger::StoI(const G4String& str)
 {
-  G4int vl;
-  const char* t = str;
-  std::istringstream is(t);
-  is >> vl;
-  return vl;
+  return G4UIparsing::StoT<G4int>(str);
 }
 
-G4double G4UImessenger::StoD(G4String str)
+// --------------------------------------------------------------------
+G4long G4UImessenger::StoL(const G4String& str)
 {
-  G4double vl;
-  const char* t = str;
-  std::istringstream is(t);
-  is >> vl;
-  return vl;
+  return G4UIparsing::StoT<G4long>(str);
 }
 
-G4bool G4UImessenger::StoB(G4String str)
+// --------------------------------------------------------------------
+G4double G4UImessenger::StoD(const G4String& str)
 {
-  G4String v = str;
-  v.toUpper();
-  G4bool vl = false;
-  if( v=="Y" || v=="YES" || v=="1" || v=="T" || v=="TRUE" )
-  { vl = true; }
-  return vl;
+  return G4UIparsing::StoT<G4double>(str);
 }
 
-
-void G4UImessenger::AddUIcommand(G4UIcommand * newCommand)
+// --------------------------------------------------------------------
+G4bool G4UImessenger::StoB(const G4String& str)
 {
-  G4cerr << "Warning : Old style definition of G4UIcommand <" 
-         << newCommand->GetCommandPath() << ">." << G4endl;
+  const G4String& v = G4StrUtil::to_upper_copy(str);
+  return (v == "Y" || v == "YES" || v == "1" || v == "T" || v == "TRUE");
 }
 
+// --------------------------------------------------------------------
+void G4UImessenger::AddUIcommand(G4UIcommand* newCommand)
+{
+  G4cerr << "Warning : Old style definition of G4UIcommand <" << newCommand->GetCommandPath()
+         << ">." << G4endl;
+}
+
+// --------------------------------------------------------------------
 void G4UImessenger::CreateDirectory(const G4String& path, const G4String& dsc,
-                             G4bool commandsToBeBroadcasted)
+                                    G4bool commandsToBeBroadcasted)
 {
   G4UImanager* ui = G4UImanager::GetUIpointer();
 
   G4String fullpath = path;
-  if(fullpath(fullpath.length()-1) != '/') fullpath.append("/");
+  if (fullpath.back() != '/') {
+    fullpath.append("/");
+  }
 
-  G4UIcommandTree* tree= ui-> GetTree()-> FindCommandTree(fullpath.c_str());
-  if (tree) {
-    baseDirName = tree-> GetPathName();
-  } else {
-    baseDir = new G4UIdirectory(fullpath.c_str(),commandsToBeBroadcasted);
-    baseDirName = fullpath;
-    baseDir-> SetGuidance(dsc.c_str());
+  G4UIcommandTree* tree = ui->GetTree()->FindCommandTree(fullpath.c_str());
+  if (tree != nullptr) {
+    baseDirName = tree->GetPathName();
+  }
+  else {
+    baseDir = new G4UIdirectory(fullpath.c_str(), commandsToBeBroadcasted);
+    baseDirName = std::move(fullpath);
+    baseDir->SetGuidance(dsc.c_str());
   }
 }

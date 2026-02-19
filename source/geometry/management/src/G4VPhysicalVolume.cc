@@ -25,10 +25,10 @@
 //
 // class G4VPhysicalVolume Implementation
 //
-// 15.01.13, G.Cosmo, A.Dotti: Modified for thread-safety for MT
-// 28.08.96, P.Kent: Replaced transform by rotmat + vector
-// 25.07.96, P.Kent: Modified interface for new `Replica' capable geometry 
-// 24.07.95, P.Kent: First non-stub version
+// 24.07.95, P.Kent (CERN): First non-stub version
+// 25.07.96, P.Kent (CERN): Modified interface for 'Replica' capable geometry
+// 28.08.96, P.Kent (CERN): Replaced transform by rotmat + vector
+// 15.01.13, G.Cosmo, A.Dotti (CERN): Modified for thread-safety for MT
 // --------------------------------------------------------------------
 
 #include "G4VPhysicalVolume.hh"
@@ -92,6 +92,14 @@ G4VPhysicalVolume::~G4VPhysicalVolume()
 {
   delete pvdata;
   G4PhysicalVolumeStore::DeRegister(this);
+}
+
+// Set volume name and notify store of the change
+//
+void G4VPhysicalVolume::SetName(const G4String& pName)
+{
+  fname = pName;
+  G4PhysicalVolumeStore::GetInstance()->SetMapValid(false);
 }
 
 // This method is similar to the constructor. It is used by each worker
@@ -172,7 +180,7 @@ G4RotationMatrix* G4VPhysicalVolume::GetObjectRotation() const
   G4RotationMatrix* retval = &IdentityRM;
 
   // Insure against frot being a null pointer
-  if(this->GetRotation())
+  if(this->GetRotation() != nullptr)
   {
      aRotM = GetRotation()->inverse();
      retval= &aRotM;
@@ -194,7 +202,7 @@ G4RotationMatrix G4VPhysicalVolume::GetObjectRotationValue() const
 
 G4ThreeVector  G4VPhysicalVolume::GetObjectTranslation() const
 {
-  return G4ThreeVector(G4MT_tx, G4MT_ty, G4MT_tz);
+  return {G4MT_tx, G4MT_ty, G4MT_tz};
 }
 
 const G4RotationMatrix* G4VPhysicalVolume::GetFrameRotation() const

@@ -102,32 +102,24 @@ G4EMDissociationCrossSection::~G4EMDissociationCrossSection()
 /////////////////////////////////////////////////////////////////////////////
 //
 G4bool
-G4EMDissociationCrossSection::IsElementApplicable(const G4DynamicParticle* part,
+G4EMDissociationCrossSection::IsElementApplicable(const G4DynamicParticle*,
 						  G4int /*ZZ*/, const G4Material*)
 {
-//
-// The condition for the applicability of this class is that the projectile
-// must be an ion and the target must have more than one nucleon.  In reality
-// the value of A for either the projectile or target could be much higher,
-// since for cases where both he projectile and target are medium to small
-// Z, the probability of the EMD process is, I think, VERY small.
-//
-  if (G4ParticleTable::GetParticleTable()->GetIonTable()->IsIon(part->GetDefinition())) {
-    return true;
-  } else {
-    return false;
-  }
+  return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 //
 G4double G4EMDissociationCrossSection::GetElementCrossSection
-  (const G4DynamicParticle* theDynamicParticle, G4int Z,
-   const G4Material*)
+  (const G4DynamicParticle* theDynamicParticle, G4int Z, const G4Material*)
 {
   // VI protection for Hydrogen
   if(1 >= Z) { return 0.0; }
-     
+
+  // Zero cross-section for particles with kinetic energy less than 2 MeV to prevent
+  // possible abort signal from bad arithmetic in GetCrossSectionForProjectile
+  if ( theDynamicParticle->GetKineticEnergy() < 2.0*CLHEP::MeV ) { return 0.0; }
+  
   //
   // Get relevant information about the projectile and target (A, Z) and
   // velocity of the projectile.
@@ -135,7 +127,8 @@ G4double G4EMDissociationCrossSection::GetElementCrossSection
   const G4ParticleDefinition *definitionP = theDynamicParticle->GetDefinition();
   G4double AP   = definitionP->GetBaryonNumber();
   G4double ZP   = definitionP->GetPDGCharge();
-  G4double b    = theDynamicParticle->Get4Momentum().beta();
+  G4double b    = theDynamicParticle->GetBeta();
+  if (b <= 0.0) { return 0.0; }
   
   G4double AT   = G4NistManager::Instance()->GetAtomicMassAmu(Z);
   G4double ZT   = (G4double)Z;
@@ -175,7 +168,7 @@ G4EMDissociationCrossSection::GetCrossSectionForProjectile (G4double AP,
 //
 // Initialise variables and calculate the energies for the GDR and GQR.
 //
-  G4double AProot3 = G4Pow::GetInstance()->powA(AP,1.0/3.0);
+  G4double AProot3 = G4Pow::GetInstance()->A13(AP);
   G4double u       = 3.0 * J / Qprime / AProot3;
   G4double R0      = r0 * AProot3;
   G4double E_GDR  = hbarc / std::sqrt(0.7*amu_c2*R0*R0/8.0/J*
@@ -237,7 +230,9 @@ G4EMDissociationCrossSection::GetWilsonProbabilityForProtonDissociation(G4double
 // from the nucleus in the EMD interaction.
 //
   G4double p = 0.0;
-  if (Z < 6.0)
+  if (Z < 2.0)
+    p = 0.0;  // To avoid to remove one proton from hydrogen isotopes
+  else if (Z < 6.0)
     p = 0.5;
   else if (Z < 8.0)
     p = 0.6;

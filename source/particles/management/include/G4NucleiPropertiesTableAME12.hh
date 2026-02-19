@@ -23,125 +23,101 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4NucleiPropertiesTableAME12
 //
+// Class description:
 //
-// -------------------------------------------------------------------
-//
-//      File name:     G4NucleiPropertiesTableAME12.cc 
-//
-//      Authors:       Tatsumi Koi (tkoi@slac.stanford.edu)
-// 
-//      Data are update to AME2012
-//      "The Ame2012 atomic mass evaluation (I)"  
-//      	by G.Audi, M.Wang, A.H.Wapstra, F.G.Kondev, M.MacCormick, X.Xu, and B.~Pfeiffer
-//      	Chinese Physics C36 p. 1287-1602, December 2012.
-//      "The Ame2012 atomic mass evaluation (II)"  
-//      	by M.Wang, G.Audi, A.H.Wapstra, F.G.Kondev, M.MacCormick, X.Xu, and B.~Pfeiffer
-//              Chinese Physics C36 p. 1603-2014, December 2012.
-//
-//      Creation date: Aug. 2016 
-//                     based on G4NucleiPropertiesTableAME03
-//
-//      Modifications: 
-// 
+// Data updated to AME2012
+//   "The Ame2012 atomic mass evaluation (I)"
+//    by G.Audi, M.Wang, A.H.Wapstra, F.G.Kondev,
+//       M.MacCormick, X.Xu, and B.Pfeiffer
+//    Chinese Physics C36 p. 1287-1602, December 2012.
+//   "The Ame2012 atomic mass evaluation (II)"
+//    by M.Wang, G.Audi, A.H.Wapstra, F.G.Kondev,
+//       M.MacCormick, X.Xu, and B.Pfeiffer
+//    Chinese Physics C36 p. 1603-2014, December 2012.
 
-#ifndef G4NucleiPropertiesTableAME12_h
-#define G4NucleiPropertiesTableAME12_h  1
+// Author: Tatsumi Koi, SLAC - August 2016
+// --------------------------------------------------------------------
+#ifndef G4NucleiPropertiesTableAME12_hh
+#define G4NucleiPropertiesTableAME12_hh 1
+
+#include "globals.hh"
 
 #include <cmath>
-#include "globals.hh"
-//
+
 class G4NucleiProperties;
 
-class G4NucleiPropertiesTableAME12 
+class G4NucleiPropertiesTableAME12
 {
-private:
-  
-  // Default constructor - this class should exist only once!
-  G4NucleiPropertiesTableAME12();
+  public:
+    // Destructor
+    ~G4NucleiPropertiesTableAME12() = default;
 
-public:
+    enum
+    {
+      nEntries = 3353,
+      MaxA = 295,
+      ZMax = 120
+    };
+    // Values migrated to AME12
 
-  // Destructor (generated)
-  ~G4NucleiPropertiesTableAME12() { };
+    friend class G4NucleiProperties;
+    // All methods are private and can be used only by G4NucleiProperties
 
-  // Following values migrate to AME12
-  enum  {nEntries = 3353,MaxA = 295, ZMax = 120}; 
+  private:
+    // Default constructor - this class should only be created once!
+    G4NucleiPropertiesTableAME12() = default;
 
-  // Other Operations 
-  // all methods are private and can be used only by G4NucleiProperties
+    // Values imported from The Ame2003 atomic mass evaluation (II)
+    static G4double GetMassExcess(G4int Z, G4int A);
 
-  friend class G4NucleiProperties;  
+    // GetAtomicMass .. in Geant4 Energy units!
+    // Atomic_Mass = MassExcess + A*amu_c2
+    static G4double GetAtomicMass(G4int Z, G4int A);
 
-private:
+    // Nuclear_Mass = Atomic_Mass - electronMass
+    static G4double GetNuclearMass(G4int Z, G4int A);
 
-  // Operation: GetMassExcess
-  //   values imported from The Ame2003 atomic mass evaluation (II)  
-  static G4double GetMassExcess(G4int Z, G4int A); 
+    static G4double GetBindingEnergy(G4int Z, G4int A);
 
-  // Operation: GetAtomicMass .. in Geant4 Energy units!
-  //      Atomic_Mass =  MassExcess + A*amu_c2
-  static G4double GetAtomicMass(G4int Z, G4int A);
+    static G4double GetBetaDecayEnergy(G4int Z, G4int A);
 
-  // Operation: GetNuclearMass
-  //      Nuclear_Mass = Atomic_Mass - electronMass
-  static G4double GetNuclearMass(G4int Z, G4int A);
+    // Is the nucleus (A,Z) in table?
+    static G4bool IsInTable(G4int Z, G4int A);
 
-  // Operation: GetBindingEnergy
-  static G4double GetBindingEnergy(G4int Z, G4int A);
+    static G4int MaxZ(G4int A);
+    static G4int MinZ(G4int A);
 
-  // Operation: GetBetaDecayEnergy
-  static G4double GetBetaDecayEnergy(G4int Z, G4int A);
+    static G4int GetIndex(G4int Z, G4int A);
 
-  // Is the nucleus (A,Z) in table?
-  static G4bool IsInTable(G4int Z, G4int A);
+    // Data Members for Class Attributes
+    //----------------------------------
 
-  static G4int MaxZ(G4int A);
-  static G4int MinZ(G4int A);
+    // The following arrays are static to allow initialization.
+    // Initialization is done in source file
 
+    // Mass Excess
+    static const G4double MassExcess[nEntries];
 
-private:
+    // Beta Decay Energy
+    static const G4double BetaEnergy[nEntries];
 
-  // Operation: GetIndex
-  static G4int GetIndex(G4int Z, G4int A);
-  
+    // Table of Z (number of protons) and A (number of nucleons)
+    //   indexArray[0][ ] --> Z
+    //   indexArray[1][ ] --> A
+    static const G4int indexArray[2][nEntries];
 
-  // Data Members for Class Attributes
-  //----------------------------------  
+    // Reduced Table of A for shorter index search.
+    //   The index in this table coincide with A-1
+    //   For each A value shortTable[A-1] has the index of the 1st occurrence
+    //   in the indexArray[][]
+    static const G4int shortTable[MaxA + 1];
 
-  // The following arrays are static for allow inicialization.
-  // The inicialization is Done in G4NucleiPropertiesTableAME12.cc
+    // Electrom mass
+    static G4ThreadLocal G4double electronMass[ZMax];
 
-  // Mass Excess
-  static const G4double MassExcess[nEntries];
-  
-  
-  // Beta Decay Energy
-  static const G4double BetaEnergy[nEntries];
-
-    
-  // Table of Z (number of protons) and A (number of nucleons)
-  //        indexArray[0][ ] --> Z
-  //        indexArray[1][ ] --> A
-  static const G4int indexArray[2][nEntries];
-
-  // Reduced Table of A for shorter index search.
-  //         The index in this table coincide with A-1
-  //         For each A value shortTable[A-1] has the index of the 1st occurrence in
-  //         the indexArray[][]
-  static const G4int shortTable[MaxA+1];
-
-  // electrom mass
-  static G4ThreadLocal G4double electronMass[ZMax];
-  static G4ThreadLocal G4bool   isIntialized;
-
+    static G4ThreadLocal G4bool isIntialized;
 };
 
-
 #endif
-
-
-
-
-
-

@@ -29,7 +29,7 @@
 //
 // Wrapper class for G4Cons to make use of VecGeom Cone.
 
-// 30.10.13 G.Cosmo, CERN/PH
+// Author: G.Cosmo (CERN), 30.10.2013
 // --------------------------------------------------------------------
 #ifndef G4UCONS_HH
 #define G4UCONS_HH
@@ -38,32 +38,60 @@
 
 #if ( defined(G4GEOM_USE_USOLIDS) || defined(G4GEOM_USE_PARTIAL_USOLIDS) )
 
-#include <volumes/UnplacedCone.h>
+#include <VecGeom/volumes/UnplacedCone.h>
 
 #include "G4Polyhedron.hh"
+
+/**
+ * @brief G4UCons is a wrapper class for G4Cons to make use of VecGeom Cone.
+ */
 
 class G4UCons : public G4UAdapter<vecgeom::GenericUnplacedCone>
 {
   using Shape_t = vecgeom::GenericUnplacedCone;
   using Base_t = G4UAdapter<vecgeom::GenericUnplacedCone>;
 
-  public:  // with description
+  public:
 
+    /**
+     * Constructs a cone with the given name and dimensions.
+     *  @param[in] pName The name of the solid.
+     *  @param[in] pRmin1 Inside radius at -fDz.
+     *  @param[in] pRmax1 Outside radius at -fDz
+     *  @param[in] pRmin2 Inside radius at +fDz.
+     *  @param[in] pRmax2 Outside radius at +fDz
+     *  @param[in] pDZ Half length in Z.
+     *  @param[in] pSPhi Starting angle of the segment in radians.
+     *  @param[in] pDPhi Delta angle of the segment in radians.
+     */
     G4UCons(const G4String& pName,
                   G4double pRmin1, G4double pRmax1,
                   G4double pRmin2, G4double pRmax2,
                   G4double pDz,
                   G4double pSPhi, G4double pDPhi);
-      // Constructs a cone with the given name and dimensions
 
-   ~G4UCons();
+    /**
+     * Default destructor.
+     */
+   ~G4UCons() override = default;
 
-    void ComputeDimensions(       G4VPVParameterisation* p,
+    /**
+     * Dispatch method for parameterisation replication mechanism and
+     * dimension computation.
+     */
+    void ComputeDimensions( G4VPVParameterisation* p,
                             const G4int n,
-                            const G4VPhysicalVolume* pRep );
+                            const G4VPhysicalVolume* pRep ) override;
 
-    G4VSolid* Clone() const;
+    /**
+     * Makes a clone of the object for use in multi-treading.
+     *  @returns A pointer to the new cloned allocated solid.
+     */
+    G4VSolid* Clone() const override;
 
+    /**
+     * Accessors.
+     */
     G4double GetInnerRadiusMinusZ() const;
     G4double GetOuterRadiusMinusZ() const;
     G4double GetInnerRadiusPlusZ()  const;
@@ -76,6 +104,9 @@ class G4UCons : public G4UAdapter<vecgeom::GenericUnplacedCone>
     G4double GetSinEndPhi()         const;
     G4double GetCosEndPhi()         const;
   
+    /**
+     * Modifiers.
+     */
     void SetInnerRadiusMinusZ (G4double Rmin1 );
     void SetOuterRadiusMinusZ (G4double Rmax1 );
     void SetInnerRadiusPlusZ  (G4double Rmin2 );
@@ -84,27 +115,43 @@ class G4UCons : public G4UAdapter<vecgeom::GenericUnplacedCone>
     void SetStartPhiAngle     (G4double newSPhi, G4bool trig=true);
     void SetDeltaPhiAngle     (G4double newDPhi);
 
-    inline G4GeometryType GetEntityType() const;
+    /**
+     * Returns the type ID, "G4Cons" of the solid.
+     */
+    inline G4GeometryType GetEntityType() const override;
 
-    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const;
+    /**
+     * Computes the bounding limits of the solid.
+     *  @param[out] pMin The minimum bounding limit point.
+     *  @param[out] pMax The maximum bounding limit point.
+     */
+    void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const override;
 
+    /**
+     * Calculates the minimum and maximum extent of the solid, when under the
+     * specified transform, and within the specified limits.
+     *  @param[in] pAxis The axis along which compute the extent.
+     *  @param[in] pVoxelLimit The limiting space dictated by voxels.
+     *  @param[in] pTransform The internal transformation applied to the solid.
+     *  @param[out] pMin The minimum extent value.
+     *  @param[out] pMax The maximum extent value.
+     *  @returns True if the solid is intersected by the extent region.
+     */
     G4bool CalculateExtent(const EAxis pAxis,
                            const G4VoxelLimits& pVoxelLimit,
                            const G4AffineTransform& pTransform,
-                                 G4double& pMin, G4double& pMax) const;
+                                 G4double& pMin, G4double& pMax) const override;
 
-    G4Polyhedron* CreatePolyhedron() const;
+    /**
+     * Returns a generated polyhedron as graphical representations.
+     */
+    G4Polyhedron* CreatePolyhedron() const override;
 
-  public:  // without description
-       
-    G4UCons(__void__&);
-      // Fake default constructor for usage restricted to direct object
-      // persistency for clients requiring preallocation of memory for
-      // persistifiable objects.
-
+    /**
+     * Copy constructor and assignment operator.
+     */
     G4UCons(const G4UCons& rhs);
     G4UCons& operator=(const G4UCons& rhs); 
-      // Copy constructor and assignment operator.
 };
 
 // --------------------------------------------------------------------

@@ -23,15 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file F03ActionInitialization.hh
 /// \brief Definition of the F03ActionInitialization class
-//
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef F03ActionInitialization_h
 #define F03ActionInitialization_h 1
@@ -48,15 +41,15 @@ class F03ActionInitialization : public G4VUserActionInitialization
 {
   public:
     F03ActionInitialization(F03DetectorConstruction*);
-    virtual ~F03ActionInitialization();
+    ~F03ActionInitialization() override = default;
 
-    virtual void BuildForMaster() const;
-    virtual void Build() const;
+    void BuildForMaster() const override;
+    void Build() const override;
 
-    virtual G4VSteppingVerbose* InitializeSteppingVerbose() const;
+    G4VSteppingVerbose* InitializeSteppingVerbose() const override;
 
   private:
-    F03DetectorConstruction* fDetConstruction;
+    F03DetectorConstruction* fDetConstruction = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

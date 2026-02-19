@@ -45,15 +45,15 @@ G4VParameterisationPolycone( EAxis axis, G4int nDiv, G4double width,
                              DivisionType divType )
   :  G4VDivisionParameterisation( axis, nDiv, width, offset, divType, msolid )
 {
-#ifdef G4MULTITHREADED
+  /*#ifdef G4MULTITHREADED
    std::ostringstream message;
    message << "Divisions for G4Polycone currently NOT supported in MT-mode."
            << G4endl
            << "Sorry! Solid: " << msolid->GetName();
    G4Exception("G4VParameterisationPolycone::G4VParameterisationPolycone()",
                "GeomDiv0001", FatalException, message);
-#endif
-  G4Polycone* msol = (G4Polycone*)(msolid);
+	       #endif */
+  auto msol = (G4Polycone*)(msolid);
   if (msolid->GetEntityType() == "G4ReflectedSolid")
   {
     // Get constituent solid
@@ -71,10 +71,10 @@ G4VParameterisationPolycone( EAxis axis, G4int nDiv, G4double width,
 
     // Invert z values
     //
-    G4double* zValuesRefl = new G4double[nofZplanes];
+    auto zValuesRefl = new G4double[nofZplanes];
     for (G4int i=0; i<nofZplanes; ++i)  { zValuesRefl[i] = - zValues[i]; }
     
-    G4Polycone* newSolid
+    auto newSolid
       = new G4Polycone(msol->GetName(),
                        msol->GetStartPhi(), 
                        msol->GetEndPhi() - msol->GetStartPhi(),
@@ -90,9 +90,7 @@ G4VParameterisationPolycone( EAxis axis, G4int nDiv, G4double width,
 }
 
 //---------------------------------------------------------------------
-G4VParameterisationPolycone::~G4VParameterisationPolycone()
-{
-}
+G4VParameterisationPolycone::~G4VParameterisationPolycone() = default;
 
 //---------------------------------------------------------------------
 G4ParameterisationPolyconeRho::
@@ -104,7 +102,7 @@ G4ParameterisationPolyconeRho( EAxis axis, G4int nDiv,
   CheckParametersValidity();
   SetType( "DivisionPolyconeRho" );
 
-  G4Polycone* msol = (G4Polycone*)(fmotherSolid);
+  auto msol = (G4Polycone*)(fmotherSolid);
   G4PolyconeHistorical* origparamMother = msol->GetOriginalParameters();
 
   if( divType == DivWIDTH )
@@ -130,16 +128,14 @@ G4ParameterisationPolyconeRho( EAxis axis, G4int nDiv,
 }
 
 //---------------------------------------------------------------------
-G4ParameterisationPolyconeRho::~G4ParameterisationPolyconeRho()
-{
-}
+G4ParameterisationPolyconeRho::~G4ParameterisationPolyconeRho() = default;
 
 //---------------------------------------------------------------------
 void G4ParameterisationPolyconeRho::CheckParametersValidity()
 {
   G4VDivisionParameterisation::CheckParametersValidity();
 
-  G4Polycone* msol = (G4Polycone*)(fmotherSolid);
+  auto msol = (G4Polycone*)(fmotherSolid);
 
   if( fDivisionType == DivNDIVandWIDTH || fDivisionType == DivWIDTH )
   {
@@ -166,7 +162,7 @@ void G4ParameterisationPolyconeRho::CheckParametersValidity()
 //------------------------------------------------------------------------
 G4double G4ParameterisationPolyconeRho::GetMaxParameter() const
 {
-  G4Polycone* msol = (G4Polycone*)(fmotherSolid);
+  auto msol = (G4Polycone*)(fmotherSolid);
   G4PolyconeHistorical* original_pars = msol->GetOriginalParameters();
   return original_pars->Rmax[0] - original_pars->Rmin[0];
 }
@@ -200,8 +196,8 @@ ComputeTransformation( const G4int, G4VPhysicalVolume* physVol ) const
   {
     G4cout << std::setprecision(8) << " G4ParameterisationPolyconeRho "
            << G4endl
-           << " Position: " << origin/mm
-           << " - Width: " << fwidth/deg
+           << " Position: (0,0,0)"
+           << " - Width: " << fwidth/CLHEP::deg
            << " - Axis: " << faxis  << G4endl;
   }
 #endif
@@ -213,7 +209,7 @@ G4ParameterisationPolyconeRho::
 ComputeDimensions( G4Polycone& pcone, const G4int copyNo,
                    const G4VPhysicalVolume* ) const
 {
-  G4Polycone* msol = (G4Polycone*)(fmotherSolid);
+  auto msol = (G4Polycone*)(fmotherSolid);
 
   G4PolyconeHistorical* origparamMother = msol->GetOriginalParameters();
   G4PolyconeHistorical origparam( *origparamMother );
@@ -251,7 +247,7 @@ G4ParameterisationPolyconePhi( EAxis axis, G4int nDiv,
   CheckParametersValidity();
   SetType( "DivisionPolyconePhi" );
 
-  G4Polycone* msol = (G4Polycone*)(fmotherSolid);
+  auto msol = (G4Polycone*)(fmotherSolid);
   G4double deltaPhi = msol->GetEndPhi() - msol->GetStartPhi();
 
   if( divType == DivWIDTH )
@@ -268,21 +264,19 @@ G4ParameterisationPolyconePhi( EAxis axis, G4int nDiv,
   {
     G4cout << " G4ParameterisationPolyconePhi - # divisions " << fnDiv
            << " = " << nDiv << G4endl
-           << " Offset " << foffset/deg << " = " << offset/deg << G4endl
-           << " Width " << fwidth/deg << " = " << width/deg << G4endl;
+           << " Offset " << foffset/CLHEP::deg << " = " << offset/CLHEP::deg << G4endl
+           << " Width " << fwidth/CLHEP::deg << " = " << width/CLHEP::deg << G4endl;
   }
 #endif
 }
 
 //---------------------------------------------------------------------
-G4ParameterisationPolyconePhi::~G4ParameterisationPolyconePhi()
-{
-}
+G4ParameterisationPolyconePhi::~G4ParameterisationPolyconePhi() = default;
 
 //------------------------------------------------------------------------
 G4double G4ParameterisationPolyconePhi::GetMaxParameter() const
 {
-  G4Polycone* msol = (G4Polycone*)(fmotherSolid);
+  auto msol = (G4Polycone*)(fmotherSolid);
   return msol->GetEndPhi() - msol->GetStartPhi();
 }
 
@@ -302,10 +296,10 @@ ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol ) const
 #ifdef G4DIVDEBUG
   if( verbose >= 2 )
   {
-    G4cout << " G4ParameterisationPolyconePhi - position: " << posi/deg
+    G4cout << " G4ParameterisationPolyconePhi - position: " << posi/CLHEP::deg
            << G4endl
-           << " copyNo: " << copyNo << " - foffset: " << foffset/deg
-           << " - fwidth: " << fwidth/deg << G4endl;
+           << " copyNo: " << copyNo << " - foffset: " << foffset/CLHEP::deg
+           << " - fwidth: " << fwidth/CLHEP::deg << G4endl;
   }
 #endif
 
@@ -316,7 +310,7 @@ ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol ) const
   {
     G4cout << std::setprecision(8) << " G4ParameterisationPolyconePhi "
            << copyNo << G4endl
-           << " Position: " << origin << " - Width: " << fwidth
+	   << " Position: (0,0,0) - Width: " << fwidth
            << " - Axis: " << faxis  << G4endl;
   }
 #endif
@@ -328,7 +322,7 @@ G4ParameterisationPolyconePhi::
 ComputeDimensions( G4Polycone& pcone, const G4int,
                    const G4VPhysicalVolume* ) const
 {
-  G4Polycone* msol = (G4Polycone*)(fmotherSolid);
+  auto msol = (G4Polycone*)(fmotherSolid);
 
   G4PolyconeHistorical* origparamMother = msol->GetOriginalParameters();
   G4PolyconeHistorical origparam( *origparamMother );
@@ -384,9 +378,7 @@ G4ParameterisationPolyconeZ( EAxis axis, G4int nDiv,
 }
 
 //---------------------------------------------------------------------
-G4ParameterisationPolyconeZ::~G4ParameterisationPolyconeZ()
-{
-}
+G4ParameterisationPolyconeZ::~G4ParameterisationPolyconeZ() = default;
 
 //------------------------------------------------------------------------
 G4double G4ParameterisationPolyconeZ::GetR(G4double z, 
@@ -542,11 +534,12 @@ void
 G4ParameterisationPolyconeZ::
 ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol) const
 {
+  G4double posi = 0.;
   if ( fDivisionType == DivNDIV )
   {
     // The position of the centre of copyNo-th mother polycone segment
     //
-    G4double posi = ( fOrigParamMother->Z_values[copyNo]
+    posi = ( fOrigParamMother->Z_values[copyNo]
                     + fOrigParamMother->Z_values[copyNo+1])/2;
     physVol->SetTranslation( G4ThreeVector(0, 0, posi) );
   }
@@ -555,12 +548,16 @@ ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol) const
   {
     // The position of the centre of copyNo-th division
     //
-    G4double posi = fOrigParamMother->Z_values[0];
+    posi = fOrigParamMother->Z_values[0];
       
-    if ( !fReflectedSolid )  
+    if ( !fReflectedSolid )
+    {  
       posi += foffset + (2*copyNo + 1) * fwidth/2.;
+    }
     else
+    {
       posi -= foffset + (2*copyNo + 1) * fwidth/2.;
+    }
     
     physVol->SetTranslation( G4ThreeVector(0, 0, posi) );
   }   
@@ -571,8 +568,8 @@ ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol) const
   if( verbose >= 2 )
   {
     G4cout << " G4ParameterisationPolyconeZ - position: " << posi << G4endl
-           << " copyNo: " << copyNo << " - foffset: " << foffset/deg
-           << " - fwidth: " << fwidth/deg << G4endl;
+           << " copyNo: " << copyNo << " - foffset: " << foffset/CLHEP::deg
+           << " - fwidth: " << fwidth/CLHEP::deg << G4endl;
   }
 #endif
 
@@ -583,7 +580,7 @@ ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol) const
   {
     G4cout << std::setprecision(8) << " G4ParameterisationPolyconeZ "
            << copyNo << G4endl
-           << " Position: " << origin << " - Width: " << fwidth
+           << " Position: (0,0,0) - Width: " << fwidth
            << " - Axis: " << faxis  << G4endl;
   }
 #endif
@@ -667,8 +664,8 @@ ComputeDimensions( G4Polycone& pcone, const G4int copyNo,
 
     // It can happen due to rounding errors
     //
-    if ( origparam.Rmin[0]    < 0.0 ) origparam.Rmin[0] = 0.0;
-    if ( origparam.Rmin[nz-1] < 0.0 ) origparam.Rmin[1] = 0.0;
+    if ( origparam.Rmin[0]    < 0.0 ) { origparam.Rmin[0] = 0.0; }
+    if ( origparam.Rmin[nz-1] < 0.0 ) { origparam.Rmin[1] = 0.0; }
   }  
 
   pcone.SetOriginalParameters(&origparam);  // copy values & transfer pointers

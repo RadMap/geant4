@@ -23,23 +23,21 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm10/include/DetectorHarris73.hh
+/// \file DetectorHarris73.hh
 /// \brief Definition of the DetectorHarris73 class
-//
-//
-//
+
 // Setup from F. Harris et al NIM 107 (1973) 413-422 (fig.5b)
 
 #ifndef DetectorHarris73_h
 #define DetectorHarris73_h 1
 
-#include "globals.hh"
-
 #include "RadiatorDescription.hh"
+
+#include "globals.hh"
 
 class G4VPhysicalVolume;
 
-class DetectorHarris73 
+class DetectorHarris73
 {
   public:
     DetectorHarris73();
@@ -53,7 +51,7 @@ class DetectorHarris73
 
   private:
     // data members
-    RadiatorDescription* fRadiatorDescription; 
+    RadiatorDescription* fRadiatorDescription;
 };
 
 #endif

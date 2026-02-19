@@ -23,18 +23,24 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/LXe/include/LXeUserTrackInformation.hh
+/// \file LXeUserTrackInformation.hh
 /// \brief Definition of the LXeUserTrackInformation class
-//
+
 #include "G4VUserTrackInformation.hh"
 #include "globals.hh"
 
 #ifndef LXeUserTrackInformation_h
-#define LXeUserTrackInformation_h 1
+#  define LXeUserTrackInformation_h 1
 
-enum LXeTrackStatus { active=1, hitPMT=2, absorbed=4, boundaryAbsorbed=8,
-                      hitSphere=16, inactive=14};
+enum LXeTrackStatus
+{
+  active = 1,
+  hitPMT = 2,
+  absorbed = 4,
+  boundaryAbsorbed = 8,
+  hitSphere = 16,
+  inactive = 14
+};
 
 /*LXeTrackStatus:
   active: still being tracked
@@ -44,37 +50,35 @@ enum LXeTrackStatus { active=1, hitPMT=2, absorbed=4, boundaryAbsorbed=8,
   hitSphere: track hit the sphere at some point
   inactive: track is stopped for some reason
    -This is the sum of all stopped flags so can be used to remove stopped flags
- 
+
 */
 
 class LXeUserTrackInformation : public G4VUserTrackInformation
 {
   public:
+    LXeUserTrackInformation() = default;
+    ~LXeUserTrackInformation() override = default;
 
-    LXeUserTrackInformation();
-    virtual ~LXeUserTrackInformation();
-
-    //Sets the track status to s (does not check validity of flags)
-    void SetTrackStatusFlags(int s){fStatus=s;}
-    //Does a smart add of track status flags (disabling old flags that conflict)
-    //If s conflicts with itself it will not be detected
+    // Sets the track status to s (does not check validity of flags)
+    void SetTrackStatusFlags(int s) { fStatus = s; }
+    // Does a smart add of track status flags (disabling old flags that conflict)
+    // If s conflicts with itself it will not be detected
     void AddTrackStatusFlag(int s);
- 
-    int GetTrackStatus()const {return fStatus;}
- 
-    void IncReflections(){fReflections++;}
-    G4int GetReflectionCount()const {return fReflections;}
 
-    void SetForceDrawTrajectory(G4bool b){fForcedraw=b;}
-    G4bool GetForceDrawTrajectory(){return fForcedraw;}
+    int GetTrackStatus() const { return fStatus; }
 
-    inline virtual void Print() const{};
+    void IncReflections() { ++fReflections; }
+    G4int GetReflectionCount() const { return fReflections; }
+
+    void SetForceDrawTrajectory(G4bool b) { fForcedraw = b; }
+    G4bool GetForceDrawTrajectory() { return fForcedraw; }
+
+    inline virtual void Print() const override {};
 
   private:
-
-    int fStatus;
-    G4int fReflections;
-    G4bool fForcedraw;
+    int fStatus = active;
+    G4int fReflections = 0;
+    G4bool fForcedraw = false;
 };
 
 #endif

@@ -44,45 +44,30 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
 class G4PSPopulation : public G4VPrimitiveScorer
 {
- 
- public: // with description
-      G4PSPopulation(G4String name, G4int depth=0);
+ public:
+  G4PSPopulation(const G4String& name, G4int depth = 0);
+  ~G4PSPopulation() override = default;
 
-  protected: // with description
-      virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
+  inline void Weighted(G4bool flg = true) { weighted = flg; }
+  // Multiply track weight
+  
+  void Initialize(G4HCofThisEvent*) override;
+  void EndOfEvent(G4HCofThisEvent*) override;
+  void clear() override;
+  void PrintAll() override;
 
-  public:
-      virtual ~G4PSPopulation();
+  virtual void SetUnit(const G4String& unit);
 
-      inline void Weighted(G4bool flg=true) { weighted = flg; }
-      // Multiply track weight
+ protected:
+  G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
 
-  public: 
-      virtual void Initialize(G4HCofThisEvent*);
-      virtual void EndOfEvent(G4HCofThisEvent*);
-      virtual void clear();
-
-  public:
-      virtual void DrawAll();
-      virtual void PrintAll();
-
-      virtual void SetUnit(const G4String& unit);
-
-  private:
-      G4int HCID;
-      G4THitsMap<G4double>* EvtMap;
-      G4bool weighted;
-      std::map<G4int,G4TrackLogger>  fCellTrackLogger;
-     
-
-  public:
-
-
+ private:
+  G4int HCID{-1};
+  G4THitsMap<G4double>* EvtMap{nullptr};
+  G4bool weighted{false};
+  std::map<G4int, G4TrackLogger> fCellTrackLogger;
 };
-
-
 
 #endif

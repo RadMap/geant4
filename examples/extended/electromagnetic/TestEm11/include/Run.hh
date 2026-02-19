@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm11/include/Run.hh
+/// \file Run.hh
 /// \brief Definition of the Run class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef Run_h
 #define Run_h 1
@@ -46,46 +42,46 @@ class Run : public G4Run
 {
   public:
     Run(DetectorConstruction* detector);
-   ~Run();
+    ~Run() override = default;
 
   public:
-    void SetPrimary(G4ParticleDefinition* particle, G4double energy);  
+    void SetPrimary(G4ParticleDefinition* particle, G4double energy);
 
-    void AddEdep (G4int i, G4double e);
-    void AddTotEdep     (G4double e);
-    void AddTrackLength (G4double t);
-    void AddProjRange   (G4double x);
-    void AddStepSize    (G4int nb, G4double st);
-    void AddTrackStatus (G4int i);
-    
-    void SetCsdaRange (G4int i, G4double value);
+    void AddEdep(G4int i, G4double e);
+    void AddTotEdep(G4double e);
+    void AddEleak(G4double);
+    void AddEtotal(G4double);
+    void AddTrackLength(G4double t);
+    void AddProjRange(G4double x);
+    void AddStepSize(G4int nb, G4double st);
+    void AddTrackStatus(G4int i);
+
+    void SetCsdaRange(G4int i, G4double value);
     void SetXfrontNorm(G4int i, G4double value);
-                                      
-    G4double GetCsdaRange (G4int i);
-    G4double GetXfrontNorm(G4int i);   
-            
-    virtual void Merge(const G4Run*);
-    void EndOfRun();
-    
-  private:
-    DetectorConstruction*  fDetector;
-    G4ParticleDefinition*  fParticle;
-    G4double  fEkin; 
 
-    G4double   fTrackLen,  fTrackLen2;
-    G4double   fProjRange, fProjRange2;
-    G4int      fNbOfSteps, fNbOfSteps2;
-    G4double   fStepSize,  fStepSize2;
-    G4int      fStatus[3];
-    
-    G4double   fEdeposit[kMaxAbsor];
-    G4double   fEmin[kMaxAbsor], fEmax[kMaxAbsor];
-    G4double   fTotEdep[3];
-    G4double   fCsdaRange[kMaxAbsor];
-    G4double   fXfrontNorm[kMaxAbsor];    
+    G4double GetCsdaRange(G4int i);
+    G4double GetXfrontNorm(G4int i);
+
+    void Merge(const G4Run*) override;
+    void EndOfRun();
+
+  private:
+    DetectorConstruction* fDetector = nullptr;
+    G4ParticleDefinition* fParticle = nullptr;
+    G4double fEkin = 0.;
+
+    G4double fTrackLen = 0., fTrackLen2 = 0.;
+    G4double fProjRange = 0., fProjRange2 = 0.;
+    G4int fNbOfSteps = 0, fNbOfSteps2 = 0;
+    G4double fStepSize = 0., fStepSize2 = 0.;
+    G4int fStatus[3];
+
+    G4double fEdeposit[kMaxAbsor], fEmin[kMaxAbsor], fEmax[kMaxAbsor];
+    G4double fTotEdep[3], fEleak[3], fEtotal[3];
+    G4double fCsdaRange[kMaxAbsor];
+    G4double fXfrontNorm[kMaxAbsor];
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

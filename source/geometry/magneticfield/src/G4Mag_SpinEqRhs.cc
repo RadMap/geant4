@@ -25,7 +25,7 @@
 //
 // G4Mag_SpinEqRhs implementation
 //
-// Created: J.Apostolakis, P.Gumplinger - 08.02.1999
+// Authors: John Apostolakis (CERN) & Peter Gumplinger (TRIUMF), 08.02.1999
 // --------------------------------------------------------------------
 
 #include "G4Mag_SpinEqRhs.hh"
@@ -36,10 +36,6 @@
 
 G4Mag_SpinEqRhs::G4Mag_SpinEqRhs( G4MagneticField* MagField )
   : G4Mag_EqRhs( MagField )
-{
-}
-
-G4Mag_SpinEqRhs::~G4Mag_SpinEqRhs()
 {
 }
 
@@ -60,8 +56,14 @@ G4Mag_SpinEqRhs::SetChargeMomentumMass(G4ChargeState particleCharge,
    G4double muB = 0.5*eplus*hbar_Planck/(mass/c_squared);
 
    G4double g_BMT;
-   if ( spin != 0. ) g_BMT = (std::abs(magMoment)/muB)/spin;
-   else g_BMT = 2.;
+   if ( spin != 0. )
+   {
+     g_BMT = (std::abs(magMoment)/muB)/spin;
+   }
+   else
+   {
+     g_BMT = 2.;
+   }
 
    anomaly = (g_BMT - 2.)/2.;
 

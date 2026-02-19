@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file medical/GammaTherapy/include/StepLimiterBuilder.hh
+/// \file StepLimiterBuilder.hh
 /// \brief Definition of the StepLimiterBuilder class
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef StepLimiterBuilder_h
 #define StepLimiterBuilder_h 1
@@ -40,34 +36,24 @@
 
 class StepLimiterBuilder : public G4VPhysicsConstructor
 {
-public:
+  public:
+    StepLimiterBuilder(const G4String& name = "stepLimiter");
+    virtual ~StepLimiterBuilder();
 
-  StepLimiterBuilder(const G4String& name = "stepLimiter");
-  virtual ~StepLimiterBuilder();
+    // This method is dummy for physics
+    virtual void ConstructParticle();
 
-  // This method is dummy for physics
-  virtual void ConstructParticle();
+    // This method will be invoked in the Construct() method.
+    // each physics process will be instantiated and
+    // registered to the process manager of each particle type
+    virtual void ConstructProcess();
 
-  // This method will be invoked in the Construct() method.
-  // each physics process will be instantiated and
-  // registered to the process manager of each particle type
-  virtual void ConstructProcess();
-
-private:
-
-   // hide assignment operator
-  StepLimiterBuilder & operator=(const StepLimiterBuilder &right);
-  StepLimiterBuilder(const StepLimiterBuilder&);
+  private:
+    // hide assignment operator
+    StepLimiterBuilder& operator=(const StepLimiterBuilder& right);
+    StepLimiterBuilder(const StepLimiterBuilder&);
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-
-
-
-
-
-
-

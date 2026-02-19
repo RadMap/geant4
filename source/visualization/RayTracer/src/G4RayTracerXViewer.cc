@@ -25,13 +25,11 @@
 //
 //
 
-#ifdef G4VIS_BUILD_RAYTRACERX_DRIVER
-
 #include "G4RayTracerXViewer.hh"
 
 #include "G4VSceneHandler.hh"
 #include "G4Scene.hh"
-#include "G4TheRayTracer.hh"
+#include "G4TheMTRayTracer.hh"
 #include "G4RTJpegMaker.hh"
 #include "G4RTXScanner.hh"
 #include "G4UImanager.hh"
@@ -42,7 +40,7 @@ G4RayTracerXViewer::G4RayTracerXViewer
 (G4VSceneHandler& sceneHandler, const G4String& name):
   G4RayTracerViewer(sceneHandler,
 		    name,
-		    new G4TheRayTracer(new G4RTJpegMaker, new G4RTXScanner))
+		    G4TheMTRayTracer::Instance(new G4RTJpegMaker, new G4RTXScanner))
 {}
 
 G4RayTracerXViewer::~G4RayTracerXViewer() {}
@@ -50,6 +48,9 @@ G4RayTracerXViewer::~G4RayTracerXViewer() {}
 void G4RayTracerXViewer::Initialise() {
 
   G4RayTracerViewer::Initialise();
+
+  fVP.SetAutoRefresh(true);
+  fDefaultVP.SetAutoRefresh(true);
 
   // Set up X Window...
   G4RTXScanner* theXScanner = (G4RTXScanner*)theTracer->GetScanner();
@@ -59,5 +60,3 @@ void G4RayTracerXViewer::Initialise() {
     return;
   }
 }
-
-#endif

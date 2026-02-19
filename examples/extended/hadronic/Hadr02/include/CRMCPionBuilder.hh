@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/include/CRMCPionBuilder.hh
+/// \file CRMCPionBuilder.hh
 /// \brief Definition of the CRMCPionBuilder class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName: CRMCPionBuilder
@@ -37,33 +36,33 @@
 // interactions with the wrapper hadronic model around CRMC.
 //
 // Modified:
+// -  18-May-2021 Alberto Ribon : Used the latest Geant4-CRMC interface.
 //
 //----------------------------------------------------------------------------
 //
 #ifndef CRMCPionBuilder_h
 #define CRMCPionBuilder_h 1
 
-#include "globals.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4VPionBuilder.hh"
-#include "G4CRMCModel.hh"
+#include "globals.hh"
 
+class HadronicInelasticModelCRMC;
 
-class CRMCPionBuilder : public G4VPionBuilder {
+class CRMCPionBuilder : public G4VPionBuilder
+{
   public:
-    CRMCPionBuilder();
+    CRMCPionBuilder(const G4int crmcModelId, const std::string& crmcModelName);
     virtual ~CRMCPionBuilder();
-    virtual void Build( G4HadronElasticProcess* aP ) final override;
-    virtual void Build( G4PionPlusInelasticProcess* aP ) final override;
-    virtual void Build( G4PionMinusInelasticProcess* aP ) final override;
-    inline void SetMinEnergy( G4double aM ) final override { fMin = aM; }
-    inline void SetMaxEnergy( G4double aM ) final override { fMax = aM; }
+    virtual void Build(G4HadronElasticProcess* aP) final override;
+    virtual void Build(G4HadronInelasticProcess* aP) final override;
+    inline void SetMinEnergy(G4double aM) final override { fMin = aM; }
+    inline void SetMaxEnergy(G4double aM) final override { fMax = aM; }
     using G4VPionBuilder::Build;  // Prevent compiler warning
   private:
-    G4CRMCModel* fModel;
+    HadronicInelasticModelCRMC* fModel;
     G4double fMin;
     G4double fMax;
 };
 
 #endif
-

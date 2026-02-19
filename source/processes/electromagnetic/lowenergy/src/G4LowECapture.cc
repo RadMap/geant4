@@ -47,8 +47,7 @@
 
 G4LowECapture::G4LowECapture(G4double ekinlim)
   : G4VDiscreteProcess("Capture", fElectromagnetic), 
-    kinEnergyThreshold(ekinlim), isIon(false),
-    nRegions(0)
+    kinEnergyThreshold(ekinlim), nRegions(0), isIon(false)
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -97,7 +96,7 @@ void G4LowECapture::BuildPhysicsTable(const G4ParticleDefinition& part)
     }
     if(r) { region.push_back(r); }
   }
-  nRegions = region.size();
+  nRegions = (G4int)region.size();
 
   // ions reusing G4GenericIon parameters
   if(part.GetParticleType() == "nucleus") {

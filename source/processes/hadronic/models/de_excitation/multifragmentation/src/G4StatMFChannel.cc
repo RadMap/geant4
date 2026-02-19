@@ -46,7 +46,11 @@
 G4StatMFChannel::G4StatMFChannel() : 
   _NumOfNeutralFragments(0), 
   _NumOfChargedFragments(0)
-{}
+{
+  Pos.resize(8);
+  Vel.resize(8);
+  Accel.resize(8);
+}
 
 G4StatMFChannel::~G4StatMFChannel() 
 { 
@@ -342,7 +346,7 @@ void G4StatMFChannel::SolveEqOfMotion(G4int anA, G4int anZ, G4double T)
 // for fragments in the self-consistent time-dependent Coulomb field
 {
   G4Pow* g4calc = G4Pow::GetInstance();
-  G4double CoulombEnergy = 0.6*elm_coupling*anZ*anZ*
+  G4double CoulombEnergy = 0.6*CLHEP::elm_coupling*anZ*anZ*
     g4calc->A13(1.0+G4StatMFParameters::GetKappaCoulomb())/
     (G4StatMFParameters::Getr0()*g4calc->Z13(anA)) - GetFragmentsCoulombEnergy();
   if (CoulombEnergy <= 0.0) return;
@@ -351,13 +355,14 @@ void G4StatMFChannel::SolveEqOfMotion(G4int anA, G4int anZ, G4double T)
   G4double TimeN = 0.0;
   G4double TimeS = 0.0;
   G4double DeltaTime = 10.0;
-  
-  G4ThreeVector * Pos = new G4ThreeVector[_NumOfChargedFragments];
-  G4ThreeVector * Vel = new G4ThreeVector[_NumOfChargedFragments];
-  G4ThreeVector * Accel = new G4ThreeVector[_NumOfChargedFragments];
+  if (_NumOfChargedFragments > (G4int)Pos.size()) {
+    Pos.resize(_NumOfChargedFragments);
+    Vel.resize(_NumOfChargedFragments);
+    Accel.resize(_NumOfChargedFragments);
+  }
   
   G4int i;
-  for (i = 0; i < _NumOfChargedFragments; i++) 
+  for (i = 0; i < _NumOfChargedFragments; ++i) 
     {
       Vel[i] = (1.0/(_theFragments[i]->GetNuclearMass()))*
 	_theFragments[i]->GetMomentum();
@@ -368,25 +373,24 @@ void G4StatMFChannel::SolveEqOfMotion(G4int anA, G4int anZ, G4double T)
   G4ThreeVector force(0.,0.,0.);
   G4ThreeVector SavedVel(0.,0.,0.);
   do {
-    for (i = 0; i < _NumOfChargedFragments; i++) 
+    for (i = 0; i < _NumOfChargedFragments; ++i) 
       {
 	force.set(0.,0.,0.); 
-	for (G4int j = 0; j < _NumOfChargedFragments; j++) 
+	for (G4int j = 0; j < _NumOfChargedFragments; ++j) 
 	  {
 	    if (i != j) 
 	      {
 		distance = Pos[i] - Pos[j];
-		force += (elm_coupling*_theFragments[i]->GetZ()
-			  *_theFragments[j]->GetZ()/
+		force += (_theFragments[i]->GetZ()*_theFragments[j]->GetZ()/
 			  (distance.mag2()*distance.mag()))*distance;
 	      }
 	  }
-	Accel[i] = (1./(_theFragments[i]->GetNuclearMass()))*force;
+	Accel[i] = CLHEP::elm_coupling*CLHEP::fermi*force/_theFragments[i]->GetNuclearMass();
       }
 
     TimeN = TimeS + DeltaTime;
 	
-    for ( i = 0; i < _NumOfChargedFragments; i++) 
+    for ( i = 0; i < _NumOfChargedFragments; ++i)
       {
 	SavedVel = Vel[i];
 	Vel[i] += Accel[i]*(TimeN-TimeS);
@@ -399,35 +403,25 @@ void G4StatMFChannel::SolveEqOfMotion(G4int anA, G4int anZ, G4double T)
 	
   // Summed fragment kinetic energy
   G4double TotalKineticEnergy = 0.0;
-  for (i = 0; i < _NumOfChargedFragments; i++) 
+  for (i = 0; i < _NumOfChargedFragments; ++i)
     {
       TotalKineticEnergy += _theFragments[i]->GetNuclearMass()*
 	0.5*Vel[i].mag2();
     }
   // Scaling of fragment velocities
-  G4double KineticEnergy = 1.5*_theFragments.size()*T;
-  G4double Eta = ( CoulombEnergy + KineticEnergy ) / TotalKineticEnergy;
-  for (i = 0; i < _NumOfChargedFragments; i++) 
-    {
-      Vel[i] *= Eta;
-    }
-  
+  G4double KineticEnergy = 1.5*_NumOfChargedFragments*T;
+  G4double Eta = std::pow(( CoulombEnergy + KineticEnergy ) / TotalKineticEnergy, 2);
+
   // Finally calculate fragments momenta
-  for (i = 0; i < _NumOfChargedFragments; i++) 
+  for (i = 0; i < _NumOfChargedFragments; ++i) 
     {
-      _theFragments[i]->SetMomentum(_theFragments[i]->GetNuclearMass()*Vel[i]);
+      _theFragments[i]->SetMomentum((_theFragments[i]->GetNuclearMass()*Eta)*Vel[i]);
     }
-  
-  // garbage collection
-  delete [] Pos;
-  delete [] Vel;
-  delete [] Accel;
-  
   return;
 }
 
-G4ThreeVector G4StatMFChannel::RotateMomentum(G4ThreeVector Pa,
-					      G4ThreeVector V, G4ThreeVector P)
+G4ThreeVector G4StatMFChannel::RotateMomentum(G4ThreeVector& Pa,
+					      G4ThreeVector& V, G4ThreeVector& P)
     // Rotates a 3-vector P to close momentum triangle Pa + V + P = 0
 {
   G4ThreeVector U = Pa.unit();

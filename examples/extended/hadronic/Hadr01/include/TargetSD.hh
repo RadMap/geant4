@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr01/include/TargetSD.hh
+/// \file TargetSD.hh
 /// \brief Definition of the TargetSD class
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // TargetSD
@@ -37,7 +36,7 @@
 // 04.06.2006 Adoptation of Hadr01 (V.Ivanchenko)
 //
 ////////////////////////////////////////////////////////////////////////
-// 
+//
 
 #ifndef TargetSD_h
 #define TargetSD_h 1
@@ -49,29 +48,20 @@
 
 class G4Step;
 class G4TouchableHistory;
-class G4HCofThisEvent;
 class HistoManager;
 
 class TargetSD : public G4VSensitiveDetector
 {
-public: // Without description
+  public:  // Without description
+    explicit TargetSD(const G4String&);
+    ~TargetSD() override = default;
 
-  TargetSD(const G4String&);
-  virtual ~TargetSD();
+    G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
 
-  virtual void Initialize(G4HCofThisEvent*);
-  virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
-  virtual void EndOfEvent(G4HCofThisEvent*);
-  virtual void clear();
-  virtual void PrintAll();
-
-private:
-
-  HistoManager*  fHisto;
-
+  private:
+    HistoManager* fHisto;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #endif
-

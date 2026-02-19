@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file field/BlineTracer/include/G4BlineSteppingAction.hh
+/// \file G4BlineSteppingAction.hh
 /// \brief Definition of the G4BlineSteppingAction class
-//
-//
-//
-// 
+
 // --------------------------------------------------------------------
 //
 // G4BlineSteppingAction
@@ -52,14 +49,12 @@ class G4BlineTracer;
 class G4BlineSteppingAction : public G4UserSteppingAction
 {
   public:  // with description
-
     G4BlineSteppingAction(G4BlineTracer* aBlineTool);
-    virtual ~G4BlineSteppingAction();
-    virtual void UserSteppingAction(const G4Step*);
-    
-  private:
+    ~G4BlineSteppingAction() override = default;
+    void UserSteppingAction(const G4Step*) override;
 
-    G4BlineTracer* fBlineTool;
+  private:
+    G4BlineTracer* fBlineTool = nullptr;
 };
 
 #endif

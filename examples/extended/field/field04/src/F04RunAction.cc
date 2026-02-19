@@ -23,17 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file field/field04/src/F04RunAction.cc
+/// \file F04RunAction.cc
 /// \brief Implementation of the F04RunAction class
-//
 
 #include "F04RunAction.hh"
+
 #include "F04RunActionMessenger.hh"
 
 #include "G4Run.hh"
 #include "G4RunManager.hh"
-
 #include "Randomize.hh"
 
 #include <ctime>
@@ -41,7 +39,6 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 F04RunAction::F04RunAction()
-  : fSaveRndm(0), fAutoSeed(false)
 {
   fRunMessenger = new F04RunActionMessenger(this);
 }
@@ -64,25 +61,25 @@ void F04RunAction::BeginOfRunAction(const G4Run* aRun)
   G4RunManager::GetRunManager()->SetRandomNumberStoreDir("random/");
 
   if (fAutoSeed) {
-     // automatic (time-based) random seeds for each run
-     G4cout << "*******************" << G4endl;
-     G4cout << "*** AUTOSEED ON ***" << G4endl;
-     G4cout << "*******************" << G4endl;
-     long seeds[2];
-     time_t systime = time(NULL);
-     seeds[0] = (long) systime;
-     seeds[1] = (long) (systime*G4UniformRand());
-     G4Random::setTheSeeds(seeds);
-     G4Random::showEngineStatus();
-  } else {
-     G4Random::showEngineStatus();
+    // automatic (time-based) random seeds for each run
+    G4cout << "*******************" << G4endl;
+    G4cout << "*** AUTOSEED ON ***" << G4endl;
+    G4cout << "*******************" << G4endl;
+    long seeds[2];
+    time_t systime = time(nullptr);
+    seeds[0] = (long)systime;
+    seeds[1] = (long)(systime * G4UniformRand());
+    G4Random::setTheSeeds(seeds);
+    G4Random::showEngineStatus();
+  }
+  else {
+    G4Random::showEngineStatus();
   }
 
-  if (fSaveRndm > 0)
-  {
-     std::ostringstream os;
-     os<<"beginOfRun_"<<G4Threading::G4GetThreadId()<<".rndm";
-     G4Random::saveEngineStatus(os.str().c_str());
+  if (fSaveRndm > 0) {
+    std::ostringstream os;
+    os << "beginOfRun_" << G4Threading::G4GetThreadId() << ".rndm";
+    G4Random::saveEngineStatus(os.str().c_str());
   }
 }
 
@@ -91,10 +88,10 @@ void F04RunAction::BeginOfRunAction(const G4Run* aRun)
 void F04RunAction::EndOfRunAction(const G4Run*)
 {
   if (fSaveRndm == 1) {
-     G4Random::showEngineStatus();
-     std::ostringstream os;
-     os<<"endOfRun_"<<G4Threading::G4GetThreadId()<<".rndm";
-     G4Random::saveEngineStatus(os.str().c_str());
+    G4Random::showEngineStatus();
+    std::ostringstream os;
+    os << "endOfRun_" << G4Threading::G4GetThreadId() << ".rndm";
+    G4Random::saveEngineStatus(os.str().c_str());
   }
 }
 

@@ -23,53 +23,46 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/fanoCavity2/src/TrackingAction.cc
+/// \file TrackingAction.cc
 /// \brief Implementation of the TrackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "TrackingAction.hh"
-#include "Run.hh"
+
 #include "HistoManager.hh"
+#include "Run.hh"
 
-#include "G4Track.hh"
 #include "G4RunManager.hh"
+#include "G4Track.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TrackingAction::TrackingAction()
-{ }
+TrackingAction::TrackingAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TrackingAction::~TrackingAction()
-{ }
+TrackingAction::~TrackingAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void TrackingAction::PreUserTrackingAction(const G4Track*)
-{ 
- //initialize edep cavity per track
- //
- fEdepCavity = 0.; 
+{
+  // initialize edep cavity per track
+  //
+  fEdepCavity = 0.;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void TrackingAction::PostUserTrackingAction(const G4Track*)
 {
-  //sum energy in cavity
+  // sum energy in cavity
   //
   if (fEdepCavity > 0.) {
-   Run* run = static_cast<Run*>(
-               G4RunManager::GetRunManager()->GetNonConstCurrentRun());
-   run->AddEdepCavity(fEdepCavity);
-    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();    
-    analysisManager->FillH1(11,fEdepCavity);
-  }  
- }
+    Run* run = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+    run->AddEdepCavity(fEdepCavity);
+    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+    analysisManager->FillH1(11, fEdepCavity);
+  }
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

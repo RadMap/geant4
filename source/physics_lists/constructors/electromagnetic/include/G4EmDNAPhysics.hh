@@ -23,6 +23,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// S. Incerti (incerti@cenbg.in2p3.fr)
 //
 
 #ifndef G4EmDNAPhysics_h
@@ -37,15 +38,13 @@ class G4EmDNAPhysics : public G4VPhysicsConstructor
 {
 public:
 
-  explicit G4EmDNAPhysics(G4int ver=1, const G4String& name="");
+  G4EmDNAPhysics(G4int ver=1, const G4String& name="G4EmDNAPhysics");
 
-  virtual ~G4EmDNAPhysics();
+  ~G4EmDNAPhysics() override = default;
 
-  virtual void ConstructParticle();
-  virtual void ConstructProcess();
+  void ConstructParticle() override;
+  void ConstructProcess() override;
 
-private:
-  G4int  verbose;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

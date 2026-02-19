@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file parallel/ThreadsafeScorers/include/TSPrimaryGeneratorAction.hh
+/// \file TSPrimaryGeneratorAction.hh
 /// \brief Definition of the TSPrimaryGeneratorAction class
-//
-//
-//
-//
+///
 /// Simple PrimaryGeneratorAction that produces a -Z surface flux of 1 MeV
 ///     neutrons into the world
 //
@@ -36,28 +33,26 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-
 #ifndef tsprimarygeneratoraction_hh
 #define tsprimarygeneratoraction_hh 1
 
-#include "globals.hh"
 #include "G4VUserPrimaryGeneratorAction.hh"
+#include "globals.hh"
 
 class G4Event;
 class G4ParticleGun;
 
 class TSPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
+  public:
     TSPrimaryGeneratorAction();
     virtual ~TSPrimaryGeneratorAction();
 
-public:
+  public:
     void GeneratePrimaries(G4Event*);
 
-private:
+  private:
     G4ParticleGun* fGun;
-
 };
 
 #endif

@@ -25,26 +25,22 @@
 //
 // G4VExternalNavigation Implementation
 //
-// Authors: V.Vlachoudis, G.Cosmo - CERN, 2019
+// Authors: V.Vlachoudis, G.Cosmo (CERN), 2019
 // --------------------------------------------------------------------
 
 #include "G4VExternalNavigation.hh"
 
 // ********************************************************************
 // Constructor
-// *********V***********************************************************
+// ********************************************************************
 //
-G4VExternalNavigation::G4VExternalNavigation()
-{
-}
+G4VExternalNavigation::G4VExternalNavigation() = default;
 
 // ********************************************************************
 // Destructor
 // ********************************************************************
 //
-G4VExternalNavigation::~G4VExternalNavigation()
-{
-}
+G4VExternalNavigation::~G4VExternalNavigation() = default;
 
 // ********************************************************************
 // Inside call Inside() of a solid
@@ -59,8 +55,9 @@ EInside G4VExternalNavigation::Inside( const G4VSolid* solid,
 }
 
 // ********************************************************************
-// Inside call Inside() of a solid
-
+// RelocateWithinVolume
+// ********************************************************************
+//
 void G4VExternalNavigation::RelocateWithinVolume( G4VPhysicalVolume*   , // motherPhysical,
                                                   const G4ThreeVector& ) // localPoint )
 {

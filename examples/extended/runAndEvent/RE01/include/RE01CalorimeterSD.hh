@@ -23,39 +23,35 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE01/include/RE01CalorimeterSD.hh
+/// \file RE01CalorimeterSD.hh
 /// \brief Definition of the RE01CalorimeterSD class
-//
-//
 
 #ifndef RE01CalorimeterSD_h
 #define RE01CalorimeterSD_h 1
 
-#include "G4VSensitiveDetector.hh"
 #include "RE01CalorimeterHit.hh"
+
+#include "G4VSensitiveDetector.hh"
 class G4Step;
 class G4HCofThisEvent;
 class G4TouchableHistory;
 
-
 class RE01CalorimeterSD : public G4VSensitiveDetector
 {
+  public:
+    RE01CalorimeterSD(G4String name);
+    virtual ~RE01CalorimeterSD();
 
-public:
-  RE01CalorimeterSD(G4String name);
-  virtual ~RE01CalorimeterSD();
-  
-  virtual void Initialize(G4HCofThisEvent*HCE);
+    virtual void Initialize(G4HCofThisEvent* HCE);
 
-protected:
-  virtual G4bool ProcessHits(G4Step*aStep,G4TouchableHistory*ROhist);
-  
-private:
-  RE01CalorimeterHitsCollection *fCalCollection;
-  int   fCellID[20][48];
-  const int fNumberOfCellsInZ;
-  const int fNumberOfCellsInPhi;
+  protected:
+    virtual G4bool ProcessHits(G4Step* aStep, G4TouchableHistory* ROhist);
+
+  private:
+    RE01CalorimeterHitsCollection* fCalCollection;
+    int fCellID[20][48];
+    const int fNumberOfCellsInZ;
+    const int fNumberOfCellsInPhi;
 };
 
 #endif
-

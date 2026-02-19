@@ -23,23 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file exoticphysics/ucn/include/ExUCNPhysicsList.hh
+/// \file ExUCNPhysicsList.hh
 /// \brief Definition of the ExUCNPhysicsList class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef ExUCNPhysicsList_h
 #define ExUCNPhysicsList_h 1
 
 #include "G4VModularPhysicsList.hh"
 
-class ExUCNPhysicsList: public G4VModularPhysicsList
+class ExUCNPhysicsList : public G4VModularPhysicsList
 {
-public:
-
+  public:
     ExUCNPhysicsList();
     virtual ~ExUCNPhysicsList();
 
@@ -48,8 +42,7 @@ public:
 
     void SetCuts();
 
-private:
-
+  private:
 };
 
 #endif

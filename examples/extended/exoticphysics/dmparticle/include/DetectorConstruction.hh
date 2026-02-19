@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/dmparticle/include/DetectorConstruction.hh
+/// \file DetectorConstruction.hh
 /// \brief Definition of the DetectorConstruction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
@@ -45,43 +41,39 @@ class DetectorMessenger;
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
-  
-  DetectorConstruction();
-  virtual ~DetectorConstruction();
+  public:
+    DetectorConstruction();
+    virtual ~DetectorConstruction();
 
-  virtual G4VPhysicalVolume* Construct();
-  virtual void ConstructSDandField();
+    virtual G4VPhysicalVolume* Construct();
+    virtual void ConstructSDandField();
 
-  // set geometry parameters
-  void SetSizeZ(G4double);
-  void SetSizeXY(G4double);              
-  void SetMaterial(const G4String&);            
-          
-  // access to geometry
-  inline G4double     GetWorldSizeZ()    {return fWorldSizeZ;};
-  inline G4double     GetAbsorSizeZ()    {return fAbsorSizeZ;};
-  inline const G4Material* GetAbsorMaterial() {return fAbsorMaterial;};
-                           
-private:
+    // set geometry parameters
+    void SetSizeZ(G4double);
+    void SetSizeXY(G4double);
+    void SetMaterial(const G4String&);
 
-  void PrintParameters();
-  
-  G4double            fWorldSizeZ;
-  G4double            fWorldSizeXY;
-  G4Material*         fWorldMaterial;           
-  G4double            fAbsorSizeZ;
-  G4double            fAbsorSizeXY;
-  G4Material*         fAbsorMaterial;
+    // access to geometry
+    inline G4double GetWorldSizeZ() { return fWorldSizeZ; };
+    inline G4double GetAbsorSizeZ() { return fAbsorSizeZ; };
+    inline const G4Material* GetAbsorMaterial() { return fAbsorMaterial; };
 
-  G4LogicalVolume*    fLogAbsor;
-  G4VPhysicalVolume*  fWorld;
-               
-  DetectorMessenger*  fDetectorMessenger;
+  private:
+    void PrintParameters();
 
+    G4double fWorldSizeZ;
+    G4double fWorldSizeXY;
+    G4Material* fWorldMaterial;
+    G4double fAbsorSizeZ;
+    G4double fAbsorSizeXY;
+    G4Material* fAbsorMaterial;
+
+    G4LogicalVolume* fLogAbsor;
+    G4VPhysicalVolume* fWorld;
+
+    DetectorMessenger* fDetectorMessenger;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

@@ -23,14 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file field/field02/include/F02PrimaryGeneratorMessenger.hh
+/// \file F02PrimaryGeneratorMessenger.hh
 /// \brief Definition of the F02PrimaryGeneratorMessenger class
-//
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef F02PrimaryGeneratorMessenger_h
 #define F02PrimaryGeneratorMessenger_h 1
@@ -43,20 +37,20 @@ class G4UIcmdWithADoubleAndUnit;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class F02PrimaryGeneratorMessenger: public G4UImessenger
+class F02PrimaryGeneratorMessenger : public G4UImessenger
 {
   public:
     F02PrimaryGeneratorMessenger(F02PrimaryGeneratorAction*);
-    virtual ~F02PrimaryGeneratorMessenger();
-    
-    virtual void SetNewValue(G4UIcommand*, G4String);
+    ~F02PrimaryGeneratorMessenger() override;
+
+    void SetNewValue(G4UIcommand*, G4String) override;
 
   private:
-    F02PrimaryGeneratorAction* fAction;
-    G4UIcmdWithAString*        fRndmCmd;
-    G4UIcmdWithADoubleAndUnit* fSetXVertexCmd;
-    G4UIcmdWithADoubleAndUnit* fSetYVertexCmd;
-    G4UIcmdWithADoubleAndUnit* fSetZVertexCmd;
+    F02PrimaryGeneratorAction* fAction = nullptr;
+    G4UIcmdWithAString* fRndmCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fSetXVertexCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fSetYVertexCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fSetZVertexCmd = nullptr;
 };
 
 #endif

@@ -23,9 +23,10 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 // 
-// class G4LogicalBorderSurface inline implementation
+// G4LogicalBorderSurface inline implementation
 //
-// ----------------------------------------------------------------------
+// Author: John Apostolakis (CERN), 17.06.1997
+// --------------------------------------------------------------------
 
 inline
 void G4LogicalBorderSurface::SetPhysicalVolumes( G4VPhysicalVolume* vol1,
@@ -45,6 +46,12 @@ inline
 const G4VPhysicalVolume* G4LogicalBorderSurface::GetVolume2() const
 {
   return Volume2;
+}
+
+inline
+std::size_t G4LogicalBorderSurface::GetIndex() const
+{
+  return Index;
 }
 
 inline

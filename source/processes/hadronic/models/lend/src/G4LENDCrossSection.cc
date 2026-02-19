@@ -55,10 +55,10 @@ G4bool G4LENDCrossSection::IsIsoApplicable( const G4DynamicParticle* dp, G4int i
    if ( element != NULL ) { 
       if ( element->GetNumberOfIsotopes() != 0 ) { 
          std::vector< const G4Isotope*> vIsotope;
-         for ( size_t i = 0 ; i != element->GetNumberOfIsotopes() ; i++ ) {
+         for ( G4int i = 0 ; i != (G4int)element->GetNumberOfIsotopes() ; ++i ) {
             if ( element->GetIsotope( i )->GetN() == iA ) vIsotope.push_back( element->GetIsotope( i ) ); 
          }
-         for ( size_t i = 0 ; i != vIsotope.size() ; i++ ) { 
+         for ( std::size_t i = 0 ; i != vIsotope.size() ; ++i ) { 
             G4int iM = vIsotope[i]->Getm(); 
             if ( get_target_from_map( lend_manager->GetNucleusEncoding( iZ , iA , iM ) ) != NULL ) return true;
          } 
@@ -91,15 +91,20 @@ G4double G4LENDCrossSection::GetIsoCrossSection( const G4DynamicParticle* dp , G
    if ( isotope != NULL ) iM = isotope->Getm();
  
    G4GIDI_target* aTarget = get_target_from_map( lend_manager->GetNucleusEncoding( iZ , iA , iM ) );
-   if ( aTarget == NULL ) {
+   if ( aTarget != NULL ) {
+      xs = getLENDCrossSection ( aTarget , ke , temp );
+   }
+   else {
+      ;
+      /*
       G4String message;
       message = this->GetName();
       message += " is unexpectedly called.";
       //G4Exception( "G4LEND::GetIsoCrossSection(,)" , "LENDCrossSection-01" , JustWarning ,
       G4Exception( "G4LEND::GetIsoCrossSection(,)" , "LENDCrossSection-01" , FatalException ,
                   message );
+      */
    }
-   xs = getLENDCrossSection ( aTarget , ke , temp );
 
    return xs;
 }
@@ -122,7 +127,10 @@ G4LENDCrossSection::G4LENDCrossSection( const G4String nam )
    proj = NULL; //will be set in an inherited class
    //default_evaluation = "endl99";
    //default_evaluation = "ENDF.B-VII.0";
-   default_evaluation = "ENDF/BVII.1";
+   //default_evaluation = "ENDF/BVII.1";
+   //default_evaluation = "ENDF/B-8.0";
+   //default_evaluation = "ENDF/B-7.1";
+   default_evaluation = "";
 
    allow_nat = false;
    allow_any = false;
@@ -312,14 +320,14 @@ void G4LENDCrossSection::create_used_target_map()
 
    lend_manager->RequestChangeOfVerboseLevel( verboseLevel );
 
-   size_t numberOfElements = G4Element::GetNumberOfElements();
+   std::size_t numberOfElements = G4Element::GetNumberOfElements();
    static const G4ElementTable* theElementTable = G4Element::GetElementTable();
 
-   for ( size_t i = 0 ; i < numberOfElements ; ++i )
+   for ( std::size_t i = 0 ; i < numberOfElements ; ++i )
    {
 
       const G4Element* anElement = (*theElementTable)[i];
-      G4int numberOfIsotope = anElement->GetNumberOfIsotopes(); 
+      G4int numberOfIsotope = (G4int)anElement->GetNumberOfIsotopes(); 
 
       if ( numberOfIsotope > 0 )
       {

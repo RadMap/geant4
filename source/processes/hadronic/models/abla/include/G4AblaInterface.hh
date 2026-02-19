@@ -24,57 +24,58 @@
 // ********************************************************************
 //
 // ABLAXX statistical de-excitation model
-// Jose Luis Rodriguez, GSI (translation from ABLA07 and contact person)
+// Jose Luis Rodriguez, UDC (translation from ABLA07 and contact person)
 // Pekka Kaitaniemi, HIP (initial translation of ablav3p)
 // Aleksandra Kelic, GSI (ABLA07 code)
 // Davide Mancusi, CEA (contact person INCL)
 // Aatos Heikkinen, HIP (project coordination)
 //
-#define ABLAXX_IN_GEANT4_MODE 1
 
-#include "globals.hh"
+#pragma once
 
-#ifndef G4AblaInterface_hh
-#define G4AblaInterface_hh 1
-
-#ifdef ABLAXX_IN_GEANT4_MODE
-
-#include "G4VPreCompoundModel.hh"
-#include "G4ReactionProduct.hh"
+#include "G4Abla.hh"
 #include "G4Fragment.hh"
 #include "G4HadFinalState.hh"
 #include "G4HadProjectile.hh"
 #include "G4Nucleus.hh"
-#include "G4Abla.hh"
+#include "G4ReactionProduct.hh"
+#include "G4VPreCompoundModel.hh"
+#include "globals.hh"
 
-class G4AblaInterface : public G4VPreCompoundModel {
-public:
-  G4AblaInterface();
-  virtual ~G4AblaInterface();
+class G4ExcitationHandler;
+class G4HadFinalState;
 
-  virtual G4ReactionProductVector *DeExcite(G4Fragment &aFragment);
+class G4AblaInterface : public G4VPreCompoundModel
+{
+  public:
+    G4AblaInterface(G4ExcitationHandler* ptr = nullptr);
+    virtual ~G4AblaInterface();
 
-  virtual G4HadFinalState *ApplyYourself(G4HadProjectile const &, G4Nucleus &) {
-    return NULL;
-  }
+    virtual G4ReactionProductVector* DeExcite(G4Fragment& aFragment);
 
-  virtual void ModelDescription(std::ostream& outFile) const;
-  virtual void DeExciteModelDescription(std::ostream& outFile) const;
+    virtual G4HadFinalState* ApplyYourself(G4HadProjectile const&, G4Nucleus&) final;
 
-private:
-  G4VarNtp *ablaResult;
-  G4Volant *volant;
-  G4Abla *theABLAModel;
-  G4long eventNumber;
+    virtual void BuildPhysicsTable(const G4ParticleDefinition&) final;
 
-  /// \brief Convert an Abla particle to a G4DynamicParticle
-  G4ReactionProduct *toG4Particle(G4int A, G4int Z, G4int S, G4double kinE, G4double px, G4double py, G4double pz) const;
+    virtual void InitialiseModel() final;
 
-  /// \brief Convert A, Z and S to a G4ParticleDefinition
-  G4ParticleDefinition *toG4ParticleDefinition (G4int A, G4int Z, G4int S) const;
+    virtual void ModelDescription(std::ostream& outFile) const;
 
+    virtual void DeExciteModelDescription(std::ostream& outFile) const;
+
+  private:
+    G4HadFinalState applyYourselfResult;
+    G4VarNtp* ablaResult;
+    G4Abla* theABLAModel;
+    G4long eventNumber;
+    G4int secID;  // Creator model ID for the secondaries created by ABLA
+
+    G4bool isInitialised;
+
+    /// \brief Convert an Abla particle to a G4DynamicParticle
+    G4ReactionProduct* toG4Particle(G4int A, G4int Z, G4int S, G4double kinE, G4double px,
+                                    G4double py, G4double pz) const;
+
+    /// \brief Convert A, Z and S to a G4ParticleDefinition
+    G4ParticleDefinition* toG4ParticleDefinition(G4int A, G4int Z, G4int S) const;
 };
-
-#endif // ABLAXX_IN_GEANT4_MODE
-
-#endif

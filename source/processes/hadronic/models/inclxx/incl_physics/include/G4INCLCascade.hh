@@ -47,6 +47,10 @@
 #include "G4INCLLogger.hh"
 #include "G4INCLConfig.hh"
 #include "G4INCLRootFinder.hh"
+#ifndef INCLXX_IN_GEANT4_MODE
+ #include "G4INCLGeant4Compat.hh"
+#endif
+
 
 namespace G4INCL {
   class INCL {
@@ -62,7 +66,9 @@ namespace G4INCL {
       INCL &operator=(const INCL &rhs);
 
       G4bool prepareReaction(const ParticleSpecies &projectileSpecies, const G4double kineticEnergy, const G4int A, const G4int Z, const G4int S);
-      G4bool initializeTarget(const G4int A, const G4int Z, const G4int S);
+      
+      G4bool initializeTarget(const G4int A, const G4int Z, const G4int S, AnnihilationType theAType);
+      G4double initUniverseRadiusForAntiprotonAtRest(const G4int A, const G4int Z);
       inline const EventInfo &processEvent() {
         return processEvent(
             theConfig->getProjectileSpecies(),
@@ -120,7 +126,7 @@ namespace G4INCL {
                 particleKineticEnergies.push_back((*p)->getKineticEnergy());
               }
               ProjectileRemnant * const aPR = n->getProjectileRemnant();
-              if(aPR && aPR->getA()>0) {
+              if(aPR && (aPR->getA()>0 || aPR->getA()<0)) {
                 particleMomenta.push_back(aPR->getMomentum());
                 particleKineticEnergies.push_back(aPR->getKineticEnergy());
                 outgoingParticles.push_back(aPR);
@@ -199,13 +205,20 @@ namespace G4INCL {
             theIncomingMomentum(nucleus->getIncomingMomentum()),
             outgoingParticles(n->getStore()->getOutgoingParticles()),
             theEventInfo(ei) {
-              thePTBoostVector = nucleus->getIncomingMomentum()/nucleus->getInitialEnergy();
+              if(theIncomingMomentum.mag() == 0.){ //change the condition
+                thePTBoostVector = {0., 0., 0.};
+                //INCL_WARN("PTBoostVector at rest is zero" << '\n');      
+              }
+              else{
+                thePTBoostVector = nucleus->getIncomingMomentum()/(nucleus->getInitialEnergy()); //D
+                //INCL_WARN("PTBoostVector" << '\n');
+              }
               for(ParticleIter p=outgoingParticles.begin(), e=outgoingParticles.end(); p!=e; ++p) {
                 (*p)->boost(thePTBoostVector);
                 particleCMMomenta.push_back((*p)->getMomentum());
               }
               ProjectileRemnant * const aPR = n->getProjectileRemnant();
-              if(aPR && aPR->getA()>0) {
+              if(aPR && aPR->getA()!=0) {
                 aPR->boost(thePTBoostVector);
                 particleCMMomenta.push_back(aPR->getMomentum());
                 outgoingParticles.push_back(aPR);
@@ -331,7 +344,7 @@ namespace G4INCL {
       void cascade();
 
       /// \brief Finalise the cascade and clean up
-      void postCascade();
+      void postCascade(const ParticleSpecies &projectileSpecies, const G4double kineticEnergy);
 
       /** \brief Initialise the maximum interaction distance.
        *
@@ -348,6 +361,31 @@ namespace G4INCL {
 
       /// \brief Update global counters and other members of theGlobalInfo object
       void updateGlobalInfo();
+
+      /// \brief Fill probabilities and particle types from datafile and return probability sum for normalization
+      G4double read_file(std::string filename, std::vector<G4double>& probabilities, 
+                         std::vector<std::vector<G4String>>& particle_types);
+
+      /// \brief This function will tell you the FS line number from the datafile based on your random value
+      G4int findStringNumber(G4double rdm, std::vector<G4double> yields);
+
+      /// \brief Initialise the "cascade" for pbar on H1
+      void preCascade_pbarH1(ParticleSpecies const &projectileSpecies, const G4double kineticEnergy);
+
+      /// \brief Initialise the "cascade" for pbar on H2
+      void preCascade_pbarH2(ParticleSpecies const &projectileSpecies, const G4double kineticEnergy);
+
+      /// \brief Initialise the "cascade" for nbar on H1
+      void preCascade_nbarH1(ParticleSpecies const &projectileSpecies, const G4double kineticEnergy);
+
+      /// \brief Initialise the "cascade" for nbar on H2
+      void preCascade_nbarH2(ParticleSpecies const &projectileSpecies, const G4double kineticEnergy);
+
+      /// \brief Finalise the "cascade" and clean up for pbar/nbar on H1
+      void postCascade_pbarH1(ParticleList const &outgoingParticles);
+
+      /// \brief Finalise the "cascade" and clean up for pbar/nbar on H2
+      void postCascade_pbarH2(ParticleList const &outgoingParticles, ParticleList const &H2Particles);
   };
 }
 

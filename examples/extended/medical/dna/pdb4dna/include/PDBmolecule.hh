@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PDBmolecule.hh
+/// \brief Definition of the PDBmolecule class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -38,64 +41,62 @@
 // --------------------------------------------------------------
 //
 //
-/// \file PDBmolecule.hh
-/// \brief Definition of the PDBmolecule class
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef MOLECULE_H
-#define MOLECULE_H
+#  define MOLECULE_H
 
-#include "PDBresidue.hh"
+#  include "PDBresidue.hh"
 
 class Residue;
 
 //! Molecule Class
 /*!
- * This Class define Molecule model ... 
+ * This Class define Molecule model ...
  */
 class Molecule
 {
-public:
-  //! First constructor
-  Molecule();
-  //! Second constructor
-  Molecule(const std::string& resName,int mNum);
-  //! Destructor
-  ~Molecule() {};
+  public:
+    //! First constructor
+    Molecule();
+    //! Second constructor
+    Molecule(const std::string& resName, int mNum);
+    //! Destructor
+    ~Molecule() {};
 
-  //! information about molecule (not implemented)
-  //void PrintInfo();
-  //! Get the next molecule
-  Molecule *GetNext();
-  //! Get the first Residue
-  Residue *GetFirst();
-  //! Get number Molecule
-  int GetID();
-  //! Set the next Molecule
-  void SetNext(Molecule *);
-  //! Set the first Residue
-  void SetFirst(Residue *);
+    //! information about molecule (not implemented)
+    // void PrintInfo();
+    //! Get the next molecule
+    Molecule* GetNext();
+    //! Get the first Residue
+    Residue* GetFirst();
+    //! Get number Molecule
+    int GetID();
+    //! Set the next Molecule
+    void SetNext(Molecule*);
+    //! Set the first Residue
+    void SetFirst(Residue*);
 
-  std::string fMolName;   //!< Molecule name
-  int fMolNum;       //!< Molecule number
+    std::string fMolName;  //!< Molecule name
+    int fMolNum;  //!< Molecule number
 
-  double fMinGlobZ;   //Cylinder length => min Z
-  double fMaxGlobZ;
-  double fMinGlobX;   //Radius => min X
-  double fMaxGlobX;
-  double fMinGlobY;   //=> min Y
-  double fMaxGlobY;
+    double fMinGlobZ;  // Cylinder length => min Z
+    double fMaxGlobZ;
+    double fMinGlobX;  // Radius => min X
+    double fMaxGlobX;
+    double fMinGlobY;  //=> min Y
+    double fMaxGlobY;
 
-  int fCenterX;      //!< "X center" of this Molecule (for rotation...)
-  int fCenterY;      //!< "Y center" of this Molecule (for rotation...)
-  int fCenterZ;//!< "Z center" of this Molecule (for rotation...)
-  int fDistCenterMax;//!< dist from center to most away most of the molecule
-  int fNbResidue;        //!< Number of residue inside the molecule
+    int fCenterX;  //!< "X center" of this Molecule (for rotation...)
+    int fCenterY;  //!< "Y center" of this Molecule (for rotation...)
+    int fCenterZ;  //!< "Z center" of this Molecule (for rotation...)
+    int fDistCenterMax;  //!< dist from center to most away most of the molecule
+    int fNbResidue;  //!< Number of residue inside the molecule
 
-private:
-  Molecule *fpNext;//!< Header of the next Molecule (usage before vector)
-  Residue *fpFirst;//!< Header of the first Residue (usage before vector)
+  private:
+    Molecule* fpNext;  //!< Header of the next Molecule (usage before vector)
+    Residue* fpFirst;  //!< Header of the first Residue (usage before vector)
 };
 #endif
 

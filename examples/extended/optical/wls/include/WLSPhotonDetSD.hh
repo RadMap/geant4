@@ -23,13 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/wls/include/WLSPhotonDetSD.hh
+/// \file WLSPhotonDetSD.hh
 /// \brief Definition of the WLSPhotonDetSD class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef WLSPhotonDetSD_h
 #define WLSPhotonDetSD_h 1
@@ -44,20 +39,18 @@ class G4HCofThisEvent;
 class WLSPhotonDetSD : public G4VSensitiveDetector
 {
   public:
+    WLSPhotonDetSD(G4String);
+    ~WLSPhotonDetSD() override = default;
 
-    WLSPhotonDetSD(G4String );
-    virtual ~WLSPhotonDetSD();
+    void Initialize(G4HCofThisEvent*) override;
 
-    virtual void Initialize(G4HCofThisEvent* );
+    G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
 
-    virtual G4bool ProcessHits(G4Step* , G4TouchableHistory* );
-    //A version of processHits that keeps aStep constant
-    G4bool ProcessHits_constStep(const G4Step* ,
-                                 G4TouchableHistory* );
+    void EndOfEvent(G4HCofThisEvent*) override;
 
   private:
-
-    WLSPhotonDetHitsCollection* fPhotonDetHitCollection;
+    WLSPhotonDetHitsCollection* fPhotonDetHitCollection = nullptr;
+    G4int fHCID = -1;
 };
 
 #endif

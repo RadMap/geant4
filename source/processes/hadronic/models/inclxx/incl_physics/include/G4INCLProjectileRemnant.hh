@@ -182,7 +182,7 @@ namespace G4INCL {
 
     /// \brief Get the number of the stored components
     G4int getNumberStoredComponents() const {
-      return storedComponents.size();
+      return (G4int)storedComponents.size();
     }
 
     /// \brief Store the energy levels
@@ -197,7 +197,7 @@ namespace G4INCL {
       }
 
       std::sort(energies.begin(), energies.end());
-// assert(energies.size()==(unsigned int)theA);
+//assert(energies.size()==(unsigned int)theA || energies.size()== (unsigned int)-theA);
       theGroundStateEnergies.resize(energies.size());
       // Compute the partial sums of the CM energies -- they are our reference
       // ground-state energies for any number of nucleons

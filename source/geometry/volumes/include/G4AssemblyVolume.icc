@@ -25,6 +25,7 @@
 // 
 // Class G4AssemblyVolume - inline implementation
 //
+// Authors: R.Chytracek, J.Apostolakis, G.Cosmo (CERN), November 2000
 // ----------------------------------------------------------------------
 
 inline 
@@ -34,19 +35,19 @@ unsigned int G4AssemblyVolume::GetImprintsCount() const
 }
 
 inline 
-void         G4AssemblyVolume::SetImprintsCount( unsigned int value )
+void G4AssemblyVolume::SetImprintsCount( unsigned int value )
 {
   fImprintsCounter = value;
 }
 
 inline 
-void         G4AssemblyVolume::ImprintsCountPlus()
+void G4AssemblyVolume::ImprintsCountPlus()
 {
   ++fImprintsCounter;
 }
 
 inline 
-void         G4AssemblyVolume::ImprintsCountMinus()
+void G4AssemblyVolume::ImprintsCountMinus()
 {
   --fImprintsCounter;
 }
@@ -58,7 +59,7 @@ unsigned int G4AssemblyVolume::GetAssemblyID() const
 }
 
 inline 
-void         G4AssemblyVolume::SetAssemblyID( unsigned int value )
+void G4AssemblyVolume::SetAssemblyID( unsigned int value )
 {
   fAssemblyID = value;
 }
@@ -66,7 +67,7 @@ void         G4AssemblyVolume::SetAssemblyID( unsigned int value )
 inline std::vector<G4VPhysicalVolume*>::iterator
 G4AssemblyVolume::GetVolumesIterator()
 {
-  std::vector<G4VPhysicalVolume*>::iterator iterator = fPVStore.begin();
+  auto iterator = fPVStore.begin();
   return iterator;
 }
 
@@ -85,7 +86,7 @@ G4AssemblyVolume::GetImprintTransformation(unsigned int imprintID)
 inline std::vector<G4AssemblyTriplet>::iterator
 G4AssemblyVolume::GetTripletsIterator()
 {
-  std::vector<G4AssemblyTriplet>::iterator iterator = fTriplets.begin();
+  auto iterator = fTriplets.begin();
   return iterator;
 }
 

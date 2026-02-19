@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G01/include/G01DetectorConstruction.hh
+/// \file G01DetectorConstruction.hh
 /// \brief Definition of the G01DetectorConstruction class
-//
-//
-//
-//
 
 #ifndef _G01DETECTORCONSTRUCTION_H_
 #define _G01DETECTORCONSTRUCTION_H_
@@ -40,20 +36,12 @@
 class G01DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
- 
-    G01DetectorConstruction(G4VPhysicalVolume *setWorld = 0)
-    {   
-      fWorld = setWorld;
-    }
+    G01DetectorConstruction(G4VPhysicalVolume* setWorld = 0) { fWorld = setWorld; }
 
-    virtual G4VPhysicalVolume *Construct()
-    {
-      return fWorld;
-    }
+    virtual G4VPhysicalVolume* Construct() { return fWorld; }
 
   private:
-
-    G4VPhysicalVolume *fWorld;
+    G4VPhysicalVolume* fWorld;
 };
 
 #endif

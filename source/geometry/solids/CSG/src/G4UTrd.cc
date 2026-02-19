@@ -25,7 +25,7 @@
 //
 // Implementation for G4UTrd wrapper class
 //
-// 13.09.13 G.Cosmo, CERN/PH
+// 13.09.13 G.Cosmo, CERN
 // --------------------------------------------------------------------
 
 #include "G4Trd.hh"
@@ -48,24 +48,6 @@ G4UTrd::G4UTrd(const G4String& pName,
                      G4double pdy1,  G4double pdy2,
                      G4double pdz)
   : Base_t(pName, pdx1, pdx2, pdy1, pdy2, pdz)
-{
-}
-
-///////////////////////////////////////////////////////////////////////
-//
-// Fake default constructor - sets only member data and allocates memory
-//                            for usage restricted to object persistency.
-//
-G4UTrd::G4UTrd( __void__& a )
-  : Base_t(a)
-{
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Destructor
-//
-G4UTrd::~G4UTrd()
 {
 }
 
@@ -253,7 +235,7 @@ G4UTrd::CalculateExtent(const EAxis pAxis,
 #endif
   if (bbox.BoundingBoxVsVoxelLimits(pAxis,pVoxelLimit,pTransform,pMin,pMax))
   {
-    return exist = (pMin < pMax) ? true : false;
+    return exist = pMin < pMax;
   }
 
   // Set bounding envelope (benv) and calculate extent

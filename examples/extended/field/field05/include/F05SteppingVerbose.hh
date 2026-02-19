@@ -23,19 +23,16 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file field/field05/include/F05SteppingVerbose.hh
+/// \file F05SteppingVerbose.hh
 /// \brief Definition of the F05SteppingVerbose class
-//
-//
-//
-//  
+
 //---------------------------------------------------------------
 //
 // F05SteppingVerbose.hh
 //
 // Description:
-//   This class manages the vervose outputs in G4SteppingManager. 
-//   
+//   This class manages the vervose outputs in G4SteppingManager.
+//
 //
 // Contact:
 //   Questions and comments to this code should be sent to
@@ -49,17 +46,16 @@
 
 #include "G4SteppingVerbose.hh"
 
-class F05SteppingVerbose : public G4SteppingVerbose 
+class F05SteppingVerbose : public G4SteppingVerbose
 {
-  public:   
+  public:
+    F05SteppingVerbose() = default;
+    ~F05SteppingVerbose() override = default;
 
-    F05SteppingVerbose();
-    virtual ~F05SteppingVerbose();
-      // Constructor/Destructor
+    G4VSteppingVerbose* Clone() override { return new F05SteppingVerbose; }
 
-    virtual void StepInfo();
-    virtual void TrackingStarted();
-
+    void StepInfo() override;
+    void TrackingStarted() override;
 };
 
 #endif

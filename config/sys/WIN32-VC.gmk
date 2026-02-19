@@ -1,5 +1,5 @@
 #
-# ------ WIN32/VC ------    Visual Studio 2019 and higher
+# ------ WIN32/VC ------    Visual Studio 2022 and higher
 #
 ifeq ($(G4SYSTEM),WIN32-VC)
   CXX       := CL
@@ -33,32 +33,43 @@ ifeq ($(G4SYSTEM),WIN32-VC)
     OGLFLAGS  :=
   endif
   ifndef OGLLIBS
-    OGLLIBS   := glu32.lib opengl32.lib gdi32.lib user32.lib
+    OGLLIBS   := opengl32.lib gdi32.lib user32.lib
   endif
   ifndef UI32LIBS
-    UI32LIBS  := gdi32.lib user32.lib
+    UI32LIBS  := gdi32.lib user32.lib comctl32.lib
   endif
   ifndef QTHOME
     QTHOME   := /Qt
   endif
-  ifndef QTFLAGS            # Qt5
+  ifndef QT_VERSION
+    QT_VERSION := 6
+  endif
+  ifndef QTFLAGS
     QTFLAGS  := -I$(QTHOME)/include
     QTFLAGS  += -I$(QTHOME)/include/QtCore
     QTFLAGS  += -I$(QTHOME)/include/QtGui
     QTFLAGS  += -I$(QTHOME)/include/QtWidgets
     QTFLAGS  += -I$(QTHOME)/include/QtOpenGL
-    QTFLAGS  += -I$(QTHOME)/include/QtPrintSupport
+    ifeq ($(QT_VERSION),6)
+      QTFLAGS   += -I $(QTHOME)/include/QtOpenGLWidgets
+    endif
   endif
   ifndef QTMOC
     QTMOC    := $(QTHOME)/bin/moc
   endif
-  ifndef QTLIBS              # Qt5
-    QTLIBS   := $(LIB_PATH)$(QTHOME)/lib Qt5Core.lib Qt5Gui.lib Qt5Widgets.lib Qt5PrintSupport.lib
+  ifeq ($(QT_VERSION),5)       # Qt5
+    ifndef QTLIBS
+      QTLIBS   := $(LIB_PATH)$(QTHOME)/lib Qt5Core.lib Qt5Gui.lib Qt5Widgets.lib
+    ifndef GLQTLIBS
+      GLQTLIBS := $(LIB_PATH)$(QTHOME)/lib Qt5Core.lib Qt5Gui.lib Qt5Widgets.lib Qt5OpenGL.lib
+    endif
+  else                         # Qt6
+    ifndef QTLIBS
+      QTLIBS   := $(LIB_PATH)$(QTHOME)/lib Qt6Core.lib Qt6Gui.lib Qt6Widgets.lib
+    ifndef GLQTLIBS
+      GLQTLIBS := $(LIB_PATH)$(QTHOME)/lib Qt6Core.lib Qt6Gui.lib Qt6Widgets.lib Qt6OpenGL.lib Qt6OpenGLWidgets.lib
+    endif
   endif
-  ifndef GLQTLIBS
-    GLQTLIBS := $(LIB_PATH)$(QTHOME)/lib Qt5Core.lib Qt5Gui.lib Qt5Widgets.lib Qt5OpenGL.lib Qt5PrintSupport.lib
-  endif
-
 #
 # Building DLLs
 # -------------
@@ -85,6 +96,9 @@ ifeq ($(G4SYSTEM),WIN32-VC)
   ifdef G4LIB_USE_CLHEP
     GLOBLIBS += libG4clhep.lib
   endif
+  ifdef G4LIB_USE_PTL
+    GLOBLIBS += libG4ptl.lib
+  endif
   define build-granular-shared-lib
     @libdir=`(cd $(@D);/bin/pwd)`;\
     cd $(G4TMP)/$(G4SYSTEM);\
@@ -102,6 +116,7 @@ ifeq ($(G4SYSTEM),WIN32-VC)
              $(G4LIBDIR)/lib$(name).exp $(G4LIBDIR)/lib$(name).a \
              $(LIB_PATH)$(G4LIBDIR) $(GLOBLIBS) \
              $(LIB_PATH)$(CLHEP_LIB_DIR) $(CLHEP_LIB) \
+             $(LIB_PATH)$(PTL_LIB_DIR) $(PTL_LIB) \
              $(INTYLIBS) $(GDMLLIBS) $(ANALYSISLIBS) $(UI32LIBS) $(LOADLIBS)
   endef
   define build-global-shared-lib
@@ -121,6 +136,7 @@ ifeq ($(G4SYSTEM),WIN32-VC)
              $(G4LIBDIR)/lib$(name).exp $(G4LIBDIR)/lib$(name).a \
              $(LIB_PATH)$(G4LIBDIR) $(GLOBLIBS) \
              $(LIB_PATH)$(CLHEP_LIB_DIR) $(CLHEP_LIB) \
+             $(LIB_PATH)$(PTL_LIB_DIR) $(PTL_LIB) \
              $(INTYLIBS) $(GDMLLIBS) $(ANALYSISLIBS) $(UI32LIBS) $(LOADLIBS)
   endef
 endif

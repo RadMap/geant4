@@ -66,12 +66,16 @@ class G4DeexPrecoParameters;
 
 class G4DeexParametersMessenger: public G4UImessenger
 {
-public:   // with description
+public:
   
   explicit G4DeexParametersMessenger(G4DeexPrecoParameters*);
-  virtual ~G4DeexParametersMessenger();
+  ~G4DeexParametersMessenger() override;
 
-  virtual void SetNewValue(G4UIcommand*, G4String) override;
+  void SetNewValue(G4UIcommand*, G4String) override;
+
+  G4DeexParametersMessenger& operator=
+  (const G4DeexParametersMessenger& right) = delete;
+  G4DeexParametersMessenger(const G4DeexParametersMessenger&) = delete;
 
 private:
 
@@ -82,11 +86,11 @@ private:
   G4UIcmdWithABool*          readCmd;
   G4UIcmdWithABool*          icCmd;
   G4UIcmdWithABool*          corgCmd;
+  G4UIcmdWithABool*          isoCmd;
 
   G4UIcmdWithAnInteger*      maxjCmd;
   G4UIcmdWithAnInteger*      verbCmd;
-  G4UIcmdWithAnInteger*      upCmd;
-
+  G4UIcommand* xsTypeCmd;
 };
 
 #endif

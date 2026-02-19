@@ -40,45 +40,41 @@ class G4ParticleDefinition;
 // class description:
 //
 //  This is the class of a filter to be associated with a
-// sensitive detector. 
+// sensitive detector.
 //  This class filters steps by partilce definition.
 // The particles are given at constructor or add() method.
 //
 // Created: 2005-11-14  Tsukasa ASO.
 // 2010-07-22 T.Aso Filter for Ions
-// 
+//
 ///////////////////////////////////////////////////////////////////////////////
 
-class G4SDParticleFilter : public G4VSDFilter 
+class G4SDParticleFilter : public G4VSDFilter
 {
+ public:
+  G4SDParticleFilter(const G4String& name);
+  G4SDParticleFilter(const G4String& name, const G4String& particleName);
+  G4SDParticleFilter(const G4String& name,
+                     const std::vector<G4String>& particleNames);
+  G4SDParticleFilter(const G4String& name,
+                     const std::vector<G4ParticleDefinition*>& particleDef);
+  // Constructors. Filter name and particle's name.
+  //
 
-  public: // with description
-      G4SDParticleFilter(G4String name);
-      G4SDParticleFilter(G4String name,const G4String& particleName);
-      G4SDParticleFilter(G4String name,
-			 const std::vector<G4String>&  particleNames);
-      G4SDParticleFilter(G4String name,
-			 const std::vector<G4ParticleDefinition*>&  particleDef);
-    // Constructors. Filter name and particle's name.
-    //
+  ~G4SDParticleFilter() override = default;
 
-      virtual ~G4SDParticleFilter();
+  G4bool Accept(const G4Step*) const override;
 
-  public: // with description
-      virtual G4bool Accept(const G4Step*) const;
+  void add(const G4String& particleName);
+  // set method for acceptable particle name.
+  //
+  void addIon(G4int Z, G4int A);
+  void show();
 
-      void add(const G4String& particleName);
-      // set method for acceptable particle name.
-      //
-      void addIon(G4int Z, G4int A);
-      void show();
-
-  private:
-      std::vector<G4ParticleDefinition*> thePdef;
-      std::vector<G4int> theIonZ;
-      std::vector<G4int> theIonA;
-
+ private:
+  std::vector<G4ParticleDefinition*> thePdef;
+  std::vector<G4int> theIonZ;
+  std::vector<G4int> theIonA;
 };
 
 #endif
-

@@ -53,6 +53,7 @@
 #include "G4ElementData.hh" 
 #include "G4Physics2DVector.hh" 
 #include "G4Pow.hh" 
+#include "G4PhysicsModelCatalog.hh"
 
 const G4int G4MuonVDNuclearModel::zdat[] = {1, 4, 13, 29, 92};
 const G4double G4MuonVDNuclearModel::adat[] = {1.01,9.01,26.98,63.55,238.03};
@@ -69,7 +70,7 @@ const G4double G4MuonVDNuclearModel::tdat[] = {
 G4ElementData* G4MuonVDNuclearModel::fElementData = nullptr;             
 
 G4MuonVDNuclearModel::G4MuonVDNuclearModel()
-  : G4HadronicInteraction("G4MuonVDNuclearModel"),isMaster(false)
+  : G4HadronicInteraction("G4MuonVDNuclearModel")
 {
   muNucXS = (G4KokoulinMuonNuclearXS*)G4CrossSectionDataSetRegistry::Instance()->
     GetCrossSectionDataSet(G4KokoulinMuonNuclearXS::Default_Name());
@@ -78,10 +79,9 @@ G4MuonVDNuclearModel::G4MuonVDNuclearModel()
   SetMaxEnergy(1*CLHEP::PeV);
   CutFixed = 0.2*CLHEP::GeV;
 
-  if(!fElementData && G4Threading::IsMasterThread()) { 
-    fElementData = new G4ElementData();
-    MakeSamplingTable(); 
-    isMaster = true;
+  if (nullptr == fElementData) { 
+    fElementData = new G4ElementData(93);
+    MakeSamplingTable();
   }
                     
   // reuse existing pre-compound model
@@ -90,7 +90,7 @@ G4MuonVDNuclearModel::G4MuonVDNuclearModel()
   G4HadronicInteraction* p =
     G4HadronicInteractionRegistry::Instance()->FindModel("PRECO");
   G4VPreCompoundModel* pre = static_cast<G4VPreCompoundModel*>(p);
-  if(!pre) { pre = new G4PreCompoundModel(); }
+  if(nullptr == pre) { pre = new G4PreCompoundModel(); }
   precoInterface->SetDeExcitation(pre);
 
   // Build FTFP model
@@ -104,17 +104,15 @@ G4MuonVDNuclearModel::G4MuonVDNuclearModel()
 
   // Build Bertini cascade
   bert = new G4CascadeInterface();
+
+  // Creator model ID
+  secID = G4PhysicsModelCatalog::GetModelID( "model_" + GetModelName() );
 }
 
 G4MuonVDNuclearModel::~G4MuonVDNuclearModel()
 {
   delete theFragmentation;
   delete theStringDecay;
-
-  if(isMaster) { 
-    delete fElementData;
-    fElementData = nullptr;
-  } 
 }
   
 G4HadFinalState*
@@ -219,8 +217,8 @@ G4MuonVDNuclearModel::CalculateEMVertex(const G4HadProjectile& aTrack,
   G4double y2 = 0.5*yy*yy;
   G4double y3 = y1+y2;
 
-  G4double t;
-  G4double rej;
+  G4double t = 0.0;
+  G4double rej = 0.0;
 
   // Now sample t
   G4int ntry = 0; 
@@ -297,6 +295,11 @@ G4MuonVDNuclearModel::CalculateHadronicVertex(G4DynamicParticle* incident,
 
   delete incident;
 
+  // Assign the creator model ID to the secondaries
+  for ( size_t i = 0; i < hfs->GetNumberOfSecondaries(); ++i ) {
+    hfs->GetSecondary( i )->SetCreatorModelID( secID );
+  }
+  
   // Copy secondaries from sub-model to model
   theParticleChange.AddSecondaries(hfs);
 } 

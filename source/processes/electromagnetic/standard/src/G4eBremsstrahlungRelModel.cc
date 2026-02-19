@@ -68,7 +68,13 @@
 #include "G4ElementVector.hh"
 #include "G4ParticleChangeForLoss.hh"
 #include "G4ModifiedTsai.hh"
-//#include "G4DipBustGenerator.hh"
+#include "G4LPMFunction.hh"
+#include "G4Exp.hh"
+#include "G4Log.hh"
+#include "G4Pow.hh"
+#include "G4EmParameters.hh"
+#include "G4AutoLock.hh"
+#include <thread>
 
 const G4int G4eBremsstrahlungRelModel::gMaxZet = 120;
 
@@ -107,82 +113,74 @@ const G4double G4eBremsstrahlungRelModel::gFinelLowZet[] = {
   0.0, 5.9173, 5.6125, 5.5377, 5.4728, 5.4174, 5.3688, 5.3236
 };
 
-// LPM supression functions evaluated at initialisation time
-G4eBremsstrahlungRelModel::LPMFuncs  G4eBremsstrahlungRelModel::gLPMFuncs;
-
 // special data structure per element i.e. per Z
 std::vector<G4eBremsstrahlungRelModel::ElementData*> G4eBremsstrahlungRelModel::gElementData;
 
+static std::once_flag applyOnce;
+
+namespace
+{
+  G4Mutex theBremRelMutex = G4MUTEX_INITIALIZER;
+}
+
 G4eBremsstrahlungRelModel::G4eBremsstrahlungRelModel(const G4ParticleDefinition* p,
                                                      const G4String& nam)
-: G4VEmModel(nam), fIsElectron(true), fIsScatOffElectron(false),
-  fIsLPMActive(false), fPrimaryParticle(nullptr), fIsUseCompleteScreening(false)
+: G4VEmModel(nam)
 {
-  fCurrentIZ = 0;
-  //
-  fPrimaryParticleMass = 0.;
-  fPrimaryKinEnergy    = 0.;
-  fPrimaryTotalEnergy  = 0.;
-  fDensityFactor       = 0.;
-  fDensityCorr         = 0.;
-  fNucTerm             = 0.;
-  fSumTerm             = 0.;
-  //
-  fPrimaryParticle     = nullptr;
   fGammaParticle       = G4Gamma::Gamma();
-  fParticleChange      = nullptr;
   //
-  fLowestKinEnergy     = 1.0*MeV;
+  fLowestKinEnergy     = 1.0*CLHEP::MeV;
   SetLowEnergyLimit(fLowestKinEnergy);
   //
   fLPMEnergyThreshold  = 1.e+39;
   fLPMEnergy           = 0.;
-
-  SetLPMFlag(true);
-  //
   SetAngularDistribution(new G4ModifiedTsai());
-  //SetAngularDistribution(new G4DipBustGenerator());
   //
-  if (p) {
+  if (nullptr != p) {
     SetParticle(p);
   }
 }
 
 G4eBremsstrahlungRelModel::~G4eBremsstrahlungRelModel()
 {
-  if (IsMaster()) {
+  if (fIsInitializer) {
     // clear ElementData container
-    for (size_t iz = 0; iz < gElementData.size(); ++iz) {
-      if (gElementData[iz]) {
-        delete gElementData[iz];
-      }
-    }
+    for (auto const & ptr : gElementData) { delete ptr; }
     gElementData.clear();
-    // clear LPMFunctions (if any)
-    if (LPMFlag()) {
-      gLPMFuncs.fLPMFuncG.clear();
-      gLPMFuncs.fLPMFuncPhi.clear();
-      gLPMFuncs.fIsInitialized = false;
-    }
   }
 }
 
 void G4eBremsstrahlungRelModel::Initialise(const G4ParticleDefinition* p,
                                            const G4DataVector& cuts)
 {
-  if (p) {
+  // parameters in each thread
+  if (fPrimaryParticle != p) {
     SetParticle(p);
   }
+  fUseLPM = G4EmParameters::Instance()->LPM();
   fCurrentIZ = 0;
-  // init element data and precompute LPM functions (only if lpmflag is true)
-  if (IsMaster()) {
-    InitialiseElementData();
-    if (LPMFlag()) { InitLPMFunctions(); }
-    if (LowEnergyLimit() < HighEnergyLimit()) {
-      InitialiseElementSelectors(p, cuts);
+
+  // init static element data and precompute LPM functions only once
+  std::call_once(applyOnce, [this]() { fIsInitializer = true; });
+
+  // for all treads and derived classes
+  if (fIsInitializer || gElementData.empty()) {
+    G4AutoLock l(&theBremRelMutex);
+    if (gElementData.empty()) {
+      gElementData.resize(gMaxZet+1, nullptr);
     }
+    InitialiseElementData();
+    l.unlock();
   }
-  if (!fParticleChange) { fParticleChange = GetParticleChangeForLoss(); }
+
+  // element selectors are initialized in the master thread
+  if (IsMaster()) {
+    InitialiseElementSelectors(p, cuts);
+  }
+  // initialisation in all threads
+  if (nullptr == fParticleChange) {
+    fParticleChange = GetParticleChangeForLoss();
+  }
   if (GetTripletModel()) {
     GetTripletModel()->Initialise(p, cuts);
     fIsScatOffElectron = true;
@@ -192,9 +190,7 @@ void G4eBremsstrahlungRelModel::Initialise(const G4ParticleDefinition* p,
 void G4eBremsstrahlungRelModel::InitialiseLocal(const G4ParticleDefinition*,
                                                 G4VEmModel* masterModel)
 {
-  if (LowEnergyLimit() < HighEnergyLimit()) {
-    SetElementSelectors(masterModel->GetElementSelectors());
-  }
+  SetElementSelectors(masterModel->GetElementSelectors());
 }
 
 void G4eBremsstrahlungRelModel::SetParticle(const G4ParticleDefinition* p)
@@ -214,7 +210,7 @@ void G4eBremsstrahlungRelModel::SetupForMaterial(const G4ParticleDefinition*,
   fDensityFactor = gMigdalConstant*mat->GetElectronDensity();
   fLPMEnergy     = gLPMconstant*mat->GetRadlen();
   // threshold for LPM effect (i.e. below which LPM hidden by density effect)
-  if (LPMFlag()) {
+  if (fUseLPM) {
     fLPMEnergyThreshold = std::sqrt(fDensityFactor)*fLPMEnergy;
   } else {
     fLPMEnergyThreshold = 1.e+39;   // i.e. do not use LPM effect
@@ -224,7 +220,7 @@ void G4eBremsstrahlungRelModel::SetupForMaterial(const G4ParticleDefinition*,
   fPrimaryTotalEnergy = kineticEnergy+fPrimaryParticleMass;
   fDensityCorr        = fDensityFactor*fPrimaryTotalEnergy*fPrimaryTotalEnergy;
   // set activation flag for LPM effects in the DCS
-  fIsLPMActive        = (fPrimaryTotalEnergy>fLPMEnergyThreshold);
+  fIsLPMActive = (fPrimaryTotalEnergy>fLPMEnergyThreshold);
 }
 
 // minimum primary (e-/e+) energy at which discrete interaction is possible
@@ -244,7 +240,7 @@ G4eBremsstrahlungRelModel::ComputeDEDXPerVolume(const G4Material* material,
                                                 G4double cutEnergy)
 {
   G4double dedx = 0.0;
-  if (!fPrimaryParticle) {
+  if (nullptr == fPrimaryParticle) {
     SetParticle(p);
   }
   if (kineticEnergy < LowEnergyLimit()) {
@@ -260,15 +256,14 @@ G4eBremsstrahlungRelModel::ComputeDEDXPerVolume(const G4Material* material,
   // get element compositions of the material
   const G4ElementVector* theElemVector = material->GetElementVector();
   const G4double* theAtomNumDensVector = material->GetAtomicNumDensityVector();
-  const size_t        numberOfElements = theElemVector->size();
+  const std::size_t numberOfElements = theElemVector->size();
   // loop over the elements of the material and compute their contributions to
   // the restricted dE/dx by numerical integration of the dependent part of DCS
-  for (size_t ie = 0; ie < numberOfElements; ++ie) {
+  for (std::size_t ie = 0; ie < numberOfElements; ++ie) {
     G4VEmModel::SetCurrentElement((*theElemVector)[ie]);
-    //SetCurrentElement((*theElementVector)[i]->GetZasInt());
-    const G4double zet = (*theElemVector)[ie]->GetZ();
-    fCurrentIZ         = std::min(G4lrint(zet), gMaxZet);
-    dedx              += theAtomNumDensVector[ie]*zet*zet*ComputeBremLoss(tmax);
+    G4int zet = (*theElemVector)[ie]->GetZasInt();
+    fCurrentIZ = std::min(zet, gMaxZet);
+    dedx              += (zet*zet)*theAtomNumDensVector[ie]*ComputeBremLoss(tmax);
   }
   // apply the constant factor C/Z = 16\alpha r_0^2/3
   dedx *= gBremFactor;
@@ -331,7 +326,7 @@ G4double G4eBremsstrahlungRelModel::ComputeCrossSectionPerAtom(
                                                   G4double maxEnergy)
 {
   G4double crossSection = 0.0;
-  if (!fPrimaryParticle) {
+  if (nullptr == fPrimaryParticle) {
     SetParticle(p);
   }
   if (kineticEnergy < LowEnergyLimit()) {
@@ -344,7 +339,7 @@ G4double G4eBremsstrahlungRelModel::ComputeCrossSectionPerAtom(
   if (tmin >= tmax) {
     return crossSection;
   }
-  fCurrentIZ   = std::min(G4lrint(Z), gMaxZet);
+  fCurrentIZ = std::min(G4lrint(Z), gMaxZet);
   // integrate numerically (dependent part of) the DCS between the kin. limits:
   // a. integrate between tmin and kineticEnergy of the e-
   crossSection = ComputeXSectionPerAtom(tmin);
@@ -382,11 +377,11 @@ G4double G4eBremsstrahlungRelModel::ComputeXSectionPerAtom(G4double tmin)
 {
   G4double xSection = 0.0;
   const G4double alphaMin = G4Log(tmin/fPrimaryTotalEnergy);
-  const G4double alphaMax = G4Log(fPrimaryKinEnergy/fPrimaryTotalEnergy);
-  const G4int    nSub     = (G4int)(0.45*(alphaMax-alphaMin))+4;
-  const G4double delta    = (alphaMax-alphaMin)/((G4double)nSub);
+  const G4double alphaMax = G4Log(fPrimaryKinEnergy/tmin);
+  const G4int nSub = std::max((G4int)(0.45*alphaMax), 0) + 4;
+  const G4double delta = alphaMax/((G4double)nSub);
   // set minimum value of the first sub-inteval
-  G4double alpha_i        = alphaMin;
+  G4double alpha_i = alphaMin;
   for (G4int l = 0; l < nSub; ++l) {
     for (G4int igl = 0; igl < 8; ++igl) {
       // compute the emitted photon energy k
@@ -426,7 +421,7 @@ G4double G4eBremsstrahlungRelModel::ComputeXSectionPerAtom(G4double tmin)
 //        v(k)=ln(k/E_t) -> dk/dv=E_t*e^v=k -> ds/dv= ds/dk*dk/dv=ds/dk*k so it
 //        would cnacell out the 1/k factor => 1/k don't included here
 //  (ii)  the constant factor C and Z don't depend on 'k' => not included here
-//  (iii) the 1/F(k) factor is accounted in the callers: explicitely (cross sec-
+//  (iii) the 1/F(k) factor is accounted in the callers: explicitly (cross sec-
 //        tion computation) or implicitly through further variable transformaton
 //        (in the final state sampling algorithm)
 // COMPLETE SCREENING: see more at the DCS without LPM effect below.
@@ -460,7 +455,7 @@ G4eBremsstrahlungRelModel::ComputeRelDXSectionPerAtom(G4double gammaEnergy)
 // where f_c(Z) is the Coulomb correction factor and phi1(g),phi2(g) and psi1(e),
 // psi2(e) are coherent and incoherent screening functions. In the Thomas-Fermi
 // model of the atom, the screening functions will have a form that do not
-// depend on Z (not explicitely). These numerical screening functions can be
+// depend on Z (not explicitly). These numerical screening functions can be
 // approximated as Tsai Eqs. [3.38-3.41] with the variables g=gamma and
 // e=epsilon given by Tsai Eqs. [3.30 and 3.31] (see more details at the method
 // ComputeScreeningFunctions()). Note, that in case of complete screening i.e.
@@ -549,7 +544,6 @@ G4eBremsstrahlungRelModel::SampleSecondaries(std::vector<G4DynamicParticle*>* vd
                                              G4double maxEnergy)
 {
   const G4double kineticEnergy    = dp->GetKineticEnergy();
-//  const G4double logKineticEnergy = dp->GetLogKineticEnergy();
   if (kineticEnergy < LowEnergyLimit()) {
     return;
   }
@@ -604,8 +598,7 @@ G4eBremsstrahlungRelModel::SampleSecondaries(std::vector<G4DynamicParticle*>* vd
     GetAngularDistribution()->SampleDirection(dp,fPrimaryTotalEnergy-gammaEnergy,
                                               fCurrentIZ, couple->GetMaterial());
   // create G4DynamicParticle object for the Gamma
-  G4DynamicParticle* gamma = new G4DynamicParticle(fGammaParticle, gamDir,
-                                                   gammaEnergy);
+  auto gamma = new G4DynamicParticle(fGammaParticle, gamDir, gammaEnergy);
   vdp->push_back(gamma);
   // compute post-interaction kinematics of primary e-/e+ based on
   // energy-momentum conservation
@@ -620,7 +613,7 @@ G4eBremsstrahlungRelModel::SampleSecondaries(std::vector<G4DynamicParticle*>* vd
   if (gammaEnergy > SecondaryThreshold()) {
     fParticleChange->ProposeTrackStatus(fStopAndKill);
     fParticleChange->SetProposedKineticEnergy(0.0);
-    G4DynamicParticle* el = new G4DynamicParticle(
+    auto el = new G4DynamicParticle(
               const_cast<G4ParticleDefinition*>(fPrimaryParticle), dir, finalE);
     vdp->push_back(el);
   } else { // continue tracking the primary e-/e+ otherwise
@@ -631,19 +624,13 @@ G4eBremsstrahlungRelModel::SampleSecondaries(std::vector<G4DynamicParticle*>* vd
 
 void G4eBremsstrahlungRelModel::InitialiseElementData()
 {
-  const G4int size = gElementData.size();
-  if (size < gMaxZet+1) {
-    gElementData.resize(gMaxZet+1, nullptr);
-  }
   // create for all elements that are in the detector
-  const G4ElementTable* elemTable = G4Element::GetElementTable();
-  size_t numElems = (*elemTable).size();
-  for (size_t ielem=0; ielem<numElems; ++ielem) {
-    const G4Element* elem = (*elemTable)[ielem];
-    const G4double    zet = elem->GetZ();
-    const G4int      izet = std::min(G4lrint(zet),gMaxZet);
-    if (!gElementData[izet]) {
-      ElementData *elemData  = new ElementData();
+  auto elemTable = G4Element::GetElementTable();
+  for (auto const & elem : *elemTable) {
+    const G4double zet = elem->GetZ();
+    const G4int izet = std::min(elem->GetZasInt(), gMaxZet);
+    if (nullptr == gElementData[izet]) {
+      auto elemData  = new ElementData();
       const G4double fc = elem->GetfCoulomb();
       G4double Fel      = 1.;
       G4double Finel    = 1.;
@@ -656,8 +643,8 @@ void G4eBremsstrahlungRelModel::InitialiseElementData()
         Fel   = G4Log(184.15) -    elemData->fLogZ/3.;
         Finel = G4Log(1194)   - 2.*elemData->fLogZ/3.;
       }
-      const G4double z23       = std::pow(zet,2./3.);
-      const G4double z13       = std::pow(zet,1./3.);
+      const G4double z13 = G4Pow::GetInstance()->Z13(izet);
+      const G4double z23 = z13*z13;
       elemData->fZFactor1      = (Fel-fc)+Finel/zet;
       elemData->fZFactor11     = (Fel-fc); // used only for the triplet
       elemData->fZFactor2      = (1.+1./zet)/12.;
@@ -701,89 +688,9 @@ void G4eBremsstrahlungRelModel::ComputeLPMfunctions(G4double& funcXiS,
   } else if (varShat > varS1) {
     funcXiS = 1.0+G4Log(varShat)*elDat->fILVarS1;
   }
-  GetLPMFunctions(funcGS, funcPhiS, varShat);
-  //ComputeLPMGsPhis(funcGS, funcPhiS, varShat);
-  //
+  G4LPMFunction::GetLPMFunctions(funcGS, funcPhiS, varShat);
   //MAKE SURE SUPPRESSION IS SMALLER THAN 1: due to Migdal's approximation on xi
   if (funcXiS*funcPhiS > 1. || varShat > 0.57) {
     funcXiS=1./funcPhiS;
   }
 }
-
-void G4eBremsstrahlungRelModel::ComputeLPMGsPhis(G4double& funcGS,
-                                                 G4double& funcPhiS,
-                                                 const G4double varShat)
-{
-  if (varShat < 0.01) {
-    funcPhiS = 6.0*varShat*(1.0-CLHEP::pi*varShat);
-    funcGS   = 12.0*varShat-2.0*funcPhiS;
-  } else {
-    const G4double varShat2 = varShat*varShat;
-    const G4double varShat3 = varShat*varShat2;
-    const G4double varShat4 = varShat2*varShat2;
-    // use Stanev approximation: for \psi(s) and compute G(s)
-    if (varShat < 0.415827) {
-      funcPhiS = 1.0-G4Exp(-6.0*varShat*(1.0+varShat*(3.0-CLHEP::pi))
-                + varShat3/(0.623+0.796*varShat+0.658*varShat2));
-      // 1-\exp \left\{-4s-\frac{8s^2}{1+3.936s+4.97s^2-0.05s^3+7.5s^4} \right\}
-      const G4double funcPsiS = 1.0 - G4Exp(-4.0*varShat
-                               - 8.0*varShat2/(1.0+3.936*varShat+4.97*varShat2
-                               - 0.05*varShat3 + 7.5*varShat4));
-      // G(s) = 3 \psi(s) - 2 \phi(s)
-      funcGS = 3.0*funcPsiS - 2.0*funcPhiS;
-    } else if (varShat<1.55) {
-      funcPhiS = 1.0-G4Exp(-6.0*varShat*(1.0+varShat*(3.0-CLHEP::pi))
-                + varShat3/(0.623+0.796*varShat+0.658*varShat2));
-      const G4double dum0  = -0.160723          + 3.755030*varShat
-                             -1.798138*varShat2 + 0.672827*varShat3
-                             -0.120772*varShat4;
-      funcGS = std::tanh(dum0);
-    } else {
-      funcPhiS = 1.0-0.011905/varShat4;
-      if (varShat<1.9156) {
-        const G4double dum0 = -0.160723          + 3.755030*varShat
-                              -1.798138*varShat2 + 0.672827*varShat3
-                              -0.120772*varShat4;
-        funcGS = std::tanh(dum0);
-      } else {
-        funcGS   = 1.0-0.023065/varShat4;
-      }
-    }
-  }
-}
-
-// s goes up to 2 with ds = 0.01 to be the default bining
-void G4eBremsstrahlungRelModel::InitLPMFunctions()
-{
-  if (!gLPMFuncs.fIsInitialized) {
-    const G4int num = gLPMFuncs.fSLimit*gLPMFuncs.fISDelta+1;
-    gLPMFuncs.fLPMFuncG.resize(num);
-    gLPMFuncs.fLPMFuncPhi.resize(num);
-    for (G4int i = 0; i < num; ++i) {
-      const G4double sval=i/gLPMFuncs.fISDelta;
-      ComputeLPMGsPhis(gLPMFuncs.fLPMFuncG[i],gLPMFuncs.fLPMFuncPhi[i],sval);
-    }
-    gLPMFuncs.fIsInitialized = true;
-  }
-}
-
-void G4eBremsstrahlungRelModel::GetLPMFunctions(G4double& lpmGs,
-                                                G4double& lpmPhis,
-                                                const G4double sval)
-{
-  if (sval < gLPMFuncs.fSLimit) {
-    G4double     val = sval*gLPMFuncs.fISDelta;
-    const G4int ilow = (G4int)val;
-    val    -= ilow;
-    lpmGs   = (gLPMFuncs.fLPMFuncG[ilow+1]-gLPMFuncs.fLPMFuncG[ilow])*val
-              + gLPMFuncs.fLPMFuncG[ilow];
-    lpmPhis = (gLPMFuncs.fLPMFuncPhi[ilow+1]-gLPMFuncs.fLPMFuncPhi[ilow])*val
-              + gLPMFuncs.fLPMFuncPhi[ilow];
-  } else {
-    G4double ss = sval*sval;
-    ss *= ss;
-    lpmPhis = 1.0-0.01190476/ss;
-    lpmGs   = 1.0-0.0230655/ss;
-  }
-}
-

@@ -23,33 +23,26 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm12/src/PrimaryGeneratorMessenger.cc
+/// \file PrimaryGeneratorMessenger.cc
 /// \brief Implementation of the PrimaryGeneratorMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "PrimaryGeneratorMessenger.hh"
 
 #include "PrimaryGeneratorAction.hh"
-#include "G4UIdirectory.hh"
+
 #include "G4UIcmdWithABool.hh"
+#include "G4UIdirectory.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PrimaryGeneratorMessenger::PrimaryGeneratorMessenger(
-                                                   PrimaryGeneratorAction* Gun)
-:G4UImessenger(),fAction(Gun),
- fGunDir(0),         
- fRndmCmd(0)
-{ 
+PrimaryGeneratorMessenger::PrimaryGeneratorMessenger(PrimaryGeneratorAction* Gun) : fAction(Gun)
+{
   fGunDir = new G4UIdirectory("/testem/gun/");
   fGunDir->SetGuidance("gun control");
 
-  fRndmCmd = new G4UIcmdWithABool("/testem/gun/rndm",this);
+  fRndmCmd = new G4UIcmdWithABool("/testem/gun/rndm", this);
   fRndmCmd->SetGuidance("random direction on the beam");
-  fRndmCmd->SetParameterName("rBeam",true);
+  fRndmCmd->SetParameterName("rBeam", true);
   fRndmCmd->SetDefaultValue(true);
 }
 
@@ -63,12 +56,11 @@ PrimaryGeneratorMessenger::~PrimaryGeneratorMessenger()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command,
-                                               G4String newValue)
-{ 
-  if (command == fRndmCmd)
-   {fAction->SetRndmBeam(fRndmCmd->GetNewBoolValue(newValue));}   
+void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
+{
+  if (command == fRndmCmd) {
+    fAction->SetRndmBeam(fRndmCmd->GetNewBoolValue(newValue));
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

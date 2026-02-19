@@ -51,9 +51,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES)
 set(Geant4_BUILD_TYPE \"${CMAKE_BUILD_TYPE}\")")
 endif()
 
-# Core compile definitions...
-set(GEANT4_CORE_DEFINITIONS )
-
 # Third party includes (libraries *should* be handled by the imports)
 set(GEANT4_THIRD_PARTY_INCLUDES )
 
@@ -63,7 +60,7 @@ set(GEANT4_THIRD_PARTY_IMPORT_SETUP )
 # Externals libraries that may be present
 set(GEANT4_EXTERNALS_TARGETS )
 
-# - Stuff from Geant4OptionalComponents.cmake
+# - Stuff from G4OptionalComponents.cmake
 # - CLHEP
 # If it's internal, add it to the externals list
 if(NOT GEANT4_USE_SYSTEM_CLHEP)
@@ -82,13 +79,20 @@ if(NOT GEANT4_USE_SYSTEM_ZLIB)
   list(APPEND GEANT4_EXTERNALS_TARGETS G4zlib)
 endif()
 
+# - PTL
+# If it's internal, add it to the externals list
+if(NOT GEANT4_USE_SYSTEM_PTL)
+  list(APPEND GEANT4_EXTERNALS_TARGETS G4ptl)
+  set(PTL_BUILDTREE_PREFIX "${PROJECT_BINARY_DIR}/source/externals/ptl")
+  set(PTL_INSTALLTREE_PREFIX "\${_geant4_thisdir}/PTL")
+endif()
+
 # - USolids
 # Compile definitions
 if(GEANT4_USE_USOLIDS OR GEANT4_USE_PARTIAL_USOLIDS)
   set(GEANT4_USE_USOLIDS_EITHER ON)
 endif()
 
-# - Stuff from Geant4InterfaceOptions.cmake
 
 #-----------------------------------------------------------------------
 # - Common Build/Install Tree Configuration files
@@ -124,7 +128,8 @@ set(GEANT4_INCLUDE_DIR_SETUP "
 # Geant4 configured for use from the build tree - absolute paths are used.
 set(Geant4_INCLUDE_DIR \"${__geant4_buildtree_include_dirs}\")
 ")
-
+# Builtin PTL is self located
+set(PACKAGE_PTL_PREFIX "${PTL_BUILDTREE_PREFIX}")
 # Geant4 data used in build tree
 geant4_export_datasets(BUILD GEANT4_DATASET_DESCRIPTIONS)
 
@@ -160,6 +165,7 @@ configure_file(
   COPYONLY
   )
 
+# Required for CMake clients between 3.8 and 3.10
 configure_file(
   ${PROJECT_SOURCE_DIR}/cmake/Modules/G4FreetypeShim.cmake
   ${PROJECT_BINARY_DIR}/G4FreetypeShim.cmake
@@ -179,19 +185,13 @@ configure_file(
 )
 
 configure_file(
-  ${PROJECT_SOURCE_DIR}/cmake/Modules/G4VecGeomShim.cmake
-  ${PROJECT_BINARY_DIR}/G4VecGeomShim.cmake
-  COPYONLY
-  )
-
-configure_file(
   ${PROJECT_SOURCE_DIR}/cmake/Modules/G4X11Shim.cmake
   ${PROJECT_BINARY_DIR}/G4X11Shim.cmake
   COPYONLY
 )
 
 
-foreach(_mod AIDA HepMC Pythia6 StatTest TBB XQuartzGL)
+foreach(_mod FLUKAInterface HepMC Pythia6 Pythia8 StatTest TBB XQuartzGL)
   configure_file(
     ${PROJECT_SOURCE_DIR}/cmake/Modules/Find${_mod}.cmake
     ${PROJECT_BINARY_DIR}/Modules/Find${_mod}.cmake
@@ -206,17 +206,11 @@ configure_file(
   COPYONLY
   )
 
-configure_file(
-  ${PROJECT_SOURCE_DIR}/cmake/Templates/UseGeant4_internal.cmake
-  ${PROJECT_BINARY_DIR}/UseGeant4_internal.cmake
-  COPYONLY
-  )
-
 #-----------------------------------------------------------------------
 # - Generate Install Tree Configuration Files
 #-----------------------------------------------------------------------
 # Set needed variables for the install tree
-set(GEANT4_CMAKE_DIR ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}-${${PROJECT_NAME}_VERSION})
+set(GEANT4_CMAKE_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
 # Header path for install tree is dependent on whether we have a relocatable
 # install.
@@ -238,7 +232,8 @@ else()
 get_filename_component(Geant4_INCLUDE_DIR \"\${_geant4_thisdir}/${GEANT4_RELATIVE_HEADER_PATH}\" ABSOLUTE)
   ")
 endif()
-
+# Builtin PTL is self located
+set(PACKAGE_PTL_PREFIX "${PTL_INSTALLTREE_PREFIX}")
 # Geant4 data used in install tree
 geant4_export_datasets(INSTALL GEANT4_DATASET_DESCRIPTIONS)
 
@@ -264,7 +259,6 @@ install(FILES
   ${PROJECT_BINARY_DIR}/G4EXPATShim.cmake
   ${PROJECT_BINARY_DIR}/G4FreetypeShim.cmake
   ${PROJECT_BINARY_DIR}/G4HDF5Shim.cmake
-  ${PROJECT_BINARY_DIR}/G4VecGeomShim.cmake
   ${PROJECT_BINARY_DIR}/G4MotifShim.cmake
   ${PROJECT_BINARY_DIR}/G4X11Shim.cmake
   ${PROJECT_SOURCE_DIR}/cmake/Templates/UseGeant4.cmake
@@ -272,8 +266,9 @@ install(FILES
   COMPONENT Development
   )
 
-# Install the package settings file if required (always for now)
-option(GEANT4_INSTALL_PACKAGE_CACHE "Install file recording build-time locations of required packages" ON)
+# Install the package settings file if required
+# Default to OFF because it's a hand-holding solution that hinders more than helps.
+option(GEANT4_INSTALL_PACKAGE_CACHE "Install file recording build-time locations of required packages" OFF)
 mark_as_advanced(GEANT4_INSTALL_PACKAGE_CACHE)
 if(GEANT4_INSTALL_PACKAGE_CACHE)
   install(FILES ${PROJECT_BINARY_DIR}/Geant4PackageCache.cmake

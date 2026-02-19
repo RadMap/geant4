@@ -31,10 +31,6 @@
 //                       Collection of routines to facilitate
 //                       the addition of simple push button boxes,
 //                       and slider bars to the control panel.
-//
-// See G4OpenGLXmConvenienceRoutines.hh for more information.
-
-#ifdef G4VIS_BUILD_OPENGLXM_DRIVER
 
 #include "G4OpenGLXmViewer.hh"
 
@@ -47,6 +43,8 @@
 #include <Xm/Scale.h>
 
 #include <sstream>
+
+const G4String G4OpenGLXmViewer::e_str = "";
 
 void G4OpenGLXmViewer::Add_four_arrow_buttons (G4OpenGLXmViewer* pView,
 					     XtCallbackRec** arrow_callbacks,
@@ -201,7 +199,7 @@ void G4OpenGLXmViewer::Add_radio_box (char* label_string,
 				    char** button_names,
 				    G4OpenGLXmViewer* pView)
 {
-  XmString button_str = XmStringCreateLocalized((char*) ""); // ...to
+  XmString button_str = XmStringCreateLocalized((char*) e_str.c_str());
   // initialise to something to avoid pedantic warning.
   Arg** args;
   args = new Arg* [num_buttons];
@@ -322,7 +320,7 @@ void G4OpenGLXmViewer::Add_set_field (char* w_name,
   XmStringFree (local_text);
 
   char initial[50];
-  sprintf (initial, "%6.2f", *val);
+  snprintf (initial, sizeof initial, "%6.2f", *val);
   
   *wid = XtVaCreateManagedWidget (text_field_name,
 				  xmTextFieldWidgetClass,
@@ -394,7 +392,7 @@ void G4OpenGLXmViewer::Add_slider_box (char* label_string,
 				     XtCallbackRec** slider_box_callbacks,
 				     Widget* parent_widget)
 {
-  XmString slider_name_str = XmStringCreateLocalized((char*) ""); // ...to
+  XmString slider_name_str = XmStringCreateLocalized((char*) e_str.c_str());
   // initialise to something to avoid pedantic warning.
   Arg** slider_args;
   slider_args = new Arg*[num_sliders];
@@ -526,9 +524,7 @@ void G4OpenGLXmViewer::get_text_callback (Widget w,
 		 XmNvalue, &string,
 		 NULL);
 
-//  sscanf (string, "%s", txt);
-  std::istringstream iss(string);
-  iss >> txt;
+  strcpy(txt, string);
 }
 
 G4bool G4OpenGLXmViewer::get_boolean_userData (Widget w)
@@ -544,10 +540,3 @@ G4int G4OpenGLXmViewer::get_int_userData (Widget w)
   XtVaGetValues (w,XmNuserData,&userData,NULL);
   return (G4int)(unsigned long)userData;
 }
-
-#endif
-
-
-
-
-

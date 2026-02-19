@@ -23,18 +23,13 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G04/include/G04PrimaryGeneratorAction.hh
+/// \file G04PrimaryGeneratorAction.hh
 /// \brief Definition of the G04PrimaryGeneratorAction class
-//
-//
-//
-//
 
 #ifndef _G04PRIMARYGENERATORACTION_H_
 #define _G04PRIMARYGENERATORACTION_H_
 
 #include "G4VUserPrimaryGeneratorAction.hh"
-
 #include "globals.hh"
 
 class G4Event;
@@ -45,14 +40,12 @@ class G4ParticleGun;
 class G04PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-
     G04PrimaryGeneratorAction();
-   ~G04PrimaryGeneratorAction();
+    ~G04PrimaryGeneratorAction();
 
-   virtual void GeneratePrimaries(G4Event* anEvent);
+    virtual void GeneratePrimaries(G4Event* anEvent);
 
   private:
-
     G4ParticleGun* fParticleGun;
 };
 

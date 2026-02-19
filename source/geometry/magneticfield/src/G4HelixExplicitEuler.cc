@@ -30,7 +30,7 @@
 //  Most simple approach for solving linear differential equations.
 //  Take the current derivative and add it to the current position.
 //
-// Author: W.Wander <wwc@mit.edu>, 12.09.1997
+// Author: W.Wander (MIT), 03.11.1998
 // -------------------------------------------------------------------
 
 #include "G4HelixExplicitEuler.hh"
@@ -42,14 +42,10 @@ G4HelixExplicitEuler::G4HelixExplicitEuler(G4Mag_EqRhs* EqRhs)
 {
 }
  
-G4HelixExplicitEuler::~G4HelixExplicitEuler()
-{
-}
-
-void G4HelixExplicitEuler::Stepper( const G4double  yInput[7],
+void G4HelixExplicitEuler::Stepper( const G4double  yInput[],  // [7]
                                     const G4double*,
                                           G4double Step,
-                                          G4double yOut[7],
+                                          G4double yOut[],     // [7]
                                           G4double yErr[] )
 {
   // Estimation of the Stepping Angle
@@ -94,7 +90,6 @@ G4double G4HelixExplicitEuler::DistChord()   const
   //
   G4double distChord;
   G4double Ang_curve=GetAngCurve();
-
 
   if(Ang_curve<=pi)
   {

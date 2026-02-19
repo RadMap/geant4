@@ -23,21 +23,13 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm10/include/SensitiveDetector.hh
+/// \file SensitiveDetector.hh
 /// \brief Definition of the SensitiveDetector class
-//
-//
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef SensitiveDetector_h
 #define SensitiveDetector_h 1
 
 #include "G4VSensitiveDetector.hh"
-
 #include "globals.hh"
 
 class DetectorConstruction;
@@ -52,15 +44,14 @@ class SensitiveDetector : public G4VSensitiveDetector
 {
   public:
     SensitiveDetector(G4String);
-     ~SensitiveDetector();
+    ~SensitiveDetector();
 
-    virtual void   Initialize(G4HCofThisEvent*);
-    virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
-    virtual  void  EndOfEvent(G4HCofThisEvent*);
+    virtual void Initialize(G4HCofThisEvent*);
+    virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*);
+    virtual void EndOfEvent(G4HCofThisEvent*);
 
   private:
-    G4double  fEdep;
+    G4double fEdep;
 };
 
 #endif
-

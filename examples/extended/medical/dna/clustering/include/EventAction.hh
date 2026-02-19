@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file EventAction.hh
+/// \brief Definition of the EventAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -30,8 +33,6 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file EventAction.hh
-/// \brief Definition of the EventAction class
 
 #ifndef EventAction_h
 #define EventAction_h 1
@@ -43,23 +44,22 @@ class ClusteringAlgo;
 
 class EventAction : public G4UserEventAction
 {
-public:
-  EventAction();
-  ~EventAction();
+  public:
+    EventAction();
+    ~EventAction();
 
-public:
-  virtual void BeginOfEventAction(const G4Event*);
-  virtual void EndOfEventAction(const G4Event*);
+  public:
+    virtual void BeginOfEventAction(const G4Event*);
+    virtual void EndOfEventAction(const G4Event*);
 
-  G4double GetEdep() {return fEdep;};
-  void SetEdep(G4double pVal) {fEdep=pVal;};
-  void AddEdep(G4double pVal) {fEdep+=pVal;};
+    G4double GetEdep() { return fEdep; };
+    void SetEdep(G4double pVal) { fEdep = pVal; };
+    void AddEdep(G4double pVal) { fEdep += pVal; };
 
-  ClusteringAlgo* fpClustering;
+    ClusteringAlgo* fpClustering;
 
-private:
-  G4double  fEdep;
+  private:
+    G4double fEdep;
 };
 
 #endif
-

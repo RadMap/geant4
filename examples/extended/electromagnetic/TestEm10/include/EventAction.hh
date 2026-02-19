@@ -23,15 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm10/include/EventAction.hh
+/// \file EventAction.hh
 /// \brief Definition of the EventAction class
-//
-//
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef EventAction_h
 #define EventAction_h 1
@@ -50,15 +43,13 @@ class EventAction : public G4UserEventAction
     ~EventAction();
 
     virtual void BeginOfEventAction(const G4Event*);
-    virtual void   EndOfEventAction(const G4Event*);
+    virtual void EndOfEventAction(const G4Event*);
 
-    void  SetVerboseLevel(G4int level) { fVerboseLevel = level; }
-        
+    void SetVerboseLevel(G4int level) { fVerboseLevel = level; }
+
   private:
     RunAction* fRunAction;
-    G4int      fVerboseLevel;
+    G4int fVerboseLevel;
 };
 
 #endif
-
-    

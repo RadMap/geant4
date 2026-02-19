@@ -23,97 +23,90 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4DecayProducts
 //
+// Class description:
 //
-//
-// ------------------------------------------------------------
-//      GEANT 4 class header file
-//
-//      History: first implementation, based on object model of
-//      12 Dec 1997 H.Kurashige
-//
-//      Use std::vector 4  Apr. 2012  H.Kurashige
-// ------------------------------------------------------------
+// Container for decay products of dynamic particles
 
-#ifndef G4DecayProducts_h
-#define G4DecayProducts_h 1
+// Author: H.Kurashige, 12 July 1996
+// --------------------------------------------------------------------
+#ifndef G4DecayProducts_hh
+#define G4DecayProducts_hh 1
 
+#include "G4DynamicParticle.hh"
 #include "G4ios.hh"
 #include "globals.hh"
-#include "G4DynamicParticle.hh"
-#include  <vector>
+
+#include <vector>
 
 class G4DecayProducts
 {
-  public: // With Description
-
-    // constructors
+  public:
+    // Constructors
     G4DecayProducts();
-    G4DecayProducts(const G4DynamicParticle &aParticle);
+    G4DecayProducts(const G4DynamicParticle& aParticle);
 
-  public: 
-    // copy constructor and assignment operator 
-    //   Deep    copy: for G4DynamicParticle pointer
-    G4DecayProducts(const G4DecayProducts &right);
-    G4DecayProducts & operator=(const G4DecayProducts &right);
+    // Copy constructor and assignment operator
+    // Deep copy: for G4DynamicParticle pointer
+    G4DecayProducts(const G4DecayProducts& right);
+    G4DecayProducts& operator=(const G4DecayProducts& right);
 
-    //destructor
+    // Destructor
     ~G4DecayProducts();
 
-    // (un)equal operator
-    G4bool operator==(const G4DecayProducts &right) const;
-    G4bool operator!=(const G4DecayProducts &right) const;
+    // Equality operators
+    inline G4bool operator==(const G4DecayProducts& right) const;
+    inline G4bool operator!=(const G4DecayProducts& right) const;
 
-  public: // With Description
-   //  set-get methods for the parent particle   
-   //    theParentPaticle is used to get information of parent particle 
-   //    when decay products are filled 
-   //    new G4DynamicParticle object is created in set methods  
-    const G4DynamicParticle* GetParentParticle() const {return theParentParticle;};
-    void SetParentParticle(const G4DynamicParticle &aParticle);
+    // Set-get methods for the parent particle; theParentPaticle is used
+    // to get information of parent particle when decay products are filled.
+    // New G4DynamicParticle object is created in set methods
+    inline const G4DynamicParticle* GetParentParticle() const;
+    void SetParentParticle(const G4DynamicParticle& aParticle);
 
-   //  boost all products
-    void Boost(G4double totalEnergy, const G4ThreeVector &momentumDirection);
+    // Boost all products
+    void Boost(G4double totalEnergy, const G4ThreeVector& momentumDirection);
     void Boost(G4double betax, G4double betay, G4double betaz);
- 
-  //   push-pop  methods for decay products pointer
+
+    // Push/pop methods for decay products pointer
     G4DynamicParticle* PopProducts();
-    G4int PushProducts(G4DynamicParticle *aParticle);
+    G4int PushProducts(G4DynamicParticle* aParticle);
 
     G4DynamicParticle* operator[](G4int anIndex) const;
 
-    G4int entries() const {return numberOfProducts;};
+    inline G4int entries() const { return numberOfProducts; }
 
-  // check energy/momentum of products 
-    G4bool IsChecked() const; 
-   
-  // 
+    // Check energy/momentum of products
+    G4bool IsChecked() const;
+
     void DumpInfo() const;
 
-    typedef std::vector<G4DynamicParticle*>  G4DecayProductVector;
+    using G4DecayProductVector = std::vector<G4DynamicParticle*>;
 
-  private: 
-    G4int                               numberOfProducts;
-    G4DynamicParticle*                  theParentParticle;
-    G4DecayProductVector*               theProductVector;
-
+  private:
+    G4int numberOfProducts = 0;
+    G4DynamicParticle* theParentParticle = nullptr;
+    G4DecayProductVector* theProductVector = nullptr;
 };
 
 // ------------------------
-// Inlined operators
+// Inline methods
 // ------------------------
 
-inline 
- G4bool G4DecayProducts::operator==(const G4DecayProducts &right) const
+inline G4bool G4DecayProducts::operator==(const G4DecayProducts& right) const
 {
-  return (this == (G4DecayProducts *) &right);
+  return (this == (G4DecayProducts*)&right);
 }
 
-inline 
- G4bool G4DecayProducts::operator!=(const G4DecayProducts &right) const
+inline G4bool G4DecayProducts::operator!=(const G4DecayProducts& right) const
 {
-  return (this != (G4DecayProducts *) &right);
+  return (this != (G4DecayProducts*)&right);
+}
+
+inline const G4DynamicParticle* G4DecayProducts::GetParentParticle() const
+{
+  return theParentParticle;
 }
 
 #endif
-

@@ -42,12 +42,7 @@
 // ----------------------------------------------------------------------------
 
 #include "G4Types.hh"
-
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
+#include "G4RunManagerFactory.hh"
 
 #include "G4UImanager.hh"
 #include "G4UIterminal.hh"
@@ -76,15 +71,12 @@
 int main(int argc ,char ** argv)
 {
 
-  G4Random::setTheEngine(new CLHEP::RanecuEngine);
   G4int seconds =  time(NULL);
   G4Random::setTheSeed(seconds);
 
-#ifdef G4MULTITHREADED
-  G4MTRunManager * runManager = new G4MTRunManager;
-#else
-  G4RunManager * runManager = new G4RunManager;
-#endif
+  auto* runManager = G4RunManagerFactory::CreateRunManager();
+  G4int nThreads = 4;
+  runManager->SetNumberOfThreads(nThreads);
 
   G4ScoringManager::GetScoringManager(); // This enables scoring
 
@@ -141,17 +133,14 @@ int main(int argc ,char ** argv)
 
     UImanager->ApplyCommand("/control/execute defaultMacro.mac");
 
-    UImanager->ApplyCommand("/control/execute batch.mac");
-
     ui->SessionStart();
     delete ui;
 
   }
-
-  delete visManager;
-
-  delete runManager;
   delete controller;
+  delete visManager;
+  delete runManager;
+ 
 
   return 0;
 }

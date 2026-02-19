@@ -23,32 +23,28 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file RunAction.cc
 /// \brief Implementation of the RunAction class
 
 #include "RunAction.hh"
-#include "Analysis.hh"
 
+#include "G4AnalysisManager.hh"
 #include "G4Run.hh"
 #include "G4RunManager.hh"
-#include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4UnitsTable.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::RunAction(const G4String& fileName)
- : G4UserRunAction(),
-   fFileName(fileName)
-{ 
+RunAction::RunAction(const G4String& fileName) : fFileName(fileName)
+{
   // Create analysis manager
-  // The choice of analysis technology is done via selectin of a namespace
-  // in Analysis.hh
   auto analysisManager = G4AnalysisManager::Instance();
-  G4cout << "Using " << analysisManager->GetType() << G4endl;
+  analysisManager->SetDefaultFileType("root");
   analysisManager->SetVerboseLevel(1);
   analysisManager->SetNtupleMerging(true);
-     // Note: merging ntuples is available only with Root output
+  G4cout << "Using " << analysisManager->GetType() << G4endl;
+  // Note: merging ntuples is available only with Root output
 
   // Set default fileName
   analysisManager->SetFileName(fFileName);
@@ -56,26 +52,19 @@ RunAction::RunAction(const G4String& fileName)
   // Create ntuple
   //
   analysisManager->CreateNtuple("Screen", "Screen hits");
-  analysisManager->CreateNtupleIColumn("ID");      // column id = 0
-  analysisManager->CreateNtupleIColumn("PDG");     // column id = 1
-  analysisManager->CreateNtupleDColumn("Ekin");    // column id = 2
-  analysisManager->CreateNtupleDColumn("Xpos");    // column id = 3 
-  analysisManager->CreateNtupleDColumn("Ypos");    // column id = 4
-  analysisManager->CreateNtupleDColumn("time");    // column id = 5
+  analysisManager->CreateNtupleIColumn("ID");  // column id = 0
+  analysisManager->CreateNtupleIColumn("PDG");  // column id = 1
+  analysisManager->CreateNtupleDColumn("Ekin");  // column id = 2
+  analysisManager->CreateNtupleDColumn("Xpos");  // column id = 3
+  analysisManager->CreateNtupleDColumn("Ypos");  // column id = 4
+  analysisManager->CreateNtupleDColumn("time");  // column id = 5
   analysisManager->FinishNtuple();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::~RunAction()
-{
-  delete G4AnalysisManager::Instance();  
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 void RunAction::BeginOfRunAction(const G4Run* /*run*/)
-{ 
+{
   // Get analysis manager
   auto analysisManager = G4AnalysisManager::Instance();
 

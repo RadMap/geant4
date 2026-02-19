@@ -23,10 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file RE06/include/RE06PrimaryGeneratorAction.hh
+/// \file RE06PrimaryGeneratorAction.hh
 /// \brief Definition of the RE06PrimaryGeneratorAction class
-//
-//
 
 #ifndef RE06PrimaryGeneratorAction_h
 #define RE06PrimaryGeneratorAction_h 1
@@ -40,7 +38,7 @@ class G4Event;
 class RE06PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-    RE06PrimaryGeneratorAction();    
+    RE06PrimaryGeneratorAction();
     virtual ~RE06PrimaryGeneratorAction();
 
     virtual void GeneratePrimaries(G4Event*);
@@ -49,10 +47,7 @@ class RE06PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 
   private:
     G4ParticleGun* fParticleGun;
-    G4bool         fSerial;
+    G4bool fSerial;
 };
 
-
 #endif
-
-

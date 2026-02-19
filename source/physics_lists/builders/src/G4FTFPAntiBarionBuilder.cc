@@ -35,106 +35,10 @@
 //----------------------------------------------------------------------------
 //
 #include "G4FTFPAntiBarionBuilder.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4ParticleTable.hh"
-#include "G4ProcessManager.hh"
-#include "G4ComponentAntiNuclNuclearXS.hh"  // For anti-ions
-#include "G4CrossSectionInelastic.hh"
-#include "G4CrossSectionDataSetRegistry.hh"
-#include "G4HadronicParameters.hh"
+#include "G4HadronicBuilder.hh"
 
-G4FTFPAntiBarionBuilder::
-G4FTFPAntiBarionBuilder(G4bool quasiElastic) 
+void G4FTFPAntiBarionBuilder::Build()
 {
-  G4CrossSectionDataSetRegistry* xsreg = G4CrossSectionDataSetRegistry::Instance();
-  theAntiNucleonXS = xsreg->GetComponentCrossSection("AntiAGlauber");
-  if(!theAntiNucleonXS) { theAntiNucleonXS = new G4ComponentAntiNuclNuclearXS(); }
-  theAntiNucleonData = new G4CrossSectionInelastic(theAntiNucleonXS);
-
-  theMin =   0.0*GeV;
-  theMax = G4HadronicParameters::Instance()->GetMaxEnergy();
-  theModel = new G4TheoFSGenerator("FTFP");
-
-  theStringModel = new G4FTFModel;
-  theStringDecay = new G4ExcitedStringDecay(theLund = new G4LundStringFragmentation);
-  theStringModel->SetFragmentationModel(theStringDecay);
-
-  theCascade = new G4GeneratorPrecompoundInterface();
-
-  theModel->SetHighEnergyGenerator(theStringModel);
-  if (quasiElastic)
-  {
-     theQuasiElastic=new G4QuasiElasticChannel;
-     theModel->SetQuasiElasticChannel(theQuasiElastic);
-  } else 
-  {  theQuasiElastic=0;}  
-
-  theModel->SetTransport(theCascade);
-  theModel->SetMinEnergy(theMin);
-  theModel->SetMaxEnergy(theMax);
-}
-
-G4FTFPAntiBarionBuilder::~G4FTFPAntiBarionBuilder() 
-{
-  delete theStringDecay;
-  //delete theStringModel;
-  //delete theModel;
-  if ( theQuasiElastic ) delete theQuasiElastic;
-  delete theLund;
-}
-
-void G4FTFPAntiBarionBuilder::
-Build(G4AntiProtonInelasticProcess * aP)
-{
-  theModel->SetMinEnergy(theMin);
-  theModel->SetMaxEnergy(theMax);
-  aP->AddDataSet(theAntiNucleonData);
-  aP->RegisterMe(theModel);
-}
-
-void G4FTFPAntiBarionBuilder::
-Build(G4AntiNeutronInelasticProcess * aP)
-{
-  theModel->SetMinEnergy(theMin);
-  theModel->SetMaxEnergy(theMax);
-  aP->AddDataSet(theAntiNucleonData);
-  aP->RegisterMe(theModel);
-}
-
-void G4FTFPAntiBarionBuilder::
-Build(G4AntiDeuteronInelasticProcess * aP)
-{
-  theModel->SetMinEnergy(theMin);
-  theModel->SetMaxEnergy(theMax);
-  aP->AddDataSet(theAntiNucleonData);
-  aP->RegisterMe(theModel);
-}
-
-void G4FTFPAntiBarionBuilder::
-Build(G4AntiTritonInelasticProcess * aP)
-{
-  theModel->SetMinEnergy(theMin);
-  theModel->SetMaxEnergy(theMax);
-  aP->AddDataSet(theAntiNucleonData);
-  aP->RegisterMe(theModel);
-}
-
-void G4FTFPAntiBarionBuilder::
-Build(G4AntiHe3InelasticProcess * aP)
-{
-  theModel->SetMinEnergy(theMin);
-  theModel->SetMaxEnergy(theMax);
-  aP->AddDataSet(theAntiNucleonData);
-  aP->RegisterMe(theModel);
-}
-
-void G4FTFPAntiBarionBuilder::
-Build(G4AntiAlphaInelasticProcess * aP)
-{
-  theModel->SetMinEnergy(theMin);
-  theModel->SetMaxEnergy(theMax);
-  aP->AddDataSet(theAntiNucleonData);
-  aP->RegisterMe(theModel);
+  G4HadronicBuilder::BuildAntiLightIonsFTFP();
 }
 

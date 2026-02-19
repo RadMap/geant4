@@ -23,8 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-#ifdef G4VIS_BUILD_OI_DRIVER
-
 /*----------------------------HEPVis----------------------------------------*/
 /*                                                                          */
 /* Node:             SbPainterPS                                            */
@@ -467,7 +465,7 @@ void SbPainterPS::putInStreamF(
   va_start(args,aFormat);
   printV(aFormat,args);
   va_end(args);
-  int length = ::strlen(fBufferString);
+  int length = (int)strlen(fBufferString);
   if(length>METAFILE_RECORD_LENGTH) {
     ::printf("SoPostScript::putInStreamF overflow\n");
     return;
@@ -525,7 +523,7 @@ void SbPainterPS::printV(
     if(fBufferString==NULL) return;
   }
   fBufferString[MAX_STR-1]  = '\0';
-  ::vsprintf(fBufferString,This,aArgs);
+  ::vsnprintf(fBufferString,MAX_STR-1, This,aArgs);
   if(fBufferString[MAX_STR-1]!='\0') {
     ::printf("SbPainterPS::printV overflow\n");
     fBufferString[0] = '\0';
@@ -1051,5 +1049,3 @@ double ConvertRGB_ToGrey(
 {
   return (0.30 * a_red + 0.59 * a_green + 0.11 * a_blue);
 }
-
-#endif

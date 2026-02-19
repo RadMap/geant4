@@ -41,8 +41,7 @@
 // The G4AttValue is further defined in a G4AttDef object.
 // The association between the G4AttValue and the G4AttDef object is
 // made through the data member "name".
-// For details, see the HepRep home page at http://heprep.freehep.org
-//  
+//
 // @author M.Frailis 
 // @author R.Giannitrapani
 // @author J.Perl
@@ -57,8 +56,9 @@
                const G4String& showLabel): 
       m_name(name),m_value(value),
       m_showLabel(showLabel){};
-    G4AttValue(){};
-    
+    G4AttValue()= default;
+    ~G4AttValue()= default;
+
     const G4String& GetName()const{return m_name;};
     const G4String& GetValue()const{return m_value;};
     const G4String& GetShowLabel()const{return m_showLabel;};

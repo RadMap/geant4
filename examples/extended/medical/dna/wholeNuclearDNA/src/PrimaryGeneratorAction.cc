@@ -23,26 +23,27 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PrimaryGeneratorAction.cc
+/// \brief Implementation of the PrimaryGeneratorAction class
+
 // This example is provided by the Geant4-DNA collaboration
-// Any report or published results obtained using the Geant4-DNA software 
-// and the DNA geometry given in the Geom_DNA example 
+// Any report or published results obtained using the Geant4-DNA software
+// and the DNA geometry given in the Geom_DNA example
 // shall cite the following Geant4-DNA collaboration publications:
 // [1] NIM B 298 (2013) 47-54
 // [2] Med. Phys. 37 (2010) 4692-4708
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/// \file PrimaryGeneratorAction.cc
-/// \brief Implementation of the PrimaryGeneratorAction class
 
 #include "PrimaryGeneratorAction.hh"
+
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PrimaryGeneratorAction::PrimaryGeneratorAction()
-    : G4VUserPrimaryGeneratorAction(), fpParticleGun(0)
+PrimaryGeneratorAction::PrimaryGeneratorAction() : G4VUserPrimaryGeneratorAction(), fpParticleGun(0)
 {
   G4int n_particle = 1;
   fpParticleGun = new G4ParticleGun(n_particle);
@@ -50,7 +51,6 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
   // default gun parameters
   fpParticleGun->SetParticleEnergy(1. * keV);
   fpParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -62,13 +62,12 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void
-PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
+void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
   G4double x0, y0, z0;
 
-  x0 = ((16.0 * G4UniformRand())-8.0)*micrometer;
-  y0 = ((8.0 * G4UniformRand())-4.0)*micrometer;
+  x0 = ((16.0 * G4UniformRand()) - 8.0) * micrometer;
+  y0 = ((8.0 * G4UniformRand()) - 4.0) * micrometer;
   z0 = -2.99 * micrometer;
   fpParticleGun->SetParticlePosition(G4ThreeVector(x0, y0, z0));
   fpParticleGun->GeneratePrimaryVertex(anEvent);

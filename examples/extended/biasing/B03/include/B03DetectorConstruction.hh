@@ -23,42 +23,37 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file biasing/B03/include/B03DetectorConstruction.hh
+/// \file B03DetectorConstruction.hh
 /// \brief Definition of the B03DetectorConstruction class
-//
-//
-//
 
 #ifndef B03DetectorConstruction_hh
 #define B03DetectorConstruction_hh B03DetectorConstruction_hh
 
-#include "globals.hh"
 #include "G4VUserDetectorConstruction.hh"
+#include "globals.hh"
 
 class G4VPhysicalVolume;
 class G4IStore;
 
 class B03DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
-  B03DetectorConstruction();
-  ~B03DetectorConstruction();
-  
-  virtual G4VPhysicalVolume* Construct();
+  public:
+    B03DetectorConstruction();
+    ~B03DetectorConstruction();
 
-  G4VPhysicalVolume* GetWorldVolume();
-  G4VPhysicalVolume& GetWorldVolumeAddress() const;
+    virtual G4VPhysicalVolume* Construct();
 
-  //  G4String GetCellName(G4int i);
+    G4VPhysicalVolume* GetWorldVolume();
+    G4VPhysicalVolume& GetWorldVolumeAddress() const;
 
-  void SetSensitive();
+    //  G4String GetCellName(G4int i);
 
-  //  virtual void ConstructSDandField();
+    void SetSensitive();
 
-private:
+    //  virtual void ConstructSDandField();
 
-  G4VPhysicalVolume* fWorldVolume;
-
+  private:
+    G4VPhysicalVolume* fWorldVolume;
 };
 
 #endif

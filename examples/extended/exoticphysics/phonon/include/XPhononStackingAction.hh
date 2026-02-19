@@ -23,31 +23,25 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file exoticphysics/phonon/include/XPhononStackingAction.hh
+/// \file XPhononStackingAction.hh
 /// \brief Definition of the XPhononStackingAction class
-//
-//
+
 #ifndef XPhononStackingAction_h
 #define XPhononStackingAction_h 1
 
-#include "globals.hh"
 #include "G4UserStackingAction.hh"
+#include "globals.hh"
 
 class G4Track;
 
 class XPhononStackingAction : public G4UserStackingAction
 {
-public:
-  XPhononStackingAction();
-  virtual ~XPhononStackingAction();
+  public:
+    XPhononStackingAction();
+    virtual ~XPhononStackingAction();
 
-public:
-  virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack);
-
+  public:
+    virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack);
 };
-
-
-
-
 
 #endif

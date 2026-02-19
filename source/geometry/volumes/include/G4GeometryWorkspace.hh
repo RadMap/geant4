@@ -40,20 +40,25 @@
 //       classes to work with multi-threading. 
 
 // Authors: John Apostolakis (CERN), Andrea Dotti (SLAC), July 2013
-// ------------------------------------------------------------
-
+// --------------------------------------------------------------------
 #ifndef G4GEOMETRYWORKSPACE_HH
 #define G4GEOMETRYWORKSPACE_HH
 
 #include "G4TWorkspacePool.hh"
-#include "G4PVReplica.hh"
-#include "G4PVParameterised.hh"
-#include "G4VPVParameterisation.hh"
-#include "G4PhysicalVolumeStore.hh"
-#include "G4VSolid.hh"
 
+// Headers defining MT "manager" types
+//
+#include "G4PVReplica.hh"
+#include "G4VSolid.hh"
 #include "G4LogicalVolume.hh"
 #include "G4Region.hh"
+
+/**
+ * @brief G4GeometryWorkspace is a class managing the per-thread state of the
+ * geometry, spanning those which have a per-thread state and their dependents.
+ * In particular, it owns the arrays that implement 'split' classes and owns
+ * classes/objects which are owned by the split classes.
+ */
 
 class G4GeometryWorkspace
 {
@@ -61,25 +66,41 @@ class G4GeometryWorkspace
  
     using pool_type = G4TWorkspacePool<G4GeometryWorkspace>;
 
+    /**
+     * Constructor and default Destructor.
+     */
     G4GeometryWorkspace();
-   ~G4GeometryWorkspace();
+   ~G4GeometryWorkspace() = default;
 
+    /**
+     * Methods for the handling of the workspace.
+     * To take/release ownership and destroy.
+     */
     void UseWorkspace();     // Take ownership
     void ReleaseWorkspace(); // Release ownership
     void DestroyWorkspace(); // Release ownership and destroy
 
+    /**
+     * Initialisation of the workspace.
+     * To be called at start of each run (especially 2nd and further runs).
+     */
     void InitialiseWorkspace();
-      // To be called at start of each run (especially 2nd and further runs)
 
-    inline void   SetVerbose(G4bool v) { fVerbose = v; } 
-    inline G4bool GetVerbose()  { return fVerbose; } 
-
+    /**
+     * Static accessor returning the global geometry pool.
+     */
     static pool_type* GetPool();
   
   protected:  // Implementation methods
 
+    /**
+     * Initialises the workspace for all physical volumes in the store.
+     */
     void InitialisePhysicalVolumes();
-    G4bool CloneParameterisedSolids( G4PVParameterised* paramVol );
+
+    /**
+     * Creates a clone of the solid for the given replica in this thread.
+     */
     G4bool CloneReplicaSolid( G4PVReplica* );
   
   private:    // Helper pointers - can be per instance or shared
@@ -97,8 +118,6 @@ class G4GeometryWorkspace
     G4PVData*      fPhysicalVolumeOffset;
     G4ReplicaData* fReplicaOffset;       
     G4RegionData*  fRegionOffset;        
-
-    G4bool         fVerbose = false;
 };
 
 #endif

@@ -23,19 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/electronScattering/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef RunAction_h
 #define RunAction_h 1
 
 #include "G4UserRunAction.hh"
-
 #include "globals.hh"
+
 #include <vector>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -50,22 +46,21 @@ class HistoManager;
 class RunAction : public G4UserRunAction
 {
   public:
-    RunAction(DetectorConstruction*, PrimaryGeneratorAction* prim=0);
-   ~RunAction();
+    RunAction(DetectorConstruction*, PrimaryGeneratorAction* prim = 0);
+    ~RunAction();
 
   public:
-    virtual void   BeginOfRunAction(const G4Run*);
-    virtual void   EndOfRunAction(const G4Run*);
+    virtual void BeginOfRunAction(const G4Run*);
+    virtual void EndOfRunAction(const G4Run*);
     virtual G4Run* GenerateRun();
 
   private:
-    DetectorConstruction*   fDetector;
+    DetectorConstruction* fDetector;
     PrimaryGeneratorAction* fPrimary;
-    HistoManager*           fHistoManager;
-    Run*                    fRun;
+    HistoManager* fHistoManager;
+    Run* fRun;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

@@ -23,22 +23,22 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file PrimaryGeneratorAction.hh
 /// \brief Definition of the PrimaryGeneratorAction class
 
 #pragma once
 #include "G4VUserPrimaryGeneratorAction.hh"
-#include <memory>
-class G4ParticleGun;
+#include "G4ParticleGun.hh"
 
-class PrimaryGeneratorAction
-    : public G4VUserPrimaryGeneratorAction
+#include <memory>
+
+class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
+  public:
     PrimaryGeneratorAction();
-    ~PrimaryGeneratorAction() override;
+    ~PrimaryGeneratorAction() override = default;
     void GeneratePrimaries(G4Event* event) override;
-private:
+
+  private:
     std::unique_ptr<G4ParticleGun> fpParticleGun;
 };

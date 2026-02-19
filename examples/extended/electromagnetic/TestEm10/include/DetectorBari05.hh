@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm10/include/DetectorBari05.hh
+/// \file DetectorBari05.hh
 /// \brief Definition of the DetectorBari05 class
-//
-//
-//
+
 // Setup for Bari INFN XTR test beam (~2004) at CERN. With He beam-pipe
 // M. Brigida et al, NIM A550 (2005) 157-168
 // Runs by : TestEm10 bari05.mac
@@ -35,13 +33,13 @@
 #ifndef DetectorBari05_h
 #define DetectorBari05_h 1
 
-#include "globals.hh"
-
 #include "RadiatorDescription.hh"
+
+#include "globals.hh"
 
 class G4VPhysicalVolume;
 
-class DetectorBari05 
+class DetectorBari05
 {
   public:
     DetectorBari05();
@@ -55,7 +53,7 @@ class DetectorBari05
 
   private:
     // data members
-    RadiatorDescription* fRadiatorDescription; 
+    RadiatorDescription* fRadiatorDescription;
 };
 
 #endif

@@ -48,6 +48,7 @@
 
 #include "G4ASTARStopping.hh" 
 #include "G4NISTStoppingData.hh" 
+#include "G4EmParameters.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -62,7 +63,7 @@ G4ASTARStopping::G4ASTARStopping() : nvectors(0), emin(CLHEP::keV)
 G4ASTARStopping::~G4ASTARStopping()
 {
   if(0 < nvectors) {
-    for(size_t i=0; i<nvectors; ++i) { delete sdata[i]; }
+    for(G4int i=0; i<nvectors; ++i) { delete sdata[i]; }
   }
 }
 
@@ -81,8 +82,8 @@ void G4ASTARStopping::PrintWarning(G4int i) const
 void G4ASTARStopping::Initialise()
 {
   // this method may be called several times during initialisation
-  G4int nmat = G4Material::GetNumberOfMaterials();
-  if(nmat == (G4int)nvectors) { return; }
+  G4int nmat = (G4int)G4Material::GetNumberOfMaterials();
+  if(nmat == nvectors) { return; }
 
   // loop via material list to add extra data
   G4int j;
@@ -90,7 +91,7 @@ void G4ASTARStopping::Initialise()
     const G4Material* mat = (*(G4Material::GetMaterialTable()))[i];
 
     G4bool isThere = false;  
-    for(j=0; j<(G4int)nvectors; ++j) {
+    for(j=0; j<nvectors; ++j) {
       if(mat == materials[j]) {
 	isThere = true;
 	break;
@@ -351,10 +352,12 @@ static const G4float e73[78] = { 18.11f, 23.3f, 27.86f, 31.99f, 35.83f, 42.84f, 
 
 void G4ASTARStopping::AddData(const G4float* stop, const G4Material* mat)
 {
-  G4LPhysicsFreeVector* v = new G4LPhysicsFreeVector(78, T0[0], T0[77]);
-  for(size_t i=0; i<78; ++i) { v->PutValues(i, T0[i], ((G4double)stop[i])*fac); }
-  v->SetSpline(true);
+  auto v = new G4PhysicsFreeVector(78, true);
+  for(size_t i=0; i<78; ++i) { 
+    v->PutValues(i, T0[i], stop[i]*fac);
+  }
   v->FillSecondDerivatives();
+  v->EnableLogBinSearch(G4EmParameters::Instance()->NumberForFreeVector());
   materials.push_back(mat);
   sdata.push_back(v);
   ++nvectors;

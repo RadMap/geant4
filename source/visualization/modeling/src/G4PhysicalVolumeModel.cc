@@ -33,6 +33,7 @@
 
 #include "G4VGraphicsScene.hh"
 #include "G4VPhysicalVolume.hh"
+#include "G4PhysicalVolumeStore.hh"
 #include "G4VPVParameterisation.hh"
 #include "G4LogicalVolume.hh"
 #include "G4VSolid.hh"
@@ -41,7 +42,6 @@
 #include "G4Material.hh"
 #include "G4VisAttributes.hh"
 #include "G4BoundingExtentScene.hh"
-#include "G4PhysicalVolumeSearchScene.hh"
 #include "G4TransportationManager.hh"
 #include "G4Polyhedron.hh"
 #include "HepPolyhedronProcessor.h"
@@ -50,37 +50,44 @@
 #include "G4AttValue.hh"
 #include "G4UnitsTable.hh"
 #include "G4Vector3D.hh"
+#include "G4Mesh.hh"
 
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
+#include <cmath>
 
-namespace {
-  G4int volumeCount = 0;
-}
+#define G4warn G4cout
 
 G4PhysicalVolumeModel::G4PhysicalVolumeModel
 (G4VPhysicalVolume*            pVPV
  , G4int                       requestedDepth
- , const G4Transform3D&        modelTransformation
+ , const G4Transform3D&        modelTransform
  , const G4ModelingParameters* pMP
  , G4bool                      useFullExtent
  , const std::vector<G4PhysicalVolumeNodeID>& baseFullPVPath)
-: G4VModel           (modelTransformation,pMP)
+: G4VModel           (pMP)
 , fpTopPV            (pVPV)
 , fTopPVCopyNo       (pVPV? pVPV->GetCopyNo(): 0)
 , fRequestedDepth    (requestedDepth)
 , fUseFullExtent     (useFullExtent)
+, fTransform         (modelTransform)
 , fCurrentDepth      (0)
 , fpCurrentPV        (fpTopPV)
 , fCurrentPVCopyNo   (fpTopPV? fpTopPV->GetCopyNo(): 0)
 , fpCurrentLV        (fpTopPV? fpTopPV->GetLogicalVolume(): 0)
 , fpCurrentMaterial  (fpCurrentLV? fpCurrentLV->GetMaterial(): 0)
-, fpCurrentTransform (const_cast<G4Transform3D*>(&modelTransformation))
+, fCurrentTransform  (modelTransform)
 , fBaseFullPVPath    (baseFullPVPath)
+, fFullPVPath        (fBaseFullPVPath)
 , fAbort             (false)
 , fCurtailDescent    (false)
 , fpClippingSolid    (0)
 , fClippingMode      (subtraction)
+, fNClippers         (0)
+, fTotalDrawnTouchables (0)
+, fTotalAllTouchables(0)
+, fMaxFullDepth      (0)
 {
   fType = "G4PhysicalVolumeModel";
 
@@ -128,6 +135,16 @@ G4ModelingParameters::PVNameCopyNoPath G4PhysicalVolumeModel::GetPVNameCopyNoPat
   return PVNameCopyNoPath;
 }
 
+G4String G4PhysicalVolumeModel::GetPVNamePathString
+(const std::vector<G4PhysicalVolumeNodeID>& path)
+// Converts to path string, e.g., " World 0 Envelope 0 Shape1 0".
+// Note leading space character.
+{
+  std::ostringstream oss;
+  oss << path;
+  return oss.str();
+}
+
 void G4PhysicalVolumeModel::CalculateExtent ()
 {
   // To handle paramaterisations, set copy number and compute dimensions
@@ -159,6 +176,7 @@ void G4PhysicalVolumeModel::CalculateExtent ()
        0.,     // Density (not relevant if density culling false).
        true,   // Cull daughters of opaque mothers.
        24);    // No of sides (not relevant for this operation).
+    mParams.SetSpecialMeshRendering(true);  // Avoids traversing parameterisations
     fpMP = &mParams;
     DescribeYourselfTo (beScene);
     fExtent = beScene.GetBoundingExtent();
@@ -170,22 +188,45 @@ void G4PhysicalVolumeModel::CalculateExtent ()
   if (radius < 0.) {  // Nothing in the scene - revert to top extent
     fExtent = fpTopPV -> GetLogicalVolume () -> GetSolid () -> GetExtent ();
   }
+  fExtent.Transform(fTransform);
 }
 
 void G4PhysicalVolumeModel::DescribeYourselfTo
 (G4VGraphicsScene& sceneHandler)
 {
-  if (!fpTopPV) G4Exception
+  if (!fpTopPV) {
+    G4Exception
     ("G4PhysicalVolumeModel::DescribeYourselfTo",
      "modeling0012", FatalException, "No model.");
+    return;  // Should never reach here, but keeps Coverity happy.
+  }
 
-  if (!fpMP) G4Exception
+  if (!fpMP) {
+    G4Exception
     ("G4PhysicalVolumeModel::DescribeYourselfTo",
-     "modeling0003", FatalException, "No modeling parameters.");
+     "modeling0013", FatalException, "No modeling parameters.");
+    return;  // Should never reach here, but keeps Coverity happy.
+  }
+
+  fNClippers = 0;
+  G4DisplacedSolid* pSectionSolid = fpMP->GetSectionSolid();
+  G4DisplacedSolid* pCutawaySolid = fpMP->GetCutawaySolid();
+  if (fpClippingSolid) fNClippers++;
+  if (pSectionSolid)   fNClippers++;
+  if (pCutawaySolid)   fNClippers++;
+  if (fNClippers > 1) {
+    G4ExceptionDescription ed;
+    ed << "More than one solid cutter/clipper:";
+    if (fpClippingSolid) ed << "\nclipper in force";
+    if (pSectionSolid)   ed << "\nsectioner in force";
+    if (pCutawaySolid)   ed << "\ncutaway in force";
+    G4Exception("G4PhysicalVolumeModel::DescribeSolid", "modeling0016", JustWarning, ed);
+  }
 
   G4Transform3D startingTransformation = fTransform;
 
-  volumeCount = 0;
+  fMapDrawnTouchables.clear();  // Keeps count of touchables drawn at each depth
+  fMapAllTouchables.clear();  // Keeps count of all touchables at each depth
 
   VisitGeometryAndGetVisReps
     (fpTopPV,
@@ -193,10 +234,15 @@ void G4PhysicalVolumeModel::DescribeYourselfTo
      startingTransformation,
      sceneHandler);
 
-//  G4cout
-//  << "G4PhysicalVolumeModel::DescribeYourselfTo: volume count: "
-//  << volumeCount
-//  << G4endl;
+  fTotalDrawnTouchables = 0;
+  for (const auto& entry : fMapDrawnTouchables) {
+    fTotalDrawnTouchables += entry.second;
+  }
+
+  fTotalAllTouchables = 0;
+  for (const auto& entry : fMapAllTouchables) {
+    fTotalAllTouchables += entry.second;
+  }
 
   // Reset or clear data...
   fCurrentDepth     = 0;
@@ -215,7 +261,7 @@ G4String G4PhysicalVolumeModel::GetCurrentTag () const
   if (fpCurrentPV) {
     std::ostringstream o;
     o << fpCurrentPV -> GetCopyNo ();
-    return fpCurrentPV -> GetName () + "." + o.str();
+    return fpCurrentPV -> GetName () + ":" + o.str();
   }
   else {
     return "WARNING: NO CURRENT VOLUME - global tag is " + fGlobalTag;
@@ -242,7 +288,6 @@ void G4PhysicalVolumeModel::VisitGeometryAndGetVisReps
   // Find corresponding logical volume and (later) solid, storing in
   // local variables to preserve re-entrancy.
   G4LogicalVolume* pLV  = pVPV -> GetLogicalVolume ();
-
   G4VSolid* pSol = nullptr;
   G4Material* pMaterial = nullptr;
 
@@ -270,18 +315,18 @@ void G4PhysicalVolumeModel::VisitGeometryAndGetVisReps
     G4VPVParameterisation* pP = pVPV -> GetParameterisation ();
     if (pP) {  // Parametrised volume.
       for (int n = nBegin; n < nEnd; n++) {
-	pSol = pP -> ComputeSolid (n, pVPV);
-	pP -> ComputeTransformation (n, pVPV);
-	pSol -> ComputeDimensions (pP, n, pVPV);
-	pVPV -> SetCopyNo (n);
+        pSol = pP -> ComputeSolid (n, pVPV);
+        pP -> ComputeTransformation (n, pVPV);
+        pSol -> ComputeDimensions (pP, n, pVPV);
+        pVPV -> SetCopyNo (n);
         fCurrentPVCopyNo = n;
-	// Create a touchable of current parent for ComputeMaterial.
-	// fFullPVPath has not been updated yet so at this point it
-	// corresponds to the parent.
-	G4PhysicalVolumeModelTouchable parentTouchable(fFullPVPath);
-	pMaterial = pP -> ComputeMaterial (n, pVPV, &parentTouchable);
-	DescribeAndDescend (pVPV, requestedDepth, pLV, pSol, pMaterial,
-			    theAT, sceneHandler);
+        // Create a touchable of current parent for ComputeMaterial.
+        // fFullPVPath has not been updated yet so at this point it
+        // corresponds to the parent.
+        G4PhysicalVolumeModelTouchable parentTouchable(fFullPVPath);
+        pMaterial = pP -> ComputeMaterial (n, pVPV, &parentTouchable);
+        DescribeAndDescend (pVPV, requestedDepth, pLV, pSol, pMaterial,
+                            theAT, sceneHandler);
       }
     }
     else {  // Plain replicated volume.  From geometry_guide.txt...
@@ -312,64 +357,64 @@ void G4PhysicalVolumeModel::VisitGeometryAndGetVisReps
       G4RotationMatrix* pOriginalRotation = pVPV -> GetRotation ();
       G4double originalRMin = 0., originalRMax = 0.;
       if (axis == kRho && pSol->GetEntityType() == "G4Tubs") {
-	originalRMin = ((G4Tubs*)pSol)->GetInnerRadius();
-	originalRMax = ((G4Tubs*)pSol)->GetOuterRadius();
+        originalRMin = ((G4Tubs*)pSol)->GetInnerRadius();
+        originalRMax = ((G4Tubs*)pSol)->GetOuterRadius();
       }
       G4bool visualisable = true;
       for (int n = nBegin; n < nEnd; n++) {
-	G4ThreeVector translation;  // Identity.
-	G4RotationMatrix rotation;  // Identity - life enough for visualizing.
-	G4RotationMatrix* pRotation = 0;
-	switch (axis) {
-	default:
-	case kXAxis:
-	  translation = G4ThreeVector (-width*(nReplicas-1)*0.5+n*width,0,0);
-	  break;
-	case kYAxis:
-	  translation = G4ThreeVector (0,-width*(nReplicas-1)*0.5+n*width,0);
-	  break;
-	case kZAxis:
-	  translation = G4ThreeVector (0,0,-width*(nReplicas-1)*0.5+n*width);
-	  break;
-	case kRho:
-	  if (pSol->GetEntityType() == "G4Tubs") {
-	    ((G4Tubs*)pSol)->SetInnerRadius(width*n+offset);
-	    ((G4Tubs*)pSol)->SetOuterRadius(width*(n+1)+offset);
-	  } else {
-	    if (fpMP->IsWarning())
-	      G4cout <<
-		"G4PhysicalVolumeModel::VisitGeometryAndGetVisReps: WARNING:"
-		"\n  built-in replicated volumes replicated in radius for "
-		     << pSol->GetEntityType() <<
-		"-type\n  solids (your solid \""
-		     << pSol->GetName() <<
-		"\") are not visualisable."
-		     << G4endl;
-	    visualisable = false;
-	  }
-	  break;
-	case kPhi:
-	  rotation.rotateZ (-(offset+(n+0.5)*width));
-	  // Minus Sign because for the physical volume we need the
-	  // coordinate system rotation.
-	  pRotation = &rotation;
-	  break;
-	} 
-	pVPV -> SetTranslation (translation);
-	pVPV -> SetRotation    (pRotation);
-	pVPV -> SetCopyNo (n);
+        G4ThreeVector translation;  // Identity.
+        G4RotationMatrix rotation;  // Identity - life enough for visualizing.
+        G4RotationMatrix* pRotation = 0;
+        switch (axis) {
+          default:
+          case kXAxis:
+            translation = G4ThreeVector (-width*(nReplicas-1)*0.5+n*width,0,0);
+            break;
+          case kYAxis:
+            translation = G4ThreeVector (0,-width*(nReplicas-1)*0.5+n*width,0);
+            break;
+          case kZAxis:
+            translation = G4ThreeVector (0,0,-width*(nReplicas-1)*0.5+n*width);
+            break;
+          case kRho:
+            if (pSol->GetEntityType() == "G4Tubs") {
+              ((G4Tubs*)pSol)->SetInnerRadius(width*n+offset);
+              ((G4Tubs*)pSol)->SetOuterRadius(width*(n+1)+offset);
+            } else {
+              if (fpMP->IsWarning())
+                G4warn <<
+                "G4PhysicalVolumeModel::VisitGeometryAndGetVisReps: WARNING:"
+                "\n  built-in replicated volumes replicated in radius for "
+                << pSol->GetEntityType() <<
+                "-type\n  solids (your solid \""
+                << pSol->GetName() <<
+                "\") are not visualisable."
+                << G4endl;
+              visualisable = false;
+            }
+            break;
+          case kPhi:
+            rotation.rotateZ (-(offset+(n+0.5)*width));
+            // Minus Sign because for the physical volume we need the
+            // coordinate system rotation.
+            pRotation = &rotation;
+            break;
+        }
+        pVPV -> SetTranslation (translation);
+        pVPV -> SetRotation    (pRotation);
+        pVPV -> SetCopyNo (n);
         fCurrentPVCopyNo = n;
-	if (visualisable) {
-	  DescribeAndDescend (pVPV, requestedDepth, pLV, pSol, pMaterial,
-			    theAT, sceneHandler);
-	}
+        if (visualisable) {
+          DescribeAndDescend (pVPV, requestedDepth, pLV, pSol, pMaterial,
+                              theAT, sceneHandler);
+        }
       }
       // Restore originals...
       pVPV -> SetTranslation (originalTranslation);
       pVPV -> SetRotation    (pOriginalRotation);
       if (axis == kRho && pSol->GetEntityType() == "G4Tubs") {
-	((G4Tubs*)pSol)->SetInnerRadius(originalRMin);
-	((G4Tubs*)pSol)->SetOuterRadius(originalRMax);
+        ((G4Tubs*)pSol)->SetInnerRadius(originalRMin);
+        ((G4Tubs*)pSol)->SetOuterRadius(originalRMax);
       }
     }
   }
@@ -390,6 +435,14 @@ void G4PhysicalVolumeModel::DescribeAndDescend
   fpCurrentLV = pLV;
   fpCurrentMaterial = pMaterial;
 
+  // Create a nodeID for use below - note the "drawn" flag is true
+  G4int copyNo = fpCurrentPV->GetCopyNo();
+  auto nodeID = G4PhysicalVolumeNodeID
+  (fpCurrentPV,copyNo,fCurrentDepth,fCurrentTransform);
+
+  // Update full path of physical volumes...
+  fFullPVPath.push_back(nodeID);
+
   const G4RotationMatrix objectRotation = pVPV -> GetObjectRotationValue ();
   const G4ThreeVector&  translation     = pVPV -> GetTranslation ();
   G4Transform3D theLT (G4Transform3D (objectRotation, translation));
@@ -403,13 +456,17 @@ void G4PhysicalVolumeModel::DescribeAndDescend
   // not be accumulated.
   G4Transform3D theNewAT (theAT);
   if (fCurrentDepth != 0) theNewAT = theAT * theLT;
-  fpCurrentTransform = &theNewAT;
+  fCurrentTransform = theNewAT;
 
   const G4VisAttributes* pVisAttribs = pLV->GetVisAttributes();
   //  If the volume does not have any vis attributes, create it.
   G4VisAttributes* tempVisAtts = nullptr;
   if (!pVisAttribs) {
-    tempVisAtts = new G4VisAttributes; // Default value.
+    if (fpMP->GetDefaultVisAttributes()) {
+      tempVisAtts = new G4VisAttributes(*fpMP->GetDefaultVisAttributes());
+    } else {
+      tempVisAtts = new G4VisAttributes;
+    }
     // The user may request /vis/viewer/set/colourByDensity.
     if (fpMP->GetCBDAlgorithmNumber() == 1) {
       // Algorithm 1: 3 parameters: Simple rainbow mapping.
@@ -446,15 +503,6 @@ void G4PhysicalVolumeModel::DescribeAndDescend
   // From here, can assume pVisAttribs is a valid pointer.  This is necessary
   // because PreAddSolid needs a vis attributes object.
 
-  // Make decision to draw...
-  G4bool thisToBeDrawn = true;
-  
-  // Update full path of physical volumes...
-  G4int copyNo = fpCurrentPV->GetCopyNo();
-  fFullPVPath.push_back
-  (G4PhysicalVolumeNodeID
-   (fpCurrentPV,copyNo,fCurrentDepth,*fpCurrentTransform));
-  
   // Check if vis attributes are to be modified by a /vis/touchable/set/ command.
   const auto& vams = fpMP->GetVisAttributesModifiers();
   if (vams.size()) {
@@ -482,7 +530,7 @@ void G4PhysicalVolumeModel::DescribeAndDescend
           // Create a vis atts object for the modified vis atts.
           // It is static so that we may return a reliable pointer to it.
           static G4VisAttributes modifiedVisAtts;
-          // Initialise it with the current vis atts and reset the pointer.
+          // Initialise it with the current operational vis atts and reset the pointer.
           modifiedVisAtts = *pVisAttribs;
           pVisAttribs = &modifiedVisAtts;
           const G4VisAttributes& transVisAtts = vam.GetVisAttributes();
@@ -547,11 +595,103 @@ void G4PhysicalVolumeModel::DescribeAndDescend
     }
   }
 
+  // Check for special mesh rendering
+  if (fpMP->IsSpecialMeshRendering()) {
+    G4bool potentialG4Mesh = false;
+    if (fpMP->GetSpecialMeshVolumes().empty()) {
+      // No volumes specified - all are potentially possible
+      potentialG4Mesh = true;
+    } else {
+      // Name and (optionally) copy number of container volume is specified
+      for (const auto& pvNameCopyNo: fpMP->GetSpecialMeshVolumes()) {
+        if (pVPV->GetName() == pvNameCopyNo.GetName()) {
+          // We have a name match
+          if (pvNameCopyNo.GetCopyNo() < 0) {
+            // Any copy number is OK
+            potentialG4Mesh = true;
+          } else {
+            if (pVPV->GetCopyNo() == pvNameCopyNo.GetCopyNo()) {
+              // We have a name and copy number match
+              potentialG4Mesh = true;
+            }
+          }
+        }
+      }
+    }
+    if (potentialG4Mesh) {
+      // Create - or at least attempt to create - a mesh. If it cannot be created
+      // out of this pVPV the type will be "invalid".
+      G4Mesh mesh(pVPV,theNewAT);
+      if (mesh.GetMeshType() != G4Mesh::invalid) {
+        // Create "artificial" nodeID to represent the replaced volumes
+        G4int artCopyNo = 0;
+        auto artPV = mesh.GetParameterisedVolume();
+        auto artDepth = fCurrentDepth + 1;
+        auto artNodeID = G4PhysicalVolumeNodeID(artPV,artCopyNo,artDepth);
+        fFullPVPath.push_back(artNodeID);
+        fDrawnPVPath.push_back(artNodeID);
+        sceneHandler.AddCompound(mesh);
+        fFullPVPath.pop_back();
+        fDrawnPVPath.pop_back();
+        delete tempVisAtts;  // Needs cleaning up (Coverity warning!!)
+        return;  // Mesh found and processed - nothing more to do.
+      }  // else continue processing
+    }
+  }
+
+  auto currentFullDepth = fCurrentDepth + (G4int)fBaseFullPVPath.size();
+
+  // Respect transparency by depth set by user
+  const auto& transparencyByDepthParameter = fpMP->GetTransparencyByDepth();
+  const auto& maxDepth = sceneHandler.GetMaxGeometryDepth();
+  if (transparencyByDepthParameter > 0 && maxDepth > 0) {
+    const auto& option = fpMP->GetTransparencyByDepthOption();
+    G4double alpha = 1.;  // Multiplies pre-existing opacity
+    switch (option) {
+      case 1: {  // Unwrap - simply make invisible by depth
+        if (currentFullDepth <= transparencyByDepthParameter) alpha = 0.;
+        break;
+      }
+      case 2: {  // Fade a layer at a time
+        alpha = currentFullDepth - transparencyByDepthParameter;
+        alpha = std::min(1.,std::max(0.,alpha));
+        break;
+      }
+      case 3: {  // X-ray: progressive transparancy throughout depth
+        // Algorithm by Andrea Barresi January 2025.
+        // Linear function from 0 to 1 in the [0,maxdepth] range
+        // Shift according to k value so that:
+        // alpha = 1 for all volumes when k = 0,
+        // alpha = 0 for all volumes when k = maxDepth.
+        const auto& k = transparencyByDepthParameter;
+        alpha = G4double(currentFullDepth) / maxDepth - 2 * k / maxDepth + 1;
+        alpha = std::min(1., std::max(0., alpha));
+      }
+      default: {}
+    }
+    if (alpha < 1.) {
+      // As above, create a vis atts object for the modified vis atts.
+      // It is static so that we may return a reliable pointer to it.
+      static G4VisAttributes transparencyByDepthVisAtts;
+      // Initialise it with the current operational vis atts and reset the pointer.
+      transparencyByDepthVisAtts = *pVisAttribs;
+      pVisAttribs = &transparencyByDepthVisAtts;
+      // Adjust the transparency (multiply any existing opacity)
+      auto colour = pVisAttribs->GetColour();
+      colour.SetAlpha(colour.GetAlpha()*alpha);
+      transparencyByDepthVisAtts.SetColour(colour);
+    }
+  }
+
+  // Make decision to draw...
+  G4bool thisToBeDrawn = true;
+
   // There are various reasons why this volume
   // might not be drawn...
   G4bool culling = fpMP->IsCulling();
   G4bool cullingInvisible = fpMP->IsCullingInvisible();
-  G4bool markedVisible = pVisAttribs->IsVisible();
+  G4bool markedVisible
+  = pVisAttribs->IsVisible() && pVisAttribs->GetColour().GetAlpha() > 0;
   G4bool cullingLowDensity = fpMP->IsDensityCulling();
   G4double density = pMaterial? pMaterial->GetDensity(): 0;
   G4double densityCut = fpMP -> GetVisibleDensity ();
@@ -572,15 +712,18 @@ void G4PhysicalVolumeModel::DescribeAndDescend
   // 6) The user has asked for all further traversing to be aborted...
   if (fAbort) thisToBeDrawn = false;
 
-  // Record thisToBeDrawn in path...
-  fFullPVPath.back().SetDrawn(thisToBeDrawn);
+  // Set "drawn" flag (it was true by default) - thisToBeDrawn may be false
+  nodeID.SetDrawn(thisToBeDrawn);
+
+  fMapAllTouchables[currentFullDepth]++;  // Increment for every touchable at each depth
+  if (fMaxFullDepth < currentFullDepth) fMaxFullDepth = currentFullDepth;
 
   if (thisToBeDrawn) {
 
     // Update path of drawn physical volumes...
-    fDrawnPVPath.push_back
-      (G4PhysicalVolumeNodeID
-       (fpCurrentPV,copyNo,fCurrentDepth,*fpCurrentTransform,thisToBeDrawn));
+    fDrawnPVPath.push_back(nodeID);
+
+    fMapDrawnTouchables[currentFullDepth]++;  // Increment for every touchable drawn at each depth
 
     if (fpMP->IsExplode() && fDrawnPVPath.size() == 1) {
       // For top-level drawn volumes, explode along radius...
@@ -592,13 +735,12 @@ void G4PhysicalVolumeModel::DescribeAndDescend
       centred.getDecomposition(oldScale, oldRotation, oldTranslation);
       G4double explodeFactor = fpMP->GetExplodeFactor();
       G4Translate3D newTranslation =
-	G4Translate3D(explodeFactor * oldTranslation.dx(),
-		      explodeFactor * oldTranslation.dy(),
-		      explodeFactor * oldTranslation.dz());
+      G4Translate3D(explodeFactor * oldTranslation.dx(),
+                    explodeFactor * oldTranslation.dy(),
+                    explodeFactor * oldTranslation.dz());
       theNewAT = centering * newTranslation * oldRotation * oldScale;
     }
 
-    volumeCount++;
     DescribeSolid (theNewAT, pSol, pVisAttribs, sceneHandler);
 
   }
@@ -607,7 +749,7 @@ void G4PhysicalVolumeModel::DescribeAndDescend
   // reasons why daughters might not be drawn...
 
   // First, reasons that do not depend on culling policy...
-  G4int nDaughters = pLV->GetNoDaughters();
+  G4int nDaughters = (G4int)pLV->GetNoDaughters();
   G4bool daughtersToBeDrawn = true;
   // 1) There are no daughters...
   if (!nDaughters) daughtersToBeDrawn = false;
@@ -626,13 +768,13 @@ void G4PhysicalVolumeModel::DescribeAndDescend
     // parameters...
     G4bool cullingCovered = fpMP->IsCullingCovered();
     G4bool surfaceDrawing =
-      fpMP->GetDrawingStyle() == G4ModelingParameters::hsr ||
-      fpMP->GetDrawingStyle() == G4ModelingParameters::hlhsr;    
+    fpMP->GetDrawingStyle() == G4ModelingParameters::hsr ||
+    fpMP->GetDrawingStyle() == G4ModelingParameters::hlhsr;
     if (pVisAttribs->IsForceDrawingStyle()) {
       switch (pVisAttribs->GetForcedDrawingStyle()) {
-      default:
-      case G4VisAttributes::wireframe: surfaceDrawing = false; break;
-      case G4VisAttributes::solid: surfaceDrawing = true; break;
+        default:
+        case G4VisAttributes::wireframe: surfaceDrawing = false; break;
+        case G4VisAttributes::solid: surfaceDrawing = true; break;
       }
     }
     G4bool opaque = pVisAttribs->GetColour().GetAlpha() >= 1.;
@@ -640,19 +782,19 @@ void G4PhysicalVolumeModel::DescribeAndDescend
     if (culling) {
       // 6) ..and culling of invisible volumes is on...
       if (cullingInvisible) {
-	// 7) ...and the mother requests daughters invisible
-	if (daughtersInvisible) daughtersToBeDrawn = false;
+        // 7) ...and the mother requests daughters invisible
+        if (daughtersInvisible) daughtersToBeDrawn = false;
       }
       // 8) Or culling of covered daughters is requested...
       if (cullingCovered) {
-	// 9) ...and surface drawing is operating...
-	if (surfaceDrawing) {
-	  // 10) ...but only if mother is visible...
-	  if (thisToBeDrawn) {
-	    // 11) ...and opaque...
-	      if (opaque) daughtersToBeDrawn = false;
-	  }
-	}
+        // 9) ...and surface drawing is operating...
+        if (surfaceDrawing) {
+          // 10) ...but only if mother is visible...
+          if (thisToBeDrawn) {
+            // 11) ...and opaque...
+            if (opaque) daughtersToBeDrawn = false;
+          }
+        }
       }
     }
   }
@@ -664,11 +806,12 @@ void G4PhysicalVolumeModel::DescribeAndDescend
       // Descend the geometry structure recursively...
       fCurrentDepth++;
       VisitGeometryAndGetVisReps
-	(pDaughterVPV, requestedDepth - 1, theNewAT, sceneHandler);
+      (pDaughterVPV, requestedDepth - 1, theNewAT, sceneHandler);
       fCurrentDepth--;
     }
   }
 
+  // Clean up
   delete tempVisAtts;
 
   // Reset for normal descending of next volume at this level...
@@ -681,6 +824,49 @@ void G4PhysicalVolumeModel::DescribeAndDescend
   }
 }
 
+namespace
+{
+  G4bool SubtractionBoundingLimits(const G4VSolid* target)
+  {
+    // Algorithm from G4SubtractionSolid::BoundingLimits
+    // Since it is unclear how the shape of the first solid will be changed
+    // after subtraction, just return its original bounding box.
+    G4ThreeVector pMin, pMax;
+    const auto& pSolA = target;
+    pSolA->BoundingLimits(pMin,pMax);
+    // Check correctness of the bounding box
+    if (pMin.x() >= pMax.x() || pMin.y() >= pMax.y() || pMin.z() >= pMax.z()) {
+      // Bad bounding box (min >= max)
+      // This signifies a subtraction of non-intersecting volumes
+      return false;
+    }
+    return true;
+  }
+
+  G4bool IntersectionBoundingLimits(const G4VSolid* target, const G4DisplacedSolid* intersector)
+  {
+    // Algorithm from G4IntersectionSolid::BoundingLimits
+    G4ThreeVector pMin, pMax;
+    G4ThreeVector minA,maxA, minB,maxB;
+    const auto& pSolA = target;
+    const auto& pSolB = intersector;
+    pSolA->BoundingLimits(minA,maxA);
+    pSolB->BoundingLimits(minB,maxB);
+    pMin.set(std::max(minA.x(),minB.x()),
+             std::max(minA.y(),minB.y()),
+             std::max(minA.z(),minB.z()));
+    pMax.set(std::min(maxA.x(),maxB.x()),
+             std::min(maxA.y(),maxB.y()),
+             std::min(maxA.z(),maxB.z()));
+    if (pMin.x() >= pMax.x() || pMin.y() >= pMax.y() || pMin.z() >= pMax.z()) {
+      // Bad bounding box (min >= max)
+      // This signifies a subtraction of non-intersecting volumes
+      return false;
+    }
+    return true;
+  }
+}
+
 void G4PhysicalVolumeModel::DescribeSolid
 (const G4Transform3D& theAT,
  G4VSolid* pSol,
@@ -690,151 +876,86 @@ void G4PhysicalVolumeModel::DescribeSolid
   G4DisplacedSolid* pSectionSolid = fpMP->GetSectionSolid();
   G4DisplacedSolid* pCutawaySolid = fpMP->GetCutawaySolid();
 
-  if (!fpClippingSolid && !pSectionSolid && !pCutawaySolid) {
+  if (fNClippers <= 0 || fNClippers > 1) {
 
+    // Normal case - no clipping, etc. - or, illegally, more than one of those
     sceneHandler.PreAddSolid (theAT, *pVisAttribs);
     pSol -> DescribeYourselfTo (sceneHandler);  // Standard treatment.
     sceneHandler.PostAddSolid ();
 
-  } else {
+  } else {  // fNClippers == 1
 
-    // Clipping, etc., performed by Boolean operations.
+    G4VSolid*         pResultantSolid = nullptr;
+    G4DisplacedSolid* pDisplacedSolid = nullptr;
 
-    // First, get polyhedron for current solid...
-    if (pVisAttribs->IsForceLineSegmentsPerCircle())
-      G4Polyhedron::SetNumberOfRotationSteps
-	(pVisAttribs->GetForcedLineSegmentsPerCircle());
-    else
-      G4Polyhedron::SetNumberOfRotationSteps(fpMP->GetNoOfSides());
-    const G4Polyhedron* pOriginalPolyhedron = pSol->GetPolyhedron();
-    G4Polyhedron::ResetNumberOfRotationSteps();
-
-    if (!pOriginalPolyhedron) {
-
-      if (fpMP->IsWarning())
-	G4cout <<
-	  "WARNING: G4PhysicalVolumeModel::DescribeSolid: solid\n  \""
-	       << pSol->GetName() <<
-	  "\" has no polyhedron.  Cannot by clipped."
-	       << G4endl;
-      pSol -> DescribeYourselfTo (sceneHandler);  // Standard treatment.
-
-    } else {
-
-      G4VSolid* pResultantSolid = 0;
-
-      if (fpClippingSolid) {
-	switch (fClippingMode) {
-	default:
-	case subtraction:
-	  pResultantSolid = new G4SubtractionSolid
-	    ("subtracted_clipped_solid", pSol, fpClippingSolid, theAT.inverse());
-	  break;
-	case intersection:
-	  pResultantSolid = new G4IntersectionSolid
-	    ("intersected_clipped_solid", pSol, fpClippingSolid, theAT.inverse());
-	  break;
-	}
+    if (fpClippingSolid) {
+      pDisplacedSolid = new G4DisplacedSolid("clipper", fpClippingSolid, theAT.inverse());
+      switch (fClippingMode) {
+        case subtraction:
+          if (SubtractionBoundingLimits(pSol)) {
+            pResultantSolid = new G4SubtractionSolid
+            ("subtracted_clipped_solid", pSol, pDisplacedSolid);
+          }
+          break;
+        case intersection:
+          if (IntersectionBoundingLimits(pSol, pDisplacedSolid)) {
+            pResultantSolid = new G4IntersectionSolid
+            ("intersected_clipped_solid", pSol, pDisplacedSolid);
+          }
+          break;
       }
 
-      if (pSectionSolid) {
-	pResultantSolid = new G4IntersectionSolid
-	  ("sectioned_solid", pSol, pSectionSolid, theAT.inverse());
+    } else if (pSectionSolid) {
+      pDisplacedSolid = new G4DisplacedSolid("intersector", pSectionSolid, theAT.inverse());
+      if (IntersectionBoundingLimits(pSol, pDisplacedSolid)) {
+        pResultantSolid = new G4IntersectionSolid("sectioned_solid", pSol, pDisplacedSolid);
       }
 
-      if (pCutawaySolid) {
-        // Follow above...
-	pResultantSolid = new G4SubtractionSolid
-	  ("cutaway_solid", pSol, pCutawaySolid, theAT.inverse());
+    } else if (pCutawaySolid) {
+      pDisplacedSolid = new G4DisplacedSolid("cutaway", pCutawaySolid, theAT.inverse());
+      switch (fpMP->GetCutawayMode()) {
+        case G4ModelingParameters::cutawayUnion:
+          if (SubtractionBoundingLimits(pSol)) {
+            pResultantSolid = new G4SubtractionSolid("cutaway_solid", pSol, pDisplacedSolid);
+          }
+          break;
+        case G4ModelingParameters::cutawayIntersection:
+          if (IntersectionBoundingLimits(pSol, pDisplacedSolid)) {
+            pResultantSolid = new G4IntersectionSolid("cutaway_solid", pSol, pDisplacedSolid);
+          }
+          break;
       }
-
-      const G4Polyhedron* pResultantPolyhedron = pResultantSolid->GetPolyhedron();
-      if (!pResultantPolyhedron) {
-        if (fpMP->IsWarning())
-          G4cout <<
-          "WARNING: G4PhysicalVolumeModel::DescribeSolid: resultant polyhedron for"
-          "\n  solid \"" << pSol->GetName() <<
-          "\" not defined due to error during Boolean processing."
-          << G4endl;
-      } else {
-        // It seems that if the sectioning solid does not intersect the
-        // original solid the Boolean Processor returns the original
-        // polyhedron, or a copy thereof. We do not want it.
-        // Check the number of facets, etc. If same, ignore.
-        // What we need from the Boolean Processor is a null pointer or a
-        // null polyhedron. It seems to return the original or a copy of it.
-        if (pResultantPolyhedron->GetNoFacets() == pOriginalPolyhedron->GetNoFacets())
-          // This works in most cases but I still get a box in test202 with
-          // /vis/viewer/set/sectionPlane on 0 0 0 m 0.1 0.1 1
-        {
-          pResultantPolyhedron = nullptr;
-        }
-      }
-
-      if (pResultantPolyhedron) {
-        // Finally, draw polyhedron...
-        sceneHandler.BeginPrimitives(theAT);
-        sceneHandler.AddPrimitive(*pResultantPolyhedron);
-        sceneHandler.EndPrimitives();
-      }
-
-      delete pResultantSolid;
     }
+
+    if (pResultantSolid) {
+      sceneHandler.PreAddSolid (theAT, *pVisAttribs);
+      pResultantSolid -> DescribeYourselfTo (sceneHandler);
+      sceneHandler.PostAddSolid ();
+    }
+
+    delete pResultantSolid;
+    delete pDisplacedSolid;
   }
 }
 
 G4bool G4PhysicalVolumeModel::Validate (G4bool warn)
 {
-  G4TransportationManager* transportationManager =
-    G4TransportationManager::GetTransportationManager ();
-
-  size_t nWorlds = transportationManager->GetNoWorlds();
-
-  G4bool found = false;
-
-  std::vector<G4VPhysicalVolume*>::iterator iterWorld =
-    transportationManager->GetWorldsIterator();
-  for (size_t i = 0; i < nWorlds; ++i, ++iterWorld) {
-    G4VPhysicalVolume* world = (*iterWorld);
-    if (!world) break; // This can happen if geometry has been cleared/destroyed.
-    // The idea now is to seek a PV with the same name and copy no
-    // in the hope it's the same one!!
-    G4PhysicalVolumeModel searchModel (world);
-    G4int verbosity = 0;  // Suppress messages from G4PhysicalVolumeSearchScene.
-    G4PhysicalVolumeSearchScene searchScene
-      (&searchModel, fTopPVName, fTopPVCopyNo, verbosity);
-    G4ModelingParameters mp;  // Default modeling parameters for this search.
-    mp.SetDefaultVisAttributes(fpMP? fpMP->GetDefaultVisAttributes(): 0);
-    searchModel.SetModelingParameters (&mp);
-    searchModel.DescribeYourselfTo (searchScene);
-    G4VPhysicalVolume* foundVolume = searchScene.GetFoundVolume ();
-    if (foundVolume) {
-      if (foundVolume != fpTopPV && warn) {
-	G4cout <<
-	  "G4PhysicalVolumeModel::Validate(): A volume of the same name and"
-	  "\n  copy number (\""
-	       << fTopPVName << "\", copy " << fTopPVCopyNo
-	       << ") still exists and is being used."
-	  "\n  But it is not the same volume you originally specified"
-	  "\n  in /vis/scene/add/."
-	       << G4endl;
-      }
-      fpTopPV = foundVolume;
-      CalculateExtent ();
-      found = true;
-    }
-  }
-  if (found) return true;
-  else {
+// Not easy to see how to validate this sort of model. Previously there was
+// a check that a volume of the same name (fTopPVName) existed somewhere in
+// the geometry tree but under some circumstances this consumed lots of CPU
+// time. Instead, let us simply check that the volume (fpTopPV) exists in the
+// physical volume store.
+  const auto& pvStore = G4PhysicalVolumeStore::GetInstance();
+  auto iterator = find(pvStore->begin(),pvStore->end(),fpTopPV);
+  if (iterator == pvStore->end()) {
     if (warn) {
-      G4cout <<
-	"G4PhysicalVolumeModel::Validate(): No volume of name and"
-	"\n  copy number (\""
-	     << fTopPVName << "\", copy " << fTopPVCopyNo
-	     << ") exists."
-	     << G4endl;
+      G4ExceptionDescription ed;
+      ed << "Attempt to validate a volume that is no longer in the physical volume store.";
+      G4Exception("G4PhysicalVolumeModel::Validate", "modeling0015", JustWarning, ed);
     }
     return false;
+  } else {
+    return true;
   }
 }
 
@@ -849,29 +970,33 @@ const std::map<G4String,G4AttDef>* G4PhysicalVolumeModel::GetAttDefs() const
       (*store)["BasePVPath"] =
       G4AttDef("BasePVPath","Base Physical Volume Path","Physics","","G4String");
       (*store)["LVol"] =
-	G4AttDef("LVol","Logical Volume","Physics","","G4String");
+      G4AttDef("LVol","Logical Volume","Physics","","G4String");
       (*store)["Solid"] =
-	G4AttDef("Solid","Solid Name","Physics","","G4String");
+      G4AttDef("Solid","Solid Name","Physics","","G4String");
       (*store)["EType"] =
-	G4AttDef("EType","Entity Type","Physics","","G4String");
+      G4AttDef("EType","Entity Type","Physics","","G4String");
       (*store)["DmpSol"] =
-	G4AttDef("DmpSol","Dump of Solid properties","Physics","","G4String");
+      G4AttDef("DmpSol","Dump of Solid properties","Physics","","G4String");
       (*store)["LocalTrans"] =
-    G4AttDef("LocalTrans","Local transformation of volume","Physics","","G4String");
+      G4AttDef("LocalTrans","Local transformation of volume","Physics","","G4String");
+      (*store)["LocalExtent"] =
+      G4AttDef("LocalExtent","Local extent of volume","Physics","","G4String");
       (*store)["GlobalTrans"] =
-    G4AttDef("GlobalTrans","Global transformation of volume","Physics","","G4String");
+      G4AttDef("GlobalTrans","Global transformation of volume","Physics","","G4String");
+      (*store)["GlobalExtent"] =
+      G4AttDef("GlobalExtent","Global extent of volume","Physics","","G4String");
       (*store)["Material"] =
-	G4AttDef("Material","Material Name","Physics","","G4String");
+      G4AttDef("Material","Material Name","Physics","","G4String");
       (*store)["Density"] =
-	G4AttDef("Density","Material Density","Physics","G4BestUnit","G4double");
+      G4AttDef("Density","Material Density","Physics","G4BestUnit","G4double");
       (*store)["State"] =
-	G4AttDef("State","Material State (enum undefined,solid,liquid,gas)","Physics","","G4String");
+      G4AttDef("State","Material State (enum undefined,solid,liquid,gas)","Physics","","G4String");
       (*store)["Radlen"] =
-	G4AttDef("Radlen","Material Radiation Length","Physics","G4BestUnit","G4double");
+      G4AttDef("Radlen","Material Radiation Length","Physics","G4BestUnit","G4double");
       (*store)["Region"] =
-	G4AttDef("Region","Cuts Region","Physics","","G4String");
+      G4AttDef("Region","Cuts Region","Physics","","G4String");
       (*store)["RootRegion"] =
-	G4AttDef("RootRegion","Root Region (0/1 = false/true)","Physics","","G4bool");
+      G4AttDef("RootRegion","Root Region (0/1 = false/true)","Physics","","G4bool");
     }
   return store;
 }
@@ -930,34 +1055,54 @@ std::vector<G4AttValue>* G4PhysicalVolumeModel::CreateCurrentAttValues() const
 
   std::ostringstream oss; oss << fFullPVPath;
   values->push_back(G4AttValue("PVPath", oss.str(),""));
+
   oss.str(""); oss << fBaseFullPVPath;
   values->push_back(G4AttValue("BasePVPath", oss.str(),""));
+
   values->push_back(G4AttValue("LVol", fpCurrentLV->GetName(),""));
   G4VSolid* pSol = fpCurrentLV->GetSolid();
+
   values->push_back(G4AttValue("Solid", pSol->GetName(),""));
+
   values->push_back(G4AttValue("EType", pSol->GetEntityType(),""));
+
   oss.str(""); oss << '\n' << *pSol;
   values->push_back(G4AttValue("DmpSol", oss.str(),""));
+
   const G4RotationMatrix localRotation = fpCurrentPV->GetObjectRotationValue();
   const G4ThreeVector& localTranslation = fpCurrentPV->GetTranslation();
   oss.str(""); oss << '\n' << G4Transform3D(localRotation,localTranslation);
   values->push_back(G4AttValue("LocalTrans", oss.str(),""));
-  oss.str(""); oss << '\n' << *fpCurrentTransform;
+
+  oss.str(""); oss << '\n' << pSol->GetExtent() << std::endl;
+  values->push_back(G4AttValue("LocalExtent", oss.str(),""));
+
+  oss.str(""); oss << '\n' << fCurrentTransform;
   values->push_back(G4AttValue("GlobalTrans", oss.str(),""));
+
+  oss.str(""); oss << '\n' << (pSol->GetExtent()).Transform(fCurrentTransform) << std::endl;
+  values->push_back(G4AttValue("GlobalExtent", oss.str(),""));
+
   G4String matName = fpCurrentMaterial? fpCurrentMaterial->GetName(): G4String("No material");
   values->push_back(G4AttValue("Material", matName,""));
+
   G4double matDensity = fpCurrentMaterial? fpCurrentMaterial->GetDensity(): 0.;
   values->push_back(G4AttValue("Density", G4BestUnit(matDensity,"Volumic Mass"),""));
+
   G4State matState = fpCurrentMaterial? fpCurrentMaterial->GetState(): kStateUndefined;
   oss.str(""); oss << matState;
   values->push_back(G4AttValue("State", oss.str(),""));
+
   G4double matRadlen = fpCurrentMaterial? fpCurrentMaterial->GetRadlen(): 0.;
   values->push_back(G4AttValue("Radlen", G4BestUnit(matRadlen,"Length"),""));
+
   G4Region* region = fpCurrentLV->GetRegion();
   G4String regionName = region? region->GetName(): G4String("No region");
   values->push_back(G4AttValue("Region", regionName,""));
+
   oss.str(""); oss << fpCurrentLV->IsRootRegion();
   values->push_back(G4AttValue("RootRegion", oss.str(),""));
+
   return values;
 }
 
@@ -970,6 +1115,17 @@ G4bool G4PhysicalVolumeModel::G4PhysicalVolumeNodeID::operator<
     if (fCopyNo == right.fCopyNo)
       return fNonCulledDepth < right.fNonCulledDepth;
   }
+  return false;
+}
+
+G4bool G4PhysicalVolumeModel::G4PhysicalVolumeNodeID::operator!=
+  (const G4PhysicalVolumeModel::G4PhysicalVolumeNodeID& right) const
+{
+  if (fpPV            != right.fpPV ||
+      fCopyNo         != right.fCopyNo ||
+      fNonCulledDepth != right.fNonCulledDepth ||
+      fTransform      != right.fTransform ||
+      fDrawn          != right.fDrawn) return true;
   return false;
 }
 
@@ -987,7 +1143,7 @@ std::ostream& operator<<
 //    if (!node.GetDrawn()) os << "not ";
 //    os << "drawn)";
   } else {
-    os << " (Null node)";
+    os << " (Null PV node)";
   }
   return os;
 }

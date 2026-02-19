@@ -23,24 +23,19 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/LXe/src/LXeScintHit.cc
+/// \file LXeScintHit.cc
 /// \brief Implementation of the LXeScintHit class
-//
-//
+
 #include "LXeScintHit.hh"
-#include "G4ios.hh"
-#include "G4VVisManager.hh"
+
 #include "G4Colour.hh"
-#include "G4VisAttributes.hh"
 #include "G4LogicalVolume.hh"
 #include "G4VPhysicalVolume.hh"
+#include "G4VVisManager.hh"
+#include "G4VisAttributes.hh"
+#include "G4ios.hh"
 
 G4ThreadLocal G4Allocator<LXeScintHit>* LXeScintHitAllocator = nullptr;
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-LXeScintHit::LXeScintHit() : fEdep(0.), fPos(0.), fPhysVol(nullptr) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -48,11 +43,7 @@ LXeScintHit::LXeScintHit(G4VPhysicalVolume* pVol) : fPhysVol(pVol) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-LXeScintHit::~LXeScintHit() {}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-LXeScintHit::LXeScintHit(const LXeScintHit &right) : G4VHit()
+LXeScintHit::LXeScintHit(const LXeScintHit& right) : G4VHit()
 {
   fEdep = right.fEdep;
   fPos = right.fPos;
@@ -61,7 +52,8 @@ LXeScintHit::LXeScintHit(const LXeScintHit &right) : G4VHit()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-const LXeScintHit& LXeScintHit::operator=(const LXeScintHit &right){
+const LXeScintHit& LXeScintHit::operator=(const LXeScintHit& right)
+{
   fEdep = right.fEdep;
   fPos = right.fPos;
   fPhysVol = right.fPhysVol;
@@ -70,15 +62,8 @@ const LXeScintHit& LXeScintHit::operator=(const LXeScintHit &right){
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4bool LXeScintHit::operator==(const LXeScintHit&) const{
+G4bool LXeScintHit::operator==(const LXeScintHit&) const
+{
   return false;
-  //returns false because there currently isnt need to check for equality yet
+  // returns false because there currently isn't need to check for equality
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void LXeScintHit::Draw() {}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void LXeScintHit::Print() {}

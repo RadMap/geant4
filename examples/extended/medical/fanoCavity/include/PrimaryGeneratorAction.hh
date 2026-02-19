@@ -23,18 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/fanoCavity/include/PrimaryGeneratorAction.hh
+/// \file PrimaryGeneratorAction.hh
 /// \brief Definition of the PrimaryGeneratorAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PrimaryGeneratorAction_h
 #define PrimaryGeneratorAction_h 1
 
-#include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4ParticleGun.hh"
+#include "G4VUserPrimaryGeneratorAction.hh"
 #include "globals.hh"
 
 class G4Event;
@@ -46,24 +42,23 @@ class PrimaryGeneratorMessenger;
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-    PrimaryGeneratorAction(DetectorConstruction*);    
-   ~PrimaryGeneratorAction();
+    PrimaryGeneratorAction(DetectorConstruction*);
+    ~PrimaryGeneratorAction();
 
-  public:  
-    void SetBeamRadius(G4double val)  {fRBeam = val;}   
+  public:
+    void SetBeamRadius(G4double val) { fRBeam = val; }
     virtual void GeneratePrimaries(G4Event*);
-         
-    G4ParticleGun* GetParticleGun() {return fParticleGun;}
-    G4double GetBeamRadius()        {return fRBeam;}
-    
+
+    G4ParticleGun* GetParticleGun() { return fParticleGun; }
+    G4double GetBeamRadius() { return fRBeam; }
+
   private:
-    G4ParticleGun*             fParticleGun;
-    DetectorConstruction*      fDetector;
-    G4double                   fRBeam;
-    PrimaryGeneratorMessenger* fGunMessenger;     
+    G4ParticleGun* fParticleGun;
+    DetectorConstruction* fDetector;
+    G4double fRBeam;
+    PrimaryGeneratorMessenger* fGunMessenger;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

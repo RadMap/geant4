@@ -23,41 +23,31 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/LXe/include/LXeScintHit.hh
+/// \file LXeScintHit.hh
 /// \brief Definition of the LXeScintHit class
-//
-//
+
 #ifndef LXeScintHit_h
 #define LXeScintHit_h 1
 
-#include "G4VHit.hh"
-#include "G4THitsCollection.hh"
 #include "G4Allocator.hh"
+#include "G4THitsCollection.hh"
 #include "G4ThreeVector.hh"
-#include "G4LogicalVolume.hh"
-#include "G4Transform3D.hh"
-#include "G4RotationMatrix.hh"
+#include "G4VHit.hh"
 #include "G4VPhysicalVolume.hh"
-
-#include "tls.hh"
 
 class LXeScintHit : public G4VHit
 {
   public:
- 
-    LXeScintHit();
+    LXeScintHit() = default;
     LXeScintHit(G4VPhysicalVolume* pVol);
-    virtual ~LXeScintHit();
-    LXeScintHit(const LXeScintHit &right);
-    const LXeScintHit& operator=(const LXeScintHit &right);
-    G4bool operator==(const LXeScintHit &right) const;
+    ~LXeScintHit() override = default;
 
-    inline void *operator new(size_t);
-    inline void operator delete(void *aHit);
- 
-    virtual void Draw();
-    virtual void Print();
+    LXeScintHit(const LXeScintHit& right);
+    const LXeScintHit& operator=(const LXeScintHit& right);
+    G4bool operator==(const LXeScintHit& right) const;
+
+    inline void* operator new(size_t);
+    inline void operator delete(void* aHit);
 
     inline void SetEdep(G4double de) { fEdep = de; }
     inline void AddEdep(G4double de) { fEdep += de; }
@@ -66,13 +56,12 @@ class LXeScintHit : public G4VHit
     inline void SetPos(G4ThreeVector xyz) { fPos = xyz; }
     inline G4ThreeVector GetPos() { return fPos; }
 
-    inline const G4VPhysicalVolume * GetPhysV() { return fPhysVol; }
+    inline const G4VPhysicalVolume* GetPhysV() { return fPhysVol; }
 
   private:
-    G4double fEdep;
+    G4double fEdep = 0.;
     G4ThreeVector fPos;
-    const G4VPhysicalVolume* fPhysVol;
-
+    const G4VPhysicalVolume* fPhysVol = nullptr;
 };
 
 typedef G4THitsCollection<LXeScintHit> LXeScintHitsCollection;
@@ -81,14 +70,13 @@ extern G4ThreadLocal G4Allocator<LXeScintHit>* LXeScintHitAllocator;
 
 inline void* LXeScintHit::operator new(size_t)
 {
-  if(!LXeScintHitAllocator)
-      LXeScintHitAllocator = new G4Allocator<LXeScintHit>;
-  return (void *) LXeScintHitAllocator->MallocSingle();
+  if (!LXeScintHitAllocator) LXeScintHitAllocator = new G4Allocator<LXeScintHit>;
+  return (void*)LXeScintHitAllocator->MallocSingle();
 }
 
-inline void LXeScintHit::operator delete(void *aHit)
+inline void LXeScintHit::operator delete(void* aHit)
 {
-  LXeScintHitAllocator->FreeSingle((LXeScintHit*) aHit);
+  LXeScintHitAllocator->FreeSingle((LXeScintHit*)aHit);
 }
 
 #endif

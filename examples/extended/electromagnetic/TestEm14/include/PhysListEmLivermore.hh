@@ -25,10 +25,6 @@
 //
 /// \file PhysListEmLivermore.hh
 /// \brief Definition of the PhysListEmLivermore class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PhysListEmLivermore_h
 #define PhysListEmLivermore_h 1
@@ -40,28 +36,20 @@
 
 class PhysListEmLivermore : public G4VPhysicsConstructor
 {
-  public: 
+  public:
     PhysListEmLivermore(const G4String& name = "livermore");
-   ~PhysListEmLivermore();
+    ~PhysListEmLivermore() override = default;
 
-  public: 
+  public:
     // This method is dummy for physics
-    virtual void ConstructParticle() {};
- 
+    void ConstructParticle() override {};
+
     // This method will be invoked in the Construct() method.
     // each physics process will be instantiated and
-    // registered to the process manager of each particle type 
-    virtual void ConstructProcess();
+    // registered to the process manager of each particle type
+    void ConstructProcess() override;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-
-
-
-
-
-
-

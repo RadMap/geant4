@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G02/geotest.cc
-/// \brief Main program of the persistency/gdml/G02 example
-//
-//
-//
-//
+/// \file geotest.cc
+/// \brief Main program of the gdml/G02 example
+
 // --------------------------------------------------------------
 //      GEANT 4 - geotest
 //
@@ -36,7 +33,7 @@
 
 // Geant4 includes
 //
-#include "G4RunManager.hh"
+#include "G4RunManagerFactory.hh"
 #include "G4UImanager.hh"
 #include "globals.hh"
 
@@ -50,16 +47,16 @@
 #include "G02PrimaryGeneratorAction.hh"
 #include "G02RunAction.hh"
 
-#include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
+#include "G4VisExecutive.hh"
 
 // --------------------------------------------------------------
 
 int main(int argc, char** argv)
 {
-  // Construct the default run manager
+  // Construct a serial run manager
   //
-  G4RunManager* runManager = new G4RunManager;
+  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::SerialOnly);
 
   // Set mandatory initialization and user action classes
   //
@@ -69,10 +66,10 @@ int main(int argc, char** argv)
   runManager->SetUserAction(new G02PrimaryGeneratorAction);
   G02RunAction* runAction = new G02RunAction;
   runManager->SetUserAction(runAction);
-      
+
   // Initialisation of runManager via macro for the interactive mode
   // This gives possibility to give different names for GDML file to READ
- 
+
   // Initialize visualization
   //
   G4VisManager* visManager = new G4VisExecutive;
@@ -80,28 +77,28 @@ int main(int argc, char** argv)
 
   // Open a UI session: will stay there until the user types "exit"
   //
-  G4UImanager* UImanager = G4UImanager::GetUIpointer(); 
+  G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if ( argc==1 )   // Automatically run default macro for writing... 
+  if (argc == 1)  // Automatically run default macro for writing...
   {
     G4UIExecutive* ui = new G4UIExecutive(argc, argv);
-    UImanager->ApplyCommand("/control/execute vis.mac");     
+    UImanager->ApplyCommand("/control/execute vis.mac");
     ui->SessionStart();
     delete ui;
   }
-  else             // Interactive, provides macro in input
+  else  // Interactive, provides macro in input
   {
     G4UIExecutive* ui = new G4UIExecutive(argc, argv);
-    G4String command = "/control/execute "; 
-    G4String fileName = argv[1]; 
-    UImanager->ApplyCommand(command+fileName); 
+    G4String command = "/control/execute ";
+    G4String fileName = argv[1];
+    UImanager->ApplyCommand(command + fileName);
     ui->SessionStart();
     delete ui;
   }
-  
+
   // Job termination
   //
-  delete visManager;  
+  delete visManager;
   delete runManager;
 
   return 0;

@@ -23,9 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 // 
-// class G4PathFinder Implementation
+// G4PathFinder Implementation
 //
-// Original author: John Apostolakis, April 2006
+// Author: John Apostolakis (CERN), 7 October 2005
 // --------------------------------------------------------------------
 
 #include <iomanip>
@@ -93,7 +93,7 @@ G4PathFinder::G4PathFinder()
       fLimitTruth[num] = false;
       fLimitedStep[num] = kUndefLimited;
       fCurrentStepSize[num] = -1.0; 
-      fLocatedVolume[num] = 0;
+      fLocatedVolume[num] = nullptr;
       fPreSafetyValues[num]= -1.0; 
       fCurrentPreStepSafety[num] = -1.0;
       fNewSafetyComputed[num]= -1.0; 
@@ -106,7 +106,7 @@ G4PathFinder::G4PathFinder()
 G4PathFinder::~G4PathFinder() 
 {
    delete fpMultiNavigator;
-   fpPathFinder = 0;
+   fpPathFinder = nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -364,7 +364,7 @@ G4PathFinder::PrepareNewTrack( const G4ThreeVector& position,
   //
   std::vector<G4Navigator*>::iterator pNavigatorIter; 
 
-  fNoActiveNavigators = fpTransportManager-> GetNoActiveNavigators();
+  fNoActiveNavigators = (G4int)fpTransportManager-> GetNoActiveNavigators();
   if( fNoActiveNavigators > fMaxNav )
   {
     std::ostringstream message;
@@ -464,13 +464,16 @@ void G4PathFinder::Locate( const G4ThreeVector& position,
 {
   // Locate the point in each geometry
 
+  auto pNavIter = fpTransportManager->GetActiveNavigatorsIterator(); 
+
+  G4ThreeVector lastEndPosition = fRelocatedPoint
+                                ? fLastLocatedPosition
+                                : fEndState.GetPosition();
+  fLastLocatedPosition = position; 
+
+#ifdef G4DEBUG_PATHFINDER
   static const G4double movLenTol = 10*sqr(kCarTolerance);
 
-  std::vector<G4Navigator*>::iterator pNavIter =
-             fpTransportManager->GetActiveNavigatorsIterator(); 
-
-  G4ThreeVector lastEndPosition = fRelocatedPoint ?
-             fLastLocatedPosition : fEndState.GetPosition();
   G4ThreeVector moveVec = ( position - lastEndPosition );
   G4double      moveLenSq = moveVec.mag2();
   if( (!fNewTrack) && ( moveLenSq > movLenTol ) )
@@ -478,9 +481,7 @@ void G4PathFinder::Locate( const G4ThreeVector& position,
      ReportMove( lastEndPosition, position,
                  " (End) Position / G4PathFinder::Locate" ); 
   }
-  fLastLocatedPosition = position; 
 
-#ifdef G4DEBUG_PATHFINDER
   if( fVerboseLevel > 2 )
   {
     G4cout << G4endl; 
@@ -543,8 +544,7 @@ void G4PathFinder::ReLocate( const G4ThreeVector& position )
 {
   // Locate the point in each geometry
 
-  std::vector<G4Navigator*>::iterator pNavIter =
-              fpTransportManager->GetActiveNavigatorsIterator(); 
+  auto pNavIter = fpTransportManager->GetActiveNavigatorsIterator(); 
 
 #ifdef G4DEBUG_PATHFINDER
 
@@ -797,7 +797,7 @@ G4PathFinder::CreateTouchableHandle( G4int navId ) const
   }
 #endif
 
-  return G4TouchableHandle(touchHist); 
+  return touchHist; 
 }
 
 G4double
@@ -1109,7 +1109,7 @@ void G4PathFinder::PrintLimited()
     { 
       stepLen = fTrueMinStep;     // did not limit (went as far as asked)
     }
-    G4int oldPrec = G4cout.precision(9); 
+    G4long oldPrec = G4cout.precision(9); 
 
     G4cout << std::setw(5) << fCurrentStepNo  << " " 
            << std::setw(5) << num  << " "
@@ -1126,7 +1126,7 @@ void G4PathFinder::PrintLimited()
     if (pNav != nullptr)
     {
        G4VPhysicalVolume *pWorld = pNav->GetWorldVolume(); 
-       if( pWorld )
+       if( pWorld != nullptr )
        {
           WorldName = pWorld->GetName(); 
        }
@@ -1359,56 +1359,6 @@ G4PathFinder::DoNextCurvedStep( const G4FieldTrack &initialState,
 
   return minStep; 
 }
-
-
-G4bool G4PathFinder::RecheckDistanceToCurrentBoundary(
-                                        const G4ThreeVector& pGlobalPoint,
-                                        const G4ThreeVector& pDirection,
-                                        const G4double aProposedMove,
-                                        G4double* prDistance,
-                                        G4double* prNewSafety)const
-{
-  G4bool retval = true;
-  
-  if( fNoActiveNavigators > 0 )
-  {
-    // Calculate the safety values before making the step
-    
-    G4double minSafety = kInfinity;
-    G4double minMove = kInfinity;
-    int numNav;
-    for( numNav=0; numNav < fNoActiveNavigators; ++numNav )
-    {
-      G4double distance, safety;
-      G4bool moveIsOK;
-      moveIsOK = fpNavigator[numNav]->RecheckDistanceToCurrentBoundary(
-                                                                pGlobalPoint,
-                                                                pDirection,
-                                                                aProposedMove,
-                                                                &distance,
-                                                                &safety);
-      minSafety = std::min( safety, minSafety );
-      minMove   = std::min( distance, minMove );
-      // The first surface encountered will determine it 
-      //   - even if it is at a negative distance.
-      retval &= moveIsOK;
-    }
-    
-    *prDistance = minMove;
-    if( prNewSafety )
-    {
-      *prNewSafety = minSafety;
-    }
-  }
-  else
-  {
-    retval = false;
-  }
-
-  return retval;
-}
-
-
 
 G4String& G4PathFinder::LimitedString( ELimited lim )
 {

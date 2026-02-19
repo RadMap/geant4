@@ -23,20 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm7/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef RunAction_h
 #define RunAction_h 1
 
+#include "G4AnalysisManager.hh"
 #include "G4UserRunAction.hh"
 #include "globals.hh"
-#include "g4root.hh"
-//#include "g4xml.hh"
 
 class DetectorConstruction;
 class PhysicsList;
@@ -48,67 +43,63 @@ class G4Run;
 
 class RunAction : public G4UserRunAction
 {
-public:
+  public:
+    RunAction(DetectorConstruction*, PhysicsList*, PrimaryGeneratorAction*);
+    virtual ~RunAction();
 
-  RunAction(DetectorConstruction*, PhysicsList*, PrimaryGeneratorAction*);
-  virtual ~RunAction();
+    virtual void BeginOfRunAction(const G4Run*);
+    virtual void EndOfRunAction(const G4Run*);
 
-  virtual void BeginOfRunAction(const G4Run*);
-  virtual void   EndOfRunAction(const G4Run*);
-    
-  inline void FillTallyEdep(G4int n, G4double e);
-  inline void FillEdep(G4double de, G4double eni);
-  inline void AddProjRange (G4double x);
-  inline void AddPrimaryStep();
-                   
-private:  
-    
-  void BookHisto();
+    inline void FillTallyEdep(G4int n, G4double e);
+    inline void FillEdep(G4double de, G4double eni);
+    inline void AddProjRange(G4double x);
+    inline void AddPrimaryStep();
 
-  G4AnalysisManager*      fAnalysisManager;
-  DetectorConstruction*   fDetector;
-  PhysicsList*            fPhysics;
-  PrimaryGeneratorAction* fKinematic;
-  G4double*               fTallyEdep;   
-  G4double                fProjRange, fProjRange2;
-  G4double                fEdeptot, fEniel;
-  G4int                   fNbPrimarySteps;
-  G4int                   fRange;
+  private:
+    void BookHisto();
+
+    G4AnalysisManager* fAnalysisManager;
+    DetectorConstruction* fDetector;
+    PhysicsList* fPhysics;
+    PrimaryGeneratorAction* fKinematic;
+    G4double* fTallyEdep;
+    G4double fProjRange, fProjRange2;
+    G4double fEdeptot, fEniel;
+    G4int fNbPrimarySteps;
+    G4int fRange;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-inline void RunAction::FillTallyEdep(G4int n, G4double e)  
+inline void RunAction::FillTallyEdep(G4int n, G4double e)
 {
   fTallyEdep[n] += e;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-  
-inline void RunAction::FillEdep(G4double de, G4double eni) 
+
+inline void RunAction::FillEdep(G4double de, G4double eni)
 {
-  fEdeptot += de; 
+  fEdeptot += de;
   fEniel += eni;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-    
-inline void RunAction::AddProjRange (G4double x) 
+
+inline void RunAction::AddProjRange(G4double x)
 {
-  fProjRange  += x; 
-  fProjRange2 += x*x; 
+  fProjRange += x;
+  fProjRange2 += x * x;
   ++fRange;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-inline void RunAction::AddPrimaryStep() 
+inline void RunAction::AddPrimaryStep()
 {
   ++fNbPrimarySteps;
 }
-                   
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

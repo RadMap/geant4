@@ -109,11 +109,11 @@ void G4KokoulinMuonNuclearXS::BuildCrossSectionTable()
   G4double energy, A, Value;
   G4int Z;
 
-  G4int nEl = G4Element::GetNumberOfElements(); 
+  std::size_t nEl = G4Element::GetNumberOfElements(); 
   const G4ElementTable* theElementTable = G4Element::GetElementTable();
   G4NistManager* nistManager = G4NistManager::Instance();
 
-  for (G4int j = 0; j < nEl; j++) {
+  for (std::size_t j = 0; j < nEl; ++j) {
     Z = G4lrint((*theElementTable)[j]->GetZ());
 
     //AR-24Apr2018 Switch to treat transuranic elements as uranium  
@@ -219,11 +219,11 @@ ComputeDDMicroscopicCrossSection(G4double KineticEnergy, G4double,
 
 G4double G4KokoulinMuonNuclearXS::
 GetElementCrossSection(const G4DynamicParticle* aPart,
-		       G4int Z, const G4Material*)
+		       G4int ZZ, const G4Material*)
 {
   //AR-24Apr2018 Switch to treat transuranic elements as uranium  
-  const G4bool isHeavyElementAllowed = true; if ( isHeavyElementAllowed && Z>92 ) Z=92;
-
-  return theCrossSection[Z]->Value(aPart->GetKineticEnergy());
+  G4int Z = std::min(ZZ, 92);
+  return theCrossSection[Z]->LogVectorValue(aPart->GetKineticEnergy(),
+					    aPart->GetLogKineticEnergy());
 }
 

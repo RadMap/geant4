@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------------
 # Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.27)
 project(TestEm1)
 
 #----------------------------------------------------------------------------
@@ -40,9 +40,9 @@ target_link_libraries(TestEm1 ${Geant4_LIBRARIES} ${HBOOK_LIBRARIES})
 # relies on these scripts being in the current working directory.
 #
 set(TestEm1_SCRIPTS
-    annihil.mac brems.mac decayinfly.mac erange.mac gammaconversion.mac 
-    geantino.mac photoelec.mac photon.mac radioactive.mac range.mac runs.mac TestEm1.in
-    TestEm1.out vis.mac
+    alphaRange.mac annihil.mac brems.mac decayinfly.mac erange.mac etaDecay.mac gammaconversion.mac
+    geantino.mac ionRange.mac photoelec.mac photon.mac radioactive.mac range.mac runs.mac
+    pRange.mac stepMax.mac TestEm1.in TestEm1.out vis.mac
   )
 
 foreach(_script ${TestEm1_SCRIPTS})

@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file EventAction.cc
+/// \brief Implementation of the EventAction class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -33,31 +36,30 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file EventAction.cc
-/// \brief Implementation of the EventAction class
 
 #include "EventAction.hh"
 
-#include "Analysis.hh"
 #include "EventActionMessenger.hh"
+
+#include "G4AnalysisManager.hh"
 #include "G4Event.hh"
-#include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4UnitsTable.hh"
 #include "Randomize.hh"
 
 #include <algorithm>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-EventAction::EventAction():G4UserEventAction()
+EventAction::EventAction() : G4UserEventAction()
 {
-  //default parameter values
+  // default parameter values
   //
-  fThresEdepForSSB=8.22*eV;
-  fThresDistForDSB=10;
-  fTotalEnergyDeposit=0;
+  fThresEdepForSSB = 8.22 * eV;
+  fThresDistForDSB = 10;
+  fTotalEnergyDeposit = 0;
 
-  //create commands
+  // create commands
   //
   fpEventMessenger = new EventActionMessenger(this);
 }
@@ -71,38 +73,35 @@ EventAction::~EventAction()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void EventAction::BeginOfEventAction( const G4Event*)
+void EventAction::BeginOfEventAction(const G4Event*)
 {
   // Initialization of parameters
   //
-  fTotalEnergyDeposit=0.;
+  fTotalEnergyDeposit = 0.;
   fEdepStrand1.clear();
   fEdepStrand2.clear();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void EventAction::EndOfEventAction( const G4Event*)
+void EventAction::EndOfEventAction(const G4Event*)
 {
   // At the end of an event, compute the number of strand breaks
   //
-  G4int sb[2] = {0,0};
+  G4int sb[2] = {0, 0};
   ComputeStrandBreaks(sb);
   // Fill histograms
   //
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 
-  if ( fTotalEnergyDeposit>0. )
-  {
-    analysisManager->FillH1(1,fTotalEnergyDeposit);
+  if (fTotalEnergyDeposit > 0.) {
+    analysisManager->FillH1(1, fTotalEnergyDeposit);
   }
-  if ( sb[0]>0 )
-  {
-    analysisManager->FillH1(2,sb[0]);
+  if (sb[0] > 0) {
+    analysisManager->FillH1(2, sb[0]);
   }
-  if ( sb[1]>0 )
-  {
-    analysisManager->FillH1(3,sb[1]);
+  if (sb[1] > 0) {
+    analysisManager->FillH1(3, sb[1]);
   }
 }
 
@@ -112,9 +111,9 @@ void EventAction::ComputeStrandBreaks(G4int* sb)
 {
   // sb quantities
   //
-  G4int ssb1=0;
-  G4int ssb2=0;
-  G4int dsb=0;
+  G4int ssb1 = 0;
+  G4int ssb2 = 0;
+  G4int dsb = 0;
 
   // nucleotide id and energy deposit for each strand
   G4int nucl1;
@@ -122,54 +121,44 @@ void EventAction::ComputeStrandBreaks(G4int* sb)
   G4double edep1;
   G4double edep2;
 
-  //Read strand1
+  // Read strand1
   //
-  while ( !fEdepStrand1.empty() )
-  {
+  while (!fEdepStrand1.empty()) {
     nucl1 = fEdepStrand1.begin()->first;
     edep1 = fEdepStrand1.begin()->second;
-    fEdepStrand1.erase( fEdepStrand1.begin() );
+    fEdepStrand1.erase(fEdepStrand1.begin());
 
     // SSB in strand1
     //
-    if ( edep1 >= fThresEdepForSSB/eV )
-    {
+    if (edep1 >= fThresEdepForSSB / eV) {
       ssb1++;
     }
 
     // Look at strand2
     //
-    if ( !fEdepStrand2.empty() )
-    {
-      do
-      {
+    if (!fEdepStrand2.empty()) {
+      do {
         nucl2 = fEdepStrand2.begin()->first;
         edep2 = fEdepStrand2.begin()->second;
-        if ( edep2 >= fThresEdepForSSB/eV )
-        {
+        if (edep2 >= fThresEdepForSSB / eV) {
           ssb2++;
         }
-        fEdepStrand2.erase( fEdepStrand2.begin() );
-      } while ( ((nucl1-nucl2)>fThresDistForDSB) && (!fEdepStrand2.empty()) );
+        fEdepStrand2.erase(fEdepStrand2.begin());
+      } while (((nucl1 - nucl2) > fThresDistForDSB) && (!fEdepStrand2.empty()));
 
       // no dsb
       //
-      if ( nucl2-nucl1 > fThresDistForDSB )
-      {
-        fEdepStrand2[nucl2]=edep2;
-        if ( edep2 >= fThresEdepForSSB/eV )
-        {
+      if (nucl2 - nucl1 > fThresDistForDSB) {
+        fEdepStrand2[nucl2] = edep2;
+        if (edep2 >= fThresEdepForSSB / eV) {
           ssb2--;
         }
       }
 
       // one dsb
       //
-      if ( std::abs(nucl2-nucl1) <= fThresDistForDSB )
-      {
-        if ( ( edep2 >= fThresEdepForSSB/eV ) &&
-            ( edep1 >= fThresEdepForSSB/eV ) )
-        {
+      if (std::abs(nucl2 - nucl1) <= fThresDistForDSB) {
+        if ((edep2 >= fThresEdepForSSB / eV) && (edep1 >= fThresEdepForSSB / eV)) {
           ssb1--;
           ssb2--;
           dsb++;
@@ -180,28 +169,24 @@ void EventAction::ComputeStrandBreaks(G4int* sb)
 
   // End with not processed data
   //
-  while ( !fEdepStrand1.empty() )
-  {
+  while (!fEdepStrand1.empty()) {
     nucl1 = fEdepStrand1.begin()->first;
     edep1 = fEdepStrand1.begin()->second;
-    if ( edep1 >= fThresEdepForSSB/eV )
-    {
+    if (edep1 >= fThresEdepForSSB / eV) {
       ssb1++;
     }
-    fEdepStrand1.erase( fEdepStrand1.begin() );
+    fEdepStrand1.erase(fEdepStrand1.begin());
   }
 
-  while ( !fEdepStrand2.empty() )
-  {
+  while (!fEdepStrand2.empty()) {
     nucl2 = fEdepStrand2.begin()->first;
     edep2 = fEdepStrand2.begin()->second;
-    if ( edep2 >= fThresEdepForSSB/eV )
-    {
+    if (edep2 >= fThresEdepForSSB / eV) {
       ssb2++;
     }
-    fEdepStrand2.erase( fEdepStrand2.begin() );
+    fEdepStrand2.erase(fEdepStrand2.begin());
   }
 
-  sb[0]=ssb1+ssb2;
-  sb[1]=dsb;
+  sb[0] = ssb1 + ssb2;
+  sb[1] = dsb;
 }

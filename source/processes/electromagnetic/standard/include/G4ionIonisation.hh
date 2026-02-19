@@ -72,7 +72,6 @@
 #include "G4VEnergyLossProcess.hh"
 
 class G4Material;
-class G4EmCorrections;
 
 class G4ionIonisation : public G4VEnergyLossProcess
 {
@@ -80,9 +79,9 @@ public:
 
   explicit G4ionIonisation(const G4String& name = "ionIoni");
 
-  virtual ~G4ionIonisation();
+  ~G4ionIonisation() override = default;
 
-  virtual G4bool IsApplicable(const G4ParticleDefinition& p) final;
+  G4bool IsApplicable(const G4ParticleDefinition& p) final;
 
   void AddStoppingData(G4int Z, G4int A, const G4String& materialName,
 		       G4PhysicsVector* dVector);
@@ -90,45 +89,30 @@ public:
   void ActivateStoppingData(G4bool);
 
   // print documentation in html format
-  virtual void ProcessDescription(std::ostream&) const override;
-
-protected:
-
-  // Print out of the class parameters
-  virtual void StreamProcessInfo(std::ostream& outFile) const override;
-
-  virtual void 
-  InitialiseEnergyLossProcess(const G4ParticleDefinition*,
-			      const G4ParticleDefinition*) override;
-
-  virtual G4double MinPrimaryEnergy(const G4ParticleDefinition* p,
-				    const G4Material*, G4double cut) final;
-
-  inline G4double BetheBlochEnergyThreshold();
-
-private:
+  void ProcessDescription(std::ostream&) const override;
 
   // hide assignment operator
   G4ionIonisation & operator=(const G4ionIonisation &right) = delete;
   G4ionIonisation(const G4ionIonisation&) = delete;
 
-  G4EmCorrections*            corr;
+protected:
 
-  const G4ParticleDefinition* theParticle;
+  void InitialiseEnergyLossProcess(const G4ParticleDefinition*,
+				   const G4ParticleDefinition*) override;
 
-  G4double   eth;
+  G4double MinPrimaryEnergy(const G4ParticleDefinition* p,
+			    const G4Material*, G4double cut) final;
 
-  G4bool     isInitialised;
-  G4bool     stopDataActive;
+  inline G4double BetheBlochEnergyThreshold();
+
+private:
+
+
+  const G4ParticleDefinition* theParticle = nullptr;
+  G4double eth;
+
+  G4bool isInitialised = false;
 };
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-inline void G4ionIonisation::ActivateStoppingData(G4bool val)
-{
-  stopDataActive = val;
-}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 

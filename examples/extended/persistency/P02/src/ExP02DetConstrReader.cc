@@ -23,28 +23,27 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P02/src/ExP02DetConstrReader.cc
+/// \file ExP02DetConstrReader.cc
 /// \brief Implementation of the ExP02DetConstrReader class
-//
-//
-//ROOT
-#include "TROOT.h"
+
+// ROOT
 #include "TFile.h"
+#include "TROOT.h"
 #include "TSystem.h"
 
-//G4
+// G4
+#include "ExP02GeoTree.hh"
+
 #include "G4Element.hh"
 #include "G4PVPlacement.hh"
-#include "ExP02GeoTree.hh"
 
 // local
 #include "ExP02DetConstrReader.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ExP02DetConstrReader::ExP02DetConstrReader()
- : G4VUserDetectorConstruction()
-{  
+ExP02DetConstrReader::ExP02DetConstrReader() : G4VUserDetectorConstruction()
+{
   // initialize ROOT
   TSystem ts;
   gSystem->Load("libExP02ClassesDict");
@@ -52,8 +51,7 @@ ExP02DetConstrReader::ExP02DetConstrReader()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ExP02DetConstrReader::~ExP02DetConstrReader()
-{}
+ExP02DetConstrReader::~ExP02DetConstrReader() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

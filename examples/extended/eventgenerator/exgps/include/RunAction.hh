@@ -23,13 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file eventgenerator/exgps/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef RunAction_h
 #define RunAction_h 1
@@ -47,19 +42,16 @@ class HistoManager;
 class RunAction : public G4UserRunAction
 {
   public:
-   RunAction();
-  ~RunAction();
+    RunAction();
+    ~RunAction();
 
-   virtual void BeginOfRunAction(const G4Run*);
-   virtual void EndOfRunAction(const G4Run*);
+    virtual void BeginOfRunAction(const G4Run*);
+    virtual void EndOfRunAction(const G4Run*);
 
   private:
-   HistoManager* fHistoManager;
+    HistoManager* fHistoManager;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-
-

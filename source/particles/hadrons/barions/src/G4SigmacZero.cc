@@ -23,9 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
 // ----------------------------------------------------------------------
 //      GEANT 4 class implementation file
 //
@@ -36,69 +33,69 @@
 // ----------------------------------------------------------------------
 
 #include "G4SigmacZero.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4ParticleTable.hh"
 
-#include "G4PhaseSpaceDecayChannel.hh"
 #include "G4DecayTable.hh"
+#include "G4ParticleTable.hh"
+#include "G4PhaseSpaceDecayChannel.hh"
+#include "G4String.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4Types.hh"
+#include "G4VDecayChannel.hh"
 
-// ######################################################################
-// ###                           SigmacZero                            ###
-// ######################################################################
-
-G4SigmacZero* G4SigmacZero::theInstance = 0;
+G4SigmacZero* G4SigmacZero::theInstance = nullptr;
 
 G4SigmacZero* G4SigmacZero::Definition()
 {
-  if (theInstance !=0) return theInstance;
+  if (theInstance != nullptr) return theInstance;
   const G4String name = "sigma_c0";
   // search in particle table]
   G4ParticleTable* pTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* anInstance = pTable->FindParticle(name);
-  if (anInstance ==0) 
-  {
-  // create particle
-  //
-  //    Arguments for constructor are as follows
-  //               name             mass          width         charge
-  //             2*spin           parity  C-conjugation
-  //          2*Isospin       2*Isospin3       G-parity
-  //               type    lepton number  baryon number   PDG encoding
-  //             stable         lifetime    decay table
-  //             shortlived      subType    anti_encoding
+  if (anInstance == nullptr) {
+    // create particle
+    //
+    //    Arguments for constructor are as follows
+    //               name             mass          width         charge
+    //             2*spin           parity  C-conjugation
+    //          2*Isospin       2*Isospin3       G-parity
+    //               type    lepton number  baryon number   PDG encoding
+    //             stable         lifetime    decay table
+    //             shortlived      subType    anti_encoding
 
+    // clang-format off
    anInstance = new G4ParticleDefinition(
                  name,     2.45375*GeV,      1.83*MeV,  +0.0*eplus,
                     1,              +1,             0,
                     2,              -1,             0,
              "baryon",               0,            +1,        4112,
-                false,          0.0*ns,          NULL,
+                false,          0.0*ns,          nullptr,
                 false,       "sigma_c");
- //create Decay Table
-  G4DecayTable* table = new G4DecayTable();
+    // clang-format on
 
-  // create decay channels
-  G4VDecayChannel** mode = new G4VDecayChannel*[1];
-  // sigmac0 -> lambda_c+ + pi-
-  mode[0] = new G4PhaseSpaceDecayChannel("sigma_c0",1.000,2,"lambda_c+","pi-");
+    // create Decay Table
+    auto table = new G4DecayTable();
 
-  for (G4int index=0; index <1; index++ ) table->Insert(mode[index]);
-  delete [] mode;
+    // create decay channels
+    auto mode = new G4VDecayChannel*[1];
+    // sigmac0 -> lambda_c+ + pi-
+    mode[0] = new G4PhaseSpaceDecayChannel("sigma_c0", 1.000, 2, "lambda_c+", "pi-");
 
-   anInstance->SetDecayTable(table);
+    for (G4int index = 0; index < 1; index++)
+      table->Insert(mode[index]);
+    delete[] mode;
+
+    anInstance->SetDecayTable(table);
   }
-  theInstance = reinterpret_cast<G4SigmacZero*>(anInstance);
+  theInstance = static_cast<G4SigmacZero*>(anInstance);
   return theInstance;
 }
 
-G4SigmacZero*  G4SigmacZero::SigmacZeroDefinition()
+G4SigmacZero* G4SigmacZero::SigmacZeroDefinition()
 {
   return Definition();
 }
 
-G4SigmacZero*  G4SigmacZero::SigmacZero()
+G4SigmacZero* G4SigmacZero::SigmacZero()
 {
   return Definition();
 }
-
-

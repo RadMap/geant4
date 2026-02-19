@@ -23,49 +23,29 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/wls/include/WLSRunAction.hh
+/// \file WLSRunAction.hh
 /// \brief Definition of the WLSRunAction class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef WLSRunAction_h
 #define WLSRunAction_h 1
 
-#include "globals.hh"
-
 #include "G4UserRunAction.hh"
 
+class WLSRun;
 class G4Run;
-
-class WLSRunActionMessenger;
 
 class WLSRunAction : public G4UserRunAction
 {
   public:
-
     WLSRunAction();
-    virtual ~WLSRunAction();
+    ~WLSRunAction() override = default;
 
-  public:
-
-    virtual void BeginOfRunAction(const G4Run*);
-    virtual void EndOfRunAction(const G4Run*);
-
-    void  SetRndmFreq(G4int val) { fSaveRndm = val; }
-    G4int GetRndmFreq()          { return fSaveRndm; }
-
-    inline void SetAutoSeed (const G4bool val) { fAutoSeed = val; }
+    void BeginOfRunAction(const G4Run*) override;
+    void EndOfRunAction(const G4Run*) override;
+    G4Run* GenerateRun() override;
 
   private:
- 
-    WLSRunActionMessenger* fRunMessenger;
-
-    G4int fSaveRndm;
-    G4bool fAutoSeed;
-
+    WLSRun* fRun = nullptr;
 };
 
 #endif

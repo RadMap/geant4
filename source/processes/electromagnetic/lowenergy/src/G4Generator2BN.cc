@@ -152,6 +152,7 @@ G4double G4Generator2BN::ctab[320] =
       82.6446,  82.6446,  82.6446,  82.6446,  100
     };
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 G4Generator2BN::G4Generator2BN(const G4String&)
  : G4VEmAngularDistribution("AngularGen2BN")
@@ -175,10 +176,7 @@ G4Generator2BN::G4Generator2BN(const G4String&)
   // ConstructMajorantSurface();
 }
 
-//
-
-G4Generator2BN::~G4Generator2BN()
-{}
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 G4ThreeVector& G4Generator2BN::SampleDirection(const G4DynamicParticle* dp,
 					       G4double out_energy,
@@ -199,15 +197,10 @@ G4ThreeVector& G4Generator2BN::SampleDirection(const G4DynamicParticle* dp,
   G4double ds;
   G4double dmax;
 
-  G4int trials = 0;
-
   // find table index
   G4int index = G4int(std::log10(Ek/MeV)*100) - index_min;
   if(index > index_max) { index = index_max; }
   else if(index < 0) { index = 0; }
-
-  //kmax = Ek;
-  //kmin2 = kcut;
 
   G4double c = ctab[index];
   G4double A = Atab[index];
@@ -215,7 +208,6 @@ G4ThreeVector& G4Generator2BN::SampleDirection(const G4DynamicParticle* dp,
 
   do{
     // generate k accordimg to std::pow(k,-b)
-    trials++;
 
     // normalization constant
     //  cte1 = (1-b)/(std::pow(kmax,(1-b))-std::pow(kmin2,(1-b)));
@@ -259,6 +251,8 @@ G4ThreeVector& G4Generator2BN::SampleDirection(const G4DynamicParticle* dp,
   return fLocalDirection;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 G4double G4Generator2BN::CalculateFkt(G4double k, G4double theta, G4double A, G4double c) const
 {
   G4double Fkt_value = 0;
@@ -266,9 +260,10 @@ G4double G4Generator2BN::CalculateFkt(G4double k, G4double theta, G4double A, G4
   return Fkt_value;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 G4double G4Generator2BN::Calculatedsdkdt(G4double kout, G4double theta, G4double Eel) const
 {
-
   G4double dsdkdt_value = 0.;
   G4double Z = 1;
   // classic radius (in cm)
@@ -282,59 +277,57 @@ G4double G4Generator2BN::Calculatedsdkdt(G4double kout, G4double theta, G4double
     return dsdkdt_value;
   }
 
-     G4double E0 = Eel/electron_mass_c2;
-     G4double k =  kout/electron_mass_c2;
-     G4double E =  E0 - k;
-
-     if(E <= 1*MeV ){                                 // Kinematic limit at 1 MeV !!
-       dsdkdt_value = 0;
-       return dsdkdt_value;
-     }
-
-
-     G4double p0 = std::sqrt(E0*E0-1);
-     G4double p = std::sqrt(E*E-1);
-     G4double LL = std::log((E*E0-1+p*p0)/(E*E0-1-p*p0));
-     G4double delta0 = E0 - p0*std::cos(theta);
-     G4double epsilon = std::log((E+p)/(E-p));
-     G4double Z2 = Z*Z;
-     G4double sintheta2 = std::sin(theta)*std::sin(theta);
-     G4double E02 = E0*E0;
-     G4double E2 = E*E;
-     G4double p02 = E0*E0-1;
-     G4double k2 = k*k;
-     G4double delta02 = delta0*delta0;
-     G4double delta04 =  delta02* delta02;
-     G4double Q = std::sqrt(p02+k2-2*k*p0*std::cos(theta));
-     G4double Q2 = Q*Q;
-     G4double epsilonQ = std::log((Q+p)/(Q-p));
-
-
-     dsdkdt_value = Z2 * (r02/(8*pi*137)) * (1/k) * (p/p0) *
-       ( (8 * (sintheta2*(2*E02+1))/(p02*delta04)) -
-         ((2*(5*E02+2*E*E0+3))/(p02 * delta02)) -
-         ((2*(p02-k2))/((Q2*delta02))) +
-         ((4*E)/(p02*delta0)) +
-         (LL/(p*p0))*(
-                 ((4*E0*sintheta2*(3*k-p02*E))/(p02*delta04)) +
-                 ((4*E02*(E02+E2))/(p02*delta02)) +
-                 ((2-2*(7*E02-3*E*E0+E2))/(p02*delta02)) +
-                 (2*k*(E02+E*E0-1))/((p02*delta0))
-                 ) -
-         ((4*epsilon)/(p*delta0)) +
-         ((epsilonQ)/(p*Q))*
-         (4/delta02-(6*k/delta0)-(2*k*(p02-k2))/(Q2*delta0))
-         );
-
-
-
-     dsdkdt_value = dsdkdt_value*std::sin(theta);
-     return dsdkdt_value;
+  G4double E0 = Eel/electron_mass_c2;
+  G4double k =  kout/electron_mass_c2;
+  G4double E =  E0 - k;
+  
+  if(E <= 1*MeV ){                                 // Kinematic limit at 1 MeV !!
+    dsdkdt_value = 0;
+    return dsdkdt_value;
+  }
+  
+  G4double p0 = std::sqrt(E0*E0-1);
+  G4double p = std::sqrt(E*E-1);
+  G4double LL = std::log((E*E0-1+p*p0)/(E*E0-1-p*p0));
+  G4double delta0 = E0 - p0*std::cos(theta);
+  G4double epsilon = std::log((E+p)/(E-p));
+  G4double Z2 = Z*Z;
+  G4double sintheta2 = std::sin(theta)*std::sin(theta);
+  G4double E02 = E0*E0;
+  G4double E2 = E*E;
+  G4double p02 = E0*E0-1;
+  G4double k2 = k*k;
+  G4double delta02 = delta0*delta0;
+  G4double delta04 =  delta02* delta02;
+  G4double Q = std::sqrt(p02+k2-2*k*p0*std::cos(theta));
+  G4double Q2 = Q*Q;
+  G4double epsilonQ = std::log((Q+p)/(Q-p));
+  
+  
+  dsdkdt_value = Z2 * (r02/(8*pi*137)) * (1/k) * (p/p0) *
+    ( (8 * (sintheta2*(2*E02+1))/(p02*delta04)) -
+      ((2*(5*E02+2*E*E0+3))/(p02 * delta02)) -
+      ((2*(p02-k2))/((Q2*delta02))) +
+      ((4*E)/(p02*delta0)) +
+      (LL/(p*p0))*(
+		   ((4*E0*sintheta2*(3*k-p02*E))/(p02*delta04)) +
+		   ((4*E02*(E02+E2))/(p02*delta02)) +
+		   ((2-2*(7*E02-3*E*E0+E2))/(p02*delta02)) +
+		   (2*k*(E02+E*E0-1))/((p02*delta0))
+		   ) -
+      ((4*epsilon)/(p*delta0)) +
+      ((epsilonQ)/(p*Q))*
+      (4/delta02-(6*k/delta0)-(2*k*(p02-k2))/(Q2*delta0))
+      );
+   
+  dsdkdt_value = dsdkdt_value*std::sin(theta);
+  return dsdkdt_value;
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void G4Generator2BN::ConstructMajorantSurface()
 {
-
   G4double Eel;
   G4int vmax;
   G4double Ek;
@@ -413,7 +406,6 @@ void G4Generator2BN::ConstructMajorantSurface()
     }
   }
 
-
   // sampling efficiency
   Atab[i] = A/ratmin * 1.04;
   ctab[i] = c;
@@ -421,8 +413,9 @@ void G4Generator2BN::ConstructMajorantSurface()
 //  G4cout << Ek << " " << i << " " << index << " " << Atab[i] << " " << ctab[i] << " " << G4endl;
   i++;
   }
-
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void G4Generator2BN::PrintGeneratorInformation() const
 {

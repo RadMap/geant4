@@ -69,9 +69,26 @@ G4QMDGroundStateNucleus::G4QMDGroundStateNucleus( G4int z , G4int a )
    csp = parameters->Get_csp();
    clp = parameters->Get_clp();
 
+   ebini = 0.0;
+   // Following 10 lines should be here, right before the line 90.
+   // Otherwise, mass number cannot be conserved if the projectile or
+   // the target are nucleons.
+   //Nucleon primary or target case;
+   if ( z == 1 && a == 1 ) {  // Hydrogen  Case or proton primary 
+      SetParticipant( new G4QMDParticipant( G4Proton::Proton() , G4ThreeVector( 0.0 ) , G4ThreeVector( 0.0 ) ) );
+//      ebini = 0.0; 
+      return;
+   }
+   else if ( z == 0 && a == 1 ) { // Neutron primary 
+      SetParticipant( new G4QMDParticipant( G4Neutron::Neutron() , G4ThreeVector( 0.0 ) , G4ThreeVector( 0.0 ) ) );
+//      ebini = 0.0; 
+      return;
+   }
+
+
    //edepth = 0.0; 
 
-   for ( int i = 0 ; i < a ; i++ )
+   for ( G4int i = 0 ; i < a ; ++i )
    {
 
       G4ParticleDefinition* pd; 
@@ -92,7 +109,7 @@ G4QMDGroundStateNucleus::G4QMDGroundStateNucleus( G4int z , G4int a )
 
    }
 
-   G4double radious = r00 * G4Pow::GetInstance()->A13( double ( GetMassNumber() ) ); 
+   G4double radious = r00 * G4Pow::GetInstance()->A13( G4double ( GetMassNumber() ) ); 
 
    rt00 = radious - r01; 
    radm = radious - rada * ( gamm - 1.0 ) + radb;
@@ -100,18 +117,6 @@ G4QMDGroundStateNucleus::G4QMDGroundStateNucleus( G4int z , G4int a )
 
    //maxTrial = 1000;
    
-   //Nucleon primary or target case;
-   if ( z == 1 && a == 1 ) {  // Hydrogen  Case or proton primary 
-      SetParticipant( new G4QMDParticipant( G4Proton::Proton() , G4ThreeVector( 0.0 ) , G4ThreeVector( 0.0 ) ) );
-      ebini = 0.0; 
-      return;
-   }
-   else if ( z == 0 && a == 1 ) { // Neutron primary 
-      SetParticipant( new G4QMDParticipant( G4Neutron::Neutron() , G4ThreeVector( 0.0 ) , G4ThreeVector( 0.0 ) ) );
-      ebini = 0.0; 
-      return;
-   }
-
    
    meanfield = new G4QMDMeanField();
    meanfield->SetSystem( this );

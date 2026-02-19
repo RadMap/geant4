@@ -36,13 +36,9 @@
 //
 //      Creation date: 22 October 2015 
 //
-//Modifications:
-//
-// 
 // -------------------------------------------------------------------
 //
-// This is a new class which has different design and uses different data 
-// structure than the old one
+// This is gamma deexcitation model based on the nuclear levels data
 //
 
 #ifndef G4PHOTONEVAPORATION_HH
@@ -53,10 +49,6 @@
 #include "G4NuclearLevelData.hh"
 #include "G4LevelManager.hh"
 #include "G4Fragment.hh"
-#include "G4Threading.hh"
-
-const G4int MAXDEPOINT = 10;
-const G4int MAXGRDATA  = 300;
 
 class G4GammaTransition;
 
@@ -66,33 +58,39 @@ public:
 
   explicit G4PhotonEvaporation(G4GammaTransition* ptr=nullptr);
 
-  virtual ~G4PhotonEvaporation();
+  ~G4PhotonEvaporation() override;
 
-  virtual void Initialise() final;
+  void Initialise() override;
 
   // one photon or e- emission
-  virtual G4Fragment* EmittedFragment(G4Fragment* theNucleus) final;
+  G4Fragment* EmittedFragment(G4Fragment* theNucleus) override;
 
   // returns "false", emitted gamma and e- are added to the results
-  virtual G4bool 
-  BreakUpChain(G4FragmentVector* theResult, G4Fragment* theNucleus) final;
+  G4bool 
+  BreakUpChain(G4FragmentVector* theResult, G4Fragment* theNucleus) override;
 
   // emitted gamma, e-, and residual fragment are added to the results
   G4FragmentVector* BreakItUp(const G4Fragment& theNucleus);
 
   // compute emission probability for both continum and discrete cases
   // must be called before any method above
-  virtual G4double GetEmissionProbability(G4Fragment* theNucleus) final;
+  G4double GetEmissionProbability(G4Fragment* theNucleus) override;
 
-  virtual G4double GetFinalLevelEnergy(G4int Z, G4int A, G4double energy) final;
+  // methods for unit tests
+  G4double ComputeInverseXSection(G4Fragment* theNucleus, 
+                                  G4double kinEnergy) override;
+  G4double ComputeProbability(G4Fragment* theNucleus, 
+			      G4double kinEnergy) override;
 
-  virtual G4double GetUpperLevelEnergy(G4int Z, G4int A) final;
+  G4double GetFinalLevelEnergy(G4int Z, G4int A, G4double energy);
+
+  G4double GetUpperLevelEnergy(G4int Z, G4int A);
 
   void SetGammaTransition(G4GammaTransition*);
 
-  virtual void SetICM(G4bool);
+  void SetICM(G4bool) override;
 
-  virtual void RDMForced (G4bool);
+  void RDMForced (G4bool) override;
   
   inline void SetVerboseLevel(G4int verbose);
 
@@ -110,44 +108,44 @@ private:
 
   inline void InitialiseLevelManager(G4int Z, G4int A);
 
-  G4NuclearLevelData*   fNuclearLevelData;
-  const G4LevelManager* fLevelManager;
-  G4GammaTransition*    fTransition;
+  G4NuclearLevelData* fNuclearLevelData;
+  const G4LevelManager* fLevelManager{nullptr};
+  G4GammaTransition* fTransition;
 
   // fPolarization stores polarization tensor for consecutive
   // decays of a nucleus 
-  G4NuclearPolarization* fPolarization;
+  G4NuclearPolarization* fPolarization{nullptr};
 
-  G4int    fVerbose;
-  G4int    theZ;
-  G4int    theA;
-  G4int    fPoints;
-  G4int    fCode;
-  G4int    vShellNumber;
-  size_t   fIndex;
+  G4int fVerbose;
+  G4int theZ{0};
+  G4int theA{0};
+  G4int fPoints{0};
+  G4int vShellNumber{-1};
+  G4int MAXDEPOINT{10};
+  std::size_t fIndex{0};
 
+  G4int fSecID;  // Creator model ID for the secondaries created by this model
+
+  G4double fLevelEnergyMax{0.0};
+  G4double fExcEnergy{0.0};
+  G4double fProbability{0.0};
+  G4double fStep{0.0};
+  G4double fMaxLifeTime{DBL_MAX};
+  G4double fLocalTimeLimit{DBL_MAX};
+  
+  G4double fTolerance;
+
+  G4bool   fICM{true};
+  G4bool   fRDM{false};
+  G4bool   fSampleTime{true};
+  G4bool   fCorrelatedGamma{false};
+  G4bool   isInitialised{false};
+
+  static const G4int MAXGRDATA{300};
   static G4float GREnergy[MAXGRDATA];
   static G4float GRWidth[MAXGRDATA];
 
-  G4double fCummProbability[MAXDEPOINT]; 
-
-  G4double fLevelEnergyMax;
-  G4double fExcEnergy;
-  G4double fProbability;
-  G4double fStep;
-  G4double fMaxLifeTime;
-
-  G4double Tolerance;
-
-  G4bool   fICM;
-  G4bool   fRDM;
-  G4bool   fSampleTime;
-  G4bool   fCorrelatedGamma;
-  G4bool   isInitialised;
-
-#ifdef G4MULTITHREADED
-  static G4Mutex PhotonEvaporationMutex;
-#endif
+  G4double fCummProbability[10] = {0.0};
 };
 
 inline void G4PhotonEvaporation::SetVerboseLevel(G4int verbose)
@@ -163,7 +161,7 @@ G4PhotonEvaporation::InitialiseLevelManager(G4int Z, G4int A)
     theA = A;
     fIndex = 0;
     fLevelManager = fNuclearLevelData->GetLevelManager(theZ, theA);
-    fLevelEnergyMax = fLevelManager ? fLevelManager->MaxLevelEnergy() : 0.0;
+    fLevelEnergyMax = (nullptr != fLevelManager) ? fLevelManager->MaxLevelEnergy() : 0.0;
   }
 }
 

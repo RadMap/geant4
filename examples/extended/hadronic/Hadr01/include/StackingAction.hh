@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr01/include/StackingAction.hh
+/// \file StackingAction.hh
 /// \brief Definition of the StackingAction class
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // StackingAction
@@ -37,7 +36,7 @@
 // 04.06.2006 Adoptation of Hadr01 (V.Ivanchenko)
 //
 ////////////////////////////////////////////////////////////////////////
-// 
+//
 
 #ifndef StackingAction_h
 #define StackingAction_h 1
@@ -54,27 +53,22 @@ class G4ParticleDefinition;
 
 class StackingAction : public G4UserStackingAction
 {
-public:
+  public:
+    StackingAction();
+    ~StackingAction() override;
 
-  StackingAction();
-  virtual ~StackingAction();
-   
-  void SetKillStatus(G4bool value);
-  void SetKill(const G4String& name);
-     
-  virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*);
-    
-private:
+    void SetKillStatus(G4bool value);
+    void SetKill(const G4String& name);
 
-  HistoManager*       fHistoManager;    
-  StackingMessenger*  fStackMessenger;
-  G4bool              fKillSecondary;
+    G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*) override;
 
-  const G4ParticleDefinition* fParticle;
-
+  private:
+    HistoManager* fHistoManager;
+    StackingMessenger* fStackMessenger;
+    const G4ParticleDefinition* fParticle{nullptr};
+    G4bool fKillSecondary{false};
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

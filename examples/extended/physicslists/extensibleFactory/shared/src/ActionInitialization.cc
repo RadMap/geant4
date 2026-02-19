@@ -23,25 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ActionInitialization.cc
 /// \brief Implementation of the ActionInitialization class
 
 #include "ActionInitialization.hh"
+
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::ActionInitialization(const G4String& fileName)
- : G4VUserActionInitialization(),
-   fFileName(fileName)
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-ActionInitialization::~ActionInitialization()
-{}
+ActionInitialization::ActionInitialization(const G4String& fileName) : fFileName(fileName) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -56,6 +48,6 @@ void ActionInitialization::Build() const
 {
   SetUserAction(new PrimaryGeneratorAction);
   SetUserAction(new RunAction(fFileName));
-}  
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

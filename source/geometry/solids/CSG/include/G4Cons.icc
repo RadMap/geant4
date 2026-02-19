@@ -56,7 +56,7 @@ G4double G4Cons::GetZHalfLength() const
   return fDz ;
 }
 
-inline  
+inline
 G4double G4Cons::GetStartPhiAngle() const
 {
   return fSPhi ;
@@ -100,11 +100,11 @@ void G4Cons::Initialize()
   fRebuildPolyhedron = true;
 }
 
-inline 
+inline
 void G4Cons::InitializeTrigonometry()
 {
   G4double hDPhi = 0.5*fDPhi;                       // half delta phi
-  G4double cPhi  = fSPhi + hDPhi; 
+  G4double cPhi  = fSPhi + hDPhi;
   G4double ePhi  = fSPhi + fDPhi;
 
   sinCPhi    = std::sin(cPhi);
@@ -166,7 +166,7 @@ inline void G4Cons::CheckDPhiAngle(G4double dPhi)
 inline void G4Cons::CheckPhiAngles(G4double sPhi, G4double dPhi)
 {
   CheckDPhiAngle(dPhi);
-  if ( (fDPhi<CLHEP::twopi) && (sPhi) ) { CheckSPhiAngle(sPhi); }
+  if ( (fDPhi<CLHEP::twopi) && ((sPhi) != 0.0) ) { CheckSPhiAngle(sPhi); }
   InitializeTrigonometry();
 }
 
@@ -221,92 +221,4 @@ void G4Cons::SetDeltaPhiAngle ( G4double newDPhi )
 {
   CheckPhiAngles(fSPhi, newDPhi);
   Initialize();
-}
-
-// Old access methods ...
-
-inline
-G4double G4Cons::GetRmin1() const
-{
-  return GetInnerRadiusMinusZ();
-}
-
-inline
-G4double G4Cons::GetRmax1() const
-{
-  return GetOuterRadiusMinusZ();
-}
-
-inline
-G4double G4Cons::GetRmin2() const
-{
-  return GetInnerRadiusPlusZ();
-}
-
-inline
-G4double G4Cons::GetRmax2() const
-{
-  return GetOuterRadiusPlusZ();
-}
-
-inline  
-G4double G4Cons::GetDz() const
-{
-  return GetZHalfLength();
-}
-
-inline
-G4double G4Cons::GetSPhi() const
-{
-  return GetStartPhiAngle();
-}
-
-inline
-G4double G4Cons::GetDPhi() const
-{
-  return GetDeltaPhiAngle();
-}
-
-inline
-G4double G4Cons::GetCubicVolume()
-{
-  if(fCubicVolume != 0.) {;}
-  else   
-  {
-    G4double Rmean, rMean, deltaR, deltar;
-
-    Rmean  = 0.5*(fRmax1+fRmax2);
-    deltaR = fRmax1-fRmax2;
-
-    rMean  = 0.5*(fRmin1+fRmin2);
-    deltar = fRmin1-fRmin2;
-    fCubicVolume = fDPhi*fDz*(Rmean*Rmean-rMean*rMean
-                            +(deltaR*deltaR-deltar*deltar)/12); 
-  }
-  return fCubicVolume;
-}
-
-inline
-G4double G4Cons::GetSurfaceArea()
-{
-  if(fSurfaceArea != 0.) {;}
-  else   
-  {
-    G4double mmin, mmax, dmin, dmax;
-
-    mmin= (fRmin1+fRmin2)*0.5;
-    mmax= (fRmax1+fRmax2)*0.5;
-    dmin= (fRmin2-fRmin1);
-    dmax= (fRmax2-fRmax1);
-    
-    fSurfaceArea = fDPhi*( mmin * std::sqrt(dmin*dmin+4*fDz*fDz)
-                         + mmax * std::sqrt(dmax*dmax+4*fDz*fDz)
-                         + 0.5*(fRmax1*fRmax1-fRmin1*fRmin1
-                               +fRmax2*fRmax2-fRmin2*fRmin2 ));
-    if(!fPhiFullCone)
-    {
-      fSurfaceArea = fSurfaceArea+4*fDz*(mmax-mmin);
-    }
-  }
-  return fSurfaceArea;
 }

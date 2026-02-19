@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file field/BlineTracer/src/G4BlineSteppingAction.cc
+/// \file G4BlineSteppingAction.cc
 /// \brief Implementation of the G4BlineSteppingAction class
-//
-//
-//
-//
+
 // --------------------------------------------------------------------
 //
 // G4BlineSteppingAction implementation
@@ -40,22 +37,13 @@
 
 #include "G4BlineSteppingAction.hh"
 
-///////////////////////////////////////////////////////////////////////////
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4BlineSteppingAction::
-G4BlineSteppingAction(G4BlineTracer* aBlineTool)
+G4BlineSteppingAction::G4BlineSteppingAction(G4BlineTracer* aBlineTool)
 {
-  fBlineTool=aBlineTool;
+  fBlineTool = aBlineTool;
 }
 
-///////////////////////////////////////////////////////////////////////////
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4BlineSteppingAction::~G4BlineSteppingAction()
-{
-}
-
-///////////////////////////////////////////////////////////////////////////
-
-void G4BlineSteppingAction::UserSteppingAction(const G4Step*)
-{ 
-}
+void G4BlineSteppingAction::UserSteppingAction(const G4Step*) {}

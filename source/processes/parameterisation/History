@@ -1,20 +1,73 @@
--------------------------------------------------------------------
+# Category param History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                      Category History file
-                      ---------------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all category-tags.
-It DOES NOT substitute the  CVS log-message one should put at every
-committal in the CVS repository !
+-------------------------------------------------------------------------------
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2023-11-21 I. Hrivnacova (param-V11-01-04)
+- In G4GlobalFastSimulationManager: 
+  use G4ThreadLocalSingleton to avoid undeleted static object at exit
+
+## 2023-10-18 Ben Morgan (param-V11-01-03)
+- Apply standard and extended clang-tidy fixes
+- Mark empty/obsolete functions as deprecated
+
+## 2023-10-16 Ben Morgan (param-V11-01-02)
+- Apply standard clang-format-ing.
+- Normal order accessors and docstrings.
+
+## 2023-09-04 Gabriele Cosmo (param-V11-01-01)
+- In G4FastTrack, removed references to G4TouchableHistoryHandle,
+  which is now deprecated.
+
+## 2023-03-23 Anna Zaborowska (param-V11-01-00)
+- Added missing virtual destructor to G4VFastSimSensitiveDetector
+
+## 2022-11-23 Gabriele Cosmo (param-V11-00-04)
+- Fixed compilation warnings for implicit type conversions on macOS/XCode 14.1.
+
+## 2022-10-27 Makoto Asai (param-V11-00-03)
+- G4FastSimHitMaker - making compatible to command-based scorer
+
+## 2022-08-24 Vladimir Ivanchenko (param-V11-00-02)
+- G4FastStep - delete copy constructor and operators
+
+## 2022-01-19 Witek Pokorski (param-V11-00-01)
+- Adding the 'flush' method to the fast simulation models.
+  This method allows to process the input buffer of the fast simulation model before
+  the end of the G4 event. It is used when particles are grouped together before the processing.
+  The 'flash' is triggered inside the event loop of G4EventManager, when the Geant4 stack is empty.
+  The fast simulation model may add secondaries to the Geant4 stack, which will then be processed
+  by Geant4.
+
+## 2021-12-10 Ben Morgan (param-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+April 16, 2021 Ben Morgan (param-V10-07-00)
+- Migrate build to modular CMake API
+
+October 5, 2020, A. Zaborowska (param-V10-06-03)
+- Introduce general facilities based on GFlash implementation
+  to facilitate multiple hit (energy & position) creation
+  from fast simulation models.
+
+September 9, 2020, G. Cosmo (param-V10-06-02)
+- Fixed minor Coverity defect for uninitialised data in G4FastStep.
+
+April 21, 2020, A. Zaborowska (param-V10-06-01)
+- Sanity check for root logical volumes for regions in G4GlobalFastSimulationManager.
+  UI command /param/showSetup works also if no parallel world is present.
+
+March 26, 2020, I. Semeniouk (param-V10-06-00)
+- G4FastSimulationHelper : merge ActivateFastSimulation calls for mass and parallel geometries cases
+- G4FastSimulationManager.hh, G4VFastSimulationModel.hh : remove
+  redefinition of G4Envelope type
 
 October 30, 2019, A. Zaborowska (param-v10-05-00)
 - Register G4FastSimulationManagerProcess with highest ordering in
@@ -65,7 +118,7 @@ November 30, 2007, M. Verderi
   - tag as param-V09-00-01
 
 November 30, 2007, M. Verderi
-- minor corrections to G4FastSimulationManagerProcess.hh/.cc : 
+- minor corrections to G4FastSimulationManagerProcess.hh/.cc :
    * add call fPathFinder->prepareNewrack(...)
    * deactivate ghost navigator in EndOfTracking(..) method
    - tag as param-V09-00-00
@@ -171,7 +224,7 @@ Nov 02, 2002 M. Verderi - param-V04-01-00
 Oct 26, 2001 M. Verderi - param-V03-02-00
   Fixes to clear warnings produced with gcc-2.95.2:
 	- loop index, where comparison with method "size()" of
-	G4std::vector<T>, changed: int -> size_t 
+	G4std::vector<T>, changed: int -> size_t
 	- change "if ( a=b ) {..}" by "if ( (a=b) ) {...}"
 	this makes the compiler sure you want to make an
 	assignement in the "if" condition
@@ -224,7 +277,7 @@ April 19, 1999 M. Verderi & P. Mora de Freitas
 
 Changes in G4FastStep to co-work with track-01-00-04:
 
-1) The method void CheckIt(const G4Track&) becomes 
+1) The method void CheckIt(const G4Track&) becomes
 G4bool CheckIt(const G4Track&);
 2) The FAST_STEP_DEBUG compiling option disappears;
 3) Call to CheckIt controled by the G4VParticleChange::debugFlag attribute.
@@ -237,7 +290,7 @@ April 15, 1999 M. Verderi & P. Mora de Freitas
 Tasks to decouple visualization from processes/parameterisation:
 
 1) G4GlobalFastSimulationManager now inherites from the intercoms/
-G4VGlobalFastSimulationManager to allow visualisation to get a 
+G4VGlobalFastSimulationManager to allow visualisation to get a
 concrete instance pointer to the G4GlobalFastSimulationManager,
 if any.
 
@@ -259,7 +312,7 @@ April 14, 1999 M. Verderi & P. Mora de Freitas
 
 Several consolidation tasks (thanks to G. Cosmo):
 
-1) Warning: 
+1) Warning:
 -----------
 
 Pointers usage
@@ -283,7 +336,7 @@ G4FastTrack.cc
 G4GlobalFastSimulationManager.cc
 G4VFastSimulationModel.cc
 
-Status: 
+Status:
 -------
 Done, tested, system-tested on HP-aCC with exemple N05.
 
@@ -303,8 +356,8 @@ inline G4VParticleChange* G4FastSimulationManager::GettheParticleChange()
 Diagnostic:
 ----------
 
- Called by the G4FastSimulationManagerProcess to return it in the 
-PostStepDoIt call. 
+ Called by the G4FastSimulationManagerProcess to return it in the
+PostStepDoIt call.
 
 Action:
 -------
@@ -319,7 +372,7 @@ G4FastSimulationManager.hh
 G4FastSimulationManager.cc
 G4FastSimulationManagerProcess.cc
 
-Status: 
+Status:
 -------
 Done, tested, system-tested on HP-aCC with exemple N05.
 
@@ -336,7 +389,7 @@ offending code:
 
 Diagnostic:
 ----------
-  Nobody should inherites from G4FastSimulationManagerProcess BUT for virtual 
+  Nobody should inherites from G4FastSimulationManagerProcess BUT for virtual
 is added.
 
 Action:
@@ -347,7 +400,7 @@ Modified files:
 ---------------
 G4FastSimulationManagerProcess.hh
 
-Status: 
+Status:
 -------
 Done.
 
@@ -365,7 +418,7 @@ offending code:
 
 Diagnostic:
 ----------
-  Nobody should inherites from G4FastSimulationMessenger BUT for virtual 
+  Nobody should inherites from G4FastSimulationMessenger BUT for virtual
 is added.
 
 Action:
@@ -376,7 +429,7 @@ Modified files:
 ---------------
 G4FastSimulationMessenger.hh
 
-Status: 
+Status:
 -------
 Done.
 
@@ -495,7 +548,7 @@ December 7, 1998 M. Verderi
 	always used (in not the Locate...Setup
 	method)
 	In PostStepDoIt: correction of position and
-	direction of the track are made when 
+	direction of the track are made when
 	possible in case of mag-field.
 	This correction comes from the fact that a
 	small discrepancy appears on those quantities
@@ -532,9 +585,9 @@ November 6, 1998 M. Verderi
                                 ( G4BiasingTag aTag );
                 - G4FastStep.cc:
                         Initialize();
-                        operator=;   
+                        operator=;
                         UpdateForPostStep();
-                        UpdateForAtRest();  
+                        UpdateForAtRest();
 
 October 26, 1998  P.Mora de Freitas
    - G4FastSimulationManagerProcess and G4FastSimulationManager adapted to deal
@@ -547,13 +600,13 @@ October  8, 1998  P.Mora de Freitas
      - New G4ParticleDefinition* fLastCrossedParticle data member, keeps
        the last particle type with touched the envelope;
      - New G4RWTPtrOrderedVector<G4VFastSimulationModel> fApplicableModelList
-       data member, keeps the model list of the applicable models for 
+       data member, keeps the model list of the applicable models for
        the actual fLastCrossedParticle particle type;
-     - Changes in the PostStepGetFastSimulationManagerTrigger() and 
-       AtRestGetFastSimulationManagerTrigger()methodes to update the 
+     - Changes in the PostStepGetFastSimulationManagerTrigger() and
+       AtRestGetFastSimulationManagerTrigger()methodes to update the
        fApplicableModelList when needed (fLastCrossedParticle !=
        the actual tracked particle);
-     - Changes in the 
+     - Changes in the
 	G4FastSimulationManager() (Constructor)
 	ActivateFastSimulationModel(),
 	InActivateFastSimulationModel(),
@@ -564,7 +617,7 @@ October  8, 1998  P.Mora de Freitas
 	fApplicableModelList to be rebuilt.
 
 September 22, 1998  P.Mora de Freitas
-   Fixed bug in parallel navigation. 
+   Fixed bug in parallel navigation.
    File touched: G4FastSimulationManagerProcess.cc
    Tested on HP-aCC.
 
@@ -591,22 +644,22 @@ fParameterisation, accordingly with procman-00-02-03.
   Tested on HP-aCC.
 
 August 12, 1998  P.Mora de Freitas
-  Improved the "close parameterisation control" to 
+  Improved the "close parameterisation control" to
 
   1) avoid the close looping when unnecessary (mostly cases);
   2) force re-close when necessary (insert/remove ghosts).
 
   Changes:
 
-  1) the G4GlobalFastSimulationManager::fClosed is now initialised 
+  1) the G4GlobalFastSimulationManager::fClosed is now initialised
      to true by the G4GlobalFastSimulationManager constructor;
 
-  2) new method 
+  2) new method
 
-     void 
+     void
      G4GlobalFastSimulationManager::FastSimulationNeedsToBeClosed();
 
-     called by the AddGhostPlacement and RemoveGhostPlacement 
+     called by the AddGhostPlacement and RemoveGhostPlacement
      G4FastSimulationManager methods to set false the fClosed flag;
 
   3) changes in the G4GlobalFastSimulationManager::Notify method
@@ -627,7 +680,7 @@ nonsense line
 August 10, 1998  P.Mora de Freitas
   Fix to the SetPrimaryTrackFinalKineticEnergyAndDirection() method
 from the G4FastStep class the SetMomentumChange() call to insure that
-the new momentum direction is a unit vector (as asked by the 
+the new momentum direction is a unit vector (as asked by the
 G4DynamicParticle::SetMomentumDirection method).
 
   Touched files: G4FastStep.hh (improved comments)

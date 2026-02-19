@@ -1,20 +1,56 @@
--------------------------------------------------------------------
+# Category geomdiv History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                      Category History file
-                      ---------------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all category-tags.
-It DOES NOT substitute the  CVS log-message one should put at every
-committal in the CVS repository !
+-------------------------------------------------------------------------------
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2025-09-15 Gabriele Cosmo (geomdiv-V11-03-01)
+- Reorganised and enriched comments in headers to follow Doxygen style.
+- Removed unused data in G4VDivisionParameterisation.
+
+## 2025-08-21 Gabriele Cosmo (geomdiv-V11-03-00)
+- Applied clang-tidy fixes (readability-braces-around-statements,
+  readability-else-after-return).
+
+## 2024-04-02 Gabriele Cosmo (geomdiv-V11-02-00)
+- Applied trivial clang-tidy fixes to G4PVDivisionFactory, i.e. use of default
+  constructor/destructor.
+
+## 2023-05-09 Gabriele Cosmo (geomdiv-V11-01-00)
+- Applied clang-tidy fixes (readability, modernization, performance, ...).
+
+## 2021-12-10 Ben Morgan (geomdiv-V11-00-00)
+- Change to new Markdown History format.
+
+---
+
+# History entries prior to 11.0
+
+October 29th, 2021 G.Cosmo (geomdiv-V10-07-04)
+- G4ReplicatedSlice: added protection against null pointer for mother
+  physical-volume in constructor.
+
+October 14th, 2021 G.Cosmo (geomdiv-V10-07-03)
+- Make G4PVDivision and G4ReplicatedSlice inherit from G4PVReplica
+  rather than G4VPhysicalVolume, in order to have instances properly
+  cloned in MT mode. Coworks with "geomvol-V10-07-05".
+
+September 24th, 2021 P.Arce (geomdiv-V10-07-02)
+- Fix bug in G4ParameterisationTrd for division along X.
+  Debug messages cleaning.
+  
+August 18th, 2021 G.Cosmo (geomdiv-V10-07-01)
+- Bring internal interactive test for divisions up-to-date.
+  No functional changes.
+
+March 30th, 2021 B.Morgan (geomdiv-V10-07-00)
+- Migrate sources.cmake to modular build API
+
+December 10th, 2019     B.Morgan (geomdiv-V10-06-00)
+- Cleanup CMake build, removing obsolete granular library options and
+  explicit include_directories.
 
 October 23rd, 2019      J.Apostolakis (geomdiv-V10-05-02)
 - Added new virtual VolumeType() method in Physical Volume types.
@@ -177,7 +213,7 @@ January 10th, 2006      G.Cosmo  (geomdiv-V08-00-00)
   G4ParameterisationPolyhedra: allow it for the automatic replicated instance.
 
 November 16th, 2005     J.Apostolakis  (geomdiv-V07-01-02)
-- Adapted to revision of G4VPhysicalVolume that identifies some 
+- Adapted to revision of G4VPhysicalVolume that identifies some
   regular structures: added two methods for G4PVDivision (IsRegularStructure()
   and GetRegularStructureId()).
 

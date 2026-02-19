@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm8/include/RunAction.hh
+/// \file RunAction.hh
 /// \brief Definition of the RunAction class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName:   RunAction
@@ -41,10 +40,9 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+#include "G4AnalysisManager.hh"
 #include "G4UserRunAction.hh"
 #include "globals.hh"
-
-#include "g4root.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -54,29 +52,28 @@ class Run;
 
 class RunAction : public G4UserRunAction
 {
-public: 
+  public:
+    RunAction();
+    ~RunAction() override = default;
 
-  RunAction();
-  virtual ~RunAction();
+    G4Run* GenerateRun() override;
 
-  virtual G4Run* GenerateRun(); 
+    void BeginOfRunAction(const G4Run*) override;
+    // In this method histogramms are booked
 
-  virtual void BeginOfRunAction(const G4Run*);
-  // In this method histogramms are booked
+    void EndOfRunAction(const G4Run*) override;
+    // In this method bookHisto method is called in which histogramms are filled
 
-  virtual void EndOfRunAction(const G4Run*);
-  // In this method bookHisto method is called in which histogramms are filled
+    RunAction& operator=(const RunAction& right) = delete;
+    RunAction(const RunAction&) = delete;
 
-private:
+  private:
+    // Book predefined histogramms
+    void Book();
 
-  // Book predefined histogramms  
-  void Book();
-
-private:
-
-  G4AnalysisManager* fAnalysisManager;
-  Run*  fRun;
+  private:
+    G4AnalysisManager* fAnalysisManager;
+    Run* fRun = nullptr;
 };
 
 #endif
-

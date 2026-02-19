@@ -46,8 +46,8 @@
 //          35/384     0          500/1113    125/192 2187/6784    11/84    0
 //          5179/57600 0          7571/16695  393/640 92097/339200 187/2100 1/40
 //
-// Created: Somnath Banerjee, Google Summer of Code 2015, 25 May 2015
-// Supervision: John Apostolakis, CERN
+// Author: Somnath Banerjee (CERN, Google Summer of Code 2015), 25.05.2015
+// Supervision: John Apostolakis (CERN)
 // --------------------------------------------------------------------
 
 #include "G4DormandPrince745.hh"
@@ -56,6 +56,21 @@
 #include <cstring>
 
 using namespace field_utils;
+
+// Name of this steppers
+const G4String& G4DormandPrince745::StepperTypeName() const
+{
+  static G4String _stepperType("G4DormandPrince745: 5th order");
+  return _stepperType;
+}
+
+// Description of this steppers - plus details of its implementation
+const G4String& G4DormandPrince745::StepperDescription() const
+{
+  static G4String _stepperDescription(
+    "Embedeed 5th order Runge-Kutta stepper - 7 stages, FSAL, Interpolating.");
+  return _stepperDescription;
+}
 
 G4DormandPrince745::G4DormandPrince745(G4EquationOfMotion* equation,
                                        G4int noIntegrationVariables)
@@ -71,7 +86,7 @@ void G4DormandPrince745::Stepper(const G4double yInput[],
                                        G4double dydxOutput[])
 {
   Stepper(yInput, dydx, hstep, yOutput, yError);
-  copy(dydxOutput, ak7);
+  field_utils::copy(dydxOutput, ak7);
 }
 
 // Stepper
@@ -123,7 +138,7 @@ void G4DormandPrince745::Stepper(const G4double yInput[],
         dc7 = -(- 1.0 / 40.0);
     
     const G4int numberOfVariables = GetNumberOfVariables();
-    State yTemp;
+    State yTemp = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
     
     // The number of variables to be integrated over
     //
@@ -297,7 +312,7 @@ void G4DormandPrince745::SetupInterpolation5thOrder()
                    b98 = -805.0 / 4104.0;
     
     const G4int numberOfVariables = GetNumberOfVariables();
-    State yTemp;
+    State yTemp = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
     // Evaluate the extra stages
     //

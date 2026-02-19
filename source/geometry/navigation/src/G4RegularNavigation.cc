@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// class G4RegularNavigation implementation
+// Class G4RegularNavigation implementation
 //
-// Author: Pedro Arce, May 2007
-//
+// Author: Pedro Arce (CIEMAT), May 2007
 // --------------------------------------------------------------------
 
 #include "G4RegularNavigation.hh"
@@ -43,18 +42,11 @@ G4RegularNavigation::G4RegularNavigation()
 {
   kCarTolerance = G4GeometryTolerance::GetInstance()->GetSurfaceTolerance();
   fMinStep = 101*kCarTolerance;
-
-  fActionThreshold_NoZeroSteps  = 2;
-  fAbandonThreshold_NoZeroSteps = 25;
-  fNoStepsAllowed = 10000;
-  fWarnPush = true;
 }
 
 
 //------------------------------------------------------------------
-G4RegularNavigation::~G4RegularNavigation()
-{
-}
+G4RegularNavigation::~G4RegularNavigation() = default;
 
 
 //------------------------------------------------------------------
@@ -96,8 +88,8 @@ G4double G4RegularNavigation::
   motherLogical = motherPhysical->GetLogicalVolume();
   daughterPhysical = motherLogical->GetDaughter(0);
 
-  G4PhantomParameterisation * daughterParam =
-        (G4PhantomParameterisation*)(daughterPhysical->GetParameterisation());
+  auto daughterParam =
+       (G4PhantomParameterisation*)(daughterPhysical->GetParameterisation());
   G4int copyNo = daughterParam ->GetReplicaNo(localPoint,localDirection);
 
   G4ThreeVector voxelTranslation = daughterParam->GetTranslation( copyNo );
@@ -137,7 +129,7 @@ G4double G4RegularNavigation::ComputeStepSkippingEqualMaterials(
 {
   G4RegularNavigationHelper::Instance()->ClearStepLengths();
 
-  G4PhantomParameterisation *param =
+  auto param =
     (G4PhantomParameterisation*)(pCurrentPhysical->GetParameterisation());
 
   if( !param->SkipEqualMaterials() )
@@ -161,7 +153,7 @@ G4double G4RegularNavigation::ComputeStepSkippingEqualMaterials(
   // To get replica No: transform local point to the reference system of the
   // param container volume
   //
-  G4int ide = history.GetDepth();
+  auto  ide = (G4int)history.GetDepth();
   G4ThreeVector containerPoint = history.GetTransform(ide)
                                  .InverseTransformPoint(localPoint);
 
@@ -210,63 +202,61 @@ G4double G4RegularNavigation::ComputeStepSkippingEqualMaterials(
                                    .InverseTransformPoint(localPoint);
       std::ostringstream message;
       message << "G4RegularNavigation::ComputeStepSkippingEqualMaterials()"
-              << "Stuck Track: potential geometry or navigation problem."
-              << G4endl
-              << "        Track stuck, moving for more than "
-              << ii << " steps" << G4endl
-              << "- at point " << pGlobalpoint << G4endl
-              << "        local direction: " << localDirection << G4endl;
+        << "Stuck Track: potential geometry or navigation problem."
+        << G4endl
+        << "        Track stuck, moving for more than " 
+        << ii << " steps" << G4endl
+        << "- at point " << pGlobalpoint << G4endl
+        << "        local direction: " << localDirection << G4endl;
       G4Exception("G4RegularNavigation::ComputeStepSkippingEqualMaterials()",
-                  "GeomRegNav1001",
-                  EventMustBeAborted,
-                  message);
+      "GeomRegNav1001",
+      EventMustBeAborted,
+      message);
     }
     newStep = voxelBox->DistanceToOut( localPoint, localDirection );
     fLastStepWasZero = (newStep<fMinStep);
     if( fLastStepWasZero )
     {
       ++fNumberZeroSteps;
-      //#ifdef G4DEBUG_NAVIGATION
+#ifdef G4DEBUG_NAVIGATION
       if( fNumberZeroSteps > 1 )
       {
         G4ThreeVector pGlobalpoint = history.GetTransform(ide)
                                      .InverseTransformPoint(localPoint);
-        G4cout << "G4RegularNavigation::ComputeStepSkippingEqualMaterials():"
-               << " another 'zero' step, # "
-               << fNumberZeroSteps
-               << ", at " << pGlobalpoint
-               << ", nav-comp-step calls # " << ii
-               << ", Step= " << newStep
-               << G4endl;
+      std::ostringstream message;
+      message.precision(16);
+      message << "G4RegularNavigation::ComputeStepSkippingEqualMaterials(): another 'zero' step, # "
+            << fNumberZeroSteps
+            << ", at " << pGlobalpoint
+            << ", nav-comp-step calls # " << ii
+            << ", Step= " << newStep;
+            G4Exception("G4RegularNavigation::ComputeStepSkippingEqualMaterials()",
+                        "GeomRegNav1002", JustWarning, message,
+                        "Potential overlap in geometry!");
       }
-      //#endif
+#endif
       if( fNumberZeroSteps > fActionThreshold_NoZeroSteps-1 )
       {
         // Act to recover this stuck track. Pushing it along direction
         //
-        newStep = std::min(101*kCarTolerance*pow(10,fNumberZeroSteps-2),0.1);
-#ifdef G4VERBOSE
-        if (fWarnPush)
-        {
-          G4ThreeVector pGlobalpoint = history.GetTransform(ide)
+        newStep = std::min(101*kCarTolerance*std::pow(10,fNumberZeroSteps-2),0.1);
+#ifdef G4DEBUG_NAVIGATION
+        G4ThreeVector pGlobalpoint = history.GetTransform(ide)
                                        .InverseTransformPoint(localPoint);
-          std::ostringstream message;
-          message.precision(16);
-          message << "Track stuck or not moving." << G4endl
-                  << "          Track stuck, not moving for "
-                  << fNumberZeroSteps << " steps" << G4endl
-                  << "- at point " << pGlobalpoint
-                  << " (local point " << localPoint << ")" << G4endl
-                  << "        local direction: " << localDirection
-                  << "          Potential geometry or navigation problem !"
-                  << G4endl
-                  << "          Trying pushing it of " << newStep << " mm ...";
-          G4Exception("G4RegularNavigation::ComputeStepSkippingEqualMaterials()",
-                      "GeomRegNav1002",
-                      JustWarning,
-                      message,
-                      "Potential overlap in geometry!");
-        }
+        std::ostringstream message;
+        message.precision(16);
+        message << "Track stuck or not moving." << G4endl
+                      << "          Track stuck, not moving for " 
+                      << fNumberZeroSteps << " steps" << G4endl
+                      << "- at point " << pGlobalpoint
+                      << " (local point " << localPoint << ")" << G4endl
+                      << "        local direction: " << localDirection 
+                      << "          Potential geometry or navigation problem !"
+                      << G4endl
+                      << "          Trying pushing it of " << newStep << " mm ...";
+              G4Exception("G4RegularNavigation::ComputeStepSkippingEqualMaterials()",
+                          "GeomRegNav1003", JustWarning, message,
+                          "Potential overlap in geometry!");
 #endif
       }
       if( fNumberZeroSteps > fAbandonThreshold_NoZeroSteps-1 )
@@ -274,22 +264,26 @@ G4double G4RegularNavigation::ComputeStepSkippingEqualMaterials(
         // Must kill this stuck track
         //
         G4ThreeVector pGlobalpoint = history.GetTransform(ide)
-                                     .InverseTransformPoint(localPoint);
+                                          .InverseTransformPoint(localPoint);
         std::ostringstream message;
         message << "G4RegularNavigation::ComputeStepSkippingEqualMaterials()"
-                << "Stuck Track: potential geometry or navigation problem."
-                << G4endl
-                << "        Track stuck, not moving for "
-                << fNumberZeroSteps << " steps" << G4endl
-                << "- at point " << pGlobalpoint << G4endl
-                << "        local direction: " << localDirection << G4endl;
+          << "Stuck Track: potential geometry or navigation problem."
+          << G4endl
+          << "        Track stuck, not moving for " 
+          << fNumberZeroSteps << " steps" << G4endl
+          << "- at point " << pGlobalpoint << G4endl	
+          << "        local direction: " << localDirection << G4endl;
         G4Exception("G4RegularNavigation::ComputeStepSkippingEqualMaterials()",
-                    "GeomRegNav1003",
-                    EventMustBeAborted,
-                    message);
+              "GeomRegNav1004",
+              EventMustBeAborted,
+              message);
       }
     }
-
+    else
+    {
+      // reset the zero step counter when a non-zero step was performed
+      fNumberZeroSteps = 0;
+    }
     if( (bFirstStep) && (newStep < currentProposedStepLength) )
     {
       exiting  = true;
@@ -312,11 +306,7 @@ G4double G4RegularNavigation::ComputeStepSkippingEqualMaterials(
         AddStepLength(copyNo, newStep-totalNewStep+currentProposedStepLength);
       return currentProposedStepLength;
     }
-    else
-    {
-      G4RegularNavigationHelper::Instance()->AddStepLength( copyNo, newStep );
-    }
-
+    G4RegularNavigationHelper::Instance()->AddStepLength( copyNo, newStep );
 
     // Move container point until wall of voxel
     //
@@ -398,7 +388,7 @@ G4RegularNavigation::LevelLocate( G4NavigationHistory& history,
   
   // Get local direction
   //
-  if( globalDirection )
+  if( globalDirection != nullptr )
   {
     localDir = history.GetTopTransform().TransformAxis(*globalDirection);
   }
@@ -411,7 +401,7 @@ G4RegularNavigation::LevelLocate( G4NavigationHistory& history,
   //
   replicaNo = pParam->GetReplicaNo( localPoint, localDir );
 
-  if( replicaNo < 0 || replicaNo >= G4int(pParam->GetNoVoxel()) )
+  if( replicaNo < 0 || replicaNo >= G4int(pParam->GetNoVoxels()) )
   {
     return false;
   }
@@ -431,4 +421,11 @@ G4RegularNavigation::LevelLocate( G4NavigationHistory& history,
   pLogical->UpdateMaterial(pParam->ComputeMaterial(replicaNo,
                            pPhysical, &parentTouchable) );
   return true;
+}
+
+//------------------------------------------------------------------
+void
+G4RegularNavigation::SetNormalNavigation( G4NormalNavigation* fnormnav )
+{
+  fnormalNav = fnormnav;
 }

@@ -1,21 +1,44 @@
--------------------------------------------------------------------
+# Category proc-biasimp History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
 
-                      Category History file
-                      ---------------------
-This file should be used by G4 developers and category coordinators
-to briefly summarize all major modifications introduced in the code
-and keep track of all category-tags.
-It DOES NOT substitute the  CVS log-message one should put at every
-committal in the CVS repository !
+-------------------------------------------------------------------------------
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2024-07-18 Gabriele Cosmo (proc-biasimp-V11-02-00)
+- Fixed reported Coverity defects, to use 'const G4String&' for avoiding
+  implicit copies.
+- Some code cleanup.
 
+## 2023-11-21 Alexander Howard (proc-biasimp-V11-01-01)
+- Put in protection against on world boundary in PostStepDoIt of
+  G4ImportanceProces - addresses bug #1991.
+  - return fParticleChange if GetNextVolume is null
+
+## 2023-08-31 Gabriele Cosmo (proc-biasimp-V11-01-00)
+- Removed forward declarations to G4VTouchable.
+
+## 2022-10-05 Gabriele Cosmo (proc-biasimp-V11-00-01)
+- Fixed compilation warning on Intel/icx compiler for variable set
+  but not used in G4GeometrySampler.
+
+## 2021-12-10 Ben Morgan (proc-biasimp-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+April 16th, 2021 B. Morgan
+- Migrate build to modular CMake API
+
+September 4th, 2020  G.Cosmo
+- Fixed Coverity defect warnings for data initialisation and leaks in classes
+  G4WeightCutOffProcess, G4ImportanceProcess and G4WeightWindowProcess.
+
+February 17th, 2020  V.Ivanchenko
+- G4ImportanceProcess: added process type as fParallel
 
 February 26th, 2018  A.Howard
 - G4ImportanceConfigurator: cleaned up unnecessary G4cout and removed

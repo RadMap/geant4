@@ -23,14 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P01/include/ExP01EventAction.hh
+/// \file ExP01EventAction.hh
 /// \brief Definition of the ExP01EventAction class
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
- 
+
 #ifndef ExP01EventAction_h
 #define ExP01EventAction_h 1
 
@@ -46,7 +41,7 @@ class ExP01EventAction : public G4UserEventAction
 {
   public:
     ExP01EventAction();
-   ~ExP01EventAction();
+    ~ExP01EventAction();
 
   public:
     virtual void BeginOfEventAction(const G4Event*);
@@ -56,5 +51,3 @@ class ExP01EventAction : public G4UserEventAction
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-    

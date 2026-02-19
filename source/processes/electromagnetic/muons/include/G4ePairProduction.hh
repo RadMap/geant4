@@ -60,7 +60,7 @@ public:
 
   explicit G4ePairProduction(const G4String& processName = "ePairProd");
 
-  ~G4ePairProduction() = default;
+  ~G4ePairProduction() override = default;
 
   virtual G4bool IsApplicable(const G4ParticleDefinition& p) override;
 
@@ -72,6 +72,9 @@ public:
   // print description in html
   virtual void ProcessDescription(std::ostream&) const override;
 
+  G4ePairProduction & operator=(const G4ePairProduction &right) = delete;
+  G4ePairProduction(const G4ePairProduction&) = delete;
+
 protected:
 
   // Print out of the class parameters
@@ -80,16 +83,9 @@ protected:
   virtual void InitialiseEnergyLossProcess(const G4ParticleDefinition*,
 					   const G4ParticleDefinition*) override;
 
-private:
-
-  G4ePairProduction & operator=(const G4ePairProduction &right) = delete;
-  G4ePairProduction(const G4ePairProduction&) = delete;
-
-protected:
-
-  const G4ParticleDefinition* theParticle;
+  const G4ParticleDefinition* theParticle = nullptr;
   G4double                    lowestKinEnergy;
-  G4bool                      isInitialised;
+  G4bool                      isInitialised = false;
 
 };
 

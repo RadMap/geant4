@@ -27,8 +27,6 @@
 // Open Inventor Xt Extended Viewer - 30 Oct 2012
 // Rastislav Ondrasek, Pierre-Luc Gagnon, Frederick Jones TRIUMF
 
-#ifdef G4VIS_BUILD_OIX_DRIVER
-
 #include <stdio.h>
 #include <string.h>
 #include <string>
@@ -578,7 +576,7 @@ void G4OpenInventorXtExaminerViewer::superimpositionEvent(SoAction * action)
          this->curInfoFont->size.setValue(16);
          this->curInfoFont->name.setValue("defaultFont:Bold");
          char zPos[20];
-         sprintf(zPos, "%7.2f [m]", refZPositions[refParticleIdx] / 1000);
+         snprintf(zPos, sizeof zPos, "%7.2f [m]", refZPositions[refParticleIdx] / 1000);
          this->curInfoText->string.setValue(SbString(zPos));
       }
    }
@@ -927,9 +925,9 @@ void G4OpenInventorXtExaminerViewer::moveCamera(float dist, bool lookdown)
 {
 
    SoCamera *cam = getCamera();
-   SbVec3f p1, p2;	 // The particle moves from p1 to p2
-   SbVec3f particleDir;	 // Direction vector from p1 to p2
-   SbVec3f camPosNew;	 // New position of the camera
+   SbVec3f p1(0), p2(0); // The particle moves from p1 to p2
+   SbVec3f particleDir;  // Direction vector from p1 to p2
+   SbVec3f camPosNew(0); // New position of the camera
 
    if(refParticleTrajectory.size() == 0) {
       //refParticleTrajectory hasn't been set yet
@@ -1008,7 +1006,7 @@ void G4OpenInventorXtExaminerViewer::moveCamera(float dist, bool lookdown)
       // }
 
 
-      float x,y,z;
+      float x(0.),y(0.),z(0.);
       prevPt.getValue(x,y,z);
 
 
@@ -1498,8 +1496,8 @@ SbBool G4OpenInventorXtExaminerViewer::processSoEvent(const SoEvent * const ev) 
          case SoKeyboardEvent::DELETE:
             if (viewPtList.size()
                 && (currentState != ANIMATION
-                    || currentState != REVERSED_ANIMATION
-                    || currentState != PAUSED_ANIMATION)) {
+                    && currentState != REVERSED_ANIMATION
+                    && currentState != PAUSED_ANIMATION)) {
                String dialogName = (char *) "Delete Viewpoint";
                std::string msg = "Are you sure you want to delete current viewpoint?";
                warningMsgDialog(msg, dialogName, deleteViewPtCB);
@@ -2771,7 +2769,7 @@ void G4OpenInventorXtExaminerViewer::lookAtSceneElementCB(Widget,
    SoFullPath *path;
    SoSearchAction search;
    SoNode *root = This->getSceneManager()->getSceneGraph();
-   int counter, idxUnderscore = elementField.find_last_of("_");
+   int counter(1), idxUnderscore = elementField.find_last_of("_");
 
    This->parseString<int>(counter, elementField.substr(idxUnderscore + 1, idx), error);
 
@@ -3497,7 +3495,7 @@ bool G4OpenInventorXtExaminerViewer::loadViewPts()
    std::string token;
    SbVec3f axis;
    SbRotation orient;
-   float x, y, z, angle;
+   float x(0.), y(0.), z(0.), angle(0.);
 
    // Gets the last view point accessed, stored in the first line of the data file.
    fileIn >> token;
@@ -3533,7 +3531,7 @@ bool G4OpenInventorXtExaminerViewer::loadViewPts()
       orient.setValue(axis.setValue(x, y, z), angle);
       tmp.orientation = orient.getValue();
 
-      int camType;
+      int camType(0);
       parseString<int>(camType, token, error);
       fileIn >> token;
       tmp.camType = (CameraType) camType;
@@ -4493,6 +4491,8 @@ void G4OpenInventorXtExaminerViewer::evenOutRefParticlePts()
       numOfPts++;
       totalDistBtwPts += (p2 - p1).length();
    }
+   // Nothing useful to do (and fix Coverity)
+   if (numOfPts <= 2) return;
 
    avgDistBtwPts = totalDistBtwPts / numOfPts;
    float minDistAllowed = 0.75 * avgDistBtwPts;
@@ -4683,8 +4683,8 @@ void G4OpenInventorXtExaminerViewer::setStartingPtForAnimation()
       stopAnimating();
 
    SbRotation rot;
-   SbVec3f p1, p2, p2_tmp, camUpV, camD, camD_tmp, leftRightAxis;
-   float x1, y1, z1, x2, y2, z2;
+   SbVec3f p1(0), p2(0), p2_tmp(0), camUpV(0), camD, camD_tmp, leftRightAxis;
+   float x1(0.), y1(0.), z1(0.), x2(0.), y2(0.), z2(0.);
 
    if (currentState == ANIMATION) {
       p1 = refParticleTrajectory[refParticleIdx];
@@ -4938,5 +4938,3 @@ G4bool HookEventProcState::Notify(G4ApplicationState requiredState)
    }
    return true;
 }
-
-#endif // G4VIS_BUILD_OIX_DRIVER

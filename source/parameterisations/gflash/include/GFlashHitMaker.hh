@@ -48,31 +48,34 @@
 #include "G4GFlashSpot.hh"
 #include "G4FastTrack.hh"
 
-class GFlashHitMaker 
+class G4Step;
+class G4StepPoint;
+class G4VProcess;
+
+class GFlashHitMaker
 {
   public:
-
     GFlashHitMaker();
     ~GFlashHitMaker();
-  
-    void make(GFlashEnergySpot * aSpot, const G4FastTrack * aT );
-    inline void SetNameOfWorldWithSD(const G4String& aName) {fWorldWithSdName = aName;};
-  
-  private:  
 
+    void make(GFlashEnergySpot* aSpot, const G4FastTrack* aT);
+    inline void SetNameOfWorldWithSD(const G4String& aName) { fWorldWithSdName = aName; };
+
+    inline void SetProcess(G4VProcess* proc) { fpProcess = proc; }
+
+  private:
     G4TouchableHandle fTouchableHandle;
-    G4Navigator *fpNavigator;
+    G4Navigator* fpNavigator;
     G4bool fNaviSetup;
     /// Name of the world containing the sensitive detector. If empty, default mass world is used.
     G4String fWorldWithSdName;
 
-  private:
+    G4Step* fpSpotS;
+    G4StepPoint* fpSpotP;
+    G4VProcess* fpProcess = nullptr;
 
-    GFlashHitMaker(const GFlashHitMaker & ) {}
-    GFlashHitMaker & operator = (const GFlashHitMaker & )
-    {
-      return *this;
-    }
+  private:
+    GFlashHitMaker(const GFlashHitMaker&) {}
+    GFlashHitMaker& operator=(const GFlashHitMaker&) { return *this; }
 };
 #endif
-

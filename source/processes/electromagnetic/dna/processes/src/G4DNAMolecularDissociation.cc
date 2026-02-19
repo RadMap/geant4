@@ -43,7 +43,8 @@
 #include "G4ParticleChange.hh"
 #include "G4ITTransportationManager.hh"
 #include "G4ITNavigator.hh"
-
+#include "G4LowEnergyEmProcessSubType.hh"
+#include "G4VUserBrownianAction.hh"
 //______________________________________________________________________________
 
 G4DNAMolecularDissociation::
@@ -52,7 +53,7 @@ G4DNAMolecularDissociation(const G4String& processName,
    : G4VITRestDiscreteProcess(processName, type)
 {
     // set Process Sub Type
-    SetProcessSubType(59); // DNA sub-type
+    SetProcessSubType(fLowEnergyMolecularDecay); // DNA sub-type
     enableAlongStepDoIt = false;
     enablePostStepDoIt = true;
     enableAtRestDoIt = true;
@@ -75,7 +76,10 @@ G4DNAMolecularDissociation(const G4String& processName,
 
 //______________________________________________________________________________
 
-G4DNAMolecularDissociation::~G4DNAMolecularDissociation() = default;
+G4DNAMolecularDissociation::~G4DNAMolecularDissociation()
+{
+  delete fpBrownianAction;
+}
 
 //______________________________________________________________________________
 
@@ -95,10 +99,8 @@ IsApplicable(const G4ParticleDefinition& aParticleType)
 #endif
         return (true);
     }
-    else
-    {
-        return false;
-    }
+    
+    return false;
 }
 
 //______________________________________________________________________________
@@ -119,7 +121,7 @@ G4VParticleChange* G4DNAMolecularDissociation::DecayIt(const G4Track& track,
     auto pMotherMolecule = GetMolecule(track);
     auto pMotherMoleculeDefinition = pMotherMolecule->GetDefinition();
 
-    if (pMotherMoleculeDefinition->GetDecayTable())
+    if (pMotherMoleculeDefinition->GetDecayTable() != nullptr)
     {
         const auto pDissociationChannels = pMotherMolecule->GetDissociationChannels();
 
@@ -160,7 +162,7 @@ G4VParticleChange* G4DNAMolecularDissociation::DecayIt(const G4Track& track,
             aParticleChange.ProposeLocalEnergyDeposit(pDecayChannel->GetEnergy());
         }
 
-        if (nbProducts)
+        if (nbProducts != 0)
         {
             std::vector<G4ThreeVector> productsDisplacement(nbProducts);
             G4ThreeVector motherMoleculeDisplacement;
@@ -188,7 +190,7 @@ G4VParticleChange* G4DNAMolecularDissociation::DecayIt(const G4Track& track,
             aParticleChange.SetNumberOfSecondaries(nbProducts);
 
 #ifdef G4VERBOSE
-            if (fVerbose)
+            if (fVerbose != 0)
             {
                 G4cout << "Decay Process : " << pMotherMolecule->GetName()
                        << " (trackID :" << track.GetTrackID() << ") "
@@ -220,26 +222,44 @@ G4VParticleChange* G4DNAMolecularDissociation::DecayIt(const G4Track& track,
                 G4ThreeVector product_pos = track.GetPosition()
                                             + displacement_direction * mag_displacement;
 
+                //Hoang: force changing position track::
+                if(fpBrownianAction != nullptr)
+                {
+                  fpBrownianAction->Transport(product_pos);
+                }
+                //Hoang: force changing position track
+
                 const G4AffineTransform& transform = pNavigator->GetGlobalToLocalTransform();
 
                 G4ThreeVector localPoint = transform.TransformPoint(product_pos); //track.GetPosition());
-
+                // warning if the decayed product is outside of the volume and
+                // the mother volume has no water material  (the decayed product
+                // is outside of the world volume will be killed in the next step)
                 if (track.GetTouchable()->GetSolid()->Inside(localPoint) !=
                     EInside::kInside)
                 {
-                    G4ExceptionDescription ED;
-                    ED << "The decayed product is outside of the volume : "
-                       << track.GetTouchable()->GetVolume()->GetName() << G4endl;
-                    G4Exception("G4DNAMolecularDissociation::DecayIt()",
-                                "OUTSIDE_OF_MOTHER_VOLUME",
-                                JustWarning, ED);
+                    auto WaterMaterial = G4Material::GetMaterial("G4_WATER");
+                    auto Motherlogic = track.GetTouchable()->GetVolume()->
+                                       GetMotherLogical();
+                    if (Motherlogic != nullptr
+                       && Motherlogic->GetMaterial() != WaterMaterial)
+                    {
+                        G4ExceptionDescription ED;
+                        ED << "The decayed product is outside of the volume : "
+                           << track.GetTouchable()->GetVolume()->GetName()
+                           << " with material : "<< Motherlogic->GetMaterial()
+                                                       ->GetName()<< G4endl;
+                        G4Exception("G4DNAMolecularDissociation::DecayIt()",
+                                    "OUTSIDE_OF_MOTHER_VOLUME",
+                                    JustWarning, ED);
+                    }
                 }
 
                 auto pSecondary = pProduct->BuildTrack(track.GetGlobalTime(), product_pos);
 
                 pSecondary->SetTrackStatus(fAlive);
 #ifdef G4VERBOSE
-                if (fVerbose)
+                if (fVerbose != 0)
                 {
                     G4cout << "Product : " << pProduct->GetName() << G4endl;
                 }
@@ -248,14 +268,14 @@ G4VParticleChange* G4DNAMolecularDissociation::DecayIt(const G4Track& track,
                 aParticleChange.G4VParticleChange::AddSecondary(pSecondary);
             }
 #ifdef G4VERBOSE
-            if (fVerbose)
+            if (fVerbose != 0)
             {
                 G4cout << "-------------" << G4endl;
             }
 #endif
         }
             //DEBUG
-        else if (fVerbose && decayEnergy)
+        else if ((fVerbose != 0) && (decayEnergy != 0.0))
         {
             G4cout << "No products for this channel" << G4endl;
             G4cout << "-------------" << G4endl;

@@ -23,18 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm3/src/TrackingAction.cc
+/// \file TrackingAction.cc
 /// \brief Implementation of the TrackingAction class
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "TrackingAction.hh"
 
 #include "DetectorConstruction.hh"
 #include "Run.hh"
+#include "EventAction.hh"
 
 #include "G4RunManager.hh"
 #include "G4Positron.hh"
@@ -42,8 +38,8 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TrackingAction::TrackingAction(DetectorConstruction* det)
-:G4UserTrackingAction(),fDetector(det)
+TrackingAction::TrackingAction(DetectorConstruction* det,EventAction* evt)
+:fDetector(det),fEventAct(evt)
 { }
  
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -80,8 +76,18 @@ void TrackingAction::PreUserTrackingAction(const G4Track* track )
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TrackingAction::PostUserTrackingAction(const G4Track* )
-{ }
+void TrackingAction::PostUserTrackingAction(const G4Track* track )
+{
+ // energy leakage
+ G4StepStatus status = track->GetStep()->GetPostStepPoint()->GetStepStatus();
+ if (status == fWorldBoundary) {
+    G4double eleak = track->GetKineticEnergy();
+    if (track->GetDefinition() == G4Positron::Positron()) {
+      eleak += 2*electron_mass_c2;
+    }
+    fEventAct->SumEnergyLeak(eleak);
+ }
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

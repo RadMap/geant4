@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file parallel/ThreadsafeScorers/src/TSActionInitialization.cc
+/// \file TSActionInitialization.cc
 /// \brief Implementation of the TSActionInitialization class
-//
-//
-//
-//
+///
 /// Standard ActionInitialization class creating a RunAction instance for the
 ///     master thread and RunAction and PrimaryGeneratorAction instances for
 ///     the worker threads
@@ -37,10 +34,8 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-
-
-
 #include "TSActionInitialization.hh"
+
 #include "TSDetectorConstruction.hh"
 #include "TSPrimaryGeneratorAction.hh"
 #include "TSRunAction.hh"
@@ -53,36 +48,36 @@ TSActionInitialization* TSActionInitialization::fgInstance = 0;
 
 TSActionInitialization* TSActionInitialization::Instance()
 {
-    return fgInstance;
+  return fgInstance;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 TSActionInitialization::TSActionInitialization()
 {
-    fgInstance = this;
+  fgInstance = this;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 TSActionInitialization::~TSActionInitialization()
 {
-    fgInstance = 0;
+  fgInstance = 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void TSActionInitialization::BuildForMaster() const
 {
-    SetUserAction(new TSRunAction);
+  SetUserAction(new TSRunAction);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void TSActionInitialization::Build() const
 {
-    SetUserAction(new TSPrimaryGeneratorAction);
-    SetUserAction(new TSRunAction);
+  SetUserAction(new TSPrimaryGeneratorAction);
+  SetUserAction(new TSRunAction);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

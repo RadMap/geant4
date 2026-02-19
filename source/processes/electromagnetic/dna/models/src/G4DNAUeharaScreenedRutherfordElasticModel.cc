@@ -39,17 +39,12 @@ using namespace std;
 
 G4DNAUeharaScreenedRutherfordElasticModel::
 G4DNAUeharaScreenedRutherfordElasticModel(const G4ParticleDefinition*,
-                                          const G4String& nam) :
-G4VEmModel(nam), isInitialised(false)
+                                          const G4String& nam) : G4VEmModel(nam)
 {
-  fpWaterDensity = 0;
-  
-  // Switch between two final state models
+  // Energy limits of the models
   intermediateEnergyLimit = 200. * eV; 
-  
-  SetLowEnergyLimit(9.*eV);
-  
-  SetHighEnergyLimit(1.*MeV);
+  iLowEnergyLimit = 9.*eV;
+  iHighEnergyLimit = 1.*MeV;
 
   verboseLevel = 0;
   // Verbosity scale:
@@ -58,30 +53,8 @@ G4VEmModel(nam), isInitialised(false)
   // 2 = details of energy budget
   // 3 = calculation of cross sections, file openings, sampling of atoms
   // 4 = entering in methods
-
-#ifdef UEHARA_VERBOSE
-  if (verboseLevel)
-  {
-    G4cout << "Screened Rutherford Elastic model is constructed " << G4endl
-           << "Energy range: "
-           << LowEnergyLimit() / eV << " eV - "
-           << HighEnergyLimit() / MeV << " MeV"
-           << G4endl;
-  }
-#endif
   
-  fParticleChangeForGamma = 0;
-
-  // Selection of computation method
-  // We do not recommend "true" usage with the current cumul. proba. settings
   fasterCode = false;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-G4DNAUeharaScreenedRutherfordElasticModel::
-~G4DNAUeharaScreenedRutherfordElasticModel()
-{
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -91,13 +64,10 @@ G4DNAUeharaScreenedRutherfordElasticModel::
 Initialise(const G4ParticleDefinition* particle,
            const G4DataVector& /*cuts*/)
 {
-#ifdef UEHARA_VERBOSE
+  if(isInitialised) { return; }
   if (verboseLevel > 3)
   {
-    G4cout << "Calling G4DNAUeharaScreenedRutherfordElasticModel::Initialise()"
-    << G4endl;
   }
-#endif
   
   if(particle->GetParticleName() != "e-")
   {
@@ -106,35 +76,16 @@ Initialise(const G4ParticleDefinition* particle,
                 "",FatalException,"") ;
   }
   
-  // Energy limits
-
-  if(LowEnergyLimit() < 9.*CLHEP::eV)
-  {
-    G4Exception("*** WARNING : the G4DNAUeharaScreenedRutherfordElasticModel "
-                "class is not validated below 9 eV",
-                "",JustWarning,"") ;
-  }
   
-  if (HighEnergyLimit() > 10.*CLHEP::keV)
+  if( verboseLevel>1 )
   {
-    G4Exception("*** WARNING: the G4DNAUeharaScreenedRutherfordElasticModel "
-                "class is used above 10 keV",
-                "",JustWarning,"") ;
+    G4cout << "G4DNAUeharaScreenedRutherfordElasticModel::Initialise()"
+	   << G4endl;
+    G4cout << "Energy range: "
+	   << LowEnergyLimit() / eV << " eV - "
+	   << HighEnergyLimit() / MeV << " MeV"
+	   << G4endl;
   }
-  
-#ifdef UEHARA_VERBOSE
-  if( verboseLevel>0 )
-  {
-    G4cout << "Screened Rutherford elastic model is initialized " << G4endl
-    << "Energy range: "
-    << LowEnergyLimit() / eV << " eV - "
-    << HighEnergyLimit() / MeV << " MeV"
-    << G4endl;
-  }
-#endif
-  
-  if (isInitialised){ return; }
-
   // Constants for final state by Brenner & Zaider
   // Note: the instantiation must be placed after if (isInitialised)
   
@@ -208,6 +159,8 @@ CrossSectionPerVolume(const G4Material* material,
   // Calculate total cross section for model
   
   G4double sigma = 0.;
+  if(ekin < iLowEnergyLimit || ekin > iHighEnergyLimit) { return sigma; }
+
   G4double waterDensity = (*fpWaterDensity)[material->GetIndex()];
   
   G4double z = 7.42; // FROM PMB 37 (1992) 1841-1858 p1842
@@ -309,6 +262,8 @@ SampleSecondaries(std::vector<G4DynamicParticle*>* /*fvect*/,
 #endif
 
   G4double electronEnergy0 = aDynamicElectron->GetKineticEnergy();
+  if(electronEnergy0 < iLowEnergyLimit || electronEnergy0 > iHighEnergyLimit)
+    return;
 
   G4double cosTheta = 0.;
 
@@ -388,7 +343,7 @@ BrennerZaiderRandomizeCosTheta(G4double k)
 
   // ***** Original method
   
-  if (fasterCode == false)
+  if (!fasterCode)
   {
     G4double oneOverMax = 1.
     / (1. / (4. * gamma * gamma)
@@ -418,9 +373,8 @@ BrennerZaiderRandomizeCosTheta(G4double k)
 
   // ***** Alternative method using cumulative probability
 
-  else // if (fasterCode)
-  {
-
+  // if (fasterCode)
+  
    // 
    // modified by Shogo OKADA @ KEK, JP, 2016.2.27(Sat.)
    // 
@@ -514,9 +468,9 @@ BrennerZaiderRandomizeCosTheta(G4double k)
 
    return cosTheta;
    */
-  }
  
-  return 0.;
+ 
+  //return 0.;
 
 }
 
@@ -566,7 +520,7 @@ ScreenedRutherfordRandomizeCosTheta(G4double k,
   
   // ***** Original method
   
-  if (fasterCode == false)
+  if (!fasterCode)
   {
     G4double n = ScreeningFactor(k, z);
     
@@ -587,65 +541,64 @@ ScreenedRutherfordRandomizeCosTheta(G4double k,
   }
   
   // ***** Alternative method using cumulative probability
-  else // if (fasterCode)
-  {
-    
-    //
-    // modified by Shogo OKADA @ KEK, JP, 2016.2.27(Sat.)
-    //
-    // The cumulative probability (cp) is calculated by integrating
-    // the differential cross-section fomula with cos(theta):
-    //
-    //         n(K) * (1.0 + cos(theta))
-    //  cp = ---------------------------------
-    //         1.0 + 2.0 * n(K) - cos(theta)
-    //
-    // Then, cos(theta) is as follows:
-    //
-    //               cp * (1.0 + 2.0 * n(K)) - n(K)
-    // cos(theta) = --------------------------------
-    //                       n(k) + cp
-    //
-    // where, K is kinetic energy, n(K) is screeing factor, and cp is cumulative probability
-    //
-    
-    G4double n = ScreeningFactor(k, z);
-    G4double cp = G4UniformRand();
-    G4double numerator = cp * (1.0 + 2.0 * n) - n;
-    G4double denominator = n + cp;
-    return numerator / denominator;
-    
-    /*
-     G4double cosTheta = -1;
-     G4double cumul = 0;
-     G4double value = 0;
-     G4double n = ScreeningFactor(k, z);
-     G4double fCosTheta;
-     
-     // Number of integration steps in the -1,1 range
-     G4int iMax=200;
-     
-     G4double random = G4UniformRand();
-     
-     // Cumulate differential cross section
-     for (G4int i=0; i<iMax; i++)
-     {
-     cosTheta = -1 + i*2./(iMax-1);
-     fCosTheta = (1 + 2.*n - cosTheta);
-     if (fCosTheta !=0.) cumul = cumul + 1./(fCosTheta*fCosTheta);
-     }
-     
-     // Select cosTheta
-     for (G4int i=0; i<iMax; i++)
-     {
-     cosTheta = -1 + i*2./(iMax-1);
-     fCosTheta = (1 + 2.*n - cosTheta);
-     if (cumul !=0.) value = value + (1./(fCosTheta*fCosTheta)) / cumul;
-     if (random < value) break;
-     }
-     return cosTheta;
-     */
-  }
+  // if (fasterCode)
+      
+  //
+  // modified by Shogo OKADA @ KEK, JP, 2016.2.27(Sat.)
+  //
+  // The cumulative probability (cp) is calculated by integrating
+  // the differential cross-section fomula with cos(theta):
+  //
+  //         n(K) * (1.0 + cos(theta))
+  //  cp = ---------------------------------
+  //         1.0 + 2.0 * n(K) - cos(theta)
+  //
+  // Then, cos(theta) is as follows:
+  //
+  //               cp * (1.0 + 2.0 * n(K)) - n(K)
+  // cos(theta) = --------------------------------
+  //                       n(k) + cp
+  //
+  // where, K is kinetic energy, n(K) is screeing factor, and cp is cumulative probability
+  //
+  
+  G4double n = ScreeningFactor(k, z);
+  G4double cp = G4UniformRand();
+  G4double numerator = cp * (1.0 + 2.0 * n) - n;
+  G4double denominator = n + cp;
+  return numerator / denominator;
+  
+  /*
+   G4double cosTheta = -1;
+   G4double cumul = 0;
+   G4double value = 0;
+   G4double n = ScreeningFactor(k, z);
+   G4double fCosTheta;
+   
+   // Number of integration steps in the -1,1 range
+   G4int iMax=200;
+   
+   G4double random = G4UniformRand();
+   
+   // Cumulate differential cross section
+   for (G4int i=0; i<iMax; i++)
+   {
+   cosTheta = -1 + i*2./(iMax-1);
+   fCosTheta = (1 + 2.*n - cosTheta);
+   if (fCosTheta !=0.) cumul = cumul + 1./(fCosTheta*fCosTheta);
+   }
+   
+   // Select cosTheta
+   for (G4int i=0; i<iMax; i++)
+   {
+   cosTheta = -1 + i*2./(iMax-1);
+   fCosTheta = (1 + 2.*n - cosTheta);
+   if (cumul !=0.) value = value + (1./(fCosTheta*fCosTheta)) / cumul;
+   if (random < value) break;
+   }
+   return cosTheta;
+   */
  
-  return 0.;
+ 
+  //return 0.;
 }

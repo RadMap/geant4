@@ -40,6 +40,8 @@
 #include <sstream>
 #include <cmath>
 
+#define G4warn G4cout
+
 G4ViewParameters::G4ViewParameters ():
   fDrawingStyle (wireframe),
   fNumberOfCloudPoints(10000),
@@ -83,24 +85,13 @@ G4ViewParameters::G4ViewParameters ():
   fBackgroundColour (G4Colour(0.,0.,0.)),         // Black
   fPicking (false),
   fRotationStyle (constrainUpDirection),
-  fStartTime(-G4VisAttributes::fVeryLongTime),
-  fEndTime(G4VisAttributes::fVeryLongTime),
-  fFadeFactor(0.),
-  fDisplayHeadTime(false),
-  fDisplayHeadTimeX(-0.9),
-  fDisplayHeadTimeY(-0.9),
-  fDisplayHeadTimeSize(24.),
-  fDisplayHeadTimeRed(0.),
-  fDisplayHeadTimeGreen(1.),
-  fDisplayHeadTimeBlue(1.),
-  fDisplayLightFront(false),
-  fDisplayLightFrontX(0.),
-  fDisplayLightFrontY(0.),
-  fDisplayLightFrontZ(0.),
-  fDisplayLightFrontT(0.),
-  fDisplayLightFrontRed(0.),
-  fDisplayLightFrontGreen(1.),
-  fDisplayLightFrontBlue(0.)
+  fSpecialMeshRendering(false),
+  fSpecialMeshRenderingOption(meshAsDefault),
+  fTransparencyByDepth(0.),
+  fTransparencyByDepthOption(1),
+  fZoomToCursor(false),
+  fDotsSmooth(true),
+  fDotsSize(1.)
 {
   // Pick up default no of sides from G4Polyhedron.
   // Note that this parameter is variously called:
@@ -182,7 +173,7 @@ void G4ViewParameters::AddCutawayPlane (const G4Plane3D& cutawayPlane) {
     fCutawayPlanes.push_back (cutawayPlane);
   }
   else {
-    G4cerr <<
+    G4warn <<
       "ERROR: G4ViewParameters::AddCutawayPlane:"
       "\n  A maximum of 3 cutaway planes supported." << G4endl;
   }
@@ -191,7 +182,7 @@ void G4ViewParameters::AddCutawayPlane (const G4Plane3D& cutawayPlane) {
 void G4ViewParameters::ChangeCutawayPlane
 (size_t index, const G4Plane3D& cutawayPlane) {
   if (index >= fCutawayPlanes.size()) {
-    G4cerr <<
+    G4warn <<
       "ERROR: G4ViewParameters::ChangeCutawayPlane:"
       "\n  Plane " << index << " does not exist." << G4endl;
   } else {
@@ -202,12 +193,12 @@ void G4ViewParameters::ChangeCutawayPlane
 void G4ViewParameters::SetVisibleDensity (G4double visibleDensity) {
   const G4double reasonableMaximum = 10.0 * g / cm3;
   if (visibleDensity < 0) {
-    G4cout << "G4ViewParameters::SetVisibleDensity: attempt to set negative "
+    G4warn << "G4ViewParameters::SetVisibleDensity: attempt to set negative "
       "density - ignored." << G4endl;
   }
   else {
     if (visibleDensity > reasonableMaximum) {
-      G4cout << "G4ViewParameters::SetVisibleDensity: density > "
+      G4warn << "G4ViewParameters::SetVisibleDensity: density > "
 	     << G4BestUnit (reasonableMaximum, "Volumic Mass")
 	     << " - did you mean this?"
 	     << G4endl;
@@ -220,7 +211,7 @@ G4int G4ViewParameters::SetNoOfSides (G4int nSides) {
   const G4int nSidesMin = fDefaultVisAttributes.GetMinLineSegmentsPerCircle();
   if (nSides < nSidesMin) {
     nSides = nSidesMin;
-    G4cout << "G4ViewParameters::SetNoOfSides: attempt to set the"
+    G4warn << "G4ViewParameters::SetNoOfSides: attempt to set the"
     "\nnumber of sides per circle < " << nSidesMin
     << "; forced to " << nSides << G4endl;
   }
@@ -232,7 +223,7 @@ G4int G4ViewParameters::SetNumberOfCloudPoints(G4int nPoints) {
   const G4int nPointsMin = 100;
   if (nPoints < nPointsMin) {
     nPoints = nPointsMin;
-    G4cout << "G4ViewParameters::SetNumberOfCloudPoints:"
+    G4warn << "G4ViewParameters::SetNumberOfCloudPoints:"
     "\nnumber of points per cloud set to minimum " << nPoints
     << G4endl;
   }
@@ -251,7 +242,7 @@ void G4ViewParameters::SetViewAndLights
     static G4bool firstTime = true;
     if (firstTime) {
       firstTime = false;
-      G4cout <<
+      G4warn <<
       "WARNING: Viewpoint direction is very close to the up vector direction."
       "\n  Change the up vector or \"/vis/viewer/set/rotationStyle freeRotation\"."
       << G4endl;
@@ -266,7 +257,7 @@ void G4ViewParameters::SetViewAndLights
     fActualLightpointDirection =
       fRelativeLightpointDirection.x () * xprime +
       fRelativeLightpointDirection.y () * yprime +
-      fRelativeLightpointDirection.x () * zprime;     
+      fRelativeLightpointDirection.z () * zprime;
   } else {
     fActualLightpointDirection = fRelativeLightpointDirection;
   }
@@ -451,6 +442,37 @@ G4String G4ViewParameters::DrawingStyleCommands() const
   oss << "\n/vis/viewer/set/numberOfCloudPoints "
   << fNumberOfCloudPoints;
 
+  oss << "\n/vis/viewer/set/specialMeshRendering ";
+  if (fSpecialMeshRendering) {
+    oss << "true";
+  } else {
+    oss << "false";
+  }
+
+  oss << "\n/vis/viewer/set/specialMeshRenderingOption "
+  << fSpecialMeshRenderingOption;
+
+  oss << "\n/vis/viewer/set/specialMeshVolumes";
+  for (const auto& volume : fSpecialMeshVolumes) {
+    oss << ' ' << volume.GetName() << ' ' << volume.GetCopyNo();
+  }
+
+  oss << "\n/vis/viewer/set/zoomToCursor ";
+  if (fZoomToCursor) {
+    oss << "true";
+  } else {
+    oss << "false";
+  }
+  
+  oss << "\n/vis/viewer/set/dotsSmooth ";
+  if (fDotsSmooth) {
+    oss << "true";
+  } else {
+    oss << "false";
+  }
+
+  oss << "\n/vis/viewer/set/dotsSize " << fDotsSize;
+
   oss << std::endl;
   
   return oss.str();
@@ -516,12 +538,12 @@ G4String G4ViewParameters::SceneModifyingCommands() const
   
   oss << "\n/vis/viewer/clearCutawayPlanes";
   if (fCutawayPlanes.size()) {
-    for (size_t i = 0; i < fCutawayPlanes.size(); i++) {
+    for (const auto& fCutawayPlane : fCutawayPlanes) {
       oss << "\n/vis/viewer/addCutawayPlane "
-      << G4BestUnit(fCutawayPlanes[i].point(),"Length")
-      << fCutawayPlanes[i].normal().x()
-      << ' ' << fCutawayPlanes[i].normal().y()
-      << ' ' << fCutawayPlanes[i].normal().z();
+      << G4BestUnit(fCutawayPlane.point(),"Length")
+      << fCutawayPlane.normal().x()
+      << ' ' << fCutawayPlane.normal().y()
+      << ' ' << fCutawayPlane.normal().z();
     }
   } else {
     oss << "\n# No cutaway planes defined.";
@@ -534,6 +556,9 @@ G4String G4ViewParameters::SceneModifyingCommands() const
   oss << "\n/vis/viewer/set/lineSegmentsPerCircle "
   << fNoOfSides;
   
+  oss << "\n/vis/viewer/set/transparencyByDepth "
+  << fTransparencyByDepth << ' ' << fTransparencyByDepthOption;
+
   oss << std::endl;
   
   return oss.str();
@@ -690,46 +715,46 @@ G4String G4ViewParameters::TimeWindowCommands() const
 
   oss
   << "\n/vis/viewer/set/timeWindow/startTime "
-  << fStartTime/ns << " ns ";
+  << fTimeParameters.fStartTime/ns << " ns ";
 
   oss
   << "\n/vis/viewer/set/timeWindow/endTime "
-  << fEndTime/ns << " ns ";
+  << fTimeParameters.fEndTime/ns << " ns ";
 
   oss << "\n/vis/viewer/set/timeWindow/fadeFactor "
-  << fFadeFactor;
+  << fTimeParameters.fFadeFactor;
 
   oss
   << "\n/vis/viewer/set/timeWindow/displayHeadTime ";
-  if (!fDisplayHeadTime) {
+  if (!fTimeParameters.fDisplayHeadTime) {
     oss << "false";
   } else {
     oss
     << "true"
-    << ' ' << fDisplayHeadTimeX
-    << ' ' << fDisplayHeadTimeY
-    << ' ' << fDisplayHeadTimeSize
-    << ' ' << fDisplayHeadTimeRed
-    << ' ' << fDisplayHeadTimeGreen
-    << ' ' << fDisplayHeadTimeBlue;
+    << ' ' << fTimeParameters.fDisplayHeadTimeX
+    << ' ' << fTimeParameters.fDisplayHeadTimeY
+    << ' ' << fTimeParameters.fDisplayHeadTimeSize
+    << ' ' << fTimeParameters.fDisplayHeadTimeRed
+    << ' ' << fTimeParameters.fDisplayHeadTimeGreen
+    << ' ' << fTimeParameters.fDisplayHeadTimeBlue;
   }
 
   oss
   << "\n/vis/viewer/set/timeWindow/displayLightFront ";
-  if (!fDisplayLightFront) {
+  if (!fTimeParameters.fDisplayLightFront) {
     oss << "false";
   } else {
     oss
     << "true"
-    << ' ' << fDisplayLightFrontX/mm
-    << ' ' << fDisplayLightFrontY/mm
-    << ' ' << fDisplayLightFrontZ/mm
+    << ' ' << fTimeParameters.fDisplayLightFrontX/mm
+    << ' ' << fTimeParameters.fDisplayLightFrontY/mm
+    << ' ' << fTimeParameters.fDisplayLightFrontZ/mm
     << " mm"
-    << ' ' << fDisplayLightFrontT/ns
+    << ' ' << fTimeParameters.fDisplayLightFrontT/ns
     << " ns"
-    << ' ' << fDisplayLightFrontRed
-    << ' ' << fDisplayLightFrontGreen
-    << ' ' << fDisplayLightFrontBlue;
+    << ' ' << fTimeParameters.fDisplayLightFrontRed
+    << ' ' << fTimeParameters.fDisplayLightFrontGreen
+    << ' ' << fTimeParameters.fDisplayLightFrontBlue;
   }
 
   oss << std::endl;
@@ -777,7 +802,12 @@ void G4ViewParameters::PrintDifferences (const G4ViewParameters& v) const {
       (fAutoRefresh          != v.fAutoRefresh)          ||
       (fBackgroundColour     != v.fBackgroundColour)     || 
       (fPicking              != v.fPicking)              ||
-      (fRotationStyle        != v.fRotationStyle)
+      (fRotationStyle        != v.fRotationStyle)        ||
+      (fTransparencyByDepth  != v.fTransparencyByDepth)  ||
+      (fTransparencyByDepthOption != v.fTransparencyByDepthOption) ||
+      (fZoomToCursor         != v.fZoomToCursor)         ||
+      (fDotsSmooth           != v.fDotsSmooth)           ||
+      (fDotsSize             != v.fDotsSize)
       )
     G4cout << "Difference in 1st batch." << G4endl;
 
@@ -817,58 +847,72 @@ void G4ViewParameters::PrintDifferences (const G4ViewParameters& v) const {
     G4cout << "Difference in vis attributes modifiers." << G4endl;
   }
 
-  if (fStartTime != v.fStartTime ||
-      fEndTime   != v.fEndTime)  {
+  if (fTimeParameters.fStartTime != v.fTimeParameters.fStartTime ||
+      fTimeParameters.fEndTime   != v.fTimeParameters.fEndTime)  {
     G4cout << "Difference in time window." << G4endl;
   }
 
-  if (fFadeFactor != v.fFadeFactor) {
+  if (fTimeParameters.fFadeFactor != v.fTimeParameters.fFadeFactor) {
     G4cout << "Difference in time window fade factor." << G4endl;
   }
 
-  if (fDisplayHeadTime != v.fDisplayHeadTime) {
+  if (fTimeParameters.fDisplayHeadTime != v.fTimeParameters.fDisplayHeadTime) {
     G4cout << "Difference in display head time flag." << G4endl;
   } else {
-    if (fDisplayHeadTimeX     != v.fDisplayHeadTimeX     ||
-        fDisplayHeadTimeY     != v.fDisplayHeadTimeY     ||
-        fDisplayHeadTimeSize  != v.fDisplayHeadTimeSize  ||
-        fDisplayHeadTimeRed   != v.fDisplayHeadTimeRed   ||
-        fDisplayHeadTimeGreen != v.fDisplayHeadTimeGreen ||
-        fDisplayHeadTimeBlue  != v.fDisplayHeadTimeBlue) {
+    if (fTimeParameters.fDisplayHeadTimeX     != v.fTimeParameters.fDisplayHeadTimeX     ||
+        fTimeParameters.fDisplayHeadTimeY     != v.fTimeParameters.fDisplayHeadTimeY     ||
+        fTimeParameters.fDisplayHeadTimeSize  != v.fTimeParameters.fDisplayHeadTimeSize  ||
+        fTimeParameters.fDisplayHeadTimeRed   != v.fTimeParameters.fDisplayHeadTimeRed   ||
+        fTimeParameters.fDisplayHeadTimeGreen != v.fTimeParameters.fDisplayHeadTimeGreen ||
+        fTimeParameters.fDisplayHeadTimeBlue  != v.fTimeParameters.fDisplayHeadTimeBlue) {
       G4cout << "Difference in display head time parameters." << G4endl;
     }
   }
 
-  if (fDisplayLightFront != v.fDisplayLightFront) {
+  if (fTimeParameters.fDisplayLightFront != v.fTimeParameters.fDisplayLightFront) {
     G4cout << "Difference in display light front flag." << G4endl;
   } else {
-    if (fDisplayLightFrontX     != v.fDisplayLightFrontX     ||
-        fDisplayLightFrontY     != v.fDisplayLightFrontY     ||
-        fDisplayLightFrontZ     != v.fDisplayLightFrontZ     ||
-        fDisplayLightFrontT     != v.fDisplayLightFrontT     ||
-        fDisplayLightFrontRed   != v.fDisplayLightFrontRed   ||
-        fDisplayLightFrontGreen != v.fDisplayLightFrontGreen ||
-        fDisplayLightFrontBlue  != v.fDisplayLightFrontBlue) {
+    if (fTimeParameters.fDisplayLightFrontX     != v.fTimeParameters.fDisplayLightFrontX     ||
+        fTimeParameters.fDisplayLightFrontY     != v.fTimeParameters.fDisplayLightFrontY     ||
+        fTimeParameters.fDisplayLightFrontZ     != v.fTimeParameters.fDisplayLightFrontZ     ||
+        fTimeParameters.fDisplayLightFrontT     != v.fTimeParameters.fDisplayLightFrontT     ||
+        fTimeParameters.fDisplayLightFrontRed   != v.fTimeParameters.fDisplayLightFrontRed   ||
+        fTimeParameters.fDisplayLightFrontGreen != v.fTimeParameters.fDisplayLightFrontGreen ||
+        fTimeParameters.fDisplayLightFrontBlue  != v.fTimeParameters.fDisplayLightFrontBlue) {
       G4cout << "Difference in display light front parameters." << G4endl;
     }
   }
 }
 
 std::ostream& operator <<
-(std::ostream& os, const G4ViewParameters::DrawingStyle& style)
+ (std::ostream& os, G4ViewParameters::DrawingStyle style)
 {
   switch (style) {
-  case G4ViewParameters::wireframe:
-    os << "wireframe"; break;
-  case G4ViewParameters::hlr:
-    os << "hlr - hidden lines removed"; break;
-  case G4ViewParameters::hsr:
-    os << "hsr - hidden surfaces removed"; break;
-  case G4ViewParameters::hlhsr:
-    os << "hlhsr - hidden line, hidden surface removed"; break;
-  case G4ViewParameters::cloud:
-    os << "cloud - draw volume as a cloud of dots"; break;
-  default: os << "unrecognised"; break;
+    case G4ViewParameters::wireframe:
+      os << "wireframe"; break;
+    case G4ViewParameters::hlr:
+      os << "hlr - hidden lines removed"; break;
+    case G4ViewParameters::hsr:
+      os << "hsr - hidden surfaces removed"; break;
+    case G4ViewParameters::hlhsr:
+      os << "hlhsr - hidden line, hidden surface removed"; break;
+    case G4ViewParameters::cloud:
+      os << "cloud - draw volume as a cloud of dots"; break;
+    default: os << "unrecognised"; break;
+  }
+  return os;
+}
+
+std::ostream& operator <<
+(std::ostream& os, G4ViewParameters::SMROption option)
+{
+  switch (option) {
+    case G4ViewParameters::meshAsDefault:
+      os << "default"; break;
+    case G4ViewParameters::meshAsDots:
+      os << "dots"; break;
+    case G4ViewParameters::meshAsSurfaces:
+      os << "surfaces"; break;
   }
   return os;
 }
@@ -919,8 +963,8 @@ std::ostream& operator << (std::ostream& os, const G4ViewParameters& v) {
 
   if (v.IsCutaway()) {
     os << "\n  Cutaway planes: ";
-    for (size_t i = 0; i < v.fCutawayPlanes.size (); i++) {
-      os << ' ' << v.fCutawayPlanes[i];
+    for (const auto& fCutawayPlane : v.fCutawayPlanes) {
+      os << ' ' << fCutawayPlane;
     }
   }
   else {
@@ -978,7 +1022,7 @@ std::ostream& operator << (std::ostream& os, const G4ViewParameters& v) {
 
   os << "\n  Default TextVisAttributes:\n  " << v.fDefaultTextVisAttributes;
 
-  os << "\n  Default marker: " << v.fDefaultMarker;
+  os << "\n  Default marker:\n    " << v.fDefaultMarker;
 
   os << "\n  Global marker scale: " << v.fGlobalMarkerScale;
 
@@ -1015,7 +1059,7 @@ std::ostream& operator << (std::ostream& os, const G4ViewParameters& v) {
   default: os << "unrecognised"; break;
   }
 
-  os << "\n  Vis attributes modifiers: ";
+  os << "\nVis attributes modifiers: ";
   const std::vector<G4ModelingParameters::VisAttributesModifier>& vams =
     v.fVisAttributesModifiers;
   if (vams.empty()) {
@@ -1024,31 +1068,58 @@ std::ostream& operator << (std::ostream& os, const G4ViewParameters& v) {
     os << vams;
   }
 
-  os << "\n  Time window parameters:"
-  << "\n  Start time:  " << v.fStartTime/ns << " ns"
-  << "\n  End time:    " << v.fEndTime/ns << " ns"
-  << "\n  Fade factor: " << v.fFadeFactor;
-  if (!v.fDisplayHeadTime) {
+  os << "\nTime window parameters:"
+  << "\n  Start time:  " << v.fTimeParameters.fStartTime/ns << " ns"
+  << "\n  End time:    " << v.fTimeParameters.fEndTime/ns << " ns"
+  << "\n  Fade factor: " << v.fTimeParameters.fFadeFactor;
+  if (!v.fTimeParameters.fDisplayHeadTime) {
     os << "\n  Head time display not requested.";
   } else {
     os
     << "\n  Head time position: "
-    << v.fDisplayHeadTimeX << ' ' << v.fDisplayHeadTimeY
-    << "\n  Head time size:     " << v.fDisplayHeadTimeSize
-    << "\n  Head time colour:   " << v.fDisplayHeadTimeRed
-    << ' ' << v.fDisplayHeadTimeGreen << ' ' << v.fDisplayHeadTimeBlue;
+    << v.fTimeParameters.fDisplayHeadTimeX << ' ' << v.fTimeParameters.fDisplayHeadTimeY
+    << "\n  Head time size:     " << v.fTimeParameters.fDisplayHeadTimeSize
+    << "\n  Head time colour:   " << v.fTimeParameters.fDisplayHeadTimeRed
+    << ' ' << v.fTimeParameters.fDisplayHeadTimeGreen << ' ' << v.fTimeParameters.fDisplayHeadTimeBlue;
   }
-  if (!v.fDisplayLightFront) {
+  if (!v.fTimeParameters.fDisplayLightFront) {
     os << "\n  Light front display not requested.";
   } else {
     os
     << "\n  Light front position: "
-    << v.fDisplayLightFrontX/mm << ' ' << v.fDisplayLightFrontY/mm
-    << ' ' << v.fDisplayLightFrontZ/mm << " mm"
-    << "\n  Light front time:     " << v.fDisplayLightFrontT/ns << " ns"
-    << "\n  Light front colour:   " << v.fDisplayLightFrontRed
-    << ' ' << v.fDisplayLightFrontGreen << ' ' << v.fDisplayLightFrontBlue;
+    << v.fTimeParameters.fDisplayLightFrontX/mm << ' ' << v.fTimeParameters.fDisplayLightFrontY/mm
+    << ' ' << v.fTimeParameters.fDisplayLightFrontZ/mm << " mm"
+    << "\n  Light front time:     " << v.fTimeParameters.fDisplayLightFrontT/ns << " ns"
+    << "\n  Light front colour:   " << v.fTimeParameters.fDisplayLightFrontRed
+    << ' ' << v.fTimeParameters.fDisplayLightFrontGreen << ' ' << v.fTimeParameters.fDisplayLightFrontBlue;
   }
+
+  os << "\nSpecial Mesh Rendering";
+  if (v.fSpecialMeshRendering) {
+    os << " requested with option \"" << v.fSpecialMeshRenderingOption;
+    os << "\" for ";
+    if (v.fSpecialMeshVolumes.empty()) {
+      os << "any mesh";
+    } else {
+      os << "selected meshes";
+      for (const auto& vol: v.fSpecialMeshVolumes) {
+	os << "\n    " << vol.GetName() << ':' << vol.GetCopyNo();
+      }
+    }
+  } else os << ": off";
+
+  os << "\nTransparency by depth: " << v.fTransparencyByDepth
+  << ", option: " << v.fTransparencyByDepthOption;
+
+  os << "\nZoom to cursor requested: ";
+  if (v.fZoomToCursor) os << "true";
+  else os << "false";
+
+  os << "\nSmooth dots requested: ";
+  if (v.fDotsSmooth) os << "true";
+  else os << "false";
+
+  os << "\nDots size: " << v.fDotsSize;
 
   return os;
 }
@@ -1094,7 +1165,14 @@ G4bool G4ViewParameters::operator != (const G4ViewParameters& v) const {
       (fAutoRefresh          != v.fAutoRefresh)          ||
       (fBackgroundColour     != v.fBackgroundColour)     ||
       (fPicking              != v.fPicking)              ||
-      (fRotationStyle        != v.fRotationStyle)
+      (fRotationStyle        != v.fRotationStyle)        ||
+      (fSpecialMeshRendering != v.fSpecialMeshRendering) ||
+      (fSpecialMeshRenderingOption != v.fSpecialMeshRenderingOption) ||
+      (fTransparencyByDepth  != v.fTransparencyByDepth)  ||
+      (fTransparencyByDepthOption != v.fTransparencyByDepthOption) ||
+      (fZoomToCursor         != v.fZoomToCursor)         ||
+      (fDotsSmooth           != v.fDotsSmooth)           ||
+      (fDotsSize             != v.fDotsSize)
       )
     return true;
 
@@ -1125,61 +1203,73 @@ G4bool G4ViewParameters::operator != (const G4ViewParameters& v) const {
 
   if (fVisAttributesModifiers != v.fVisAttributesModifiers) return true;
 
-  if (fStartTime  != v.fStartTime ||
-      fEndTime    != v.fEndTime   ||
-      fFadeFactor != v.fFadeFactor) return true;
+  if (fTimeParameters.fStartTime  != v.fTimeParameters.fStartTime ||
+      fTimeParameters.fEndTime    != v.fTimeParameters.fEndTime   ||
+      fTimeParameters.fFadeFactor != v.fTimeParameters.fFadeFactor) return true;
 
-  if (fDisplayHeadTime != v.fDisplayHeadTime) return true;
-  if (fDisplayHeadTime) {
-    if (fDisplayHeadTimeX     != v.fDisplayHeadTimeX     ||
-        fDisplayHeadTimeY     != v.fDisplayHeadTimeY     ||
-        fDisplayHeadTimeSize  != v.fDisplayHeadTimeSize  ||
-        fDisplayHeadTimeRed   != v.fDisplayHeadTimeRed   ||
-        fDisplayHeadTimeGreen != v.fDisplayHeadTimeGreen ||
-        fDisplayHeadTimeBlue  != v.fDisplayHeadTimeBlue) {
+  if (fTimeParameters.fDisplayHeadTime != v.fTimeParameters.fDisplayHeadTime) return true;
+  if (fTimeParameters.fDisplayHeadTime) {
+    if (fTimeParameters.fDisplayHeadTimeX     != v.fTimeParameters.fDisplayHeadTimeX     ||
+        fTimeParameters.fDisplayHeadTimeY     != v.fTimeParameters.fDisplayHeadTimeY     ||
+        fTimeParameters.fDisplayHeadTimeSize  != v.fTimeParameters.fDisplayHeadTimeSize  ||
+        fTimeParameters.fDisplayHeadTimeRed   != v.fTimeParameters.fDisplayHeadTimeRed   ||
+        fTimeParameters.fDisplayHeadTimeGreen != v.fTimeParameters.fDisplayHeadTimeGreen ||
+        fTimeParameters.fDisplayHeadTimeBlue  != v.fTimeParameters.fDisplayHeadTimeBlue) {
       return true;
     }
   }
 
-  if (fDisplayLightFront != v.fDisplayLightFront) return true;
-  if (fDisplayLightFront) {
-    if (fDisplayLightFrontX     != v.fDisplayLightFrontX     ||
-        fDisplayLightFrontY     != v.fDisplayLightFrontY     ||
-        fDisplayLightFrontZ     != v.fDisplayLightFrontZ     ||
-        fDisplayLightFrontT     != v.fDisplayLightFrontT     ||
-        fDisplayLightFrontRed   != v.fDisplayLightFrontRed   ||
-        fDisplayLightFrontGreen != v.fDisplayLightFrontGreen ||
-        fDisplayLightFrontBlue  != v.fDisplayLightFrontBlue) {
+  if (fTimeParameters.fDisplayLightFront != v.fTimeParameters.fDisplayLightFront) return true;
+  if (fTimeParameters.fDisplayLightFront) {
+    if (fTimeParameters.fDisplayLightFrontX     != v.fTimeParameters.fDisplayLightFrontX     ||
+        fTimeParameters.fDisplayLightFrontY     != v.fTimeParameters.fDisplayLightFrontY     ||
+        fTimeParameters.fDisplayLightFrontZ     != v.fTimeParameters.fDisplayLightFrontZ     ||
+        fTimeParameters.fDisplayLightFrontT     != v.fTimeParameters.fDisplayLightFrontT     ||
+        fTimeParameters.fDisplayLightFrontRed   != v.fTimeParameters.fDisplayLightFrontRed   ||
+        fTimeParameters.fDisplayLightFrontGreen != v.fTimeParameters.fDisplayLightFrontGreen ||
+        fTimeParameters.fDisplayLightFrontBlue  != v.fTimeParameters.fDisplayLightFrontBlue) {
       return true;
     }
+  }
+
+  if (fSpecialMeshRendering) {
+    if (fSpecialMeshVolumes != v.fSpecialMeshVolumes)
+      return true;;
   }
 
   return false;
 }
 
-void G4ViewParameters::SetXGeometryString (const G4String& geomStringArg)
+void G4ViewParameters::SetXGeometryString (const G4String& geomString)
 {
-  G4int x = 0, y = 0;
-  unsigned int w = 0, h = 0;
-  G4String geomString = geomStringArg;
-  // Parse windowSizeHintString for backwards compatibility...
   const G4String delimiters("xX+-");
   G4String::size_type i = geomString.find_first_of(delimiters);
-  if (i == G4String::npos) {  // Does not contain "xX+-".  Assume single number
+  if (i == G4String::npos) {
+    // Does not contain "xX+-".
+    // Is it a single number?
     std::istringstream iss(geomString);
     G4int size;
     iss >> size;
-    if (!iss) {
-      size = 600;
-      G4cout << "Unrecognised windowSizeHint string: \""
-	     << geomString
-	     << "\".  Asuuming " << size << G4endl;
+    if (iss) {
+      // It is a number
+      fWindowSizeHintX = size;
+      fWindowSizeHintY = size;
     }
+    // Accept other or all defaults (in G4ViewParameters constructor)
+    // Reconstruct a geometry string coherent with the above
+    char signX, signY;
+    if (fWindowLocationHintXNegative) signX = '-'; else signX ='+';
+    if (fWindowLocationHintYNegative) signY = '-'; else signY ='+';
     std::ostringstream oss;
-    oss << size << 'x' << size;
-    geomString = oss.str();
+    oss << fWindowSizeHintX << 'x' << fWindowSizeHintY
+    << signX << fWindowLocationHintX << signY << fWindowLocationHintY;
+    fXGeometryString = oss.str();
+    return;
   }
- 
+
+  // Assume it's a parseable X geometry string
+  G4int x = 0, y = 0;
+  unsigned int w = 0, h = 0;
   fGeometryMask = ParseGeometry( geomString, &x, &y, &w, &h );
 
   // Handle special case :
@@ -1203,7 +1293,7 @@ void G4ViewParameters::SetXGeometryString (const G4String& geomStringArg)
     // if there is only Width. Special case to be backward compatible
     // We set Width and Height the same to obtain a square windows.
     
-    G4cout << "Unrecognised geometry string \""
+    G4warn << "Unrecognised geometry string \""
            << geomString
            << "\".  No Height found. Using Width value instead"
            << G4endl;
@@ -1636,10 +1726,10 @@ INTERPOLATE(plane.d()); d = real;
   // Only two parameters are interpolated. The others are usually chosen
   // once and for all by the user for a given series of views - or at least,
   // if not, they will be interpolated by the default "crude" method above.
-  INTERPOLATE(fStartTime)
-  holdingValues.fStartTime = real;
-  INTERPOLATE(fEndTime)
-  holdingValues.fEndTime = real;
+  INTERPOLATE(fTimeParameters.fStartTime)
+  holdingValues.fTimeParameters.fStartTime = real;
+  INTERPOLATE(fTimeParameters.fEndTime)
+  holdingValues.fTimeParameters.fEndTime = real;
 
   // Increment counters
   iInterpolationPoint++;

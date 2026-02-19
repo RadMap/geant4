@@ -47,49 +47,27 @@ public:
   G4PreCompoundFragment(const G4ParticleDefinition*,
 			G4VCoulombBarrier * aCoulombBarrier);
   
-  virtual ~G4PreCompoundFragment();
-      
-  // ================================================
-  // Methods for calculating the emission probability
-  // ================================================
-  
-  // Calculates the total (integrated over kinetic energy) emission
-  // probability of a fragment
-  G4double CalcEmissionProbability(const G4Fragment & aFragment);
-  
-  G4double SampleKineticEnergy(const G4Fragment & aFragment);
+  ~G4PreCompoundFragment() override = default;
 
-protected:
+  // inverse cross section for a channel
+  G4double CrossSection(G4double ekin);
 
-  virtual G4double GetAlpha() const = 0;
+  // the value of the recent inverse cross section for a channel
+  G4double RecentXS() const { return recentXS; };
 
-  virtual G4double GetBeta() const = 0;
-
-  G4double CrossSection(G4double ekin) const;
-
-  virtual G4double 
-  ProbabilityDistributionFunction(G4double K, 
-				  const G4Fragment & aFragment) = 0; 
-
-private:	
-  // This method performs integration for probability function over 
-  // fragment kinetic energy
-  G4double IntegrateEmissionProbability(G4double Low, G4double Up, 
-					const G4Fragment & aFragment);	
-
-  G4double GetOpt0(G4double ekin) const;
-
-  // operators
   G4PreCompoundFragment(const G4PreCompoundFragment &right) = delete;
   const G4PreCompoundFragment& 
   operator= (const G4PreCompoundFragment &right) = delete;
   G4bool operator==(const G4PreCompoundFragment &right) const = delete;
   G4bool operator!=(const G4PreCompoundFragment &right) const = delete;
 
-  G4int index;
+private:	
 
-  G4double muu;
-  G4double probmax;
+  G4double GetOpt0(G4double ekin) const;
+  
+  G4int lastA{0};
+  G4double muu{0.0};
+  G4double recentXS{0.0};
 };
 
 #endif

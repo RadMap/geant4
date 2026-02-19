@@ -23,27 +23,19 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
+/// \file ActionInitialization.cc
+/// \brief Implementation of the ActionInitialization class
 
 #include "ActionInitialization.hh"
 
-#include "RunAction.hh"
 #include "EventAction.hh"
-#include "StackingAction.hh"
 #include "PrimaryGeneratorAction.hh"
+#include "RunAction.hh"
+#include "StackingAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::ActionInitialization()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-ActionInitialization::~ActionInitialization()
-{}
+ActionInitialization::ActionInitialization() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

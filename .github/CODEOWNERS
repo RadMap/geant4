@@ -4,23 +4,23 @@
 # Software Management
 /CMakeLists.txt @drbenmorgan
 /cmake/         @drbenmorgan @gunterfolger
-/config/        @gcosmo
+/config/        @gcosmo @drbenmorgan
 /ReleaseNotes/  @gcosmo
 /source/global/ @gcosmo @drbenmorgan @gunterfolger
 
 # Run, Event, and Detector Response
-/source/run/              @makotoasai @jrmadsen
-/source/event/            @makotoasai @jrmadsen
-/source/digits_hits/      @makotoasai @jrmadsen
-/source/processes/scoring @makotoasai @jrmadsen
+/source/run/              @makotoasai @drbenmorgan
+/source/event/            @makotoasai @drbenmorgan
+/source/digits_hits/      @makotoasai @drbenmorgan
+/source/processes/scoring @makotoasai @drbenmorgan
 
 # Tracking
-/source/tracking/ @ts-kek @amakoG4AI @makotoasai
+/source/tracking/ @ts-kek @shogo0416 @makotoasai
 
 # Particles and Track
 # TBA: Hisaya Kurashige
-/source/track/     @makotoasai
-/source/particles/ @makotoasai
+/source/track/     @shogo0416 @makotoasai
+/source/particles/ @shogo0416 @makotoasai
 
 # Geometry and Transport
 /source/geometry/                 @gcosmo @jonapost
@@ -29,10 +29,13 @@
 # Generic Processes and Materials
 /source/materials/                  @marcverderi @civanch
 /source/parameterisations/          @marcverderi
+/source/parameterisations/channeling/ @pandola
+/source/parameterisations/gflash/   @marcverderi
 /source/processes/biasing/          @marcverderi @civanch
 /source/processes/parameterisation/ @marcverderi @civanch
 
 # Electromagnetic Standard Physics
+/source/processes/electromagnetic/              @civanch @dsawkey
 /source/processes/electromagnetic/highenergy/   @civanch @dsawkey
 /source/processes/electromagnetic/muons/        @civanch @dsawkey
 /source/processes/electromagnetic/polarisation/ @civanch @dsawkey
@@ -41,9 +44,9 @@
 /source/processes/optical/                      @civanch @dsawkey
 
 # Low Energy Electromagnetic Physics
-/source/processes/electromagnetic/dna/       @sincerti @pandola
-/source/processes/electromagnetic/lowenergy/ @sincerti @pandola
-/source/processes/electromagnetic/pii/       @sincerti @pandola
+/source/processes/electromagnetic/dna/       @sincerti @pandola @civanch
+/source/processes/electromagnetic/lowenergy/ @sincerti @pandola @civanch
+/source/processes/electromagnetic/pii/       @sincerti @pandola @civanch
 
 # Hadronic Physics
 # TBA: Dennis Wright
@@ -54,17 +57,16 @@
 /source/analysis/    @ihrivnac
 
 # User and Category Interfaces
-# TBA: Hajime Yoshida
 /source/intercoms/  @koichi-murakami @makotoasai
 /source/interfaces/ @koichi-murakami @laurent-garnier
-/environments/      @koichi-murakami
+/environments/      @drbenmorgan @koichi-murakami
 
 # Visualization
 /source/graphics_reps/ @laurent-garnier @jiperl @johna1941
 /source/visualization/ @laurent-garnier @jiperl @johna1941
 
 # Physics Lists
-/source/physics_lists/ @gunterfolger @hanswenzel
+/source/physics_lists/ @gunterfolger @AlbertoRibon
 
 # Novice+Extended Examples (Individual Examples assigned to Responsibles)
 /examples/basic/    @ihrivnac @ashoward
@@ -77,3 +79,6 @@
 # Testing
 /tests/ @gunterfolger @whokion
 
+# Other
+/source/error_propagation/     @arceciemat
+/source/externals/             @gcosmo @drbenmorgan @gunterfolger

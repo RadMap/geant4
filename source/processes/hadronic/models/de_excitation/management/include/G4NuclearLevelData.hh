@@ -47,7 +47,6 @@
 
 #include "globals.hh"
 #include "G4DeexPrecoParameters.hh"
-#include "G4Threading.hh"
 #include <vector>
 #include <iostream>
 
@@ -72,9 +71,8 @@ public:
   ~G4NuclearLevelData();
 
   // run time call to access or to create level manager
-  // isLocked flag informs, that the thread is already locked
-  const G4LevelManager* GetLevelManager(G4int Z, G4int A, 
-                                        G4bool isLocked = false);
+  // if data are not yet uploaded then lazy initialisation is used
+  const G4LevelManager* GetLevelManager(G4int Z, G4int A);
 
   // add private data to isotope from master thread
   G4bool AddPrivateData(G4int Z, G4int A, const G4String& filename);
@@ -107,8 +105,8 @@ public:
   G4double GetLevelDensity(G4int Z, G4int A, G4double U);
   G4double GetPairingCorrection(G4int Z, G4int A);
 
-  // enable uploading of data for all Z < maxZ
-  void UploadNuclearLevelData(G4int Z);
+  // enable uploading of data for all Z <= Zlim
+  void UploadNuclearLevelData(G4int Zlim);
 
   // stream only existing levels
   void StreamLevels(std::ostream& os, G4int Z, G4int A);
@@ -118,16 +116,12 @@ public:
 
 private:
 
-  void InitialiseForIsotope(G4int Z, G4int A);
-
-  void InitialiseUp(G4int Z);
-
   G4DeexPrecoParameters* fDeexPrecoParameters;
-  G4LevelReader*         fLevelReader;
-  G4PairingCorrection*   fPairingCorrection;
-  G4ShellCorrection*     fShellCorrection;
-  G4Pow*                 fG4calc;
-  G4bool                 fInitialized;
+  G4LevelReader* fLevelReader;
+  G4PairingCorrection* fPairingCorrection;
+  G4ShellCorrection* fShellCorrection;
+  G4Pow* fG4calc;
+  G4bool fInitialized = false;
 
   static const G4int ZMAX = 118;
   static const G4int AMIN[ZMAX];
@@ -136,10 +130,6 @@ private:
 
   std::vector<const G4LevelManager*> fLevelManagers[ZMAX];
   std::vector<G4bool> fLevelManagerFlags[ZMAX];
-
-#ifdef G4MULTITHREADED
-  static G4Mutex nuclearLevelDataMutex;
-#endif
 };
 
 #endif

@@ -23,28 +23,25 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file include/RE02ActionInitialization.hh
+/// \file RE02ActionInitialization.hh
 /// \brief Definition of the RE02ActionInitialization class
-//
 
 #ifndef RE02ActionInitialization_H
 #define RE02ActionInitialization_H 1
 
-#include "globals.hh"
 #include "G4VUserActionInitialization.hh"
+#include "globals.hh"
 
 class RE02ActionInitialization : public G4VUserActionInitialization
 {
   public:
-  RE02ActionInitialization();//G4bool bParallelWorld);
+    RE02ActionInitialization();  // G4bool bParallelWorld);
     virtual ~RE02ActionInitialization();
 
     virtual void Build() const;
     virtual void BuildForMaster() const;
 
-private:
+  private:
 };
 
 #endif
-

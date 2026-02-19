@@ -25,8 +25,8 @@
 //
 // G4UniformGravityField implementation
 //
-// Created: P.Gumplinger, 14.06.2011 - Adapted from G4UniformElectricField
-//          Thanks to P.Fierlinger (PSI), A.Capra and A.Fontana (INFN Pavia)
+// Author: Peter Gumplinger (TRIUMF), 14.06.2011
+//         Thanks to P.Fierlinger (PSI), A.Capra and A.Fontana (INFN Pavia)
 // -------------------------------------------------------------------
 
 #include "G4UniformGravityField.hh"
@@ -52,10 +52,6 @@ G4UniformGravityField::G4UniformGravityField(const G4double gy)
   fFieldComponents[2] = 0.0;
 }
 
-G4UniformGravityField::~G4UniformGravityField()
-{
-}
-
 G4UniformGravityField::G4UniformGravityField (const G4UniformGravityField& p)
   : G4Field(p)
 {
@@ -68,7 +64,7 @@ G4UniformGravityField::G4UniformGravityField (const G4UniformGravityField& p)
 G4UniformGravityField&
 G4UniformGravityField::operator = (const G4UniformGravityField& p)
 {
-  if (&p == this) return *this; 
+  if (&p == this) { return *this; }
   G4Field::operator=(p); 
   for (auto i=0; i<3; ++i)
   {

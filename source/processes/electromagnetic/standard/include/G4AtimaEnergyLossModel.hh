@@ -62,62 +62,62 @@ public:
   explicit G4AtimaEnergyLossModel(const G4ParticleDefinition* p = nullptr,
                                   const G4String& nam = "Atima");
 
-  virtual ~G4AtimaEnergyLossModel();
+  ~G4AtimaEnergyLossModel() override;
 
-  virtual void Initialise(const G4ParticleDefinition*, 
-			  const G4DataVector&) override;
+  void Initialise(const G4ParticleDefinition*, const G4DataVector&) override;
 
-  virtual G4double MinEnergyCut(const G4ParticleDefinition*,
-				const G4MaterialCutsCouple* couple) override;
+  G4double MinEnergyCut(const G4ParticleDefinition*,
+			const G4MaterialCutsCouple* couple) override;
 
-  virtual G4double ComputeCrossSectionPerElectron(
+  G4double ComputeCrossSectionPerElectron(
 				 const G4ParticleDefinition*,
 				 G4double kineticEnergy,
 				 G4double cutEnergy,
 				 G4double maxEnergy);
 				 
-  virtual G4double ComputeCrossSectionPerAtom(
+  G4double ComputeCrossSectionPerAtom(
 				 const G4ParticleDefinition*,
 				 G4double kineticEnergy,
 				 G4double Z, G4double A,
 				 G4double cutEnergy,
 				 G4double maxEnergy) override;
 				 				 
-  virtual G4double CrossSectionPerVolume(const G4Material*,
+  G4double CrossSectionPerVolume(const G4Material*,
 				 const G4ParticleDefinition*,
 				 G4double kineticEnergy,
 				 G4double cutEnergy,
 				 G4double maxEnergy) override;
 				 
-  virtual G4double ComputeDEDXPerVolume(const G4Material*,
-					const G4ParticleDefinition*,
-					G4double kineticEnergy,
-					G4double) override;
+  G4double ComputeDEDXPerVolume(const G4Material*,
+				const G4ParticleDefinition*,
+				G4double kineticEnergy,
+				G4double) override;
 
-  virtual G4double GetChargeSquareRatio(const G4ParticleDefinition* p,
-					const G4Material* mat,
-					G4double kineticEnergy) override;
+  G4double GetChargeSquareRatio(const G4ParticleDefinition* p,
+				const G4Material* mat,
+				G4double kineticEnergy) override;
 
-  virtual G4double GetParticleCharge(const G4ParticleDefinition* p,
-				     const G4Material* mat,
-				     G4double kineticEnergy) override;
+  G4double GetParticleCharge(const G4ParticleDefinition* p,
+			     const G4Material* mat,
+			     G4double kineticEnergy) override;
 
-  virtual void CorrectionsAlongStep(const G4MaterialCutsCouple*,
-				    const G4DynamicParticle*,
-				    G4double&,
-				    G4double&,
-				    G4double) override;
+  void CorrectionsAlongStep(const G4Material*,
+			    const G4ParticleDefinition*,
+			    const G4double kinEnergy,
+			    const G4double cutEnergy,
+			    const G4double& length,
+			    G4double&) override;
 
-  virtual void SampleSecondaries(std::vector<G4DynamicParticle*>*,
-				 const G4MaterialCutsCouple*,
-				 const G4DynamicParticle*,
-				 G4double tmin,
-				 G4double maxEnergy) override;
+  void SampleSecondaries(std::vector<G4DynamicParticle*>*,
+			 const G4MaterialCutsCouple*,
+			 const G4DynamicParticle*,
+			 G4double tmin,
+			 G4double maxEnergy) override;
 
 protected:
 
-  virtual G4double MaxSecondaryEnergy(const G4ParticleDefinition*,
-				      G4double kinEnergy) override;
+  G4double MaxSecondaryEnergy(const G4ParticleDefinition*,
+			      G4double kinEnergy) override;
 
   inline G4double GetChargeSquareRatio() const;
 
@@ -143,27 +143,28 @@ private:
   G4AtimaEnergyLossModel(const  G4AtimaEnergyLossModel&) = delete;
 
   const G4ParticleDefinition* particle;
-  G4ParticleDefinition*       theElectron;
+  const G4ParticleDefinition* theElectron;
   G4EmCorrections*            corr;
   G4ParticleChangeForLoss*    fParticleChange;
   G4NistManager*              nist;
   G4Pow* g4calc;
 
-  G4double mass;
-  G4double tlimit;
-  G4double spin;
-  G4double magMoment2;
-  G4double chargeSquare;
-  G4double ratio;
-  G4double formfact;
-  G4double corrFactor;
-  G4bool   isIon;
+  G4double mass = 0.0;
+  G4double tlimit = DBL_MAX;
+  G4double spin = 0.0;
+  G4double magMoment2 = 0.0;
+  G4double chargeSquare = 1.0;
+  G4double ratio = 1.0;
+  G4double formfact = 0.0;
+  G4double corrFactor = 1.0;
   G4double MLN10;
   G4double atomic_mass_unit;
   G4double dedx_constant;
   G4double electron_mass;
   G4double fine_structure;
   G4double domega2dx_constant;
+
+  G4bool   isIon = false;
 
   static G4double stepE;
   static G4double tableE[200];

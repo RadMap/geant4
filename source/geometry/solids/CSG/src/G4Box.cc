@@ -38,12 +38,18 @@
 #include "G4VoxelLimits.hh"
 #include "G4AffineTransform.hh"
 #include "G4BoundingEnvelope.hh"
-#include "Randomize.hh"
+#include "G4QuickRand.hh"
 
 #include "G4VPVParameterisation.hh"
 
 #include "G4VGraphicsScene.hh"
 #include "G4VisExtent.hh"
+#include "G4AutoLock.hh"
+
+namespace
+{
+  G4Mutex boxMutex = G4MUTEX_INITIALIZER;
+}
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -73,24 +79,7 @@ G4Box::G4Box(const G4String& pName,
 //                            for usage restricted to object persistency
 
 G4Box::G4Box( __void__& a )
-  : G4CSGSolid(a), delta(0.)
-{
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Destructor
-
-G4Box::~G4Box()
-{
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Copy constructor
-
-G4Box::G4Box(const G4Box& rhs)
-  : G4CSGSolid(rhs), fDx(rhs.fDx), fDy(rhs.fDy), fDz(rhs.fDz), delta(rhs.delta)
+  : G4CSGSolid(a)
 {
 }
 
@@ -140,13 +129,13 @@ void G4Box::SetXHalfLength(G4double dx)
   fCubicVolume = 0.;
   fSurfaceArea = 0.;
   fRebuildPolyhedron = true;
-} 
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
 //  Set Y dimension
 
-void G4Box::SetYHalfLength(G4double dy) 
+void G4Box::SetYHalfLength(G4double dy)
 {
   if(dy > 2*kCarTolerance)  // limit to thickness of surfaces
   {
@@ -163,7 +152,7 @@ void G4Box::SetYHalfLength(G4double dy)
   fCubicVolume = 0.;
   fSurfaceArea = 0.;
   fRebuildPolyhedron = true;
-} 
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -186,7 +175,7 @@ void G4Box::SetZHalfLength(G4double dz)
   fCubicVolume = 0.;
   fSurfaceArea = 0.;
   fRebuildPolyhedron = true;
-} 
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -252,49 +241,50 @@ EInside G4Box::Inside(const G4ThreeVector& p) const
                   std::abs(p.x())-fDx,
                   std::abs(p.y())-fDy),
                   std::abs(p.z())-fDz);
-  if (dist > delta) return kOutside;
-  return (dist > -delta) ? kSurface : kInside;
+  return (dist > delta) ? kOutside :
+    ((dist > -delta) ? kSurface : kInside);
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 // Detect the side(s) and return corresponding normal
 
-G4ThreeVector G4Box::SurfaceNormal( const G4ThreeVector& p) const
+G4ThreeVector G4Box::SurfaceNormal(const G4ThreeVector& p) const
 {
-  G4ThreeVector norm(0,0,0);
-  G4double px = p.x();
-  if (std::abs(std::abs(px) - fDx) <= delta) norm.setX(px < 0 ? -1. : 1.);
-  G4double py = p.y();
-  if (std::abs(std::abs(py) - fDy) <= delta) norm.setY(py < 0 ? -1. : 1.);
-  G4double pz = p.z();
-  if (std::abs(std::abs(pz) - fDz) <= delta) norm.setZ(pz < 0 ? -1. : 1.);
+  G4double px = p.x(), py = p.y(), pz = p.z();
+  G4ThreeVector norm(0.,0.,0.);
+  if (std::abs(std::abs(px)-fDx) <= delta) { norm.setX(std::copysign(1.,px)); }
+  if (std::abs(std::abs(py)-fDy) <= delta) { norm.setY(std::copysign(1.,py)); }
+  if (std::abs(std::abs(pz)-fDz) <= delta) { norm.setZ(std::copysign(1.,pz)); }
 
   G4double nside = norm.mag2(); // number of sides = magnitude squared
   if (nside == 1)
-    return norm;
-  else if (nside > 1)
-    return norm.unit(); // edge or corner
-  else
   {
-    // Point is not on the surface
-    // 
-#ifdef G4CSGDEBUG
-    std::ostringstream message;
-    G4int oldprc = message.precision(16);
-    message << "Point p is not on surface (!?) of solid: "
-            << GetName() << G4endl;
-    message << "Position:\n";
-    message << "   p.x() = " << p.x()/mm << " mm\n";
-    message << "   p.y() = " << p.y()/mm << " mm\n";
-    message << "   p.z() = " << p.z()/mm << " mm";
-    G4cout.precision(oldprc);
-    G4Exception("G4Box::SurfaceNormal(p)", "GeomSolids1002",
-                JustWarning, message );
-    DumpInfo();
-#endif
-    return ApproxSurfaceNormal(p);
+    return norm;
   }
+  if (nside > 1)
+  {
+    return norm.unit(); // edge or corner
+  }
+
+  // Point is not on the surface
+  //
+#ifdef G4CSGDEBUG
+  std::ostringstream message;
+  G4int oldprc = message.precision(16);
+  message << "Point p is not on surface (!?) of solid: "
+          << GetName() << G4endl;
+  message << "Position:\n";
+  message << "   p.x() = " << p.x()/mm << " mm\n";
+  message << "   p.y() = " << p.y()/mm << " mm\n";
+  message << "   p.z() = " << p.z()/mm << " mm";
+  G4cout.precision(oldprc);
+  G4Exception("G4Box::SurfaceNormal(p)", "GeomSolids1002",
+              JustWarning, message );
+  DumpInfo();
+#endif
+
+  return ApproxSurfaceNormal(p);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -309,11 +299,15 @@ G4ThreeVector G4Box::ApproxSurfaceNormal(const G4ThreeVector& p) const
   G4double distz = std::abs(p.z()) - fDz;
 
   if (distx >= disty && distx >= distz)
-    return G4ThreeVector(std::copysign(1.,p.x()), 0., 0.);
+  {
+    return {std::copysign(1.,p.x()), 0., 0.};
+  }
   if (disty >= distx && disty >= distz)
-    return G4ThreeVector(0., std::copysign(1.,p.y()), 0.);
-  else
-    return G4ThreeVector(0., 0., std::copysign(1.,p.z()));
+  {
+    return {0., std::copysign(1.,p.y()), 0.};
+  }
+
+  return {0., 0., std::copysign(1.,p.z())};
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -327,9 +321,9 @@ G4double G4Box::DistanceToIn(const G4ThreeVector& p,
 {
   // Check if point is on the surface and traveling away
   //
-  if ((std::abs(p.x()) - fDx) >= -delta && p.x()*v.x() >= 0) return kInfinity;
-  if ((std::abs(p.y()) - fDy) >= -delta && p.y()*v.y() >= 0) return kInfinity;
-  if ((std::abs(p.z()) - fDz) >= -delta && p.z()*v.z() >= 0) return kInfinity;
+  if ((std::abs(p.x())-fDx) >= -delta && p.x()*v.x() >= 0) { return kInfinity; }
+  if ((std::abs(p.y())-fDy) >= -delta && p.y()*v.y() >= 0) { return kInfinity; }
+  if ((std::abs(p.z())-fDz) >= -delta && p.z()*v.z() >= 0) { return kInfinity; }
 
   // Find intersection
   //
@@ -348,12 +342,13 @@ G4double G4Box::DistanceToIn(const G4ThreeVector& p,
   G4double tmin = std::max(tymin,(p.z() - dz)*invz);
   G4double tmax = std::min(tymax,(p.z() + dz)*invz);
 
-  if (tmax <= tmin + delta) return kInfinity; // touch or no hit
+  if (tmax <= tmin + delta) { return kInfinity; } // touch or no hit
+
   return (tmin < delta) ? 0. : tmin;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 // Appoximate distance to box.
 // Returns largest perpendicular distance to the closest x/y/z sides of
 // the box, which is the most fast estimation of the shortest distance to box
@@ -361,9 +356,10 @@ G4double G4Box::DistanceToIn(const G4ThreeVector& p,
 
 G4double G4Box::DistanceToIn(const G4ThreeVector& p) const
 {
-  G4double dist = std::max(std::max(std::abs(p.x())-fDx,
-                                    std::abs(p.y())-fDy),
-                           std::abs(p.z())-fDz);
+  G4double dist = std::max(std::max(
+                  std::abs(p.x())-fDx,
+                  std::abs(p.y())-fDy),
+                  std::abs(p.z())-fDz);
   return (dist > 0) ? dist : 0.;
 }
 
@@ -373,63 +369,59 @@ G4double G4Box::DistanceToIn(const G4ThreeVector& p) const
 // find normal at exit point, if required
 // - when leaving the surface, return 0
 
-G4double G4Box::DistanceToOut( const G4ThreeVector& p,
-                               const G4ThreeVector& v,
-                               const G4bool calcNorm,
-                               G4bool* validNorm, G4ThreeVector* n) const
+G4double G4Box::DistanceToOut(const G4ThreeVector& p,
+                              const G4ThreeVector& v,
+                              const G4bool calcNorm,
+                              G4bool* validNorm, G4ThreeVector* n) const
 {
+  G4double px = p.x(), vx = v.x();
+  G4double py = p.y(), vy = v.y();
+  G4double pz = p.z(), vz = v.z();
+
+  if (!calcNorm) // calculation of normal is not needed
+  {
+    if ((std::abs(px) - fDx) >= -delta && px*vx > 0) { return 0.; }
+    if ((std::abs(py) - fDy) >= -delta && py*vy > 0) { return 0.; }
+    if ((std::abs(pz) - fDz) >= -delta && pz*vz > 0) { return 0.; }
+    G4double tx = (vx == 0) ? DBL_MAX : (std::copysign(fDx,vx) - px)/vx;
+    G4double ty = (vy == 0) ? DBL_MAX : (std::copysign(fDy,vy) - py)/vy;
+    G4double tz = (vz == 0) ? DBL_MAX : (std::copysign(fDz,vz) - pz)/vz;
+    G4double tmax = std::min(std::min(tx,ty),tz);
+    return tmax;
+  }
+
+  *validNorm = true;
   // Check if point is on the surface and traveling away
-  //
-  if ((std::abs(p.x()) - fDx) >= -delta && p.x()*v.x() > 0)
+  if ((std::abs(px) - fDx) >= -delta && px*vx > 0)
   {
-    if (calcNorm)
-    {
-      *validNorm = true;
-      n->set((p.x() < 0) ? -1. : 1., 0., 0.);
-    }
+    n->set(std::copysign(1.,px), 0., 0.);
     return 0.;
   }
-  if ((std::abs(p.y()) - fDy) >= -delta && p.y()*v.y() > 0)
+  if ((std::abs(py) - fDy) >= -delta && py*vy > 0)
   {
-    if (calcNorm)
-    {
-      *validNorm = true;
-      n->set(0., (p.y() < 0) ? -1. : 1., 0.);
-    }
+    n->set(0., std::copysign(1.,py), 0.);
     return 0.;
   }
-  if ((std::abs(p.z()) - fDz) >= -delta && p.z()*v.z() > 0)
+  if ((std::abs(pz) - fDz) >= -delta && pz*vz > 0)
   {
-    if (calcNorm)
-    {
-      *validNorm = true;
-      n->set(0., 0., (p.z() < 0) ? -1. : 1.);
-    }
+    n->set(0., 0., std::copysign(1.,pz));
     return 0.;
   }
 
   // Find intersection
-  //
-  G4double vx = v.x();
-  G4double tx = (vx == 0) ? DBL_MAX : (std::copysign(fDx,vx) - p.x())/vx;
+  G4double tx = (vx == 0) ? DBL_MAX : (std::copysign(fDx,vx) - px)/vx;
+  G4double ty = (vy == 0) ? DBL_MAX : (std::copysign(fDy,vy) - py)/vy;
+  G4double tz = (vz == 0) ? DBL_MAX : (std::copysign(fDz,vz) - pz)/vz;
+  G4double tmax = std::min(std::min(tx, ty), tz);
 
-  G4double vy = v.y();
-  G4double ty = (vy == 0) ? tx : (std::copysign(fDy,vy) - p.y())/vy;
-  G4double txy = std::min(tx,ty);
-
-  G4double vz = v.z();
-  G4double tz = (vz == 0) ? txy : (std::copysign(fDz,vz) - p.z())/vz;
-  G4double tmax = std::min(txy,tz);
-
-  // Set normal, if required, and return distance
-  //
-  if (calcNorm)
-  {
-    *validNorm = true;
-    if (tmax == tx)      n->set((v.x() < 0) ? -1. : 1., 0., 0.);
-    else if (tmax == ty) n->set(0., (v.y() < 0) ? -1. : 1., 0.);
-    else                 n->set(0., 0., (v.z() < 0) ? -1. : 1.);
-  }
+  // Find normal
+  G4bool pickZ = (tmax == tz);
+  G4bool pickX = (!pickZ) && (tmax == tx);
+  G4bool pickY = (!pickZ) && (!pickX);
+  G4double nz = std::copysign((G4double)pickZ, vz);
+  G4double nx = std::copysign((G4double)pickX, vx);
+  G4double ny = std::copysign((G4double)pickY, vy);
+  n->set(nx, ny, nz);
   return tmax;
 }
 
@@ -456,9 +448,10 @@ G4double G4Box::DistanceToOut(const G4ThreeVector& p) const
     DumpInfo();
   }
 #endif
-  G4double dist = std::min(std::min(fDx-std::abs(p.x()),
-                                    fDy-std::abs(p.y())),
-                           fDz-std::abs(p.z()));
+  G4double dist = std::min(std::min(
+                  fDx-std::abs(p.x()),
+                  fDy-std::abs(p.y())),
+                  fDz-std::abs(p.z()));
   return (dist > 0) ? dist : 0.;
 }
 
@@ -468,7 +461,16 @@ G4double G4Box::DistanceToOut(const G4ThreeVector& p) const
 
 G4GeometryType G4Box::GetEntityType() const
 {
-  return G4String("G4Box");
+  return {"G4Box"};
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// IsFaceted
+
+G4bool G4Box::IsFaceted() const
+{
+  return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -477,7 +479,7 @@ G4GeometryType G4Box::GetEntityType() const
 
 std::ostream& G4Box::StreamInfo(std::ostream& os) const
 {
-  G4int oldprc = os.precision(16);
+  G4long oldprc = os.precision(16);
   os << "-----------------------------------------------------------\n"
      << "    *** Dump for solid - " << GetName() << " ***\n"
      << "    ===================================================\n"
@@ -493,29 +495,65 @@ std::ostream& G4Box::StreamInfo(std::ostream& os) const
 
 //////////////////////////////////////////////////////////////////////////
 //
-// GetPointOnSurface
-//
-// Return a point (G4ThreeVector) randomly and uniformly selected
-// on the solid surface
+// Return a point randomly and uniformly selected on the surface
 
 G4ThreeVector G4Box::GetPointOnSurface() const
 {
   G4double sxy = fDx*fDy, sxz = fDx*fDz, syz = fDy*fDz;
-  G4double select = (sxy + sxz + syz)*G4UniformRand();
+  G4double select = (sxy + sxz + syz)*G4QuickRand();
+  G4double u = 2.*G4QuickRand() - 1.;
+  G4double v = 2.*G4QuickRand() - 1.;
 
+  G4double x, y, z;
   if (select < sxy)
-    return G4ThreeVector((2.*G4UniformRand() - 1.)*fDx,
-                         (2.*G4UniformRand() - 1.)*fDy,
-                         (select < 0.5*sxy) ? -fDz : fDz);
-
-  if (select < sxy + sxz)
-    return G4ThreeVector((2.*G4UniformRand() - 1.)*fDx,
-                         (select < sxy + 0.5*sxz) ? -fDy : fDy,
-                         (2.*G4UniformRand() - 1.)*fDz);
+  {
+    x = u*fDx;
+    y = v*fDy;
+    z = (select < 0.5*sxy) ? -fDz : fDz;
+  }
+  else if (select < sxy + sxz)
+  {
+    x = u*fDx;
+    y = (select < sxy + 0.5*sxz) ? -fDy : fDy;
+    z = v*fDz;
+  }
   else
-    return G4ThreeVector((select < sxy + sxz + 0.5*syz) ? -fDx : fDx,
-                         (2.*G4UniformRand() - 1.)*fDy,
-                         (2.*G4UniformRand() - 1.)*fDz);
+  {
+    x = (select < sxy + sxz + 0.5*syz) ? -fDx : fDx;
+    y = u*fDy;
+    z = v*fDz;
+  }
+  return { x, y, z };
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Computes/returns volume capacity
+//
+G4double G4Box::GetCubicVolume()
+{
+  if (fCubicVolume == 0)
+  {
+    G4AutoLock l(&boxMutex);
+    fCubicVolume = 8*fDx*fDy*fDz;
+    l.unlock();
+  }
+  return fCubicVolume;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Computes/returns surface area
+//
+G4double G4Box::GetSurfaceArea()
+{
+  if (fSurfaceArea == 0)
+  {
+    G4AutoLock l(&boxMutex);
+    fSurfaceArea = 8*(fDx*fDy+fDx*fDz+fDy*fDz);
+    l.unlock();
+  }
+  return fSurfaceArea;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -538,7 +576,7 @@ void G4Box::DescribeYourselfTo (G4VGraphicsScene& scene) const
 
 G4VisExtent G4Box::GetExtent() const
 {
-  return G4VisExtent (-fDx, fDx, -fDy, fDy, -fDz, fDz);
+  return { -fDx, fDx, -fDy, fDy, -fDz, fDz };
 }
 
 G4Polyhedron* G4Box::CreatePolyhedron () const

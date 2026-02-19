@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflashActionInitialization.hh
 /// \brief Definition of the ExGflashActionInitialization class
 
@@ -40,14 +39,13 @@ class ExGflashActionInitialization : public G4VUserActionInitialization
 {
   public:
     ExGflashActionInitialization(ExGflashDetectorConstruction* det);
-    virtual ~ExGflashActionInitialization();
+    ~ExGflashActionInitialization() override;
 
-    virtual void BuildForMaster() const;
-    virtual void Build() const;
+    void BuildForMaster() const override;
+    void Build() const override;
+
   private:
-
-  ExGflashDetectorConstruction* fDetector;
-
+    ExGflashDetectorConstruction* fDetector;
 };
 
 #endif

@@ -23,9 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-//
-//
 // Class Description:
 // HepPolyhedron is an intermediate class between description of a shape
 // and visualization systems. It is intended to provide some service like:
@@ -62,8 +59,22 @@
 //                                        - create polyhedron for Sphere;
 //   HepPolyhedronTorus (rmin,rmax,rtor,phi,dphi)
 //                                        - create polyhedron for Torus;
+//   HepPolyhedronTet (p0[3],p1[3],p2[3],p3[3])
+//                                        - create polyhedron for Tet;
 //   HepPolyhedronEllipsoid (dx,dy,dz,zcut1,zcut2)
 //                                        - create polyhedron for Ellipsoid;
+//   HepPolyhedronEllipticalCone(dx,dy,z,zcut1)
+//                                        - create polyhedron for Elliptical cone;
+//   HepPolyhedronParaboloid (r1,r2,dz,phi,dphi)
+//                                        - create polyhedron for Paraboloid;
+//   HepPolyhedronHype (r1,r2,tan1,tan2,halfz)
+//                                        - create polyhedron for Hype;
+//   HepPolyhedronHyperbolicMirror (a,h,r)
+//                                        - create polyhedron for Hyperbolic mirror;
+//   HepPolyhedronTetMesh (vector<p>)
+//                                        - create polyhedron for tetrahedron mesh;
+//   HepPolyhedronBoxMesh (sx,sy,sz,vector<p>)
+//                                        - create polyhedron for box mesh;
 // Public functions:
 //
 //   GetNoVertices ()       - returns number of vertices;
@@ -100,7 +111,12 @@
 //                            in order; returns false when finished all faces;
 //   GetSurfaceArea()       - get surface area of the polyhedron;
 //   GetVolume()            - get volume of the polyhedron;
-//   GetNumberOfRotationSteps()   - get number of steps for whole circle;
+//   GetNumberOfRotationSteps() - get number of steps for whole circle;
+//   SetVertex(index, v)    - set vertex;
+//   SetFacet(index,iv1,iv2,iv3,iv4) - set facet;
+//   SetReferences()        - set references to neighbouring facets;
+//   JoinCoplanarFacets(tolerance) - join coplanar facets where it is possible
+//   InvertFacets()         - invert the order on nodes in facets;
 //   SetNumberOfRotationSteps (n) - set number of steps for whole circle;
 //   ResetNumberOfRotationSteps() - reset number of steps for whole circle
 //                            to default value;
@@ -115,7 +131,7 @@
 // - added GetNextVertexIndex, GetVertex by Yasuhide Sawada
 // - added GetNextUnitNormal, GetNextEdgeIndices, GetNextEdge
 // - improvements: angles now expected in radians
-//                 int -> G4int, double -> G4double  
+//                 int -> G4int, double -> G4double
 // - G4ThreeVector replaced by either G4Point3D or G4Normal3D
 //
 // 15.12.96 E.Chernyaev
@@ -160,14 +176,35 @@
 // 20.06.05 G.Cosmo
 // - added HepPolyhedronEllipsoid
 //
+// 18.07.07 T.Nikitina
+// - added HepPolyhedronParaboloid;
+//
 // 21.10.09 J.Allison
 // - removed IsErrorBooleanProcess (now error is returned through argument)
 //
+// 22.02.20 E.Chernyaev
+// - added HepPolyhedronTet, HepPolyhedronHyberbolicMirror
+//
+// 12.05.21 E.Chernyaev
+// - added TriangulatePolygon(), RotateContourAroundZ()
+// - added HepPolyhedronPgon, HepPolyhedronPcon given by rz-countour
+//
+// 26.03.22 E.Chernyaev
+// - added HepPolyhedronTetMesh
+//
+// 04.04.22 E.Chernyaev
+// - added JoinCoplanarFacets()
+//
+// 07.04.22 E.Chernyaev
+// - added HepPolyhedronBoxMesh
 
 #ifndef HEP_POLYHEDRON_HH
 #define HEP_POLYHEDRON_HH
 
+#include <vector>
 #include "G4Types.hh"
+#include "G4TwoVector.hh"
+#include "G4ThreeVector.hh"
 #include "G4Point3D.hh"
 #include "G4Normal3D.hh"
 #include "G4Transform3D.hh"
@@ -185,7 +222,7 @@ class G4Facet {
   G4Edge edge[4];
 
  public:
-  G4Facet(G4int v1=0, G4int f1=0, G4int v2=0, G4int f2=0, 
+  G4Facet(G4int v1=0, G4int f1=0, G4int v2=0, G4int f2=0,
           G4int v3=0, G4int f3=0, G4int v4=0, G4int f4=0)
   { edge[0].v=v1; edge[0].f=f1; edge[1].v=v2; edge[1].f=f2;
     edge[2].v=v3; edge[2].f=f3; edge[3].v=v4; edge[3].f=f4; }
@@ -228,15 +265,26 @@ class HepPolyhedron {
                      const G4double *z, G4double *r,
                      G4int nodeVis, G4int edgeVis);
 
-  // For each edge set reference to neighbouring facet
-  void SetReferences();
+  // Create HepPolyhedron for body of revolution around Z-axis
+  void RotateContourAroundZ(G4int nstep, G4double phi, G4double dphi,
+                            const std::vector<G4TwoVector> &rz,
+                            G4int nodeVis, G4int edgeVis);
 
-  // Invert the order on nodes in facets
-  void InvertFacets();
+  // Triangulate closed polygon (contour)
+  G4bool TriangulatePolygon(const std::vector<G4TwoVector> &polygon,
+                            std::vector<G4int> &result);
+
+  // Helper function for TriangulatePolygon()
+  G4bool CheckSnip(const std::vector<G4TwoVector> &contour,
+                   G4int a, G4int b, G4int c,
+                   G4int n, const G4int* V);
 
  public:
-  // Constructor
-  HepPolyhedron() : nvert(0), nface(0), pV(0), pF(0) {}
+  // Default constructor
+  HepPolyhedron() : nvert(0), nface(0), pV(nullptr), pF(nullptr) {}
+
+  // Constructor with allocation of memory
+  HepPolyhedron(G4int Nvert, G4int Nface);
 
   // Copy constructor
   HepPolyhedron(const HepPolyhedron & from);
@@ -266,7 +314,7 @@ class HepPolyhedron {
   // Get next vertex index of the quadrilateral
   G4bool GetNextVertexIndex(G4int & index, G4int & edgeFlag) const;
 
-  // Get vertex by index 
+  // Get vertex by index
   G4Point3D GetVertex(G4int index) const;
 
   // Get next vertex + edge visibility of the quadrilateral
@@ -297,15 +345,15 @@ class HepPolyhedron {
 
   // Get face by index
   void GetFacet(G4int iFace, G4int &n, G4int *iNodes,
-                G4int *edgeFlags = 0, G4int *iFaces = 0) const;
+                G4int *edgeFlags = nullptr, G4int *iFaces = nullptr) const;
 
   // Get face by index
   void GetFacet(G4int iFace, G4int &n, G4Point3D *nodes,
-                G4int *edgeFlags=0, G4Normal3D *normals=0) const;
+                G4int *edgeFlags=nullptr, G4Normal3D *normals=nullptr) const;
 
   // Get next face with normals at the nodes
-  G4bool GetNextFacet(G4int &n, G4Point3D *nodes, G4int *edgeFlags=0,
-                      G4Normal3D *normals=0) const;
+  G4bool GetNextFacet(G4int &n, G4Point3D *nodes, G4int *edgeFlags=nullptr,
+                      G4Normal3D *normals=nullptr) const;
 
   // Get normal of the face given by index
   G4Normal3D GetNormal(G4int iFace) const;
@@ -316,10 +364,10 @@ class HepPolyhedron {
   // Get normal of the next face
   G4bool GetNextNormal(G4Normal3D &normal) const;
 
-  // Get normal of unit length of the next face 
+  // Get normal of unit length of the next face
   G4bool GetNextUnitNormal(G4Normal3D &normal) const;
 
-  // Boolean operations 
+  // Boolean operations
   HepPolyhedron add(const HepPolyhedron &p) const;
   HepPolyhedron subtract(const HepPolyhedron &p) const;
   HepPolyhedron intersect(const HepPolyhedron &p) const;
@@ -333,6 +381,23 @@ class HepPolyhedron {
   // Get number of steps for whole circle
   static G4int GetNumberOfRotationSteps();
 
+  // Set vertex (1 <= index <= Nvert)
+  void SetVertex(G4int index, const G4Point3D& v);
+
+  // Set facet (1 <= index <= Nface)
+  void SetFacet(G4int index, G4int iv1, G4int iv2, G4int iv3, G4int iv4 = 0);
+
+  // For each edge set reference to neighbouring facet,
+  // call this after all vertices and facets have been set
+  void SetReferences();
+
+  // Join couples of triangular facets to quadrangular facets
+  // where it is possible
+  void JoinCoplanarFacets(G4double tolerance);
+
+  // Invert the order on nodes in facets
+  void InvertFacets();
+
   // Set number of steps for whole circle
   static void SetNumberOfRotationSteps(G4int n);
 
@@ -342,7 +407,7 @@ class HepPolyhedron {
   /**
    * Creates polyhedron for twisted trapezoid.
    * The trapezoid is given by two bases perpendicular to the z-axis.
-   * 
+   *
    * @param  Dz  half length in z
    * @param  xy1 1st base (at z = -Dz)
    * @param  xy2 2nd base (at z = +Dz)
@@ -360,8 +425,8 @@ class HepPolyhedron {
    * array starts from 1 (like in fortran). The indexes can be positive
    * or negative. Negative sign means that the corresponding edge is
    * invisible. The normal of the face should be directed to exterior
-   * of the polyhedron. 
-   * 
+   * of the polyhedron.
+   *
    * @param  Nnodes number of nodes
    * @param  Nfaces number of faces
    * @param  xyz    nodes
@@ -370,6 +435,13 @@ class HepPolyhedron {
    */
   G4int createPolyhedron(G4int Nnodes, G4int Nfaces,
                          const G4double xyz[][3], const G4int faces[][4]);
+
+  /**
+   * Calculate the unweighted mean of all the vertices in the polyhedron. Not to be
+   * confused with the polyhedron centre or centre of mass
+   * @return G4Point3D of the unweighted mean vertex position
+   */
+  G4Point3D vertexUnweightedMean() const;
 };
 
 class HepPolyhedronTrd2 : public HepPolyhedron
@@ -377,7 +449,7 @@ class HepPolyhedronTrd2 : public HepPolyhedron
  public:
   HepPolyhedronTrd2(G4double Dx1, G4double Dx2,
                     G4double Dy1, G4double Dy2, G4double Dz);
-  virtual ~HepPolyhedronTrd2();
+  ~HepPolyhedronTrd2() override;
 };
 
 class HepPolyhedronTrd1 : public HepPolyhedronTrd2
@@ -385,14 +457,14 @@ class HepPolyhedronTrd1 : public HepPolyhedronTrd2
  public:
   HepPolyhedronTrd1(G4double Dx1, G4double Dx2,
                     G4double Dy, G4double Dz);
-  virtual ~HepPolyhedronTrd1();
+  ~HepPolyhedronTrd1() override;
 };
 
 class HepPolyhedronBox : public HepPolyhedronTrd2
 {
  public:
   HepPolyhedronBox(G4double Dx, G4double Dy, G4double Dz);
-  virtual ~HepPolyhedronBox();
+  ~HepPolyhedronBox() override;
 };
 
 class HepPolyhedronTrap : public HepPolyhedron
@@ -403,7 +475,7 @@ class HepPolyhedronTrap : public HepPolyhedron
                     G4double Dx1, G4double Dx2, G4double Alp1,
                     G4double Dy2,
                     G4double Dx3, G4double Dx4, G4double Alp2);
-  virtual ~HepPolyhedronTrap();
+  ~HepPolyhedronTrap() override;
 };
 
 class HepPolyhedronPara : public HepPolyhedronTrap
@@ -411,7 +483,7 @@ class HepPolyhedronPara : public HepPolyhedronTrap
  public:
   HepPolyhedronPara(G4double Dx, G4double Dy, G4double Dz,
                     G4double Alpha, G4double Theta, G4double Phi);
-  virtual ~HepPolyhedronPara();
+  ~HepPolyhedronPara() override;
 };
 
 class HepPolyhedronParaboloid : public HepPolyhedron
@@ -422,7 +494,7 @@ class HepPolyhedronParaboloid : public HepPolyhedron
                           G4double dz,
                           G4double Phi1,
                           G4double Dphi);
-  virtual ~HepPolyhedronParaboloid();
+  ~HepPolyhedronParaboloid() override;
 };
 
 class HepPolyhedronHype : public HepPolyhedron
@@ -433,39 +505,39 @@ class HepPolyhedronHype : public HepPolyhedron
                     G4double tan1,
                     G4double tan2,
                     G4double halfZ);
-  virtual ~HepPolyhedronHype();
+  ~HepPolyhedronHype() override;
 };
 
 class HepPolyhedronCons : public HepPolyhedron
 {
  public:
-  HepPolyhedronCons(G4double Rmn1, G4double Rmx1, 
+  HepPolyhedronCons(G4double Rmn1, G4double Rmx1,
                     G4double Rmn2, G4double Rmx2, G4double Dz,
-                    G4double Phi1, G4double Dphi); 
-  virtual ~HepPolyhedronCons();
+                    G4double Phi1, G4double Dphi);
+  ~HepPolyhedronCons() override;
 };
 
 class HepPolyhedronCone : public HepPolyhedronCons
 {
  public:
-  HepPolyhedronCone(G4double Rmn1, G4double Rmx1, 
+  HepPolyhedronCone(G4double Rmn1, G4double Rmx1,
                     G4double Rmn2, G4double Rmx2, G4double Dz);
-  virtual ~HepPolyhedronCone();
+  ~HepPolyhedronCone() override;
 };
 
 class HepPolyhedronTubs : public HepPolyhedronCons
 {
  public:
-  HepPolyhedronTubs(G4double Rmin, G4double Rmax, G4double Dz, 
+  HepPolyhedronTubs(G4double Rmin, G4double Rmax, G4double Dz,
                     G4double Phi1, G4double Dphi);
-  virtual ~HepPolyhedronTubs();
+  ~HepPolyhedronTubs() override;
 };
 
 class HepPolyhedronTube : public HepPolyhedronCons
 {
  public:
   HepPolyhedronTube (G4double Rmin, G4double Rmax, G4double Dz);
-  virtual ~HepPolyhedronTube();
+  ~HepPolyhedronTube() override;
 };
 
 class HepPolyhedronPgon : public HepPolyhedron
@@ -475,7 +547,9 @@ class HepPolyhedronPgon : public HepPolyhedron
                     const G4double *z,
                     const G4double *rmin,
                     const G4double *rmax);
-  virtual ~HepPolyhedronPgon();
+  HepPolyhedronPgon(G4double phi, G4double dphi, G4int npdv,
+                    const std::vector<G4TwoVector> &rz);
+  ~HepPolyhedronPgon() override;
 };
 
 class HepPolyhedronPcon : public HepPolyhedronPgon
@@ -485,7 +559,9 @@ class HepPolyhedronPcon : public HepPolyhedronPgon
                     const G4double *z,
                     const G4double *rmin,
                     const G4double *rmax);
-  virtual ~HepPolyhedronPcon();
+  HepPolyhedronPcon(G4double phi, G4double dphi,
+                    const std::vector<G4TwoVector> &rz);
+  ~HepPolyhedronPcon() override;
 };
 
 class HepPolyhedronSphere : public HepPolyhedron
@@ -494,7 +570,7 @@ class HepPolyhedronSphere : public HepPolyhedron
   HepPolyhedronSphere(G4double rmin, G4double rmax,
                       G4double phi, G4double dphi,
                       G4double the, G4double dthe);
-  virtual ~HepPolyhedronSphere();
+  ~HepPolyhedronSphere() override;
 };
 
 class HepPolyhedronTorus : public HepPolyhedron
@@ -502,15 +578,25 @@ class HepPolyhedronTorus : public HepPolyhedron
  public:
   HepPolyhedronTorus(G4double rmin, G4double rmax, G4double rtor,
                      G4double phi, G4double dphi);
-  virtual ~HepPolyhedronTorus();
+  ~HepPolyhedronTorus() override;
+};
+
+class HepPolyhedronTet : public HepPolyhedron
+{
+ public:
+  HepPolyhedronTet(const G4double p0[3],
+                   const G4double p1[3],
+                   const G4double p2[3],
+                   const G4double p3[3]);
+  ~HepPolyhedronTet() override;
 };
 
 class HepPolyhedronEllipsoid : public HepPolyhedron
 {
  public:
-  HepPolyhedronEllipsoid(G4double dx, G4double dy, G4double dz, 
+  HepPolyhedronEllipsoid(G4double dx, G4double dy, G4double dz,
                          G4double zcut1, G4double zcut2);
-  virtual ~HepPolyhedronEllipsoid();
+  ~HepPolyhedronEllipsoid() override;
 };
 
 class HepPolyhedronEllipticalCone : public HepPolyhedron
@@ -518,7 +604,29 @@ class HepPolyhedronEllipticalCone : public HepPolyhedron
  public:
   HepPolyhedronEllipticalCone(G4double dx, G4double dy, G4double z,
                               G4double zcut1);
-  virtual ~HepPolyhedronEllipticalCone();
+  ~HepPolyhedronEllipticalCone() override;
+};
+
+class HepPolyhedronHyperbolicMirror : public HepPolyhedron
+{
+ public:
+  HepPolyhedronHyperbolicMirror(G4double a, G4double h, G4double r);
+  ~HepPolyhedronHyperbolicMirror() override;
+};
+
+class HepPolyhedronTetMesh : public HepPolyhedron
+{
+ public:
+  HepPolyhedronTetMesh(const std::vector<G4ThreeVector>& tetrahedra);
+  ~HepPolyhedronTetMesh() override;
+};
+
+class HepPolyhedronBoxMesh : public HepPolyhedron
+{
+ public:
+  HepPolyhedronBoxMesh(G4double sizeX, G4double sizeY, G4double sizeZ,
+                       const std::vector<G4ThreeVector>& positions);
+  ~HepPolyhedronBoxMesh() override;
 };
 
 #endif /* HEP_POLYHEDRON_HH */

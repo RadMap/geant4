@@ -41,16 +41,16 @@
 
 #include "G4PhysicsBuilderInterface.hh"
 
-class G4ProtonInelasticProcess;
+class G4HadronInelasticProcess;
 class G4HadronElasticProcess;
 
 class G4VProtonBuilder : public G4PhysicsBuilderInterface
 {
 public:
   G4VProtonBuilder() = default;
-  virtual ~G4VProtonBuilder() {}
+  ~G4VProtonBuilder() override = default;
   virtual void Build(G4HadronElasticProcess * aP) = 0;
-  virtual void Build(G4ProtonInelasticProcess * aP) = 0;
+  virtual void Build(G4HadronInelasticProcess * aP) = 0;
   using G4PhysicsBuilderInterface::Build; //Prevent compiler warning
 };
 

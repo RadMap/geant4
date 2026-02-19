@@ -25,10 +25,6 @@
 //
 /// \file Run.hh
 /// \brief Definition of the Run class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef Run_h
 #define Run_h 1
@@ -36,6 +32,7 @@
 #include "G4Run.hh"
 #include "G4VProcess.hh"
 #include "globals.hh"
+
 #include <map>
 
 class DetectorConstruction;
@@ -47,56 +44,54 @@ class Run : public G4Run
 {
   public:
     Run(DetectorConstruction*);
-   ~Run();
+    ~Run() override = default;
 
   public:
-    void SetPrimary(G4ParticleDefinition* particle, G4double energy);         
+    void SetPrimary(G4ParticleDefinition* particle, G4double energy);
     void CountProcesses(const G4VProcess* process);
-    void ParticleCount(G4String, G4double, G4double); 
-    void AddEdep (G4double edep);
-    void AddEflow (G4double eflow);                   
+    void ParticleCount(G4String, G4double, G4double);
+    void AddEdep(G4double edep);
+    void AddEflow(G4double eflow);
     void ParticleFlux(G4String, G4double);
 
-    G4int GetIonId (G4String);
+    G4int GetIonId(G4String);
 
-    virtual void Merge(const G4Run*);
-    void EndOfRun();     
-   
+    void Merge(const G4Run*) override;
+    void EndOfRun();
+
   private:
-    struct ParticleData {
-     ParticleData()
-       : fCount(0), fEmean(0.), fEmin(0.), fEmax(0.), fTmean(-1.) {}
-     ParticleData(G4int count, G4double ekin, G4double emin, G4double emax,
-                  G4double meanLife)
-       : fCount(count), fEmean(ekin), fEmin(emin), fEmax(emax),
-         fTmean(meanLife) {}
-     G4int     fCount;
-     G4double  fEmean;
-     G4double  fEmin;
-     G4double  fEmax;
-     G4double  fTmean;
+    struct ParticleData
+    {
+        ParticleData() : fCount(0), fEmean(0.), fEmin(0.), fEmax(0.), fTmean(-1.) {}
+        ParticleData(G4int count, G4double ekin, G4double emin, G4double emax, G4double meanLife)
+          : fCount(count), fEmean(ekin), fEmin(emin), fEmax(emax), fTmean(meanLife)
+        {}
+        G4int fCount;
+        G4double fEmean;
+        G4double fEmin;
+        G4double fEmax;
+        G4double fTmean;
     };
-     
+
   private:
     // utility function
-    void Merge(std::map<G4String,ParticleData>& destinationMap,
-               const std::map<G4String,ParticleData>& sourceMap) const;
+    void Merge(std::map<G4String, ParticleData>& destinationMap,
+               const std::map<G4String, ParticleData>& sourceMap) const;
 
-    static std::map<G4String,G4int> fgIonMap;
+    static std::map<G4String, G4int> fgIonMap;
     static G4int fgIonId;
 
-    DetectorConstruction* fDetector;
-    G4ParticleDefinition* fParticle;
-    G4double              fEkin;
+    DetectorConstruction* fDetector = nullptr;
+    G4ParticleDefinition* fParticle = nullptr;
+    G4double fEkin = 0.;
 
-    G4double fEnergyDeposit, fEnergyDeposit2;
-    G4double fEnergyFlow,    fEnergyFlow2;            
-    std::map<G4String,G4int>        fProcCounter;
-    std::map<G4String,ParticleData> fParticleDataMap1;                    
-    std::map<G4String,ParticleData> fParticleDataMap2;
+    G4double fEnergyDeposit = 0., fEnergyDeposit2 = 0.;
+    G4double fEnergyFlow = 0., fEnergyFlow2 = 0.;
+    std::map<G4String, G4int> fProcCounter;
+    std::map<G4String, ParticleData> fParticleDataMap1;
+    std::map<G4String, ParticleData> fParticleDataMap2;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

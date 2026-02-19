@@ -1,25 +1,47 @@
---------------------------------------------------
+# Example polarisation History
 
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top). It must **not**
+be used as a substitute for writing good git commit messages!
 
-                Polarisation Examples History file
-               -----------------------------------
 
-This file should be used by the G4 example coordinator to briefly
-summarize all major modifications introduced in the code and keep
-track of all tags.
+## 2025-07-30 I. Hrivnacova (exPolarisation-V11-03-00)
+- Migration of README pages to Markdown:
+  - .README.txt replaced with README.md and removed README
+  - Updated section on histograms
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2023-11-15 I. Hrivnacova (exPolarisation-V11-01-00)
+- Updated vis.mac macros:
+  - Changed "/vis/open XYZ [600x600-0+0]" to "/vis/open" to allow run-time choices
+    and simplified comments.
+
+## 2021-12-10 Ben Morgan (exPolarisation-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+November 29th, 2021 I. Hrivnacova (exPolarisation-V10-07-01)
+- Removed obsolete references to AIDA analysis tools
+
+May 24th, 2021,  B. Morgan (exPolarisation-V10-07-00)
+- Bump required CMake version range to 3.12...3.20, matching core Geant4
+
+November 10th, 2020 B. Morgan (exPolarisation-V10-06-01)
+- Enforce use of Serial RunManager for serial-only examples.
+
+November 10th, 2020 B. Morgan (exPolarisation-V10-06-00)
+- Migrate to G4RunManagerFactory.
+
+November 3rd, 2020 B. Morgan (exPolarisation-V10-06-00)
+- Support same CMake version range as core Geant4
 
 May 13th, 2015 Ivana Hrivnacova (exPolarisation-V10-01-00)
 - Fixed README file
 
 Apr 1st, 2013 Andrea Dotti (exPolarisation-V09-06-00)
-- New interfaces for G4MT 
+- New interfaces for G4MT
 
 Nov 23rd, 2012 Ivana Hrivnacova (exPolarisation-V09-05-02)
 - Updated documentation:
@@ -34,7 +56,7 @@ Sep 29th, 2012 Ivana Hrivnacova (exPolarisation-V09-05-01)
 
 Sep 24th, 2012  Ivana Hrivnacova (exPolarisation-V09-05-00)
 - Updated CMakeLists.txt files:
-  adding visualization, optional external package (AIDA), copying macros, 
-  install target and comment lines 
+  adding visualization, optional external package (AIDA), copying macros,
+  install target and comment lines
 - Added explicit includes of G4SystemOfUnits.hh and G4PhysicalConstants.hh
-- Replaced tabulators with space characters  
+- Replaced tabulators with space characters

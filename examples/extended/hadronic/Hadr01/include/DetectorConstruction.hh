@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr01/include/DetectorConstruction.hh
+/// \file DetectorConstruction.hh
 /// \brief Definition of the DetectorConstruction class
-//
-//
+
 /////////////////////////////////////////////////////////////////////////
 //
 // DetectorConstruction
@@ -37,14 +36,14 @@
 // 04.06.2006 Adoptation of Hadr01 (V.Ivanchenko)
 //
 ////////////////////////////////////////////////////////////////////////
-// 
+//
 
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
 
+#include "G4Material.hh"
 #include "G4VUserDetectorConstruction.hh"
 #include "globals.hh"
-#include "G4Material.hh"
 
 class CheckVolumeSD;
 class TargetSD;
@@ -57,54 +56,49 @@ class DetectorMessenger;
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
+  public:
+    DetectorConstruction();
+    ~DetectorConstruction() override;
 
-  DetectorConstruction();
-  virtual ~DetectorConstruction();
+    G4VPhysicalVolume* Construct() override;
+    void ConstructSDandField() override;
 
-  virtual G4VPhysicalVolume* Construct();
-  virtual void ConstructSDandField();
+    void SetWorldMaterial(const G4String&);
+    void SetTargetMaterial(const G4String&);
 
-  void SetWorldMaterial(const G4String&);
-  void SetTargetMaterial(const G4String&);
+    DetectorConstruction& operator=(const DetectorConstruction& right) = delete;
+    DetectorConstruction(const DetectorConstruction&) = delete;
 
-  void SetTargetRadius(G4double val);
+  private:
+    void ComputeGeomParameters();
 
-private:
+    G4Material* fTargetMaterial;
+    G4Material* fWorldMaterial;
 
-  void ComputeGeomParameters();
+    G4Tubs* fSolidW;
+    G4Tubs* fSolidA;
+    G4Tubs* fSolidC;
 
-  DetectorConstruction & operator=(const DetectorConstruction &right);
-  DetectorConstruction(const DetectorConstruction&);
+    G4LogicalVolume* fLogicTarget;
+    G4LogicalVolume* fLogicCheck;
+    G4LogicalVolume* fLogicWorld;
 
-  G4Material*  fTargetMaterial;
-  G4Material*  fWorldMaterial;
+    G4VPhysicalVolume* fPhysWorld;
 
-  G4Tubs* fSolidW;
-  G4Tubs* fSolidA;
-  G4Tubs* fSolidC;
+    DetectorMessenger* fDetectorMessenger;
 
-  G4LogicalVolume* fLogicTarget;
-  G4LogicalVolume* fLogicCheck;
-  G4LogicalVolume* fLogicWorld;
+    G4double fRadius;
+    G4double fCheckR;
+    G4double fWorldR;
+    G4double fTargetZ;
+    G4double fCheckZ;
+    G4double fWorldZ;
+    G4double fSliceZ;
 
-  G4VPhysicalVolume* fPhysWorld;
-
-  DetectorMessenger* fDetectorMessenger;
-
-  G4double fRadius;
-  G4double fCheckR;
-  G4double fWorldR;
-  G4double fTargetZ; 
-  G4double fCheckZ;
-  G4double fWorldZ;
-  G4double fSliceZ;
-
-  G4int fSlices;
-  G4bool fInitialized;
+    G4int fSlices;
+    G4bool fInitialized;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
 #endif
-

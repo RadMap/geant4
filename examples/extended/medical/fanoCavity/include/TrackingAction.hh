@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file medical/fanoCavity/include/TrackingAction.hh
+/// \file TrackingAction.hh
 /// \brief Definition of the TrackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef TrackingAction_h
 #define TrackingAction_h 1
@@ -38,19 +34,19 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class TrackingAction : public G4UserTrackingAction {
-
-  public:  
+class TrackingAction : public G4UserTrackingAction
+{
+  public:
     TrackingAction();
-   ~TrackingAction();
-   
-    virtual void  PreUserTrackingAction(const G4Track*);
+    ~TrackingAction();
+
+    virtual void PreUserTrackingAction(const G4Track*);
     virtual void PostUserTrackingAction(const G4Track*);
-    
-    void AddEdepCavity(G4double de) { fEdepCavity += de;};
-        
+
+    void AddEdepCavity(G4double de) { fEdepCavity += de; };
+
   private:
-    G4double       fEdepCavity;            
+    G4double fEdepCavity;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

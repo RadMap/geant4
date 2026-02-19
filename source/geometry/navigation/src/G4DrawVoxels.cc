@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// class G4DrawVoxels implementation
+// Class G4DrawVoxels implementation
 //
-// Define G4DrawVoxelsDebug for debugging information on G4cout
-//
-// 29/07/1999 first comitted version L.G.
+// Original author: L.G., 29 July 1999
 // --------------------------------------------------------------------
 
 #include "G4DrawVoxels.hh"
@@ -38,11 +36,12 @@
 #include "G4VVisManager.hh"
 #include "G4Colour.hh"
 #include "G4TransportationManager.hh"
-#include "G4TouchableHistoryHandle.hh"
+#include "G4TouchableHandle.hh"
 
 #define voxel_width 0
 
-// Private Constructor
+// --------------------------------------------------------------------
+// Constructor
 //
 G4DrawVoxels::G4DrawVoxels()
 {
@@ -52,12 +51,7 @@ G4DrawVoxels::G4DrawVoxels()
   fBoundingBoxVisAttributes.SetColour(G4Colour(.3,0.,.2));
 }
 
-// Destructor
-//
-G4DrawVoxels::~G4DrawVoxels()
-{
-}
-
+// --------------------------------------------------------------------
 // Methods that allow changing colors of the drawing
 //
 void G4DrawVoxels::SetVoxelsVisAttributes(G4VisAttributes& VA_voxelX,
@@ -113,8 +107,8 @@ G4DrawVoxels::ComputeVoxelPolyhedra(const G4LogicalVolume* lv,
                                        (ymin+ymax)*0.5,
                                        (zmin+zmax)*0.5);
    
-   ppl->push_back(G4PlacedPolyhedron(bounding_polyhedronBox,
-                                     G4Translate3D(t_centerofBoundingBox)));
+   ppl->emplace_back(bounding_polyhedronBox,
+                                     G4Translate3D(t_centerofBoundingBox));
    
    G4ThreeVector t_FirstCenterofVoxelPlane;
    const G4VisAttributes* voxelsVisAttributes = nullptr;
@@ -153,7 +147,7 @@ G4DrawVoxels::ComputeVoxelPolyhedra(const G4LogicalVolume* lv,
    voxel_plane.SetVisAttributes(voxelsVisAttributes);
    
    G4SmartVoxelProxy* slice = header->GetSlice(0);
-   G4int slice_no = 0, no_slices = header->GetNoSlices();
+   std::size_t slice_no = 0, no_slices = header->GetNoSlices();
    G4double beginning = header->GetMinExtent(),
             step = (header->GetMaxExtent()-beginning)/no_slices;
 
@@ -169,9 +163,9 @@ G4DrawVoxels::ComputeVoxelPolyhedra(const G4LogicalVolume* lv,
      current_translation_vector = unit_translation_vector;
      current_translation_vector *= step*slice_no;
    
-     ppl->push_back(G4PlacedPolyhedron(voxel_plane,
+     ppl->emplace_back(voxel_plane,
                     G4Translate3D(current_translation_vector
-                                 + t_FirstCenterofVoxelPlane)));
+                                 + t_FirstCenterofVoxelPlane));
      slice_no = (slice->IsHeader()
                ? slice->GetHeader()->GetMaxEquivalentSliceNo()+1
                : slice->GetNode()->GetMaxEquivalentSliceNo()+1);
@@ -184,7 +178,7 @@ G4DrawVoxels::ComputeVoxelPolyhedra(const G4LogicalVolume* lv,
 G4PlacedPolyhedronList*
 G4DrawVoxels::CreatePlacedPolyhedra(const G4LogicalVolume* lv) const
 {
-  G4PlacedPolyhedronList* pplist = new G4PlacedPolyhedronList;
+  auto  pplist = new G4PlacedPolyhedronList;
   G4VoxelLimits limits;  // Working object for recursive call.
   ComputeVoxelPolyhedra(lv,lv->GetVoxelHeader(),limits,pplist);
   return pplist; //it s up to the calling program to destroy it then!
@@ -205,7 +199,7 @@ void G4DrawVoxels::DrawVoxels(const G4LogicalVolume* lv) const
    // (the drawing is directly in the world volume while the axis
    // are relative to the mother volume of lv's daughter.)
 
-   G4TouchableHistoryHandle aTouchable =
+   G4TouchableHandle aTouchable =
      G4TransportationManager::GetTransportationManager()->
      GetNavigatorForTracking()->CreateTouchableHistoryHandle();
    G4AffineTransform globTransform =
@@ -218,10 +212,10 @@ void G4DrawVoxels::DrawVoxels(const G4LogicalVolume* lv) const
    {
      // Drawing the bounding and voxel polyhedra for the pVolume
      //
-     for (size_t i=0; i<pplist->size(); ++i)
+     for (const auto & i : *pplist)
      {
-       pVVisManager->Draw((*pplist)[i].GetPolyhedron(),
-                          (*pplist)[i].GetTransform()*transf3D);
+       pVVisManager->Draw(i.GetPolyhedron(),
+                          i.GetTransform()*transf3D);
      }
    }
    else

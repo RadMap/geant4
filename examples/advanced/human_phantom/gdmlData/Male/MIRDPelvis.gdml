@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
  <define> 
   <constant name="PI" value="1.*pi" />
   <constant name="TWOPI" value="2.*pi"/>
@@ -56,9 +56,9 @@
  </materials>
 
  <solids>
-  <eltube aunit="cm" lunit="cm" name="PelvisOut" dx="10.35" dy="11.76" dz="9.915" />
-  <eltube aunit="cm" lunit="cm" name="PelvisIn" dx="9.75" dy="11.07" dz="10.0" />
-  <box aunit="cm" lunit="cm" name="SubtrPelvis" x="20.71" y="23.52" z="19.84" /> 
+  <eltube lunit="cm" name="PelvisOut" dx="10.35" dy="11.76" dz="9.915" />
+  <eltube lunit="cm" name="PelvisIn" dx="9.75" dy="11.07" dz="10.0" />
+  <box lunit="cm" name="SubtrPelvis" x="20.71" y="23.52" z="19.84" /> 
 
   <subtraction name="FirstPelvis">
    <first ref="PelvisOut" />

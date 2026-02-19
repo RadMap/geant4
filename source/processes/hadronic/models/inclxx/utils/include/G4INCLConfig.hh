@@ -115,7 +115,7 @@ namespace G4INCL {
     ParticleSpecies getProjectileSpecies() const { return projectileSpecies; }
 
     /// \brief Set the projectile species
-    void setProjectileSpecies(ParticleSpecies const &ps) { projectileSpecies=ps; }
+    void setProjectileSpecies(ParticleSpecies const &pars) { projectileSpecies=pars; }
 
     /// \brief Get the projectile kinetic energy.
     G4double getProjectileKineticEnergy() const { return projectileKineticEnergy; }
@@ -199,7 +199,7 @@ namespace G4INCL {
     G4int getClusterMaxMass() const { return clusterMaxMass; }
 
     /// \brief Set the maximum mass for production of clusters.
-    void setClusterMaxMass(const G4int m){ clusterMaxMass=m; }
+    void setClusterMaxMass(const G4int clm){ clusterMaxMass=clm; }
 
     /// \brief Get back-to-spectator
     G4bool getBackToSpectator() const { return backToSpectator; }
@@ -214,19 +214,28 @@ namespace G4INCL {
     void setUseRealMasses(G4bool use) { useRealMasses = use; }
 
     /// \brief Set the INCLXX datafile path
-    void setINCLXXDataFilePath(std::string const &s) { INCLXXDataFilePath=s; }
+    void setINCLXXDataFilePath(std::string const &path) { INCLXXDataFilePath=path; }
+    
+    /// \brief Set the ABLAXX datafile path
+#ifdef INCL_DEEXCITATION_ABLAXX
+    void setABLAXXDataFilePath(std::string const &path) { ablaxxDataFilePath=path; }
+    G4double getFissionDispCoeff() const { return fissdisscoeff; }
+    G4double getLevDensAv() const { return levdensav; }
+    G4double getLevDensAs() const { return levdensas; }
+    G4double getLevDensAk() const { return levdensak; }
+    G4double getTempFreezeOut() const { return tfreezeout; }
+    G4float getEmissionBarrierFactorH2() const { return barrierfactorh2; }
+    G4float getEmissionBarrierFactorH3() const { return barrierfactorh3; }
+    G4float getEmissionBarrierFactorHe3() const { return barrierfactorhe3; }
+    G4float getEmissionBarrierFactorHe4() const { return barrierfactorhe4; }
+    G4float getEmissionBarrierFactorHe6() const { return barrierfactorhe6; }
+#endif    
 
     std::string const &getINCLXXDataFilePath() const {
       return INCLXXDataFilePath;
     }
 
 #ifdef INCL_DEEXCITATION_ABLAXX
-    std::string const &getABLAv3pCxxDataFilePath() const {
-      return ablav3pCxxDataFilePath;
-    }
-#endif
-
-#ifdef INCL_DEEXCITATION_ABLACXX
     std::string const &getABLAXXDataFilePath() const {
       return ablaxxDataFilePath;
     }
@@ -364,6 +373,10 @@ namespace G4INCL {
 #endif
 
     G4bool getInverseKinematics() const { return inverseKinematics; }
+    
+    G4bool getsrcPairConfig() const { return srcPairCorrelations; }
+    
+    G4float getsrcPairDist() const { return srcPairDistance; }
 
     /// \brief Get the decay time threshold time
     G4double getDecayTimeThreshold() const { return decayTimeThreshold; }
@@ -373,6 +386,25 @@ namespace G4INCL {
 
     /// \brief Get the bias
     G4double getBias() const { return bias; }
+
+    /// \brief Get the pbar at rest annihilation threshold
+    G4double getAtrestThreshold() const { return atrestThreshold; }
+
+    /// \brief Set the pbar at rest annihilation threshold
+    void setAtrestThreshold(const G4double t) { atrestThreshold=t; }
+ 
+    /// \brief Get the nbar at rest annihilation threshold
+    G4double getnbAtrestThreshold() const {return nbatrestThreshold;} 
+
+    /// \brief Set the nbar at rest annihilation threshold
+    void setnbAtrestThreshold(const G4double t){ nbatrestThreshold=t;}
+ 
+    /// \brief Get the dbar at rest annihilation threshold
+    G4double getdbAtrestThreshold() const {return dbatrestThreshold;}
+
+    /// \brief Set the dbar at rest annihilation threshold
+    void setdbAtrestThreshold(const G4double t){ dbatrestThreshold=t;} 
+
 
   private:
 
@@ -420,10 +452,17 @@ namespace G4INCL {
     std::string deExcitationString;
     DeExcitationType deExcitationType;
 #ifdef INCL_DEEXCITATION_ABLAXX
-    std::string ablav3pCxxDataFilePath;
-#endif
-#ifdef INCL_DEEXCITATION_ABLACXX
     std::string ablaxxDataFilePath;
+    G4double fissdisscoeff;
+    G4double levdensav;
+    G4double levdensas;
+    G4double levdensak;
+    G4double tfreezeout;
+    G4float barrierfactorh2;
+    G4float barrierfactorh3;
+    G4float barrierfactorhe3;
+    G4float barrierfactorhe4;
+    G4float barrierfactorhe6;
 #endif
 #ifdef INCL_DEEXCITATION_ABLA07
     std::string abla07DataFilePath;
@@ -453,8 +492,16 @@ namespace G4INCL {
     G4double fermiMomentum;
 
     G4double cutNN;
+
+    //G4bool ann;
     
     G4double bias;
+
+    G4double atrestThreshold;
+ 
+    G4double nbatrestThreshold;
+ 
+    G4double dbatrestThreshold;
 
 #ifdef INCL_ROOT_USE
     std::string rootSelectionString;
@@ -496,6 +543,10 @@ namespace G4INCL {
 #endif
 
     G4bool inverseKinematics;
+    
+    G4bool srcPairCorrelations;
+    
+    G4float srcPairDistance;
 
     G4double decayTimeThreshold;
 

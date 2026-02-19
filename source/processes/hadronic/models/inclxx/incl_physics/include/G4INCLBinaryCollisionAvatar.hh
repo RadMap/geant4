@@ -50,6 +50,7 @@
 #include "G4INCLFinalState.hh"
 #include "G4INCLInteractionAvatar.hh"
 #include "G4INCLAllocationPool.hh"
+#include "G4INCLConfig.hh"
 
 namespace G4INCL {
 
@@ -79,22 +80,24 @@ namespace G4INCL {
 
     static G4double getCutNNSquared() { return cutNNSquared; }
     
-    /// \brief Get the bias
+    /// \brief Get the global bias factor
     static G4double getBias() { return bias; }
     
-    /// \brief Set the bias
+    /// \brief Set the global bias factor
     static void setBias(const G4double b) { bias=b; }
 
   private:
     static G4ThreadLocal G4double cutNN;
     static G4ThreadLocal G4double cutNNSquared;
     static G4ThreadLocal G4double bias;
+
     G4double theCrossSection;
     G4bool isParticle1Spectator;
     G4bool isParticle2Spectator;
     G4bool isElastic;
-    
     G4bool isStrangeProduction;
+
+    void generateSrcPairsMethod(ParticleList &theList, const int then, const int thez, G4INCL::Particle*, G4INCL::Particle*);
 
     INCL_DECLARE_ALLOCATION_POOL(BinaryCollisionAvatar)
   };

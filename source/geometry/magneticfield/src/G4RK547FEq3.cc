@@ -38,8 +38,8 @@
 //             1247/10890      0                57375/108053       -1229312/1962015      125/207     43/114       0
 //             21487/185130    0                963225/1836901     -39864832/33354255    2575/3519   4472/4845    -1/10
 //
-// Author: Dmitry Sorokin, Google Summer of Code 2017
-// Supervision: John Apostolakis, CERN
+// Author: Dmitry Sorokin (CERN, Google Summer of Code 2017), 02.11.2017
+// Supervision: John Apostolakis (CERN)
 // --------------------------------------------------------------------
 
 #include "G4RK547FEq3.hh"
@@ -95,40 +95,54 @@ void G4RK547FEq3::makeStep( const G4double yInput[],
 
     // RightHandSide(yInput, dydx);
     for(G4int i = 0; i < GetNumberOfVariables(); ++i)
-        yTemp[i] = yInput[i] + hstep * b21 * dydx[i];
+    {
+      yTemp[i] = yInput[i] + hstep * b21 * dydx[i];
+    }
 
     RightHandSide(yTemp, ak2);
     for(G4int i = 0; i < GetNumberOfVariables(); ++i)
-        yTemp[i] = yInput[i] + hstep * (b31 * dydx[i] + b32 * ak2[i]);
+    {
+      yTemp[i] = yInput[i] + hstep * (b31 * dydx[i] + b32 * ak2[i]);
+    }
 
     RightHandSide(yTemp, ak3);
     for(G4int i = 0;i < GetNumberOfVariables(); ++i)
-        yTemp[i] = yInput[i] + hstep * (b41 * dydx[i] + b42 * ak2[i] +
-                                        b43 * ak3[i]);
+    {
+      yTemp[i] = yInput[i] + hstep * (b41 * dydx[i] + b42 * ak2[i] +
+                                      b43 * ak3[i]);
+    }
 
     RightHandSide(yTemp, ak4);
     for(G4int i = 0; i < GetNumberOfVariables(); ++i)
-        yTemp[i] = yInput[i] + hstep * (b51 * dydx[i] + b52 * ak2[i] +
-                                        b53 * ak3[i] + b54 * ak4[i]);
+    {
+      yTemp[i] = yInput[i] + hstep * (b51 * dydx[i] + b52 * ak2[i] +
+                                      b53 * ak3[i] + b54 * ak4[i]);
+    }
 
     RightHandSide(yTemp, ak5);
     for(G4int i = 0; i < GetNumberOfVariables(); ++i)
-        yTemp[i] = yInput[i] + hstep * (b61 * dydx[i] + b62 * ak2[i] +
-                                        b63 * ak3[i] + b64 * ak4[i] +
-                                        b65 * ak5[i]);
+    {
+      yTemp[i] = yInput[i] + hstep * (b61 * dydx[i] + b62 * ak2[i] +
+                                      b63 * ak3[i] + b64 * ak4[i] +
+                                      b65 * ak5[i]);
+    }
 
     RightHandSide(yTemp, ak6);
     for(G4int i = 0; i < GetNumberOfVariables(); ++i)
-        yOutput[i] = yInput[i] + hstep * (b71 * dydx[i] + b72 * ak2[i] +
-                                          b73 * ak3[i] + b74 * ak4[i] +
-                                          b75 * ak5[i] + b76 * ak6[i]);
-    if (dydxOutput && yError)
+    {
+      yOutput[i] = yInput[i] + hstep * (b71 * dydx[i] + b72 * ak2[i] +
+                                        b73 * ak3[i] + b74 * ak4[i] +
+                                        b75 * ak5[i] + b76 * ak6[i]);
+    }
+    if ((dydxOutput != nullptr) && (yError != nullptr))
     {
         RightHandSide(yOutput, dydxOutput);
         for(G4int i = 0; i < GetNumberOfVariables(); ++i)
-            yError[i] = hstep * (dc1 * dydx[i] + dc2 * ak2[i] + dc3 * ak3[i] +
-                                 dc4 * ak4[i] + dc5 * ak5[i] + dc6 * ak6[i] +
-                                 dc7 * dydxOutput[i]);
+        {
+          yError[i] = hstep * (dc1 * dydx[i] + dc2 * ak2[i] + dc3 * ak3[i] +
+                               dc4 * ak4[i] + dc5 * ak5[i] + dc6 * ak6[i] +
+                               dc7 * dydxOutput[i]);
+        }
     }
 }
 

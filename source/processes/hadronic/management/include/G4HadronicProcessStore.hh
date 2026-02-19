@@ -24,7 +24,6 @@
 // ********************************************************************
 //
 //
-//
 // -------------------------------------------------------------------
 //
 // GEANT4 Class header file
@@ -63,6 +62,7 @@
 
 class G4Element;
 class G4HadronicEPTestMessenger;
+class G4HadronicParameters;
 
 class G4HadronicProcessStore
 {
@@ -75,7 +75,6 @@ public:
 
   ~G4HadronicProcessStore();
 
-  void Clean();
   G4double GetCrossSectionPerAtom(
     const G4ParticleDefinition* particle,
     G4double kineticEnergy,
@@ -191,7 +190,7 @@ public:
 
   G4bool GetBuildXSTable() const;
 
-  void PrintInfo(const G4ParticleDefinition*); 
+  void PrintInfo(const G4ParticleDefinition*);
 
   void Dump(G4int level);
   void DumpHtml();
@@ -199,8 +198,8 @@ public:
   void PrintModelHtml(const G4HadronicInteraction * model) const;
 
   void SetVerbose(G4int val);
-
   G4int GetVerbose();
+  // these methods are obsolete and will be removed
 
   G4HadronicProcess* FindProcess(const G4ParticleDefinition*, 
 				 G4HadronicProcessType subType);
@@ -242,26 +241,25 @@ private:
   std::vector<G4VProcess*> extraProcess;
   std::multimap<PD,G4VProcess*> ep_map;
 
-  // counters and options
-  G4int n_proc;
-  G4int n_model;
-  G4int n_part;
-  G4int n_extra;
+  G4HadronicParameters* param;
 
-  G4int  verbose;
-  G4bool buildTableStart;
-  G4bool buildXSTable;
+  // counters and options
+  G4int n_proc = 0;
+  G4int n_model = 0;
+  G4int n_part = 0;
+  G4int n_extra = 0;
+
+  G4bool buildTableStart = true;
+  G4bool buildXSTable = false;
 
   // cache
-  HP   currentProcess;
-  PD   currentParticle;
-  PD   theGenericIon;
+  HP currentProcess = nullptr;
+  PD currentParticle = nullptr;
+  PD theGenericIon;
 
   G4DynamicParticle localDP;
 
   G4HadronicEPTestMessenger* theEPTestMessenger;
 };
 
-
 #endif
-

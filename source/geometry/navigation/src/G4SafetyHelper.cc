@@ -23,9 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// class G4SafetyHelper Implementation
+// Class G4SafetyHelper Implementation
 //
-// Original author: John Apostolakis, 2006
+// Author: John Apostolakis (CERN), 5 July 2006
 // --------------------------------------------------------------------
 
 #include "G4SafetyHelper.hh"
@@ -35,11 +35,13 @@
 
 #include "globals.hh"
 
+// --------------------------------------------------------------------
 G4SafetyHelper::G4SafetyHelper()
   : fLastSafetyPosition(0.0,0.0,0.0)
 {
 }
 
+// --------------------------------------------------------------------
 void G4SafetyHelper::InitialiseNavigator()
 {
   fpPathFinder = G4PathFinder::GetInstance();
@@ -58,10 +60,9 @@ void G4SafetyHelper::InitialiseNavigator()
                 "GeomNav0003", FatalException, 
                 "Found that existing tracking Navigator has NULL world"); 
   }
-
-  fMassNavigatorId = pTransportMgr->ActivateNavigator( fpMassNavigator ); 
 }
 
+// --------------------------------------------------------------------
 void G4SafetyHelper::InitialiseHelper()
 {
   fLastSafetyPosition = G4ThreeVector(0.0,0.0,0.0);
@@ -70,10 +71,7 @@ void G4SafetyHelper::InitialiseHelper()
   fFirstCall = false;
 }
 
-G4SafetyHelper::~G4SafetyHelper()
-{
-}
-
+// --------------------------------------------------------------------
 G4double   
 G4SafetyHelper::CheckNextStep(const G4ThreeVector& position, 
                               const G4ThreeVector& direction,
@@ -95,6 +93,7 @@ G4SafetyHelper::CheckNextStep(const G4ThreeVector& position,
   return linstep;
 }
 
+// --------------------------------------------------------------------
 G4double G4SafetyHelper::ComputeSafety( const G4ThreeVector& position,
                                               G4double maxLength )
 {
@@ -140,6 +139,7 @@ G4double G4SafetyHelper::ComputeSafety( const G4ThreeVector& position,
   return newSafety;
 }
 
+// --------------------------------------------------------------------
 void G4SafetyHelper::ReLocateWithinVolume( const G4ThreeVector& newPosition )
 {
 #ifdef G4VERBOSE
@@ -174,6 +174,7 @@ void G4SafetyHelper::ReLocateWithinVolume( const G4ThreeVector& newPosition )
   }
 }
 
+// --------------------------------------------------------------------
 void  G4SafetyHelper::Locate( const G4ThreeVector& newPosition, 
                               const G4ThreeVector& newDirection)
 {
@@ -186,31 +187,4 @@ void  G4SafetyHelper::Locate( const G4ThreeVector& newPosition,
   {
     fpPathFinder->Locate( newPosition, newDirection ); 
   }
-}
-
-G4bool G4SafetyHelper::RecheckDistanceToCurrentBoundary(
-                                        const G4ThreeVector& pGlobalPoint,
-                                        const G4ThreeVector& pDirection,
-                                        const G4double aProposedMove,
-                                        G4double* prDistance,
-                                        G4double* prNewSafety) const
-{
-  G4bool retval;
-  if( !fUseParallelGeometries )
-  {
-    retval = fpMassNavigator->RecheckDistanceToCurrentBoundary(pGlobalPoint,
-                                                               pDirection,
-                                                               aProposedMove,
-                                                               prDistance,
-                                                               prNewSafety);
-  }
-  else
-  {
-    retval = fpPathFinder->RecheckDistanceToCurrentBoundary(pGlobalPoint,
-                                                            pDirection,
-                                                            aProposedMove,
-                                                            prDistance,
-                                                            prNewSafety);
-  }
-  return retval;
 }

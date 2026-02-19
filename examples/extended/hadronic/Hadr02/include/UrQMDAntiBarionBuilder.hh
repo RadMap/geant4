@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/include/UrQMDAntiBarionBuilder.hh
+/// \file UrQMDAntiBarionBuilder.hh
 /// \brief Definition of the UrQMDAntiBarionBuilder class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName:   UrQMDAntiBarionBuilder
@@ -40,42 +39,30 @@
 #ifndef UrQMDAntiBarionBuilder_h
 #define UrQMDAntiBarionBuilder_h 1
 
-#include "globals.hh"
-
 #include "G4HadronElasticProcess.hh"
-#include "G4VAntiBarionBuilder.hh"
-
 #include "G4UrQMD1_3Model.hh"
-
-#include "G4VCrossSectionDataSet.hh"
+#include "G4VAntiBarionBuilder.hh"
 #include "G4VComponentCrossSection.hh"
+#include "G4VCrossSectionDataSet.hh"
+#include "globals.hh"
 
 class UrQMDAntiBarionBuilder : public G4VAntiBarionBuilder
 {
-public: 
+  public:
+    UrQMDAntiBarionBuilder();
+    virtual ~UrQMDAntiBarionBuilder();
 
-  UrQMDAntiBarionBuilder();
-  virtual ~UrQMDAntiBarionBuilder();
+    virtual void Build(G4HadronElasticProcess* aP);
+    virtual void Build(G4HadronInelasticProcess* aP);
 
-  virtual void Build(G4HadronElasticProcess * aP);
-  virtual void Build(G4AntiProtonInelasticProcess * aP);
-  virtual void Build(G4AntiNeutronInelasticProcess * aP);
-  virtual void Build(G4AntiDeuteronInelasticProcess * aP);
-  virtual void Build(G4AntiTritonInelasticProcess * aP);
-  virtual void Build(G4AntiHe3InelasticProcess * aP);
-  virtual void Build(G4AntiAlphaInelasticProcess * aP);
-    
-  inline void SetMinEnergy(G4double val) {fMin = val;}
-  inline void SetMaxEnergy(G4double val) {fMax = val;}
+    inline void SetMinEnergy(G4double val) { fMin = val; }
+    inline void SetMaxEnergy(G4double val) { fMax = val; }
 
-private:
-
-  G4UrQMD1_3Model * fModel; 
-  G4VCrossSectionDataSet* fAntiNucleonData;
-  G4VComponentCrossSection * fAntiNucleonXS;
-  G4double fMin;
-  G4double fMax;
-
+  private:
+    G4UrQMD1_3Model* fModel;
+    G4VCrossSectionDataSet* fAntiNucleonData;
+    G4VComponentCrossSection* fAntiNucleonXS;
+    G4double fMin;
+    G4double fMax;
 };
 #endif
-

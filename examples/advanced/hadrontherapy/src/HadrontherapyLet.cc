@@ -33,6 +33,7 @@
 #include "HadrontherapyInteractionParameters.hh"
 #include "HadrontherapyPrimaryGeneratorAction.hh"
 #include "HadrontherapyMatrix.hh"
+#include "G4AnalysisManager.hh"
 #include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
 #include <cmath>
@@ -114,7 +115,7 @@ void HadrontherapyLet::Clear()
 void  HadrontherapyLet::FillEnergySpectrum(G4int trackID,
                                            G4ParticleDefinition* particleDef,
                                            G4double ekinMean,
-                                           G4Material* mat,
+                                           const G4Material* mat,
                                            G4double DE,
                                            G4double DEEletrons,
                                            G4double DX,
@@ -238,19 +239,19 @@ void HadrontherapyLet::StoreLetAscii()
         {
             
             // Write the voxels index and total Lets and the list of particles/ions
-            ofs << std::setprecision(6) << std::left <<
-            "i\tj\tk\t";
-            ofs <<  std::setw(width) << "LDT";
-            ofs <<  std::setw(width) << "LTT";
+            ofs << "i" << '\t' << "j" << '\t' << "k";
+            
+            ofs <<  '\t' << "LDT";
+            ofs <<  '\t' << "LTT";
             
             for (size_t l=0; l < ionLetStore.size(); l++) // write ions name
             {
                 G4String a = (ionLetStore[l].isPrimary) ? "_1_D":"_D";
-                ofs << std::setw(width) << ionLetStore[l].name  + a ;
+                ofs << '\t' << ionLetStore[l].name  + a ;
                 G4String b = (ionLetStore[l].isPrimary) ? "_1_T":"_T";
-                ofs << std::setw(width) << ionLetStore[l].name  + b ;
+                ofs << '\t' << ionLetStore[l].name  + b ;
             }
-            ofs << G4endl;
+
             
             // Write data
             
@@ -259,7 +260,7 @@ void HadrontherapyLet::StoreLetAscii()
             LetFragmentTuple->SetVerboseLevel(1);
             LetFragmentTuple->SetFirstHistoId(1);
             LetFragmentTuple->SetFirstNtupleId(1);
-            LetFragmentTuple ->OpenFile("Let");
+            LetFragmentTuple ->OpenFile("Let.csv");
             
             
             LetFragmentTuple ->CreateNtuple("coordinate", "Let");
@@ -289,9 +290,9 @@ void HadrontherapyLet::StoreLetAscii()
                         
                         // write total Lets and voxels index
                         ofs << G4endl;
-                        ofs << i << '\t' << j << '\t' << k << '\t';
-                        ofs << std::setw(width) << totalLetD[v]/(keV/um);
-                        ofs << std::setw(width) << totalLetT[v]/(keV/um);
+                        ofs << i << '\t' << j << '\t' << k ;
+                        ofs << '\t' << totalLetD[v]/(keV/um);
+                        ofs << '\t' << totalLetT[v]/(keV/um);
                         
                         
                         // write ions Lets
@@ -302,8 +303,8 @@ void HadrontherapyLet::StoreLetAscii()
                             if(ionLetStore[l].letDN)
                             {
                                 // write ions Lets
-                                ofs << std::setw(width) << ionLetStore[l].letDN[v]/(keV/um) ;
-                                ofs << std::setw(width) << ionLetStore[l].letTN[v]/(keV/um);
+                                ofs << '\t' << ionLetStore[l].letDN[v]/(keV/um) ;
+                                ofs << '\t' << ionLetStore[l].letTN[v]/(keV/um);
                             }
                         }
                         

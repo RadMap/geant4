@@ -25,15 +25,11 @@
 //
 /// \file EventAction.hh
 /// \brief Definition of the EventAction class
-//
-// 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef EventAction_h
 #define EventAction_h 1
 
+#include "G4SystemOfUnits.hh"
 #include "G4UserEventAction.hh"
 #include "globals.hh"
 
@@ -42,23 +38,21 @@
 class EventAction : public G4UserEventAction
 {
   public:
-    EventAction();
-   ~EventAction();
+    EventAction() = default;
+    ~EventAction() override = default;
 
   public:
-    virtual void BeginOfEventAction(const G4Event*);
-    virtual void   EndOfEventAction(const G4Event*);
-    
-    void AddEdep (G4int iVol, G4double Edep, G4double time, G4double weight);
-                
+    void BeginOfEventAction(const G4Event*) override;
+    void EndOfEventAction(const G4Event*) override;
+
+    void AddEdep(G4int iVol, G4double Edep, G4double time, G4double weight);
+
   private:
-    G4double fEdep1,   fEdep2;
-    G4double fWeight1, fWeight2;
-    G4double fTime0;    
+    G4double fEdep1 = 0., fEdep2 = 0.;
+    G4double fWeight1 = 0., fWeight2 = 0.;
+    G4double fTime0 = -1 * s;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-    

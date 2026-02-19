@@ -23,20 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm16/include/Run.hh
+/// \file Run.hh
 /// \brief Definition of the Run class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef Run_h
 #define Run_h 1
 
 #include "G4Run.hh"
 #include "globals.hh"
-#include <map>
-
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -44,20 +38,20 @@ class Run : public G4Run
 {
   public:
     Run();
-   ~Run();
+    ~Run() override = default;
 
   public:
-    virtual void Merge(const G4Run*);
+    void Merge(const G4Run*) override;
     void EndOfRun();
 
   public:
-    G4int    f_n_gam_sync;     // nb of synchrotron radiation photons generated
-    G4double f_e_gam_sync, f_e_gam_sync2; // energy of synchrotron
-    G4double f_e_gam_sync_max;            // radiation photons generated
-    G4double f_lam_gam_sync;   // step length between synchr radiation photons
+    G4int f_n_gam_sync = 0;  // nb of synchrotron radiation photons generated
+    G4double f_e_gam_sync = 0, f_e_gam_sync2 = 0;  // energy of synchrotron
+    G4double f_e_gam_sync_max = 0;  // radiation photons generated
+    G4double f_lam_gam_sync = 0;  // step length between synchr radiation photons
+    G4double f_n_Xray_Refl = 0;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

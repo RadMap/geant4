@@ -23,27 +23,12 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file geometry/transforms/src/PhysicsList.cc
+/// \file PhysicsList.cc
 /// \brief Implementation of the PhysicsList class
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo...... 
 
 #include "PhysicsList.hh"
+
 #include "G4ParticleTypes.hh"
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-PhysicsList::PhysicsList()
-: G4VUserPhysicsList()
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-PhysicsList::~PhysicsList()
-{ }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -63,7 +48,7 @@ void PhysicsList::ConstructProcess()
 
 void PhysicsList::SetCuts()
 {
- SetCutsWithDefault(); 
+  SetCutsWithDefault();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

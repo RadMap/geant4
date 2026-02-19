@@ -62,12 +62,14 @@
 #include "G4FissionLibrary.hh"
 #include "G4ParticleHPManager.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4PhysicsModelCatalog.hh"
 
 G4FissionLibrary::G4FissionLibrary()
-  : G4ParticleHPFinalState(), theIsotope(0), targetMass(0.0)
+  : G4ParticleHPFinalState(), theIsotope(0), targetMass(0.0), secID(-1)
 {
   hasXsec = false;
   fe=0;
+  secID = G4PhysicsModelCatalog::GetModelID( "model_G4LLNLFission" );
 }
 
 G4FissionLibrary::~G4FissionLibrary()
@@ -80,7 +82,7 @@ G4ParticleHPFinalState * G4FissionLibrary::New()
 }
 
 //void G4FissionLibrary::Init (G4double A, G4double Z, G4String & dirName, G4String &)
-void G4FissionLibrary::Init (G4double A, G4double Z, G4int M, G4String & dirName, G4String &, G4ParticleDefinition*)
+void G4FissionLibrary::Init (G4double A, G4double Z, G4int M, const G4String& dirName, const G4String&, G4ParticleDefinition*)
 {
   G4String tString = "/FS/";
   G4bool dbool;
@@ -187,7 +189,7 @@ G4HadFinalState* G4FissionLibrary::ApplyYourself(const G4HadProjectile & theTrac
                        momentum*fe->getNeutronDircosw(i));
     it->SetMomentum( temp );
 //    it->SetGlobalTime(fe->getNeutronAge(i)*second);
-    theResult.Get()->AddSecondary(it);
+    theResult.Get()->AddSecondary(it, secID);
 //    G4cout <<"G4FissionLibrary::ApplyYourself: energy of prompt neutron " << i << " = " << it->GetKineticEnergy()<<G4endl;
   }
 
@@ -209,7 +211,7 @@ G4HadFinalState* G4FissionLibrary::ApplyYourself(const G4HadProjectile & theTrac
     it->SetMomentum(thePhoton->GetMomentum());
 //    it->SetGlobalTime(fe->getPhotonAge(i)*second);
 //    G4cout <<"G4FissionLibrary::ApplyYourself: energy of prompt photon " << i << " = " << it->GetKineticEnergy()<<G4endl;
-    theResult.Get()->AddSecondary(it);
+    theResult.Get()->AddSecondary(it, secID);
     delete thePhoton;  
   }
 //  G4cout <<"G4FissionLibrary::ApplyYourself: Number of secondaries = "<<theResult.GetNumberOfSecondaries()<< G4endl;

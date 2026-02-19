@@ -22,8 +22,7 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // GEANT4 Class file
@@ -36,98 +35,159 @@
 // Modifications:
 //
 //----------------------------------------------------------------------------
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "G4ElementData.hh"
+#include "G4ElementDataRegistry.hh"
+#include "G4PhysicsFreeVector.hh"
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-G4ElementData::G4ElementData()
+G4ElementData::G4ElementData(G4int length)
+  : maxNumElm(length)
 {
-  name = "";
-  for(G4int i=0; i<maxNumElements; ++i) {
-    elmData[i] = nullptr;
-    elm2Data[i] = nullptr;
-    compLength[i] = 0;
-  }
+  elmData.resize((std::size_t)maxNumElm, nullptr);
+  fRegistry = G4ElementDataRegistry::Instance();
+  fRegistry->RegisterMe(this);
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4ElementData::~G4ElementData()
 {
-  for(G4int i=0; i<maxNumElements; ++i) {
-    delete elmData[i];
-    delete elm2Data[i];
-    size_t n = compLength[i]; 
-    //G4cout << "Z= " << i << " L= " << n << G4endl;
-    for(size_t j=0; j<n; ++j) {
-      //G4cout << "j= " << j << "  " << (compData[i])[j] << G4endl;
-      delete (compData[i])[j];
+  for (auto const & p : elmData) { delete p; }
+  elmData.clear();
+ 
+  for (auto const & p : elm2Data) {
+    delete p;
+  }
+  elm2Data.clear();
+
+  for (auto const & p : compData) {
+    if (nullptr != p ) {
+      for (auto const & q : *p) { delete q.second; }
+      delete p;
     }
   }
+  compData.clear();
+
+  for (auto const & p : comp2D) {
+    if (nullptr != p ) {
+      for (auto const & q : *p) { delete q.second; }
+      delete p;
+    }
+  }
+  comp2D.clear();
+  fRegistry->RemoveMe(this);
 }
 
+void G4ElementData::Reserve1D(std::size_t n)
+{
+  if (!elmData.empty()) { return; }
+  elmData.reserve(n);
+  compData.reserve(n);
+}
+
+void G4ElementData::Reserve2D(std::size_t n)
+{
+  if (!elm2Data.empty()) { return; }
+  elm2Data.reserve(n);
+  comp2D.reserve(n);
+}
+  
 void G4ElementData::InitialiseForElement(G4int Z, G4PhysicsVector* v)
 {
-  if(Z < 1 || Z >= maxNumElements) {
-    G4cout << "G4ElementData::InitialiseForElement ERROR for " << name 
-	   << "  Z = " << Z << " is out of range!" << G4endl;
-    G4Exception("G4ElementData::InitialiseForElement()", "mat601", 
-                 FatalException, "Wrong data handling");
+  if (Z < 0 || Z >= maxNumElm) {
+    DataError(Z, "InitialiseForElement");
     return;
-  } 
-  if(elmData[Z]) { delete elmData[Z]; }
+  }
+  delete elmData[Z];
   elmData[Z] = v;
 }
 
 void G4ElementData::InitialiseForElement(G4int Z, G4Physics2DVector* v)
 {
-  if(Z < 1 || Z >= maxNumElements) {
-    G4cout << "G4ElementData::InitialiseForElement ERROR for " << name 
-	   << "  Z = " << Z << " is out of range!" << G4endl;
-    G4Exception("G4ElementData::InitialiseForElement()", "mat601", 
-                 FatalException, "Wrong data handling");
+  if (Z < 0 || Z >= maxNumElm) {
+    DataError(Z, "InitialiseFor2DElement");
     return;
-  } 
-  if(elm2Data[Z]) { delete elm2Data[Z]; }
+  }
+  if (elm2Data.empty()) {
+    elm2Data.resize((std::size_t)maxNumElm, nullptr);
+  }
+  delete elm2Data[Z];
   elm2Data[Z] = v;
 }
 
 void G4ElementData::InitialiseForComponent(G4int Z, G4int nComponents)
 {
-  if(Z < 1 || Z >= maxNumElements) {
-    G4cout << "G4ElementData::InitialiseForComponent ERROR for " << name 
-	   << "  Z = " << Z << " is out of range!" << G4endl;
-    G4Exception("G4ElementData::InitialiseForComponent()", "mat602", 
-                 FatalException, "Wrong data handling");	   
+  if (Z < 0 || Z >= maxNumElm) {
+    DataError(Z, "InitialiseForComponent");
     return;
   }
-
-  // reserve a new structure
-  size_t n = compLength[Z];
-  if(0 < n) { 
-    for(size_t i=0; i<n; ++i) { delete (compData[Z])[i]; }
-    (compData[Z]).clear();
-    (compID[Z]).clear();
+  if (compData.empty()) {
+    compData.resize((std::size_t)maxNumElm, nullptr);
   }
-  (compData[Z]).reserve(nComponents);
-  (compID[Z]).reserve(nComponents);
+  delete compData[Z];
+  compData[Z] = new std::vector<std::pair<G4int, G4PhysicsVector*> >;
+  if (0 < nComponents) { compData[Z]->reserve((std::size_t)nComponents); }
 }
 
-void 
-G4ElementData::AddComponent(G4int Z, G4int id, G4PhysicsVector* v)
+void G4ElementData::InitialiseFor2DComponent(G4int Z, G4int nComponents)
 {
-  if(Z < 1 || Z >= maxNumElements) {
-    G4cout << "G4ElementData::AddComponent ERROR for " << name 
-	   << "  Z = " << Z << " is out of range!" << G4endl;
-    G4Exception("G4ElementData::AddComponent()", "mat603", 
-                 FatalException, "Wrong data handling");	   
+  if (Z < 0 || Z >= maxNumElm) {
+    DataError(Z, "InitialiseFor2DComponent");
     return;
   }
-  (compData[Z]).push_back(v);
-  (compID[Z]).push_back(id);
-  ++compLength[Z];
+  if (comp2D.empty()) {
+    comp2D.resize((std::size_t)maxNumElm, nullptr);
+  }
+  delete comp2D[Z];
+  comp2D[Z] = new std::vector<std::pair<G4int, G4Physics2DVector*> >;
+  if (0 < nComponents) { comp2D[Z]->reserve((std::size_t)nComponents); }
+}
+
+void G4ElementData::AddComponent(G4int Z, G4int id, G4PhysicsVector* v)
+{
+  if (Z < 0 || Z >= maxNumElm) {
+    DataError(Z, "AddComponent");
+    return;
+  }
+  if (compData.empty()) {
+    compData.resize((std::size_t)maxNumElm, nullptr);
+  }
+  if (nullptr == compData[Z]) {
+    compData[Z] = new std::vector<std::pair<G4int, G4PhysicsVector*> >;
+  } 
+  compData[Z]->emplace_back(id, v);
+}
+
+void G4ElementData::Add2DComponent(G4int Z, G4int id, G4Physics2DVector* v)
+{
+  if (Z < 0 || Z >= maxNumElm) {
+    DataError(Z, "Add2DComponent");
+    return;
+  }
+  if (comp2D.empty()) {
+    compData.resize((std::size_t)maxNumElm, nullptr);
+  }
+  if (nullptr == comp2D[Z]) {
+    comp2D[Z] = new std::vector<std::pair<G4int, G4Physics2DVector*> >;
+  } 
+  comp2D[Z]->emplace_back(id, v);
+}
+
+G4PhysicsVector* G4ElementData::New1DVector(G4int iz, G4int ne)
+{
+  auto ptr = new G4PhysicsFreeVector(ne);
+  InitialiseForElement(iz, ptr);
+  return ptr;
+}
+
+G4Physics2DVector* G4ElementData::New2DVector(G4int iz, G4int ny, G4int ne)
+{
+  auto ptr = new G4Physics2DVector(ny, ne);
+  InitialiseForElement(iz, ptr);
+  return ptr;
+}
+
+void G4ElementData::DataError(G4int Z, const G4String& type)
+{
+  G4cout << "G4ElementData::" << type << " ERROR for G4ElementData <"
+         << name << ">  Z = " << Z << " is out of range!" << G4endl;
+  G4Exception("G4ElementData", "mat603", FatalException, "Wrong data handling");
 }

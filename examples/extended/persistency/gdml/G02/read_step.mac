@@ -2,16 +2,14 @@
 # Visualization of detector geometry and events  
 ###################################################
 
-# create empty scene
-/vis/scene/create
-
 # reading Geometry from STEP file
 /mydet/StepFile mbb
 /run/initialize
 
-# Create a scene handler for a specific graphics system
-/vis/open OGL
-#/vis/open VRML2FILE
+# Open a viewer
+/vis/open
+# This opens the default viewer - see examples/basic/B1/vis.mac for a
+# more comprehensive overview of options. Also the documentation.
 
 # draw scene
 /vis/viewer/zoom 5

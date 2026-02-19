@@ -32,32 +32,118 @@
 #ifndef G4TNtupleDescription_h
 #define G4TNtupleDescription_h 1
 
+#include "G4NtupleBookingManager.hh"
 #include "globals.hh"
-
-#include "tools/ntuple_booking"
 
 #include <fstream>
 
-template <typename TNTUPLE>
-struct G4TNtupleDescription
+template <typename NT, typename FT>
+class G4TNtupleDescription
 {
-  G4TNtupleDescription() 
-    :  fFile(nullptr),
-       fNtuple(nullptr),
-       fNtupleBooking(),
-       fActivation(true),
-       fIsNtupleOwner(true) {}
+  public:
+    G4TNtupleDescription(G4NtupleBooking* g4NtupleBooking)
+      :  fG4NtupleBooking(g4NtupleBooking)
+      {}
 
-  ~G4TNtupleDescription()
-      {  delete fFile;
-         if ( fIsNtupleOwner ) delete fNtuple;
-      }    
+    G4TNtupleDescription() = delete;
+    ~G4TNtupleDescription()
+      {
+        if ( fIsNtupleOwner ) delete fNtuple;
+      }
 
-  std::ofstream* fFile;    
-  TNTUPLE* fNtuple; 
-  tools::ntuple_booking fNtupleBooking; 
-  G4bool fActivation;
-  G4bool fIsNtupleOwner;
+    // Set methods
+    void SetFile(std::shared_ptr<FT> file);
+    void SetNtuple(NT* ntuple);
+    void SetFileName(const G4String& fileName);
+    void SetActivation(G4bool activation);
+    void SetIsNtupleOwner(G4bool isNtupleOwner);
+    void SetHasFill(G4bool hasFill);
+    void Reset();
+
+    // Get methods
+    std::shared_ptr<FT> GetFile() const;
+    NT* GetNtuple() const;
+    G4NtupleBooking* GetG4NtupleBooking() const;
+    const tools::ntuple_booking& GetNtupleBooking() const;
+
+    G4String GetFileName() const;
+    G4bool GetActivation() const;
+    G4bool GetIsNtupleOwner() const;
+    G4bool GetHasFill() const;
+
+  private:
+    std::shared_ptr<FT> fFile { nullptr };
+    NT* fNtuple { nullptr };
+    G4NtupleBooking* fG4NtupleBooking { nullptr };
+    G4bool fIsNtupleOwner { true };
+    G4bool fHasFill { false };
 };
 
-#endif  
+// inline functions
+
+template <typename NT, typename FT>
+void G4TNtupleDescription<NT, FT>::SetFile(std::shared_ptr<FT> file)
+{ fFile = std::move(file); }
+
+template <typename NT, typename FT>
+void G4TNtupleDescription<NT, FT>::SetNtuple(NT* ntuple)
+{ fNtuple = ntuple; }
+
+template <typename NT, typename FT>
+void G4TNtupleDescription<NT, FT>::SetFileName(const G4String& fileName)
+{ fG4NtupleBooking->fFileName = fileName; }
+
+template <typename NT, typename FT>
+void G4TNtupleDescription<NT, FT>::SetActivation(G4bool activation)
+{ fG4NtupleBooking->fActivation = activation; }
+
+template <typename NT, typename FT>
+void G4TNtupleDescription<NT, FT>::SetIsNtupleOwner(G4bool isNtupleOwner)
+{ fIsNtupleOwner = isNtupleOwner; }
+
+template <typename NT, typename FT>
+void G4TNtupleDescription<NT, FT>::SetHasFill(G4bool hasFill)
+{ fHasFill = hasFill; }
+
+template <typename NT, typename FT>
+void G4TNtupleDescription<NT, FT>::Reset()
+{
+  if (fIsNtupleOwner) delete fNtuple;
+  fNtuple = nullptr;
+}
+
+template <typename NT, typename FT>
+std::shared_ptr<FT> G4TNtupleDescription<NT, FT>::GetFile() const
+{ return fFile; }
+
+template <typename NT, typename FT>
+NT* G4TNtupleDescription<NT, FT>::GetNtuple() const
+{ return fNtuple; }
+
+template <typename NT, typename FT>
+G4NtupleBooking*
+G4TNtupleDescription<NT, FT>::GetG4NtupleBooking() const
+{ return fG4NtupleBooking; }
+
+template <typename NT, typename FT>
+const tools::ntuple_booking&
+G4TNtupleDescription<NT, FT>::GetNtupleBooking() const
+{ return fG4NtupleBooking->fNtupleBooking; }
+
+template <typename NT, typename FT>
+G4String G4TNtupleDescription<NT, FT>::GetFileName() const
+{ return fG4NtupleBooking->fFileName; }
+
+template <typename NT, typename FT>
+G4bool G4TNtupleDescription<NT, FT>::GetActivation() const
+{ return fG4NtupleBooking->fActivation; }
+
+template <typename NT, typename FT>
+G4bool G4TNtupleDescription<NT, FT>::GetIsNtupleOwner() const
+{ return fIsNtupleOwner; }
+
+template <typename NT, typename FT>
+G4bool G4TNtupleDescription<NT, FT>::GetHasFill() const
+{ return fHasFill; }
+
+#endif

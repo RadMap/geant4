@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/src/UrQMDNeutronBuilder.cc
+/// \file UrQMDNeutronBuilder.cc
 /// \brief Implementation of the UrQMDNeutronBuilder class
-//
-//
+
 //---------------------------------------------------------------------------
 //
 // ClassName:   UrQMDNeutronBuilder
@@ -38,18 +37,19 @@
 //----------------------------------------------------------------------------
 //
 #ifdef G4_USE_URQMD
-#include "UrQMDNeutronBuilder.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4ParticleTable.hh"
-#include "G4ProcessManager.hh"
-#include "G4HadronicParameters.hh"
-#include "G4SystemOfUnits.hh"
+#  include "UrQMDNeutronBuilder.hh"
+
+#  include "G4HadronicParameters.hh"
+#  include "G4ParticleDefinition.hh"
+#  include "G4ParticleTable.hh"
+#  include "G4ProcessManager.hh"
+#  include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-UrQMDNeutronBuilder::UrQMDNeutronBuilder() 
+UrQMDNeutronBuilder::UrQMDNeutronBuilder()
 {
-  fMin = 0*MeV;
+  fMin = 0 * MeV;
   fMax = G4HadronicParameters::Instance()->GetMaxEnergy();
   fModel = new G4UrQMD1_3Model();
   captureModel = new G4NeutronRadCapture();
@@ -58,7 +58,7 @@ UrQMDNeutronBuilder::UrQMDNeutronBuilder()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void UrQMDNeutronBuilder::Build(G4NeutronInelasticProcess * aP)
+void UrQMDNeutronBuilder::Build(G4HadronInelasticProcess* aP)
 {
   fModel->SetMinEnergy(fMin);
   fModel->SetMaxEnergy(fMax);
@@ -67,24 +67,22 @@ void UrQMDNeutronBuilder::Build(G4NeutronInelasticProcess * aP)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-UrQMDNeutronBuilder::~UrQMDNeutronBuilder() 
-{}
+UrQMDNeutronBuilder::~UrQMDNeutronBuilder() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void UrQMDNeutronBuilder::Build(G4HadronElasticProcess * )
-{}
+void UrQMDNeutronBuilder::Build(G4HadronElasticProcess*) {}
 
-void UrQMDNeutronBuilder::Build(G4HadronFissionProcess* aP)
+void UrQMDNeutronBuilder::Build(G4NeutronFissionProcess* aP)
 {
   fissionModel->SetMinEnergy(0.0);
-  fissionModel->SetMaxEnergy(20.0*TeV);
+  fissionModel->SetMaxEnergy(20.0 * TeV);
   aP->RegisterMe(fissionModel);
 }
 
-void UrQMDNeutronBuilder::Build(G4HadronCaptureProcess* aP)
+void UrQMDNeutronBuilder::Build(G4NeutronCaptureProcess* aP)
 {
   aP->RegisterMe(captureModel);
 }
 
-#endif //G4_USE_URQMD
+#endif  // G4_USE_URQMD

@@ -23,9 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file persistency/P03/include/ExTGActionInitialization.hh
-/// \brief Definition of the ActionInitialization class
+/// \file ExTGActionInitialization.hh
+/// \brief Definition of the ExTGActionInitialization class
 
 #ifndef ExTGActionInitialization_h
 #define ExTGActionInitialization_h 1
@@ -43,9 +42,6 @@ class ExTGActionInitialization : public G4VUserActionInitialization
 
     virtual void BuildForMaster() const;
     virtual void Build() const;
-
 };
 
 #endif
-
-    

@@ -135,7 +135,7 @@ G4bool G4FTFAnnihilation::Annihilate( G4VSplitableHadron* projectile,
     common.RotateStrings = true;
     common.RandomRotation.rotateZ( 2.0*pi*G4UniformRand() );
     common.RandomRotation.rotateY( std::acos( 2.0*G4UniformRand() - 1.0 ) );
-    common.RandomRotation.rotateZ( 2.0*pi*G4UniformRand() );  //AR-Jun2018
+    common.RandomRotation.rotateZ( 2.0*pi*G4UniformRand() );
   }
 
   G4double MesonProdThreshold = projectile->GetDefinition()->GetPDGMass() +
@@ -182,45 +182,45 @@ G4bool G4FTFAnnihilation::Annihilate( G4VSplitableHadron* projectile,
 
   G4bool isUnknown = false;
   if ( TargetPDGcode == 2212  ||  TargetPDGcode == 2214 ) {  // Target proton or Delta+
-    if        ( ProjectilePDGcode == -2212  ||  ProjectilePDGcode == -2214 ) {
+    if        ( ProjectilePDGcode == -2212  ||  ProjectilePDGcode == -2214 ) {  // anti_proton  or anti_Delta+
       X_b *= 5.0; X_c *= 5.0; X_d *= 6.0;  // Pbar P
-    } else if ( ProjectilePDGcode == -2112  ||  ProjectilePDGcode == -2114 ) {
+    } else if ( ProjectilePDGcode == -2112  ||  ProjectilePDGcode == -2114 ) {  // anti_neutron or anti_Delta0
       X_b *= 4.0; X_c *= 4.0; X_d *= 4.0;  // NeutrBar P
-    } else if ( ProjectilePDGcode == -3122  ||  ProjectilePDGcode == -3124 ) {
+    } else if ( ProjectilePDGcode == -3122 ) {                                  // anti_Lambda (no anti_Lambda* in PDG)
       X_b *= 3.0; X_c *= 3.0; X_d *= 2.0;  // LambdaBar P
-    } else if ( ProjectilePDGcode == -3112  ||  ProjectilePDGcode == -3114 ) {
+    } else if ( ProjectilePDGcode == -3112 ) {                                  // anti_Sigma- (no anti_Sigma*- in G4)
       X_b *= 2.0; X_c *= 2.0; X_d *= 0.0;  // Sigma-Bar P
-    } else if ( ProjectilePDGcode == -3212  ||  ProjectilePDGcode == -3214 ) {
+    } else if ( ProjectilePDGcode == -3212 ) {                                  // anti_Sigma0 (no anti_Sigma*0 in G4)
       X_b *= 3.0; X_c *= 3.0; X_d *= 2.0;  // Sigma0Bar P
-    } else if ( ProjectilePDGcode == -3222  ||  ProjectilePDGcode == -3224 ) {
+    } else if ( ProjectilePDGcode == -3222 ) {                                  // anti_Sigma+ (no anti_Sigma*+ in G4)
       X_b *= 4.0; X_c *= 4.0; X_d *= 2.0;  // Sigma+Bar P
-    } else if ( ProjectilePDGcode == -3312  ||  ProjectilePDGcode == -3314 ) {
+    } else if ( ProjectilePDGcode == -3312 ) {                                  // anti_Xi-    (no anti_Xi*-    in G4)
       X_b *= 1.0; X_c *= 1.0; X_d *= 0.0;  // Xi-Bar P
-    } else if ( ProjectilePDGcode == -3322  ||  ProjectilePDGcode == -3324 ) {
+    } else if ( ProjectilePDGcode == -3322 ) {                                  // anti_Xi0    (no anti_Xi*0    in G4)
       X_b *= 2.0; X_c *= 2.0; X_d *= 0.0;  // Xi0Bar P
-    } else if ( ProjectilePDGcode == -3334 ) {
+    } else if ( ProjectilePDGcode == -3334 ) {                                  // anti_Omega- (no anti_Omega*- in PDG)
       X_b *= 0.0; X_c *= 0.0; X_d *= 0.0;  // Omega-Bar P
     } else {
       isUnknown = true;
     }
   } else if ( TargetPDGcode == 2112  ||  TargetPDGcode == 2114 ) {  // Target neutron or Delta0
-    if        ( ProjectilePDGcode == -2212  ||  ProjectilePDGcode == -2214 ) {
+    if        ( ProjectilePDGcode == -2212  ||  ProjectilePDGcode == -2214 ) {  // anti_proton  or anti_Delta+
       X_b *= 4.0; X_c *= 4.0; X_d *= 4.0;  // Pbar N
-    } else if ( ProjectilePDGcode == -2112  ||  ProjectilePDGcode == -2114 ) {
+    } else if ( ProjectilePDGcode == -2112  ||  ProjectilePDGcode == -2114 ) {  // anti_neutron or anti_Delta0
       X_b *= 5.0; X_c *= 5.0; X_d *= 6.0;  // NeutrBar N
-    } else if ( ProjectilePDGcode == -3122  ||  ProjectilePDGcode == -3124 ) {
+    } else if ( ProjectilePDGcode == -3122 ) {                                  // anti_Lambda (no anti_Lambda* in PDG)
       X_b *= 3.0; X_c *= 3.0; X_d *= 2.0;  // LambdaBar N
-    } else if ( ProjectilePDGcode == -3112  ||  ProjectilePDGcode == -3114 ) {
-      X_b *= 4.0; X_c *= 4.0; X_d *= 2.0;  // Sigma-Bar N
-    } else if ( ProjectilePDGcode == -3212  ||  ProjectilePDGcode == -3214 ) {
+    } else if ( ProjectilePDGcode == -3112 ) {                                  // anti_Sigma- (no anti_Sigma*- in G4)
+      X_b *= 4.0; X_c *= 4.0; X_d *= 2.0;  // Sigma-Bar N                   
+    } else if ( ProjectilePDGcode == -3212 ) {                                  // anti_Sigma0 (no anti_Sigma*0 in G4)
       X_b *= 3.0; X_c *= 3.0; X_d *= 2.0;  // Sigma0Bar N
-    } else if ( ProjectilePDGcode == -3222  ||  ProjectilePDGcode == -3224 ) {
+    } else if ( ProjectilePDGcode == -3222 ) {                                  // anti_Sigma+ (no anti_Sigma*+ in G4)
       X_b *= 2.0; X_c *= 2.0; X_d *= 0.0;  // Sigma+Bar N
-    } else if ( ProjectilePDGcode == -3312  ||  ProjectilePDGcode == -3314 ) {
+    } else if ( ProjectilePDGcode == -3312 ) {                                  // anti_Xi-    (no anti_Xi*-    in G4)
       X_b *= 2.0; X_c *= 2.0; X_d *= 0.0;  // Xi-Bar N
-    } else if ( ProjectilePDGcode == -3322  ||  ProjectilePDGcode == -3324 ) {
+    } else if ( ProjectilePDGcode == -3322 ) {                                  // anti_Xi0    (no anti_Xi*0    in G4)
       X_b *= 1.0; X_c *= 1.0; X_d *= 0.0;  // Xi0Bar N
-    } else if ( ProjectilePDGcode == -3334 ) {
+    } else if ( ProjectilePDGcode == -3334 ) {                                  // anti_Omega- (no anti_Omega*- in PDG)
       X_b *= 0.0; X_c *= 0.0; X_d *= 0.0;  // Omega-Bar N
     } else {
       isUnknown = true;
@@ -232,6 +232,7 @@ G4bool G4FTFAnnihilation::Annihilate( G4VSplitableHadron* projectile,
     G4cout << "Unknown anti-baryon for FTF annihilation: PDGcodes - "
            << ProjectilePDGcode << " " << TargetPDGcode << G4endl;
   }
+
   #ifdef debugFTFannih 
   G4cout << "Annih Actual X a b c d " << X_a << " " << X_b << " " << X_c << " " << X_d << G4endl;
   #endif
@@ -276,6 +277,7 @@ G4bool G4FTFAnnihilation::Annihilate( G4VSplitableHadron* projectile,
   return true;
 }
 
+
 //-----------------------------------------------------------------------
 
 G4bool G4FTFAnnihilation::
@@ -290,8 +292,99 @@ Create3QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
   G4cout << "Process a, 3 shirt diagram" << G4endl;
   #endif
 
+  // Sampling kinematical properties of quark. It can be done before string's creation
+
+  const G4int maxNumberOfLoops = 1000;
+  G4double MassQ2 = 0.0;               // Simplest case is considered with Mass_Q = 0.0
+                                       // In principle, this must work with Mass_Q != 0.0
+  G4double      Quark_Xs[6];
+  G4ThreeVector Quark_Mom[6];
+
+  G4double Alfa_R = 0.5;
+  G4double AveragePt2 = 200.0*200.0, maxPtSquare = common.S;
+  G4double ScaleFactor = 1.0;
+  G4double Alfa = 0.0, Beta = 0.0;
+
+  G4int NumberOfTries = 0, loopCounter = 0;
+
+  do {
+    // Sampling X's of anti-baryon and baryon
+    G4double x1 = 0.0, x2 = 0.0, x3 = 0.0;
+    G4double Product = 1.0;
+    for ( G4int iCase = 0; iCase < 2; ++iCase ) {  // anti-baryon (1st case), baryon (2nd case)
+
+      G4double r1 = G4UniformRand(), r2 = G4UniformRand();
+      if ( Alfa_R == 1.0 ) {
+        x1 = 1.0 - std::sqrt( r1 );
+        x2 = (1.0 - x1) * r2;
+      } else {
+        x1 = sqr( r1 );
+        x2 = (1.0 - x1) * sqr( std::sin( pi/2.0*r2 ) );
+      }
+      x3 = 1.0 - x1 - x2;
+
+      G4int index = iCase*3;  // 0 for anti-baryon, 3 for baryon
+      Quark_Xs[index] = x1; Quark_Xs[index+1] = x2; Quark_Xs[index+2] = x3;
+      Product *= (x1*x2*x3);
+    }
+
+    if ( Product == 0.0 ) continue;    
+
+    ++NumberOfTries;
+    if ( NumberOfTries == 100*(NumberOfTries/100) ) {
+      // After a large number of tries, it is better to reduce the values of <Pt^2>
+      ScaleFactor /= 2.0;
+      AveragePt2 *= ScaleFactor;
+    }
+
+    G4ThreeVector PtSum( 0.0, 0.0, 0.0 );
+    for ( G4int i = 0; i < 6; ++i ) {
+      Quark_Mom [i] = GaussianPt( AveragePt2, maxPtSquare );
+      PtSum += Quark_Mom[i];
+    }
+
+    PtSum /= 6.0;
+    Alfa = 0.0; Beta = 0.0;
+
+    for ( G4int i = 0; i < 6; ++i ) {  // Loop over the quarks and (anti-)quarks
+      Quark_Mom[i] -= PtSum;
+
+      G4double val = ( Quark_Mom[i].mag2() + MassQ2 ) / Quark_Xs[i];
+      if ( i < 3 ) {  // anti-baryon
+        Alfa += val;
+      } else {        // baryon (iCase == 1)
+        Beta += val;
+      }
+    }
+
+  } while ( ( std::sqrt( Alfa ) + std::sqrt( Beta ) > common.SqrtS ) &&
+            ++loopCounter < maxNumberOfLoops );  /* Loop checking, 10.08.2015, A.Ribon */
+
+  if ( loopCounter >= maxNumberOfLoops ) {
+    return false;
+  }
+
+  G4double DecayMomentum2 = sqr(common.S) + sqr(Alfa) + sqr(Beta)
+                            - 2.0*( common.S*(Alfa + Beta) + Alfa*Beta );
+
+  G4double WminusTarget = 0.0, WplusProjectile = 0.0;
+  WminusTarget = ( common.S - Alfa + Beta + std::sqrt( DecayMomentum2 ) ) / 2.0 / common.SqrtS; 
+  WplusProjectile = common.SqrtS - Beta/WminusTarget;
+
+  for ( G4int iCase = 0; iCase < 2; ++iCase ) {  // anti-baryon (1st case), baryon (2nd case)
+    G4int index = iCase*3;                 // 0 for anti-baryon, 3 for baryon
+    G4double w = WplusProjectile;          // for anti-baryon
+    if ( iCase == 1 ) w = - WminusTarget;  // for baryon
+    for ( G4int i = 0; i < 3; ++i ) {
+      G4double Pz = w * Quark_Xs[index+i] / 2.0 -
+                    ( Quark_Mom[index+i].mag2() + MassQ2 ) / 
+                    ( 2.0 * w * Quark_Xs[index+i] ); 
+      Quark_Mom[index+i].setZ( Pz );
+    }
+  }
+
   // Sampling of anti-quark order in projectile
-  G4int SampledCase = G4RandFlat::shootInt( G4long( 6 ) );
+  G4int SampledCase = (G4int)G4RandFlat::shootInt( 6 );
   G4int Tmp1 = 0, Tmp2 = 0;
   switch ( SampledCase ) {                                    
     case 1 : Tmp1 = common.AQ[1]; common.AQ[1] = common.AQ[2]; common.AQ[2] = Tmp1; break;
@@ -310,16 +403,14 @@ Create3QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
   // For simplicity only scalar is considered here.
   G4int NewCode = 0, antiQuark = 0, quark = 0;
   G4ParticleDefinition* TestParticle = nullptr;
-  for ( G4int iString = 0; iString < 3; iString++ ) {  // Loop over the 3 string cases
+  for ( G4int iString = 0; iString < 3; ++iString ) {  // Loop over the 3 string cases
     if ( iString == 0 ) {
       antiQuark = common.AQ[0];  quark = common.Q[0];
-      projectile->SplitUp();
       projectile->SetFirstParton( antiQuark );
       projectile->SetSecondParton( quark );
       projectile->SetStatus( 0 );
     } else if ( iString == 1 ) {
       quark = common.Q[1];  antiQuark = common.AQ[1]; 
-      target->SplitUp();
       target->SetFirstParton( quark );
       target->SetSecondParton( antiQuark );
       target->SetStatus( 0 );
@@ -329,7 +420,7 @@ Create3QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
     G4int absAntiQuark = std::abs( antiQuark ), absQuark = std::abs( quark );
     G4double aKsi = G4UniformRand();
     if ( absAntiQuark == absQuark ) {
-      if ( absAntiQuark != 3 ) {
+      if ( absAntiQuark != 3 ) {  // Not yet considered the case absAntiQuark 4 (charm) and 5 (bottom)
         NewCode = 111;            // Pi0-meson
         if ( aKsi < 0.5 ) {
           NewCode = 221;          // Eta -meson
@@ -343,7 +434,7 @@ Create3QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
           NewCode = 331;          // Eta'-meson
         }
       }
-    } else {
+    } else {  // Vector mesons - rho, omega, phi (not yet considered the analogous cases for charm and bottom)
       if ( absAntiQuark > absQuark ) {
         NewCode = absAntiQuark*100 + absQuark*10 + 1; NewCode *= absAntiQuark/antiQuark;
       } else {
@@ -355,132 +446,29 @@ Create3QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
     if ( ! TestParticle ) return false;
     if ( iString == 0 ) {
       projectile->SetDefinition( TestParticle );
-      theParameters->SetProjMinDiffMass( 0.5 );
-      theParameters->SetProjMinNonDiffMass( 0.5 );
+      theParameters->SetProjMinDiffMass( 0.5 );     // 0.5 GeV : Min diffractive mass of pi-meson
+      theParameters->SetProjMinNonDiffMass( 0.5 );  // It must be self-consistent with Parameters
     } else if ( iString == 1 ) {
       target->SetDefinition( TestParticle );
       theParameters->SetTarMinDiffMass( 0.5 );
       theParameters->SetTarMinNonDiffMass( 0.5 );
     } else {  // iString == 2
       AdditionalString->SetDefinition( TestParticle );
-      AdditionalString->SplitUp();
       AdditionalString->SetFirstParton( common.AQ[2] );
       AdditionalString->SetSecondParton( common.Q[2] );
       AdditionalString->SetStatus( 0 );
     }
   }  // End of the for loop over the 3 string cases
 
-  // Sampling kinematical properties:
   // 1st string AQ[0]-Q[0], 2nd string AQ[1]-Q[1], 3rd string AQ[2]-Q[2]
 
-  G4ThreeVector Quark_Mom[6];
-  G4double ModMom2[6];
-  G4double AveragePt2 = 200.0*200.0, maxPtSquare = common.S, SumMt = 0.0, MassQ2 = 0.0,
-           ScaleFactor = 1.0;
-  G4int NumberOfTries = 0, loopCounter = 0;
-  const G4int maxNumberOfLoops = 1000;
-  do {
-    NumberOfTries++;
-    if ( NumberOfTries == 100*(NumberOfTries/100) ) {
-      // At large number of tries it would be better to reduce the values of <Pt^2>
-      ScaleFactor /= 2.0;
-      AveragePt2 *= ScaleFactor;
-    }
-    G4ThreeVector PtSum( 0.0, 0.0, 0.0 );
-    for ( G4int i = 0; i < 6; i++ ) {
-      Quark_Mom [i] = GaussianPt( AveragePt2, maxPtSquare );
-      PtSum += Quark_Mom[i];
-    }
-    PtSum /= 6.0;
-    SumMt = 0.0;    
-    for ( G4int i = 0; i < 6; i++ ) {
-      Quark_Mom[i] -= PtSum;
-      ModMom2[i] = Quark_Mom[i].mag2();
-      SumMt += std::sqrt( ModMom2[i] + MassQ2 );
-    }
-  } while ( ( SumMt > common.SqrtS ) && 
-            ++loopCounter < maxNumberOfLoops );  /* Loop checking, 10.08.2015, A.Ribon */
-  if ( loopCounter >= maxNumberOfLoops ) {
-    return false;
-  }
-
-  // Sampling X's of anti-baryon and baryon
-  G4double WminusTarget = 0.0, WplusProjectile = 0.0;
-  G4double Alfa_R = 0.5; ScaleFactor = 1.0;
-  G4bool Success = true;
-  NumberOfTries = 0; loopCounter = 0;
-  do {
-    Success = true;
-    NumberOfTries++;
-    if ( NumberOfTries == 100*(NumberOfTries/100) ) { 
-      // At large number of tries it would be better to reduce the values of Pt's
-      ScaleFactor /= 2.0;
-    }
-    G4double Alfa = 0.0, Beta = 0.0;
-    for ( G4int iCase = 0; iCase < 2; iCase++ ) {  // anti-baryon (1st case), baryon (2nd case)
-      G4double x1 = 0.0, x2 = 0.0;
-      G4double r1 = G4UniformRand(), r2 = G4UniformRand();
-      if ( Alfa_R == 1.0 ) {
-        x1 = 1.0 - std::sqrt( r1 );
-        x2 = (1.0 - x1) * r2;
-      } else {
-        x1 = sqr( r1 );
-        x2 = (1.0 - x1) * sqr( std::sin( pi/2.0*r2 ) );
-      }
-      G4double x3 = 1.0 - x1 - x2;
-      G4int index = iCase*3;  // 0 for anti-baryon, 3 for baryon
-      Quark_Mom[index].setZ( x1 ); Quark_Mom[index+1].setZ( x2 ); Quark_Mom[index+2].setZ( x3 );
-      for ( G4int i = 0; i < 3; i++ ) {  // Loop over the 3 (anti-)quarks
-        if ( Quark_Mom[index+i].getZ() != 0.0 ) {
-          G4double val = ( ScaleFactor * ModMom2[index+i] + MassQ2 ) / Quark_Mom[index+i].getZ();
-          if ( iCase == 0 ) {  // anti-baryon
-            Alfa += val;
-          } else {             // baryon (iCase == 1)
-            Beta += val;
-          }
-        } else {
-          Success = false;
-        }
-      }
-    }
-    if ( ! Success ) continue;
-    if ( std::sqrt( Alfa ) + std::sqrt( Beta ) > common.SqrtS ) {
-      Success = false; 
-      continue;
-    }
-    G4double DecayMomentum2 = sqr(common.S) + sqr(Alfa) + sqr(Beta)
-                              - 2.0*( common.S*(Alfa + Beta) + Alfa*Beta );      
-    WminusTarget = ( common.S - Alfa + Beta + std::sqrt( DecayMomentum2 ) ) / 2.0 / common.SqrtS; 
-    WplusProjectile = common.SqrtS - Beta/WminusTarget;
-  } while ( ( ! Success ) &&
-            ++loopCounter < maxNumberOfLoops );  /* Loop checking, 10.08.2015, A.Ribon */
-  if ( loopCounter >= maxNumberOfLoops ) {
-    return false;
-  }
-
-  G4double SqrtScaleF = std::sqrt( ScaleFactor );
-  for ( G4int iCase = 0; iCase < 2; iCase++ ) {  // anti-baryon (1st case), baryon (2nd case)
-    G4int index = iCase*3;  // 0 for anti-baryon, 3 for baryon
-    G4double w = WplusProjectile;          // for anti-baryon
-    if ( iCase == 1 ) w = - WminusTarget;  // for baryon
-    for ( G4int i = 0; i < 3; i++ ) {
-      G4double Pz = w * Quark_Mom[index+i].getZ() / 2.0 -
-                    ( ScaleFactor * ModMom2[index+i] + MassQ2 ) / 
-                    ( 2.0 * w * Quark_Mom[index+i].getZ() ); 
-      Quark_Mom[index+i].setZ( Pz );
-      if ( ScaleFactor != 1.0 ) {
-        Quark_Mom[index+i].setX( SqrtScaleF * Quark_Mom[index+i].getX() ); 
-        Quark_Mom[index+i].setY( SqrtScaleF * Quark_Mom[index+i].getY() );
-      }
-    }
-  }
   G4LorentzVector Pstring1, Pstring2, Pstring3;
+  G4int QuarkOrder[3] = { 0 };
   G4double YstringMax = 0.0, YstringMin = 0.0;
-  for ( G4int i = 0; i < 3; i++ ) {
+  for ( G4int i = 0; i < 3; ++i ) {
     G4ThreeVector tmp = Quark_Mom[i] + Quark_Mom[i+3];
     G4LorentzVector Pstring( tmp, std::sqrt( Quark_Mom[i].mag2() + MassQ2 ) +
                                   std::sqrt( Quark_Mom[i+3].mag2() + MassQ2 ) );
-    //AR-Jun2018  if ( common.RotateStrings ) Pstring *= common.RandomRotation;
     // Add protection for  rapidity = 0.5*ln( (E+Pz)/(E-Pz) )
     G4double Ystring = 0.0;
     if ( Pstring.e() > 1.0e-30 ) {
@@ -495,41 +483,68 @@ Create3QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
     }
     // Keep ordering in rapidity: "1" highest, "2" middle, "3" smallest
     if ( i == 0 ) {
-      Pstring1 = Pstring;     YstringMax = Ystring;    
+      Pstring1 = Pstring;     YstringMax = Ystring;
+      QuarkOrder[0] = 0;
     } else if ( i == 1 ) {
       if ( Ystring > YstringMax ) {
-        Pstring2 = Pstring1;  YstringMin = YstringMax;  
-        Pstring1 = Pstring;   YstringMax = Ystring;   
+        Pstring2 = Pstring1;  YstringMin = YstringMax;
+        Pstring1 = Pstring;   YstringMax = Ystring;
+        QuarkOrder[0] = 1; QuarkOrder[1] = 0;
       } else {
-        Pstring2 = Pstring;   YstringMin = Ystring;    
+        Pstring2 = Pstring;   YstringMin = Ystring;
+        QuarkOrder[1] = 1;
       }
     } else {  // i == 2
       if ( Ystring > YstringMax ) {
         Pstring3 = Pstring2;
         Pstring2 = Pstring1;
         Pstring1 = Pstring;
+        QuarkOrder[1] = QuarkOrder[0];
+        QuarkOrder[2] = QuarkOrder[1];
+        QuarkOrder[0] = 2;
       } else if ( Ystring > YstringMin ) {
         Pstring3 = Pstring2;
         Pstring2 = Pstring;
       } else {
-        Pstring3 = Pstring; 
+        Pstring3 = Pstring;
+        QuarkOrder[2] = 2;
       }
     }
   }
+
+  G4LorentzVector Quark_4Mom[6];
+  for ( G4int i = 0; i < 6; ++i ) {
+    Quark_4Mom[i] = G4LorentzVector( Quark_Mom[i], std::sqrt( Quark_Mom[i].mag2() + MassQ2 ) );
+    if ( common.RotateStrings ) Quark_4Mom[i] *= common.RandomRotation;
+    Quark_4Mom[i].transform( common.toLab );
+  }
+
+  projectile->Splitting();
+  projectile->GetNextAntiParton()->Set4Momentum( Quark_4Mom[QuarkOrder[0]] );
+  projectile->GetNextParton()->Set4Momentum( Quark_4Mom[QuarkOrder[0]+3] );
+
+  target->Splitting();
+  target->GetNextParton()->Set4Momentum( Quark_4Mom[QuarkOrder[2]] );
+  target->GetNextAntiParton()->Set4Momentum( Quark_4Mom[QuarkOrder[2]+3] );
+
+  AdditionalString->Splitting();
+  AdditionalString->GetNextAntiParton()->Set4Momentum( Quark_4Mom[QuarkOrder[1]] );
+  AdditionalString->GetNextParton()->Set4Momentum( Quark_4Mom[QuarkOrder[1]+3] );
+
   common.Pprojectile = Pstring1;           // Highest rapidity
   common.Ptarget     = Pstring3;           // Lowest rapidity
   G4LorentzVector LeftString( Pstring2 );  // Middle rapidity
 
-  if ( common.RotateStrings ) {  //AR-Jun2018
+  if ( common.RotateStrings ) {
     common.Pprojectile *= common.RandomRotation;
-    LeftString         *= common.RandomRotation;
     common.Ptarget     *= common.RandomRotation;
+    LeftString         *= common.RandomRotation;
   }
 
   common.Pprojectile.transform( common.toLab );
-  LeftString.transform( common.toLab );
   common.Ptarget.transform( common.toLab );
-
+  LeftString.transform( common.toLab );
+  
   // Calculation of the creation time
   // Creation time and position of target nucleon were determined in ReggeonCascade() of G4FTFModel
   projectile->SetTimeOfCreation( target->GetTimeOfCreation() );
@@ -540,12 +555,14 @@ Create3QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
   projectile->Set4Momentum( common.Pprojectile );
   AdditionalString->Set4Momentum( LeftString );
   target->Set4Momentum( common.Ptarget );
+
   projectile->IncrementCollisionCount( 1 );
   AdditionalString->IncrementCollisionCount( 1 );
   target->IncrementCollisionCount( 1 );
 
   return true;
 }
+
 
 //-----------------------------------------------------------------------
 
@@ -563,9 +580,9 @@ Create1DiquarkAntiDiquarkString( G4VSplitableHadron* projectile,
   G4cout << "Process b, quark - anti-quark annihilation, di-q - anti-di-q string" << G4endl;
   #endif
 
-  G4int CandidatsN = 0, CandAQ[9][2], CandQ[9][2];
-  for ( G4int iAQ = 0; iAQ < 3; iAQ++ ) {  // index of the 3 constituent anti-quarks of the antibaryon projectile
-    for ( G4int iQ = 0; iQ < 3; iQ++ ) {   // index of the 3 constituent quarks of the nucleon target
+  G4int CandidatsN = 0, CandAQ[9][2] = {}, CandQ[9][2] = {};
+  for ( G4int iAQ = 0; iAQ < 3; ++iAQ ) {  // index of the 3 constituent anti-quarks of the antibaryon projectile
+    for ( G4int iQ = 0; iQ < 3; ++iQ ) {   // index of the 3 constituent quarks of the target nucleon
       if ( -common.AQ[iAQ] == common.Q[iQ] ) {  // antiquark - quark that can annihilate
         // Here "0", "1", "2" means, respectively, "first", "second" and "third" constituent
         // of the (anti-baryon) projectile or (nucleon) target.
@@ -575,7 +592,7 @@ Create1DiquarkAntiDiquarkString( G4VSplitableHadron* projectile,
         if ( iQ  == 0 ) { CandQ[CandidatsN][0]  = 1; CandQ[CandidatsN][1]  = 2; }
         if ( iQ  == 1 ) { CandQ[CandidatsN][0]  = 0; CandQ[CandidatsN][1]  = 2; }
         if ( iQ  == 2 ) { CandQ[CandidatsN][0]  = 0; CandQ[CandidatsN][1]  = 1; }
-        CandidatsN++;
+        ++CandidatsN;
       }
     }
   }
@@ -583,7 +600,7 @@ Create1DiquarkAntiDiquarkString( G4VSplitableHadron* projectile,
   // Remaining two (anti-)quarks that form the (anti-)diquark
   G4int LeftAQ1 = 0, LeftAQ2 = 0, LeftQ1 = 0, LeftQ2 = 0;  
   if ( CandidatsN != 0 ) {
-    G4int SampledCase = G4RandFlat::shootInt( G4long( CandidatsN ) );
+    G4int SampledCase = (G4int)G4RandFlat::shootInt( CandidatsN );
     LeftAQ1 = common.AQ[ CandAQ[SampledCase][0] ];
     LeftAQ2 = common.AQ[ CandAQ[SampledCase][1] ];
     LeftQ1  =  common.Q[ CandQ[SampledCase][0] ];
@@ -605,18 +622,25 @@ Create1DiquarkAntiDiquarkString( G4VSplitableHadron* projectile,
     }
 
     // Set the string properties
-    projectile->SplitUp();
     projectile->SetFirstParton( DQ );
     projectile->SetSecondParton( Anti_DQ );
 
+    // It is assumed that quark and di-quark masses are 0.
+    G4LorentzVector Pquark  = G4LorentzVector( 0.0, 0.0, -common.SqrtS/2.0, common.SqrtS/2.0 );
+    G4LorentzVector Paquark = G4LorentzVector( 0.0, 0.0,  common.SqrtS/2.0, common.SqrtS/2.0 );
+
     if ( common.RotateStrings ) {
-      G4LorentzVector Pquark = G4LorentzVector(  0.0, 0.0, common.SqrtS/2.0, common.SqrtS/2.0 );  
       Pquark  *= common.RandomRotation;
-      G4LorentzVector Paquark = G4LorentzVector( 0.0, 0.0, -common.SqrtS/2.0, common.SqrtS/2.0 );  
       Paquark *= common.RandomRotation;
-      Pquark.transform( common.toLab );  projectile->GetNextParton()->Set4Momentum( Pquark );
-      Paquark.transform( common.toLab ); projectile->GetNextAntiParton()->Set4Momentum( Paquark );
     }
+
+    Pquark.transform( common.toLab );
+    Paquark.transform( common.toLab );
+
+    projectile->GetNextParton()->Set4Momentum( Pquark );
+    projectile->GetNextAntiParton()->Set4Momentum( Paquark );
+
+    projectile->Splitting();
 
     projectile->SetStatus( 0 );
     target->SetStatus( 4 );  // The target nucleon has annihilated 3->4
@@ -631,14 +655,19 @@ Create1DiquarkAntiDiquarkString( G4VSplitableHadron* projectile,
     projectile->SetTimeOfCreation( target->GetTimeOfCreation() );
     projectile->SetPosition( target->GetPosition() );
     projectile->Set4Momentum( common.Pprojectile );
+
     projectile->IncrementCollisionCount( 1 );
     target->IncrementCollisionCount( 1 );
 
     return 0;  // Completed successfully: nothing else to be done
   }  // End of if ( CandidatsN != 0 )
 
+  // If we allow the string to interact with other nuclear nucleons, we have to
+  // set up MinDiffrMass in Parameters, and ascribe a PDGEncoding. To be done yet!
+  
   return 1;  // Successfully ended, but the work is not over
 }
+
 
 //-----------------------------------------------------------------------
 
@@ -658,10 +687,95 @@ Create2QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
          << G4endl;
   #endif
 
-  G4int CandidatsN = 0, CandAQ[9][2], CandQ[9][2];
+  // Sampling kinematical properties: 1st string LeftAQ1-LeftQ1, 2nd string LeftAQ2-LeftQ2
+  G4ThreeVector Quark_Mom[4];
+  G4double Quark_Xs[4];
+  G4double AveragePt2 = 200.0*200.0, maxPtSquare = common.S, MassQ2 = 0.0, ScaleFactor = 1.0;
+  G4int NumberOfTries = 0, loopCounter = 0;
+  const G4int maxNumberOfLoops = 1000;
+  G4double Alfa = 0.0, Beta = 0.0;
+  G4double WminusTarget = 0.0, WplusProjectile = 0.0, Alfa_R = 0.5;
+  do { 
+    // Sampling X's of the 2 quarks and 2 anti-quarks
+
+    G4double Product = 1.0;
+    for ( G4int iCase = 0; iCase < 2; ++iCase ) {  // Loop over the two strings
+      G4double x = 0.0, r = G4UniformRand();
+      if ( Alfa_R == 1.0 ) {
+        if ( iCase == 0 ) {  // first string
+          x = std::sqrt( r );
+        } else {             // second string
+          x = 1.0 - std::sqrt( r );
+        }
+      } else {
+        x = sqr( std::sin( pi/2.0*r ) );
+      }
+      G4int index = iCase*2;  // 0 for the first string, 2 for the second string
+      Quark_Xs[index] = x ; Quark_Xs[index+1] = 1.0 - x ;  
+      Product *= x*(1.0-x);
+    }
+
+    if ( Product == 0.0 ) continue;
+
+    ++NumberOfTries;
+    if ( NumberOfTries == 100*(NumberOfTries/100) ) { 
+      // After a large number of tries, it is better to reduce the values of <Pt^2>
+      ScaleFactor /= 2.0;
+      AveragePt2 *= ScaleFactor;
+    }
+
+    G4ThreeVector PtSum( 0.0, 0.0, 0.0 );
+    for( G4int i = 0; i < 4; ++i ) {
+      Quark_Mom[i] = GaussianPt( AveragePt2, maxPtSquare );
+      PtSum += Quark_Mom[i];
+    }
+
+    PtSum /= 4.0;   
+    for ( G4int i = 0; i < 4; ++i ) {
+      Quark_Mom[i] -= PtSum;
+    }
+
+    Alfa = 0.0; Beta = 0.0;
+    for ( G4int iCase = 0; iCase < 2; ++iCase ) {
+       G4int index = iCase * 2;
+       for ( G4int i = 0; i < 2; ++i ) {
+          G4double val = ( Quark_Mom[index+i].mag2() + MassQ2 ) / Quark_Xs[index+i];
+          if ( iCase == 0 ) {  // first string
+            Alfa += val;
+          } else {             // second string
+            Beta += val;
+          }
+       }
+    }
+
+  } while ( ( std::sqrt( Alfa ) + std::sqrt( Beta ) > common.SqrtS ) &&  
+            ++loopCounter < maxNumberOfLoops );  /* Loop checking, 10.08.2015, A.Ribon */
+
+  if ( loopCounter >= maxNumberOfLoops ) {
+    return 99;  // unsuccessfully ended, nothing else can be done
+  }
+
+  G4double DecayMomentum2 = sqr(common.S) + sqr(Alfa) + sqr(Beta)
+                            - 2.0*( common.S*(Alfa + Beta) + Alfa*Beta );
+  WminusTarget = ( common.S - Alfa + Beta + std::sqrt( DecayMomentum2 ) ) / 2.0 / common.SqrtS; 
+  WplusProjectile = common.SqrtS - Beta/WminusTarget;
+
+  for ( G4int iCase = 0; iCase < 2; ++iCase ) {  // Loop over the two strings
+    G4int index = iCase*2;  // 0 for the first string, 2 for the second string
+    for ( G4int i = 0; i < 2; ++i ) {
+      G4double w = WplusProjectile;          // For the first string
+      if ( iCase == 1 ) w = - WminusTarget;  // For the second string
+      G4double Pz = w * Quark_Xs[index+i] / 2.0
+                    - ( Quark_Mom[index+i].mag2() + MassQ2 ) /
+                      ( 2.0 * w * Quark_Xs[index+i] ); 
+      Quark_Mom[index+i].setZ( Pz );
+    }
+  }
+
+  G4int CandidatsN = 0, CandAQ[9][2] = {}, CandQ[9][2] = {};
   G4int LeftAQ1 = 0, LeftAQ2 = 0, LeftQ1 = 0, LeftQ2 = 0;
-  for ( G4int iAQ = 0; iAQ < 3; iAQ++ ) {  // index of the 3 constituent anti-quarks of the antibaryon projectile
-    for ( G4int iQ = 0; iQ < 3; iQ++ ) {   // index of the 3 constituent quarks of the nucleon target
+  for ( G4int iAQ = 0; iAQ < 3; ++iAQ ) {  // index of the 3 constituent anti-quarks of the antibaryon projectile
+    for ( G4int iQ = 0; iQ < 3; ++iQ ) {   // index of the 3 constituent quarks of the nucleon target
       if ( -common.AQ[iAQ] == common.Q[iQ] ) {  // antiquark - quark that can annihilate
         // Here "0", "1", "2" means, respectively, "first", "second" and "third" constituent
         // of the (anti-baryon) projectile or (nucleon) target.
@@ -671,13 +785,13 @@ Create2QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
         if ( iQ  == 0 ) { CandQ[CandidatsN][0]  = 1; CandQ[CandidatsN][1]  = 2; }
         if ( iQ  == 1 ) { CandQ[CandidatsN][0]  = 0; CandQ[CandidatsN][1]  = 2; }
         if ( iQ  == 2 ) { CandQ[CandidatsN][0]  = 0; CandQ[CandidatsN][1]  = 1; }
-        CandidatsN++;
+        ++CandidatsN;
       }
     }
   }
 
   if ( CandidatsN != 0 ) {
-    G4int SampledCase = G4RandFlat::shootInt( G4long( CandidatsN ) );
+    G4int SampledCase = (G4int)G4RandFlat::shootInt( CandidatsN );
     LeftAQ1 = common.AQ[ CandAQ[SampledCase][0] ];
     LeftAQ2 = common.AQ[ CandAQ[SampledCase][1] ];
     if ( G4UniformRand() < 0.5 ) {
@@ -694,16 +808,14 @@ Create2QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
     // For simplicity only scalar is considered here.
     G4int NewCode = 0, antiQuark = 0, quark = 0;
     G4ParticleDefinition* TestParticle = nullptr;
-    for ( G4int iString = 0; iString < 2; iString++ ) {  // Loop over the 2 string cases
+    for ( G4int iString = 0; iString < 2; ++iString ) {  // Loop over the 2 string cases
       if ( iString == 0 ) {
         antiQuark = LeftAQ1; quark = LeftQ1;
-        projectile->SplitUp();
         projectile->SetFirstParton( antiQuark );
         projectile->SetSecondParton( quark );
         projectile->SetStatus( 0 );
       } else {  // iString == 1
         quark = LeftQ2; antiQuark = LeftAQ2;
-        target->SplitUp();
         target->SetFirstParton( quark );
         target->SetSecondParton( antiQuark );
         target->SetStatus( 0 );
@@ -745,114 +857,14 @@ Create2QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
       }
     }  // End of loop over the 2 string cases
 
-    // Sampling kinematical properties: 1st string LeftAQ1-LeftQ1, 2nd string LeftAQ2-LeftQ2
-    G4ThreeVector Quark_Mom[4];
-    G4double ModMom2[4];
-    G4double AveragePt2 = 200.0*200.0, maxPtSquare = common.S, SumMt = 0.0, MassQ2 = 0.0, 
-             ScaleFactor = 1.0;
-    G4int NumberOfTries = 0, loopCounter = 0;
-    const G4int maxNumberOfLoops = 1000;
-    do { 
-      NumberOfTries++;
-      if ( NumberOfTries == 100*(NumberOfTries/100) ) { 
-        // At large number of tries it would be better to reduce the values of <Pt^2>
-        ScaleFactor /= 2.0;
-        AveragePt2 *= ScaleFactor;
-      }
-      G4ThreeVector PtSum( 0.0, 0.0, 0.0 );
-      for( G4int i = 0; i < 4; i++ ) {
-        Quark_Mom[i] = GaussianPt( AveragePt2, maxPtSquare );
-        PtSum += Quark_Mom[i];
-      }
-      PtSum /= 4.0;
-      SumMt = 0.0;    
-      for ( G4int i = 0; i < 4; i++ ) {
-        Quark_Mom[i] -= PtSum;
-        ModMom2[i] = Quark_Mom[i].mag2();
-        SumMt += std::sqrt( ModMom2[i] + MassQ2 );
-      }
-    } while ( ( SumMt > common.SqrtS ) &&  
-              ++loopCounter < maxNumberOfLoops );  /* Loop checking, 10.08.2015, A.Ribon */
-    if ( loopCounter >= maxNumberOfLoops ) {
-      return 99;  // unsuccessfully ended, nothing else can be done
-    }
-
-    // Sampling X's of the two strings
-    G4double WminusTarget = 0.0, WplusProjectile = 0.0, Alfa_R = 0.5; ScaleFactor = 1.0;
-    G4bool Success = true;
-    NumberOfTries = 0, loopCounter = 0;
-    do { 
-      Success = true;
-      NumberOfTries++;
-      if ( NumberOfTries == 100*(NumberOfTries/100) ) { 
-        // At large number of tries it would be better to reduce the values of Pt's
-        ScaleFactor /= 2.0;
-      }
-      G4double Alfa = 0.0, Beta = 0.0;
-      for ( G4int iCase = 0; iCase < 2; iCase++ ) {  // Loop over the two strings
-        G4double x = 0.0, r = G4UniformRand();
-        if ( Alfa_R == 1.0 ) {
-          if ( iCase == 0 ) {  // first string
-            x = std::sqrt( r );
-          } else {             // second string
-            x = 1.0 - std::sqrt( r);
-          }
-        } else {
-          x = sqr( std::sin( pi/2.0*r ) );
-        }
-        G4int index = iCase*2;  // 0 for the first string, 2 for the second string
-        Quark_Mom[index].setZ( x ); Quark_Mom[index+1].setZ( 1.0 - x ); 
-        for ( G4int i = 0; i < 2; i++ ) {
-          if ( Quark_Mom[i].getZ() != 0.0 ) {
-            G4double val = ( ScaleFactor * ModMom2[index+i] + MassQ2 ) / Quark_Mom[index+i].getZ();
-            if ( iCase == 0 ) {  // first string
-              Alfa += val;
-            } else {             // second string
-              Beta += val;
-            }
-          } else {
-            Success = false;
-          }
-        }
-      }
-      if ( ! Success ) continue;
-      if ( std::sqrt( Alfa ) + std::sqrt( Beta ) > common.SqrtS ) {
-        Success = false; 
-        continue;
-      }
-      G4double DecayMomentum2 = sqr(common.S) + sqr(Alfa) + sqr(Beta)
-                                - 2.0*( common.S*(Alfa + Beta) + Alfa*Beta );
-      WminusTarget = ( common.S - Alfa + Beta + std::sqrt( DecayMomentum2 ) ) / 2.0 / common.SqrtS; 
-      WplusProjectile = common.SqrtS - Beta/WminusTarget;
-    } while ( ( ! Success ) &&
-              ++loopCounter < maxNumberOfLoops );  /* Loop checking, 10.08.2015, A.Ribon */
-    if ( loopCounter >= maxNumberOfLoops ) {
-      return 99;  // unsuccessfully ended, nothing else can be done
-    }
-
-    G4double SqrtScaleF = std::sqrt( ScaleFactor );
+    G4int QuarkOrder[2];
     G4LorentzVector Pstring1, Pstring2;
     G4double Ystring1 = 0.0, Ystring2 = 0.0;
-    for ( G4int iCase = 0; iCase < 2; iCase++ ) {  // Loop over the two strings
-      G4int index = iCase*2;  // 0 for the first string, 2 for the second string
-      for ( G4int i = 0; i < 2; i++ ) {
-        G4double w = WplusProjectile;          // For the first string
-        if ( iCase == 1 ) w = - WminusTarget;  // For the second string
-        G4double Pz = w * Quark_Mom[index+i].getZ() / 2.0
-                      - ( ScaleFactor * ModMom2[index+i] + MassQ2 ) /
-                        ( 2.0 * w * Quark_Mom[index+i].getZ() ); 
-        Quark_Mom[index+i].setZ( Pz );
-        if ( ScaleFactor != 1.0 ) {
-          Quark_Mom[index+i].setX( SqrtScaleF * Quark_Mom[index+i].getX() ); 
-          Quark_Mom[index+i].setY( SqrtScaleF * Quark_Mom[index+i].getY() );
-        }
-      }
-    }
-    for ( G4int iCase = 0; iCase < 2; iCase++ ) {  // Loop over the two strings
+
+    for ( G4int iCase = 0; iCase < 2; ++iCase ) {  // Loop over the two strings
       G4ThreeVector tmp = Quark_Mom[iCase] + Quark_Mom[iCase+2];
       G4LorentzVector Pstring( tmp, std::sqrt( Quark_Mom[iCase].mag2()   + MassQ2 ) +
                                     std::sqrt( Quark_Mom[iCase+2].mag2() + MassQ2 ) );
-      //AR-Jun2018  if ( common.RotateStrings ) Pstring *= common.RandomRotation;
       // Add protection for  rapidity = 0.5*ln( (E+Pz)/(E-Pz) )
       G4double Ystring = 0.0;
       if ( Pstring.e() > 1.0e-30 ) {
@@ -873,17 +885,34 @@ Create2QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
     }       
     if ( Ystring1 > Ystring2 ) {
       common.Pprojectile = Pstring1;  common.Ptarget = Pstring2;
+      QuarkOrder[0] = 0; QuarkOrder[1] = 1;
     } else {
       common.Pprojectile = Pstring2;  common.Ptarget = Pstring1;
+      QuarkOrder[0] = 1; QuarkOrder[1] = 0;
     }
 
-    if ( common.RotateStrings ) {  //AR-Jun2018
+    if ( common.RotateStrings ) {
       common.Pprojectile *= common.RandomRotation;
       common.Ptarget     *= common.RandomRotation;
     }
 
     common.Pprojectile.transform( common.toLab );
     common.Ptarget.transform( common.toLab );
+    
+    G4LorentzVector Quark_4Mom[4];
+    for ( G4int i = 0; i < 4; ++i ) {
+      Quark_4Mom[i] = G4LorentzVector( Quark_Mom[i], std::sqrt( Quark_Mom[i].mag2() + MassQ2 ) );
+      if ( common.RotateStrings ) Quark_4Mom[i] *= common.RandomRotation;
+      Quark_4Mom[i].transform( common.toLab );
+    }
+
+    projectile->Splitting();
+    projectile->GetNextAntiParton()->Set4Momentum( Quark_4Mom[QuarkOrder[0]] );
+    projectile->GetNextParton()->Set4Momentum( Quark_4Mom[QuarkOrder[0]+2] );
+
+    target->Splitting();
+    target->GetNextParton()->Set4Momentum( Quark_4Mom[QuarkOrder[1]] );
+    target->GetNextAntiParton()->Set4Momentum( Quark_4Mom[QuarkOrder[1]+2] );
 
     // Calculation of the creation time
     // Creation time and position of target nucleon were determined in ReggeonCascade() of G4FTFModel
@@ -891,6 +920,7 @@ Create2QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
     projectile->SetPosition( target->GetPosition() );
     projectile->Set4Momentum( common.Pprojectile );
     target->Set4Momentum( common.Ptarget );
+
     projectile->IncrementCollisionCount( 1 );
     target->IncrementCollisionCount( 1 );
 
@@ -899,6 +929,7 @@ Create2QuarkAntiQuarkStrings( G4VSplitableHadron* projectile,
 
   return 1;  // Successfully ended, but the work is not over
 }
+
 
 //-----------------------------------------------------------------------
 
@@ -918,11 +949,11 @@ Create1QuarkAntiQuarkString( G4VSplitableHadron* projectile,
   // of the (anti-baryon) projectile or (nucleon) target.
   G4int CandidatsN = 0, CandAQ[36], CandQ[36];
   G4int LeftAQ = 0, LeftQ = 0;
-  for ( G4int iAQ1 = 0; iAQ1 < 3; iAQ1++ ) {
-    for ( G4int iAQ2 = 0; iAQ2 < 3; iAQ2++ ) {
+  for ( G4int iAQ1 = 0; iAQ1 < 3; ++iAQ1 ) {
+    for ( G4int iAQ2 = 0; iAQ2 < 3; ++iAQ2 ) {
       if ( iAQ1 != iAQ2 ) {
-        for ( G4int iQ1 = 0; iQ1 < 3; iQ1++ ) {
-          for ( G4int iQ2 = 0; iQ2 < 3; iQ2++ ) {
+        for ( G4int iQ1 = 0; iQ1 < 3; ++iQ1 ) {
+          for ( G4int iQ2 = 0; iQ2 < 3; ++iQ2 ) {
             if ( iQ1 != iQ2 ) {
               if ( -common.AQ[iAQ1] == common.Q[iQ1]  &&  -common.AQ[iAQ2] == common.Q[iQ2] ) {
                 if        ( ( iAQ1 == 0  &&  iAQ2 == 1 ) || ( iAQ1 == 1  &&  iAQ2 == 0 ) ) { 
@@ -939,7 +970,7 @@ Create1QuarkAntiQuarkString( G4VSplitableHadron* projectile,
                 } else if ( ( iQ1 == 1   &&   iQ2 == 2 ) || ( iQ1 == 2   &&   iQ2 == 1 ) ) {
                   CandQ[CandidatsN]  = 0;
                 }
-                CandidatsN++;
+                ++CandidatsN;
               }
             }
           }
@@ -949,12 +980,11 @@ Create1QuarkAntiQuarkString( G4VSplitableHadron* projectile,
   }
 
   if ( CandidatsN != 0 ) {
-    G4int SampledCase = G4RandFlat::shootInt( G4long( CandidatsN ) );
+    G4int SampledCase = (G4int)G4RandFlat::shootInt( CandidatsN );
     LeftAQ = common.AQ[ CandAQ[SampledCase] ];
     LeftQ  =  common.Q[ CandQ[SampledCase] ];
 
     // Set the string properties
-    projectile->SplitUp();
     projectile->SetFirstParton( LeftQ );
     projectile->SetSecondParton( LeftAQ );
     projectile->SetStatus( 0 );
@@ -997,21 +1027,26 @@ Create1QuarkAntiQuarkString( G4VSplitableHadron* projectile,
     common.Pprojectile.setPy( 0.0 );
     common.Pprojectile.setPz( 0.0 );
     common.Pprojectile.setE( common.SqrtS );
+
     common.Pprojectile.transform( common.toLab );
 
-    G4LorentzVector Pquark  = G4LorentzVector( 0.0, 0.0,  common.SqrtS/2.0, common.SqrtS/2.0 );  
-    G4LorentzVector Paquark = G4LorentzVector( 0.0, 0.0, -common.SqrtS/2.0, common.SqrtS/2.0 );  
+    G4LorentzVector Pquark  = G4LorentzVector( 0.0, 0.0, -common.SqrtS/2.0, common.SqrtS/2.0 );
+    G4LorentzVector Paquark = G4LorentzVector( 0.0, 0.0, +common.SqrtS/2.0, common.SqrtS/2.0 );
+
     if ( common.RotateStrings ) { 
       Pquark *= common.RandomRotation; Paquark *= common.RandomRotation;
     }  
     Pquark.transform(common.toLab);  projectile->GetNextParton()->Set4Momentum(Pquark);
     Paquark.transform(common.toLab); projectile->GetNextAntiParton()->Set4Momentum(Paquark);
 
+    projectile->Splitting();
+
     // Calculation of the creation time
     // Creation time and position of target nucleon were determined in ReggeonCascade() of G4FTFModel
     projectile->SetTimeOfCreation( target->GetTimeOfCreation() );
     projectile->SetPosition( target->GetPosition() );
     projectile->Set4Momentum( common.Pprojectile );
+
     projectile->IncrementCollisionCount( 1 );
     target->IncrementCollisionCount( 1 );
 
@@ -1092,4 +1127,3 @@ G4bool G4FTFAnnihilation::operator!=( const G4FTFAnnihilation& ) const {
   throw G4HadronicException( __FILE__, __LINE__, 
                              "G4DiffractiveExcitation != operator not meant to be called" );
 }
-

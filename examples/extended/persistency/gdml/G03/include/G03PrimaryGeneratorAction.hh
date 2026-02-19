@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G03/include/G03PrimaryGeneratorAction.hh
+/// \file G03PrimaryGeneratorAction.hh
 /// \brief Definition of the G03PrimaryGeneratorAction class
-//
-//
-//
+
 // Class G03PrimaryGeneratorAction
 //
 // Simple primary-generator action class.
@@ -37,10 +35,9 @@
 #ifndef G03PrimaryGeneratorAction_h
 #define G03PrimaryGeneratorAction_h 1
 
-#include "G4ParticleTable.hh"
-#include "G4ParticleGun.hh"
 #include "G4Event.hh"
-
+#include "G4ParticleGun.hh"
+#include "G4ParticleTable.hh"
 #include "G4VUserPrimaryGeneratorAction.hh"
 
 /// Primary generator action for the GDML extension example
@@ -48,20 +45,18 @@
 class G03PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-
     // Constructor and destructor
     //
     G03PrimaryGeneratorAction();
-   ~G03PrimaryGeneratorAction();
+    ~G03PrimaryGeneratorAction();
 
     // Used by Geant4 to generate the primary particles of the event
     //
     virtual void GeneratePrimaries(G4Event* anEvent);
 
   private:
-
     G4ParticleGun* fParticleGun;
-    G4ParticleTable * fParticleTable;
+    G4ParticleTable* fParticleTable;
 };
 
 // ----------------------------------------------------------------------------

@@ -23,33 +23,12 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file field/field02/src/F02CalorHit.cc
+/// \file F02CalorHit.cc
 /// \brief Implementation of the F02CalorHit class
-//
-//
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "F02CalorHit.hh"
 
-G4ThreadLocal G4Allocator<F02CalorHit>* F02CalorHitAllocator=0;
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-F02CalorHit::F02CalorHit()
- : G4VHit(),
-   fEdepAbs(0.),
-   fTrackLengthAbs(0.),
-   fEdepGap(0.),
-   fTrackLengthGap(0.)
-{;}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-F02CalorHit::~F02CalorHit()
-{;}
+G4ThreadLocal G4Allocator<F02CalorHit>* F02CalorHitAllocator = nullptr;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -65,8 +44,10 @@ F02CalorHit::F02CalorHit(const F02CalorHit& right)
 
 const F02CalorHit& F02CalorHit::operator=(const F02CalorHit& right)
 {
-  fEdepAbs = right.fEdepAbs; fTrackLengthAbs = right.fTrackLengthAbs;
-  fEdepGap = right.fEdepGap; fTrackLengthGap = right.fTrackLengthGap;
+  fEdepAbs = right.fEdepAbs;
+  fTrackLengthAbs = right.fTrackLengthAbs;
+  fEdepGap = right.fEdepGap;
+  fTrackLengthGap = right.fTrackLengthGap;
   return *this;
 }
 
@@ -74,12 +55,11 @@ const F02CalorHit& F02CalorHit::operator=(const F02CalorHit& right)
 
 G4bool F02CalorHit::operator==(const F02CalorHit& right) const
 {
-  return (this==&right) ? true : false;
+  return (this == &right) ? true : false;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void F02CalorHit::Print()
-{;}
+void F02CalorHit::Print() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

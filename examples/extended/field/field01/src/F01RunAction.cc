@@ -23,111 +23,128 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file F01RunAction.cc
+/// \brief Implementation of the F01RunAction class
+
 #include "F01RunAction.hh"
-#include "globals.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4Run.hh"
 
-#include "G4ParticleDefinition.hh"
-#include "G4Electron.hh"
-#include "G4ProcessManager.hh"
-#include "G4Transportation.hh"
 #include "G4CoupledTransportation.hh"
+#include "G4Electron.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4ProcessManager.hh"
+#include "G4Run.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4Transportation.hh"
+#include "globals.hh"
 
-F01RunAction::F01RunAction() {
-  theWarningEnergy   =   1.0 * CLHEP::kiloelectronvolt;  // Arbitrary 
-  theImportantEnergy =  10.0 * CLHEP::kiloelectronvolt;  // Arbitrary 
-  theNumberOfTrials  =   15;  // Arbitrary
-  // Applications should determine these thresholds according to
-  //  - physics requirements, and 
-  //  - the computing cost of continuing integration for looping tracks
-}
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-F01RunAction::~F01RunAction() {}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
-
-void F01RunAction::BeginOfRunAction( const G4Run* aRun ) {
+void F01RunAction::BeginOfRunAction(const G4Run* aRun)
+{
   G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl;
 
   G4cout << " Calling F01RunAction::ChangeLooperParameters() " << G4endl;
-  ChangeLooperParameters( G4Electron::Definition() );
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
-
-void F01RunAction::
-ChangeLooperParameters(const G4ParticleDefinition* particleDef )
-{
-  if( particleDef == nullptr )
-     particleDef = G4Electron::Definition();
-  auto transportPair= findTransportation( particleDef );
-  auto transport = transportPair.first;
-  auto coupledTransport = transportPair.second;
-
-  if( transport != nullptr )
-  { 
-     // Change the values of the looping particle parameters of Transportation 
-     if( theWarningEnergy   >= 0.0 )
-        transport->SetThresholdWarningEnergy(  theWarningEnergy ); 
-     if( theImportantEnergy >= 0.0 )
-        transport->SetThresholdImportantEnergy(  theImportantEnergy ); 
-     if( theNumberOfTrials  > 0 )
-        transport->SetThresholdTrials( theNumberOfTrials );
-  }
-  else if( coupledTransport != nullptr )
-  { 
-     // Change the values for Coupled Transport
-     if( theWarningEnergy   >= 0.0 )
-        coupledTransport->SetThresholdWarningEnergy(  theWarningEnergy ); 
-     if( theImportantEnergy >= 0.0 )
-        coupledTransport->SetThresholdImportantEnergy(  theImportantEnergy ); 
-     if( theNumberOfTrials  > 0 )
-        coupledTransport->SetThresholdTrials( theNumberOfTrials );
-  }
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
-
-void F01RunAction::EndOfRunAction( const G4Run* ) {
-  if( theVerboseLevel > 1 )
-     G4cout << G4endl << G4endl
-            << " ###########  Track Statistics for Transportation process(es) "
-            << " ########### " << G4endl
-            << " ############################################## "
-            << " ####################### " << G4endl << G4endl;
-
-  auto transportPair= findTransportation( G4Electron::Definition() );
-  auto transport = transportPair.first;
-  auto coupledTransport = transportPair.second;
-  if( transport)             {        transport->PrintStatistics(G4cout); }
-  else if( coupledTransport) { coupledTransport->PrintStatistics(G4cout); }
+  ChangeLooperParameters(G4Electron::Definition());
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-std::pair<G4Transportation*, G4CoupledTransportation*>
-F01RunAction::findTransportation( const G4ParticleDefinition* particleDef,
-                                  bool reportError )
+void F01RunAction::ChangeLooperParameters(const G4ParticleDefinition* particleDef)
 {
-  const auto *partPM=  particleDef->GetProcessManager();
-    
-  G4VProcess* partTransport = partPM->GetProcess("Transportation");
-  auto transport= dynamic_cast<G4Transportation*>(partTransport);
+  if (particleDef == nullptr) particleDef = G4Electron::Definition();
+  auto transport = FindTransportation(particleDef);
 
-  partTransport = partPM->GetProcess("CoupledTransportation");
-  auto coupledTransport=
-     dynamic_cast<G4CoupledTransportation*>(partTransport);
+  // Note that all particles that share the same Transportation
+  //  (or Coupled Transportation) process (with this particle)
+  //  will be affected by this change
+  //   -- to change these parameters by particle type, the values
+  //      must instead be changed/reset in a (Start) Tracking Action.
 
-  if( reportError && !transport && !coupledTransport )
-  {
-     G4cerr << "Unable to find Transportation process for particle type "
-            << particleDef->GetParticleName()
-            << "  ( PDG code = " << particleDef->GetPDGEncoding() << " ) "
-            << G4endl;
+  G4cout << " ChangeLooperParameters called with particle type " << particleDef->GetParticleName()
+         << " transport process: ";
+  if (transport != nullptr) {
+    G4cout << transport->GetProcessName();
   }
-  
-  return
-     std::make_pair( transport, coupledTransport );
-         // <G4Transportation*, G4CoupledTransportation*>  
+  else {
+    G4cout << " UNKNOWN -- it is neither G4Transportation nor G4CoupledTransportation";
+  }
+  G4cout << G4endl;
+
+  if (transport != nullptr) {
+    if (fWarningEnergy >= 0.0) {
+      transport->SetThresholdWarningEnergy(fWarningEnergy);
+      G4cout << "-- Changed Threshold Warning Energy (for loopers) = "
+             << fWarningEnergy / CLHEP::MeV << " MeV " << G4endl;
+    }
+    if (fImportantEnergy >= 0.0) {
+      transport->SetThresholdImportantEnergy(fImportantEnergy);
+
+      G4cout << "-- Changed Threshold Important Energy (for loopers) = "
+             << fImportantEnergy / CLHEP::MeV << " MeV " << G4endl;
+    }
+
+    if (fNumberOfTrials > 0) {
+      transport->SetThresholdTrials(fNumberOfTrials);
+
+      G4cout << "-- Changed number of Trials (for loopers) = " << fNumberOfTrials << G4endl;
+    }
+  }
+
+  if (transport == nullptr) {
+    if (fWarningEnergy >= 0.0)
+      G4cerr << " Unknown transport process> Cannot change Warning Energy. " << G4endl;
+    if (fImportantEnergy >= 0.0)
+      G4cerr << " Unknown transport process> Cannot change 'Important' Energy. " << G4endl;
+    if (fNumberOfTrials > 0)
+      G4cerr << " Unknown transport process> Cannot change number of trials. " << G4endl;
+  }
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void F01RunAction::EndOfRunAction(const G4Run*)
+{
+  if (fVerboseLevel > 1)
+    G4cout << G4endl << G4endl << " ###########  Track Statistics for Transportation process(es) "
+           << " ########### " << G4endl << " ############################################## "
+           << " ####################### " << G4endl << G4endl;
+
+  auto transport = FindTransportation(G4Electron::Definition());
+  if (transport) {
+    transport->PrintStatistics(G4cout);
+  }
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+G4Transportation* F01RunAction::FindTransportation(const G4ParticleDefinition* particleDef,
+                                                   bool reportError)
+{
+  const auto* partPM = particleDef->GetProcessManager();
+
+  G4VProcess* partTransport = partPM->GetProcess("Transportation");
+  auto transport = dynamic_cast<G4Transportation*>(partTransport);
+
+  if (!transport) {
+    partTransport = partPM->GetProcess("CoupledTransportation");
+    auto coupledTransport = dynamic_cast<G4CoupledTransportation*>(partTransport);
+    if (coupledTransport) {
+      transport = coupledTransport;
+    }
+    else {
+      partTransport = partPM->GetProcess("TransportationWithMsc");
+      auto transportWithMsc = dynamic_cast<G4CoupledTransportation*>(partTransport);
+      if (transportWithMsc) {
+        transport = transportWithMsc;
+      }
+    }
+  }
+
+  if (reportError && !transport) {
+    G4cerr << "Unable to find Transportation process for particle type "
+           << particleDef->GetParticleName() << "  ( PDG code = " << particleDef->GetPDGEncoding()
+           << " ) " << G4endl;
+  }
+
+  return transport;
 }

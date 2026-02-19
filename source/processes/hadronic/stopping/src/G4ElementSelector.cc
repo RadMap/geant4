@@ -55,16 +55,16 @@ G4ElementSelector::~G4ElementSelector()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4Element* 
+const G4Element* 
 G4ElementSelector::SelectZandA(const G4Track& track, G4Nucleus* target)
 {
   // Fermi-Teller Z-low of mu- capture and exceptions 
   // for halogens and oxigen.
   // N.C.Mukhopadhyay Phys. Rep. 30 (1977) 1.
 
-  size_t i = 0;
+  std::size_t i = 0;
   const G4Material* mat = track.GetMaterial();
-  size_t numberOfElements = mat->GetNumberOfElements();
+  std::size_t numberOfElements = mat->GetNumberOfElements();
   const G4ElementVector* theElementVector = mat->GetElementVector();
 
   if(1 < numberOfElements) {
@@ -75,7 +75,7 @@ G4ElementSelector::SelectZandA(const G4Track& track, G4Nucleus* target)
     G4double sum = 0.0;
     for (i=0; i < numberOfElements; ++i) {
 
-      G4int Z = G4lrint((*theElementVector)[i]->GetZ()); 
+      G4int Z = (*theElementVector)[i]->GetZasInt(); 
 
       // Halogens
       if( (9 == Z) || (17 == Z) || (35 == Z) || (53 == Z) || (85 == Z) ) {
@@ -98,12 +98,12 @@ G4ElementSelector::SelectZandA(const G4Track& track, G4Nucleus* target)
     }
   }
   
-  G4Element* elm = (*theElementVector)[i];
-  G4int Z = G4lrint(elm->GetZ());
+  const G4Element* elm = (*theElementVector)[i];
+  G4int Z = elm->GetZasInt();
 
   // select isotope
   const G4IsotopeVector* isv = elm->GetIsotopeVector();
-  size_t ni = isv->size();
+  std::size_t ni = isv->size();
   i = 0;
 
   if(1 < ni) {
@@ -116,9 +116,8 @@ G4ElementSelector::SelectZandA(const G4Track& track, G4Nucleus* target)
     }
   }
 
-  G4int A = elm->GetIsotope(i)->GetN();
+  G4int A = elm->GetIsotope((G4int)i)->GetN();
   target->SetParameters(A, Z);
 
   return elm;
 }
-

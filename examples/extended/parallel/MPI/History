@@ -1,13 +1,89 @@
-     =========================================================
-     Geant4 - an Object-Oriented Toolkit for Simulation in HEP
-     =========================================================
+# Example MPI History
 
-                      Category History file
-                      ---------------------
+See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
+which **must** added in reverse chronological order (newest at the top). It must **not**
+be used as a substitute for writing good git commit messages!
 
-     ----------------------------------------------------------
-     * Reverse chronological order (last date on top), please *
-     ----------------------------------------------------------
+## 2025-07-25 I. Hrivnacova (MPI-V11-03-03)
+- Fixed doxygen pages tags
+
+## 2025-07-24 I. Hrivnacova (MPI-V11-03-02)
+- Migration of existing README.md to Doxygen:
+  - Added Doxygen keywords to README.md files
+  - Removed .README.txt files
+
+## 2025-03-28 Ben Morgan (MPI-V11-03-01)
+- Modernize and simplify library and example build scripts to build G4mpi library
+  and examples of its use in one project.
+
+## 2025-02-18 Chris Brady, Filippo Falezza, Ben Morgan (MPI-V11-03-00)
+- Move MPI from deprecated C++ interface to C interface (MPI 3+)
+  - Changes from privately supplied patch, and through [GitHub PR #81](https://github.com/Geant4/geant4/pull/81/) 
+
+## 2023-03-11 Ben Morgan (MPI-V11-02-00)
+- Move CTests definitions to tests/ctests_examples
+
+## 2023-11-09 I. Hrivnacova (MPI-V11-01-03)
+- Coding guidelines - document examples macros in README files
+- Renamed v.mac in vis.mac
+- Removed examples README.html (not synchronised with README.md)
+
+## 2023-11-07 Le Tuan Anh (MPI-V11-01-02)
+- Fixed bug: G4filesystem -> G4Filesystem in RunActionMaster of exMPI04
+- Add 02 new functions in G4MPIrunmanager to access number of events in master / slave
+
+## 2023-11-02 I. Hrivnacova (MPI-V11-01-01)
+- Updated analysis classes and exMPI04 for changes in analysis
+  in analysis-V11-01-*
+- Changed struct G4RootMpiPNtupleDescription in class 
+
+## 2023-01-09 Ben Morgan (MPI-V11-01-00)
+- Use PROJECT_ scoped _SOURCE/BINARY_DIR variables in place of CMAKE_ 
+  scope version to ease use of Geant4 as a CMake subproject. 
+  - Fixes [GitHub PR #52](https://github.com/Geant4/geant4/pull/52)
+
+## 2022-11-09 I. Hrivnacova (MPI-V11-00-03)
+- Updated analysis classes for changes in analysis
+  in analysis-V11-00-*
+- Fixed exMPI04 example failing in sequential mode when
+  MPI ntuple merging is activated   
+
+## 2022-05-18 Guy Barrand (MPI-V11-00-02)
+- have "toolx" namespace for g4tools code related to MPI, then:
+  - namespace tools::mpi becomes toolx::mpi.
+  - includes #include <tools/mpi/...> become #include <toolx/mpi/...>
+
+## 2022-03-10 Ben Morgan (MPI-V11-00-01)
+- Remove use of obsolete G4DeveloperAPI functions
+
+## 2021-12-10 Ben Morgan (MPI-V11-00-00)
+- Change to new Markdown History format
+
+---
+
+# History entries prior to 11.0
+
+9 Novemeber 2021,  I. Hrivnacova (MPI-V10-07-03)
+- Updated analysis classes for changes in analysis
+  in analysis-V10-07-*
+- More updates in g4mpi for changes in G4String:
+  str(i) -> str[i]; str(i,j) -> str.substr(i,j)
+- exMPI03 - include G4AnalysisManager.hh
+  exMPI04 - include G4Root[Mpi]AnalysisManager.hh
+  - instead of removed g4root.hh
+
+25 October 2021, B.Morgan (MPI-V10-07-02)
+- Use G4StrUtil functions replacing deprecated G4String member functions
+
+18 October 2021 B.Morgan (MPI-V10-07-01)
+- Use std::string member functions from G4String in place of synonyms
+
+1 October 2021  B. Morgan (MPI-V10-07-00)
+- Use new std::string compliant G4String interfaces
+
+4 November 2020 I. Hrivnacova (MPI-V10-06-00)
+- Updated analysis classes for the design changes in analysis
+  tags analysis-V10-06-05,06
 
 21 October 2019 I. Hrivnacova (MPI-V10-05-02)
 - Fixed exMPI03, exMPI04, G4MPIscorerMerger.cc compilation which was broken

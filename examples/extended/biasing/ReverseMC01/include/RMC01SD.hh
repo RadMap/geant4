@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file biasing/ReverseMC01/include/RMC01SD.hh
+/// \file RMC01SD.hh
 /// \brief Definition of the RMC01SD class
-//
-//
-//////////////////////////////////////////////////////////////
+
 //  Class Name:            RMC01SD
 //        Author:               L. Desorgher
 //        Organisation:         SpaceIT GmbH
@@ -47,8 +45,8 @@
 #ifndef RMC01SD_h
 #define RMC01SD_h 1
 
-#include "G4VSensitiveDetector.hh"
 #include "G4ThreeVector.hh"
+#include "G4VSensitiveDetector.hh"
 
 class G4Step;
 class G4HCofThisEvent;
@@ -56,9 +54,10 @@ class G4StepPoint;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 
-#include"G4THitsCollection.hh"
-#include"G4ios.hh"
-#include"RMC01DoubleWithWeightHit.hh"
+#include "RMC01DoubleWithWeightHit.hh"
+
+#include "G4THitsCollection.hh"
+#include "G4ios.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -67,9 +66,9 @@ class RMC01SD : public G4VSensitiveDetector
   public:
     RMC01SD(G4String name);
     virtual ~RMC01SD();
-    virtual void Initialize(G4HCofThisEvent*HCE);
-    virtual G4bool ProcessHits(G4Step*aStep,G4TouchableHistory*ROhist);
-    virtual void EndOfEvent(G4HCofThisEvent*HCE);
+    virtual void Initialize(G4HCofThisEvent* HCE);
+    virtual G4bool ProcessHits(G4Step* aStep, G4TouchableHistory* ROhist);
+    virtual void EndOfEvent(G4HCofThisEvent* HCE);
     virtual void Clear();
     virtual void DrawAll();
     virtual void PrintAll();
@@ -85,4 +84,3 @@ class RMC01SD : public G4VSensitiveDetector
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

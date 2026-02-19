@@ -62,12 +62,11 @@ G4DeltaAngle::G4DeltaAngle(const G4String&)
 {
   fElectron = G4Electron::Electron();
   nprob = 26;
-  prob.resize(nprob,0.0);
   fShellIdx = -1;
+  prob.resize(nprob,0.0);
 }    
 
-G4DeltaAngle::~G4DeltaAngle() 
-{}
+G4DeltaAngle::~G4DeltaAngle() = default;
 
 G4ThreeVector& 
 G4DeltaAngle::SampleDirectionForShell(const G4DynamicParticle* dp,
@@ -191,6 +190,3 @@ G4DeltaAngle::SampleDirection(const G4DynamicParticle* dp,
 
   return fLocalDirection;
 }
-
-void G4DeltaAngle::PrintGeneratorInformation() const
-{} 

@@ -96,14 +96,20 @@ namespace G4INCL {
       thePosition(rhs.thePosition),
       nCollisions(rhs.nCollisions),
       nDecays(rhs.nDecays),
+      nSrcPair(rhs.nSrcPair),
       thePotentialEnergy(rhs.thePotentialEnergy),
       rpCorrelated(rhs.rpCorrelated),
       uncorrelatedMomentum(rhs.uncorrelatedMomentum),
       theParticleBias(rhs.theParticleBias),
       theNKaon(rhs.theNKaon),
+#ifdef INCLXX_IN_GEANT4_MODE
+      theParentResonancePDGCode(rhs.theParentResonancePDGCode),
+      theParentResonanceID(rhs.theParentResonanceID),
+#endif
       theHelicity(rhs.theHelicity),
       emissionTime(rhs.emissionTime),
       outOfWell(rhs.outOfWell),
+      theSrcPartner(rhs.theSrcPartner),
       theMass(rhs.theMass)
       {
         if(rhs.thePropagationEnergy == &(rhs.theFrozenEnergy))
@@ -143,12 +149,19 @@ namespace G4INCL {
       std::swap(thePosition, rhs.thePosition);
       std::swap(nCollisions, rhs.nCollisions);
       std::swap(nDecays, rhs.nDecays);
+      std::swap(nSrcPair, rhs.nSrcPair),
       std::swap(thePotentialEnergy, rhs.thePotentialEnergy);
       // ID intentionally not swapped
+
+#ifdef INCLXX_IN_GEANT4_MODE
+      std::swap(theParentResonancePDGCode, rhs.theParentResonancePDGCode);
+      std::swap(theParentResonanceID, rhs.theParentResonanceID);
+#endif
 
       std::swap(theHelicity, rhs.theHelicity);
       std::swap(emissionTime, rhs.emissionTime);
       std::swap(outOfWell, rhs.outOfWell);
+      std::swap(theSrcPartner, rhs.theSrcPartner);
 
       std::swap(theMass, rhs.theMass);
       std::swap(rpCorrelated, rhs.rpCorrelated);
@@ -248,7 +261,57 @@ namespace G4INCL {
           theA = 1;
           theZ = -1;
           theS = -1;
+          break;         
+        case antiProton:
+          theA = -1;
+          theZ = -1;
+          theS = 0;
+          break;         
+        case XiMinus:
+          theA = 1;
+          theZ = -1;
+          theS = -2;
           break;
+        case XiZero:
+          theA = 1;
+          theZ = 0;
+          theS = -2;
+          break;      
+        case antiNeutron:
+          theA = -1;
+          theZ = 0;
+          theS = 0;
+          break;
+        case antiLambda:
+          theA = -1;
+          theZ = 0;
+          theS = 1;
+          break;
+        case antiSigmaMinus:
+          theA = -1;
+          theZ = 1;
+          theS = 1;
+          break;
+        case antiSigmaPlus:
+          theA = -1;
+          theZ = -1;
+          theS = 1;
+          break;
+        case antiSigmaZero:
+          theA = -1;
+          theZ = 0;
+          theS = 1;
+          break;
+        case antiXiMinus:
+          theA = -1;
+          theZ = 1;
+          theS = 2;
+          break;
+        case antiXiZero:
+          theA = -1;
+          theZ = 0;
+          theS = 2;
+          break;         
         case KPlus:
           theA = 0;
           theZ = 1;
@@ -284,7 +347,12 @@ namespace G4INCL {
           theA = 0;
           theZ = 0;
           theS = 0;
-          break;
+          break;       
+        case antiComposite:
+          theA = 0;
+          theZ = 0;
+          theS = 0;
+          break;       
         case UnknownParticle:
           theA = 0;
           theZ = 0;
@@ -293,7 +361,7 @@ namespace G4INCL {
           break;
       }
 
-      if( !isResonance() && t!=Composite )
+      if( !isResonance() && t!=Composite && t!=antiComposite )
         setINCLMass();
     }
 
@@ -363,10 +431,10 @@ namespace G4INCL {
           theType==DeltaZero || theType==DeltaMinus); }
     
     /** \brief Is this a Sigma? */
-    G4bool isSigma() const { return (theType == SigmaPlus || theType == SigmaZero || theType == SigmaMinus); }
+    G4bool isSigma() const { return (theType == SigmaPlus || theType == SigmaZero || theType == SigmaMinus); }     
     
     /** \brief Is this a Kaon? */
-    G4bool isKaon() const { return (theType == KPlus || theType == KZero); }
+    G4bool isKaon() const { return (theType == KPlus || theType == KZero); } 
     
     /** \brief Is this an antiKaon? */
     G4bool isAntiKaon() const { return (theType == KZeroBar || theType == KMinus); }
@@ -378,7 +446,7 @@ namespace G4INCL {
     G4bool isNucleonorLambda() const { return (isNucleon() || isLambda()); }
     
     /** \brief Is this an Hyperon? */
-    G4bool isHyperon() const { return (isLambda() || isSigma()); }
+    G4bool isHyperon() const { return (isLambda() || isSigma() ); } //|| isXi()
     
     /** \brief Is this a Meson? */
     G4bool isMeson() const { return (isPion() || isKaon() || isAntiKaon() || isEta() || isEtaPrime() || isOmega()); }
@@ -386,8 +454,32 @@ namespace G4INCL {
     /** \brief Is this a Baryon? */
     G4bool isBaryon() const { return (isNucleon() || isResonance() || isHyperon()); }
     
-    /** \brief Is this an Strange? */
+    /** \brief Is this a Strange? */
     G4bool isStrange() const { return (isKaon() || isAntiKaon() || isHyperon()); }
+    
+    /** \brief Is this a Xi? */
+    G4bool isXi() const { return (theType == XiZero || theType == XiMinus); } 
+    
+    /** \brief Is this an antinucleon? */
+    G4bool isAntiNucleon() const { return (theType == antiProton || theType == antiNeutron); } 
+     
+    /** \brief Is this an antiSigma? */
+    G4bool isAntiSigma() const { return (theType == antiSigmaPlus || theType == antiSigmaZero || theType == antiSigmaMinus); }     
+    
+    /** \brief Is this an antiXi? */
+    G4bool isAntiXi() const { return (theType == antiXiZero || theType == antiXiMinus); } 
+    
+    /** \brief Is this an antiLambda? */
+    G4bool isAntiLambda() const { return (theType == antiLambda); }
+    
+    /** \brief Is this an antiHyperon? */
+    G4bool isAntiHyperon() const { return (isAntiLambda() || isAntiSigma() || isAntiXi()); }
+    
+    /** \brief Is this an antiBaryon? */
+    G4bool isAntiBaryon() const { return (isAntiNucleon() || isAntiHyperon()); }
+    
+    /** \brief Is this an antiNucleon or an antiLambda? */
+    G4bool isAntiNucleonorAntiLambda() const { return (isAntiNucleon() || isAntiLambda()); }
 
     /** \brief Returns the baryon number. */
     G4int getA() const { return theA; }
@@ -397,6 +489,9 @@ namespace G4INCL {
     
     /** \brief Returns the strangeness number. */
     G4int getS() const { return theS; }
+ 
+    /** \brief Returns the strangeness number. */
+    G4int getSrcPair() const { return nSrcPair; }
 
     G4double getBeta() const {
       const G4double P = theMomentum.mag();
@@ -461,7 +556,17 @@ namespace G4INCL {
         case Lambda:
         case SigmaPlus:
         case SigmaZero:
-        case SigmaMinus:
+        case SigmaMinus:       
+        case antiProton: 
+        case XiZero:
+        case XiMinus:
+        case antiNeutron:
+        case antiLambda:
+        case antiSigmaPlus:
+        case antiSigmaZero:
+        case antiSigmaMinus:
+        case antiXiZero:
+        case antiXiMinus:     
         case KPlus:
         case KZero:
         case KZeroBar:
@@ -471,7 +576,7 @@ namespace G4INCL {
         case Eta:
         case Omega:
         case EtaPrime:
-        case Photon:
+        case Photon:                       
           return ParticleTable::getINCLMass(theType);
           break;
 
@@ -484,6 +589,9 @@ namespace G4INCL {
 
         case Composite:
           return ParticleTable::getINCLMass(theA,theZ,theS);
+          break;
+        case antiComposite:
+          return ParticleTable::getINCLMass(-theA,-theZ,theS);
           break;
 
         default:
@@ -504,7 +612,17 @@ namespace G4INCL {
         case Lambda:
         case SigmaPlus:
         case SigmaZero:
-        case SigmaMinus:
+        case SigmaMinus:       
+        case antiProton:      
+        case XiZero:
+        case XiMinus:  
+        case antiNeutron:
+        case antiLambda:
+        case antiSigmaPlus:
+        case antiSigmaZero:
+        case antiSigmaMinus:
+        case antiXiZero:
+        case antiXiMinus:  
         case KPlus:
         case KZero:
         case KZeroBar:
@@ -514,7 +632,7 @@ namespace G4INCL {
         case Eta:
         case Omega:
         case EtaPrime:
-        case Photon:
+        case Photon:  
           return ParticleTable::getTableParticleMass(theType);
           break;
 
@@ -527,6 +645,9 @@ namespace G4INCL {
 
         case Composite:
           return ParticleTable::getTableMass(theA,theZ,theS);
+          break;
+        case antiComposite:
+          return ParticleTable::getTableMass(-theA,-theZ,theS);
           break;
 
         default:
@@ -547,7 +668,17 @@ namespace G4INCL {
         case Lambda:
         case SigmaPlus:
         case SigmaZero:
-        case SigmaMinus:
+        case SigmaMinus:       
+        case antiProton: 
+        case XiZero:
+        case XiMinus: 
+        case antiNeutron:
+        case antiLambda:
+        case antiSigmaPlus:
+        case antiSigmaZero:
+        case antiSigmaMinus:
+        case antiXiZero:
+        case antiXiMinus:    
         case KPlus:
         case KZero:
         case KZeroBar:
@@ -557,7 +688,7 @@ namespace G4INCL {
         case Eta:
         case Omega:
         case EtaPrime:
-        case Photon:
+        case Photon:    
           return ParticleTable::getRealMass(theType);
           break;
 
@@ -570,6 +701,9 @@ namespace G4INCL {
 
         case Composite:
           return ParticleTable::getRealMass(theA,theZ,theS);
+          break;
+        case antiComposite:
+          return ParticleTable::getRealMass(-theA,-theZ,theS);
           break;
 
         default:
@@ -847,6 +981,9 @@ namespace G4INCL {
 
     /** \brief Increment the number of decays undergone by the particle. **/
     void incrementNumberOfDecays() { nDecays++; }
+ 
+    /** \brief Set the number of srcpairs. **/
+    void setNumberOfSrcPair(int n) { nSrcPair = n; }
 
     /** \brief Mark the particle as out of its potential well
      *
@@ -860,6 +997,13 @@ namespace G4INCL {
 
     /// \brief Check if the particle is out of its potential well
     G4bool isOutOfWell() const { return outOfWell; }
+ 
+    /// \brief Set and reset src partner 
+    void setSrcPartner() { theSrcPartner = true; }  
+    void resetSrcPartner() { theSrcPartner = false; nSrcPair=0; }
+
+    /// \brief Check if the particle is a src partner    
+    G4bool isSrcPartner() const { return theSrcPartner; }
 
     void setEmissionTime(G4double t) { emissionTime = t; }
     G4double getEmissionTime() { return emissionTime; };
@@ -881,7 +1025,7 @@ namespace G4INCL {
     G4double adjustEnergyFromMomentum();
 
     G4bool isCluster() const {
-      return (theType == Composite);
+      return ((theType == Composite || theType == antiComposite));
     }
 
     /// \brief Set the frozen particle momentum
@@ -954,6 +1098,8 @@ namespace G4INCL {
       std::stringstream ss;
       ss << "Particle (ID = " << ID << ") type = ";
       ss << ParticleTable::getName(theType);
+      ss << ", SRC pair = " << nSrcPair;
+      ss << ", Potential energy = " << thePotentialEnergy;
       ss << '\n'
         << "   energy = " << theEnergy << '\n'
         << "   momentum = "
@@ -969,6 +1115,7 @@ namespace G4INCL {
       std::stringstream ss;
       ss << "(particle " << ID << " ";
       ss << ParticleTable::getName(theType);
+      ss << nSrcPair << " ";
       ss << '\n'
         << thePosition.dump()
         << '\n'
@@ -1040,7 +1187,7 @@ namespace G4INCL {
     /// \brief Set the vector list of biased vertices on the particle path.
     void setBiasCollisionVector(std::vector<G4int> BiasCollisionVector) {
 	  this->theBiasCollisionVector = BiasCollisionVector;
-	  this->setParticleBias(Particle::getBiasFromVector(BiasCollisionVector));
+	  this->setParticleBias(Particle::getBiasFromVector(std::move(BiasCollisionVector)));
 	  }
     
     /** \brief Number of Kaon inside de nucleus
@@ -1052,6 +1199,13 @@ namespace G4INCL {
      
     G4int getNumberOfKaon() const { return theNKaon; };
     void setNumberOfKaon(const G4int NK) { theNKaon = NK; }
+
+#ifdef INCLXX_IN_GEANT4_MODE
+    G4int getParentResonancePDGCode() const { return theParentResonancePDGCode; };
+    void setParentResonancePDGCode(const G4int parentPDGCode) { theParentResonancePDGCode = parentPDGCode; };    
+    G4int getParentResonanceID() const { return theParentResonanceID; };
+    void setParentResonanceID(const G4int parentID) { theParentResonanceID = parentID; };
+#endif
   
   public:
     /** \brief Time ordered vector of all bias applied
@@ -1089,6 +1243,7 @@ namespace G4INCL {
     G4INCL::ThreeVector thePosition;
     G4int nCollisions;
     G4int nDecays;
+    G4int nSrcPair;
     G4double thePotentialEnergy;
     long ID;
 
@@ -1099,10 +1254,16 @@ namespace G4INCL {
     /// \brief The number of Kaons inside the nucleus (update during the cascade)
     G4int theNKaon;
 
+#ifdef INCLXX_IN_GEANT4_MODE
+    G4int theParentResonancePDGCode;
+    G4int theParentResonanceID;
+#endif
+
   private:
     G4double theHelicity;
     G4double emissionTime;
     G4bool outOfWell;
+    G4bool theSrcPartner;
     
     /// \brief Time ordered vector of all biased vertices on the particle path
     std::vector<G4int> theBiasCollisionVector;

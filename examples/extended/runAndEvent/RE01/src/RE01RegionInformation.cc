@@ -23,33 +23,41 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file runAndEvent/RE01/src/RE01RegionInformation.cc
+/// \file RE01RegionInformation.cc
 /// \brief Implementation of the RE01RegionInformation class
-//
-//
-//
 
 #include "RE01RegionInformation.hh"
+
 #include "G4ios.hh"
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo...... 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 RE01RegionInformation::RE01RegionInformation()
-  :G4VUserRegionInformation(),
-   fIsWorld(false),fIsTracker(false),fIsCalorimeter(false)
-{;}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo...... 
-RE01RegionInformation::~RE01RegionInformation()
-{;}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo...... 
-void RE01RegionInformation::Print() const
+  : G4VUserRegionInformation(), fIsWorld(false), fIsTracker(false), fIsCalorimeter(false)
 {
- G4cout << "I'm ";
- if(fIsWorld) { G4cout << "World."; }
- else if(fIsTracker) { G4cout << "Tracker."; }
- else if(fIsCalorimeter) { G4cout << "Calorimeter."; }
- else { G4cout << "unknown."; }
- G4cout << G4endl;
+  ;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+RE01RegionInformation::~RE01RegionInformation()
+{
+  ;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+void RE01RegionInformation::Print() const
+{
+  G4cout << "I'm ";
+  if (fIsWorld) {
+    G4cout << "World.";
+  }
+  else if (fIsTracker) {
+    G4cout << "Tracker.";
+  }
+  else if (fIsCalorimeter) {
+    G4cout << "Calorimeter.";
+  }
+  else {
+    G4cout << "unknown.";
+  }
+  G4cout << G4endl;
+}

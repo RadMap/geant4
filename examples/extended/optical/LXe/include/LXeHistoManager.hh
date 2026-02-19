@@ -23,21 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file optical/LXe/include/LXeHistoManager.hh
+/// \file LXeHistoManager.hh
 /// \brief Definition of the LXeHistoManager class
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef LXeHistoManager_h
 #define LXeHistoManager_h 1
 
+#include "G4AnalysisManager.hh"
 #include "globals.hh"
-
-#include "g4root.hh"
-//#include "g4xml.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -45,7 +38,7 @@ class LXeHistoManager
 {
   public:
     LXeHistoManager();
-   ~LXeHistoManager();
+    ~LXeHistoManager() = default;
 
   private:
     void Book();
@@ -55,4 +48,3 @@ class LXeHistoManager
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

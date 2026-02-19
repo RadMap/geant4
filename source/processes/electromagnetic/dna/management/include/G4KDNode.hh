@@ -66,7 +66,7 @@ public:
   // parent = 0, axis = 0, side = 0
   G4KDNode_Base(G4KDTree*, G4KDNode_Base* /*parent*/);
   virtual ~G4KDNode_Base();
-  virtual double operator[](size_t) const = 0;
+  virtual double operator[](std::size_t) const = 0;
   virtual void InactiveNode();
   virtual bool IsValid() const{ return true; }
 
@@ -75,8 +75,8 @@ public:
   inline void SetTree(G4KDTree* tree) {fTree = tree;}
 
   //----------------------------
-  int GetDim() const;
-  inline int GetAxis() const{return fAxis;}
+  G4int GetDim() const;
+  inline G4int GetAxis() const{return (G4int)fAxis;}
   inline G4KDNode_Base* GetParent(){return fParent;}
   inline G4KDNode_Base* GetLeft(){return fLeft;}
   inline G4KDNode_Base* GetRight(){return fRight;}
@@ -89,12 +89,12 @@ public:
     G4KDNode_Base* Insert(PointT* point);
   template<typename PointT>
     G4KDNode_Base* Insert(const PointT& point);
-  int Insert(G4KDNode_Base* newNode);
+  G4int Insert(G4KDNode_Base* newNode);
 
   void PullSubTree();
   void RetrieveNodeList(std::list<G4KDNode_Base*>& node_list);
 
-  void Print(std::ostream& out, int level = 0) const;
+  void Print(std::ostream& out, G4int level = 0) const;
 
 // std::vector<std::deque<G4KDNode_Base*>::iterator>*
 //   GetIteratorsForSortingAlgo(G4KDMap*);
@@ -105,15 +105,15 @@ protected:
   //°°°°°°°°°°°
   // Members
   //°°°°°°°°°°°
-  size_t fAxis; // axis : x, y, z ...
-  int fSide; // left/right
+  std::size_t fAxis; // axis : x, y, z ...
+  G4int fSide; // left/right
   /* fSide == 0  : Is the root node
    * fSide == -1 : It is the left of the parent node
    * fSide == 1  : It is the right of the parent node
    */
 
-  G4KDTree* fTree;
-  G4KDNode_Base *fLeft, *fRight, *fParent;
+  G4KDTree* fTree{nullptr};
+  G4KDNode_Base *fLeft{nullptr}, *fRight{nullptr}, *fParent{nullptr};
   /* Left : fLeft->fPosition[axis] < this->fPosition[axis]
    * Right : fRight->fPosition[axis] > this->fPosition[axis]
    * Root node : fParent = 0
@@ -136,9 +136,9 @@ template<typename PointT>
     // For root node :
     // parent = 0, axis = 0, side = 0
     G4KDNode(G4KDTree*, PointT* /*point*/, G4KDNode_Base* /*parent*/);
-    virtual ~G4KDNode();
+    ~G4KDNode() override;
 
-    void *operator new(size_t);
+    void *operator new(std::size_t);
     void operator delete(void *);
 
     inline PointT* GetPoint()
@@ -146,26 +146,26 @@ template<typename PointT>
       return fPoint;
     }
 
-    virtual double operator[](size_t i) const
+    G4double operator[](std::size_t i) const override
     {
-      if(fPoint == 0) abort();
-      return (*fPoint)[i];
+      if(fPoint == nullptr) abort();
+      return (*fPoint)[(G4int)i];
     }
 
-    virtual void InactiveNode()
+    void InactiveNode() override
     {
       fValid = false;
       G4KDNode_Base::InactiveNode();
     }
 
-    virtual bool IsValid() const
+    G4bool IsValid() const override
     {
       return fValid;
     }
 
   protected:
     PointT* fPoint;
-    bool fValid;
+    G4bool fValid;
 
   private:
     G4KDNode(const G4KDNode<PointT>& right);
@@ -176,10 +176,10 @@ template<typename PointT>
 
 template<typename PointT>
   G4ThreadLocal G4Allocator<G4KDNode<PointT>>*
-    G4KDNode<PointT>::fgAllocator = 0;
+    G4KDNode<PointT>::fgAllocator = nullptr;
 
 template<typename PointT>
-  void* G4KDNode<PointT>::operator new(size_t)
+  void* G4KDNode<PointT>::operator new(std::size_t)
   {
     if(!fgAllocator) fgAllocator = new G4Allocator<G4KDNode<PointT> >;
     return (void *) fgAllocator->MallocSingle();
@@ -212,9 +212,9 @@ template<typename PointCopyT>
       fValid = true;
     }
 
-    virtual ~G4KDNodeCopy(){}
+    ~G4KDNodeCopy() override= default;
 
-    void *operator new(size_t)
+    void *operator new(std::size_t)
     {
       if(!fgAllocator) fgAllocator = new G4Allocator<G4KDNodeCopy<PointCopyT>>;
       return (void *) fgAllocator->MallocSingle();
@@ -230,18 +230,18 @@ template<typename PointCopyT>
       return fPoint;
     }
 
-    virtual double operator[](size_t i) const
+    double operator[](std::size_t i) const override
     {
       return fPoint[i];
     }
 
-    virtual void InactiveNode()
+    void InactiveNode() override
     {
       fValid = false;
       G4KDNode_Base::InactiveNode();
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return fValid;
     }
@@ -276,7 +276,7 @@ template<typename PointCopyT>
 
 template<typename PointT>
   G4ThreadLocal G4Allocator<G4KDNodeCopy<PointT>>*
-    G4KDNodeCopy<PointT>::fgAllocator = 0;
+    G4KDNodeCopy<PointT>::fgAllocator = nullptr;
 
 #include "G4KDNode.icc"
 

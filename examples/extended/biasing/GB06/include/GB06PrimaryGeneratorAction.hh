@@ -23,9 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file GB06/include/GB06PrimaryGeneratorAction.hh
+/// \file GB06PrimaryGeneratorAction.hh
 /// \brief Definition of the GB06PrimaryGeneratorAction class
-//
+
 #ifndef GB06PrimaryGeneratorAction_h
 #define GB06PrimaryGeneratorAction_h 1
 
@@ -38,18 +38,16 @@ class G4ParticleGun;
 
 class GB06PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-public:
-  GB06PrimaryGeneratorAction();    
-  virtual ~GB06PrimaryGeneratorAction();
-  
-  virtual void GeneratePrimaries(G4Event*);
-  
-private:
-  G4ParticleGun* fParticleGun;
+  public:
+    GB06PrimaryGeneratorAction();
+    ~GB06PrimaryGeneratorAction() override;
+
+    void GeneratePrimaries(G4Event*) override;
+
+  private:
+    G4ParticleGun* fParticleGun;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-

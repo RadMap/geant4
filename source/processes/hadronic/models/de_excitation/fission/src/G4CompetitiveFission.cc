@@ -45,20 +45,15 @@
 #include "Randomize.hh"
 #include "G4RandomDirection.hh"
 #include "G4PhysicalConstants.hh"
+#include "G4PhysicsModelCatalog.hh"
 
-G4CompetitiveFission::G4CompetitiveFission() : G4VEvaporationChannel("fission")
+G4CompetitiveFission::G4CompetitiveFission() : G4VEvaporationChannel("fission"), theSecID(-1)
 {
   theFissionBarrierPtr = new G4FissionBarrier;
-  myOwnFissionBarrier = true;
-
   theFissionProbabilityPtr = new G4FissionProbability;
-  myOwnFissionProbability = true;
-  
   theLevelDensityPtr = new G4FissionLevelDensityParameter;
-  myOwnLevelDensity = true;
-
-  maxKineticEnergy = fissionBarrier = fissionProbability = 0.0;
   pairingCorrection = G4NuclearLevelData::GetInstance()->GetPairingCorrection();
+  theSecID = G4PhysicsModelCatalog::GetModelID("model_G4CompetitiveFission");
 }
 
 G4CompetitiveFission::~G4CompetitiveFission()
@@ -68,8 +63,18 @@ G4CompetitiveFission::~G4CompetitiveFission()
   if (myOwnLevelDensity) delete theLevelDensityPtr;
 }
 
+void G4CompetitiveFission::Initialise()
+{
+  if (!isInitialised) {
+    isInitialised = true;
+    G4VEvaporationChannel::Initialise();  
+    if (OPTxs == 1) { fFactor = 0.5; }
+  }
+}
+
 G4double G4CompetitiveFission::GetEmissionProbability(G4Fragment* fragment)
 {
+  if (!isInitialised) { Initialise(); }
   G4int Z = fragment->GetZ_asInt();
   G4int A = fragment->GetA_asInt();
   fissionProbability = 0.0;
@@ -86,7 +91,7 @@ G4double G4CompetitiveFission::GetEmissionProbability(G4Fragment* fragment)
 						      maxKineticEnergy);
     }
   }
-  return fissionProbability;
+  return fissionProbability*fFactor;
 }
 
 G4Fragment* G4CompetitiveFission::EmittedFragment(G4Fragment* theNucleus)
@@ -186,9 +191,11 @@ G4Fragment* G4CompetitiveFission::EmittedFragment(G4Fragment* theNucleus)
     
   // Create Fragments
   Fragment1 = new G4Fragment( A1, Z1, FourMomentum1);
+  if (Fragment1 != nullptr) { Fragment1->SetCreatorModelID(theSecID); }
   theNucleusMomentum -= FourMomentum1;
   theNucleus->SetZandA_asInt(Z2, A2);
   theNucleus->SetMomentum(theNucleusMomentum);
+  theNucleus->SetCreatorModelID(theSecID);
   return Fragment1;
 }
 

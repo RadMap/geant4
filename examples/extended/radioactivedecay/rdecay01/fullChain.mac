@@ -1,5 +1,11 @@
+# macro for rdecay01
+#
+/control/cout/ignoreThreadsExcept 0
 /control/verbose 2
 /run/verbose 1
+#
+# Set a very high time threshold to allow all decays to happen
+/process/had/rdm/thresholdForVeryLongDecayTime 1.0e+60 year
 #
 /gun/particle ion
 /gun/ion 92 238
@@ -17,12 +23,11 @@
 /analysis/h1/set 8  100  0. 1.e+11 y	#time of life
 /analysis/h1/set 9  100  40. 100. MeV  	#EvisTot
 #
-/run/printProgress 10000
-#  
+/run/printProgress 10000  
 /run/beamOn 100000
 
 #limit the chain
 #
-###/grdm/nucleusLimits 234 238 90 92
+###/process/had/rdm/nucleusLimits 234 238 90 92
 #
 ###/run/beamOn 1

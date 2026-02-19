@@ -23,13 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file eventgenerator/particleGun/include/PrimaryGeneratorAction.hh
+/// \file PrimaryGeneratorAction.hh
 /// \brief Definition of the PrimaryGeneratorAction class
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef PrimaryGeneratorAction_h
 #define PrimaryGeneratorAction_h 1
@@ -52,35 +47,35 @@ class G4Event;
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-    PrimaryGeneratorAction();    
-   ~PrimaryGeneratorAction();
+    PrimaryGeneratorAction();
+    ~PrimaryGeneratorAction() override;
 
   public:
-    virtual void GeneratePrimaries(G4Event*);
+    void GeneratePrimaries(G4Event*) override;
 
   public:
     G4ParticleGun* GetParticleGun() { return fParticleGun; };
-    
-    void SelectAction(G4int i) { fSelectedAction = i; };    
-    G4int GetSelectedAction()  { return fSelectedAction; };
 
-    PrimaryGeneratorAction0*  GetAction0() { return fAction0; };
-    PrimaryGeneratorAction1*  GetAction1() { return fAction1; };
-    PrimaryGeneratorAction2*  GetAction2() { return fAction2; };
-    PrimaryGeneratorAction3*  GetAction3() { return fAction3; };
-    PrimaryGeneratorAction4*  GetAction4() { return fAction4; };            
-    
+    void SelectAction(G4int i) { fSelectedAction = i; };
+    G4int GetSelectedAction() { return fSelectedAction; };
+
+    PrimaryGeneratorAction0* GetAction0() { return fAction0; };
+    PrimaryGeneratorAction1* GetAction1() { return fAction1; };
+    PrimaryGeneratorAction2* GetAction2() { return fAction2; };
+    PrimaryGeneratorAction3* GetAction3() { return fAction3; };
+    PrimaryGeneratorAction4* GetAction4() { return fAction4; };
+
   private:
-    G4ParticleGun*           fParticleGun;
+    G4ParticleGun* fParticleGun = nullptr;
 
-    PrimaryGeneratorAction0* fAction0;
-    PrimaryGeneratorAction1* fAction1;
-    PrimaryGeneratorAction2* fAction2;
-    PrimaryGeneratorAction3* fAction3;
-    PrimaryGeneratorAction4* fAction4;
-    G4int                    fSelectedAction;
-        
-    PrimaryGeneratorMessenger* fGunMessenger;     
+    PrimaryGeneratorAction0* fAction0 = nullptr;
+    PrimaryGeneratorAction1* fAction1 = nullptr;
+    PrimaryGeneratorAction2* fAction2 = nullptr;
+    PrimaryGeneratorAction3* fAction3 = nullptr;
+    PrimaryGeneratorAction4* fAction4 = nullptr;
+    G4int fSelectedAction = 0;
+
+    PrimaryGeneratorMessenger* fGunMessenger = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

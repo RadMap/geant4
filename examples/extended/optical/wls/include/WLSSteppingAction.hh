@@ -23,88 +23,77 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file optical/wls/include/WLSSteppingAction.hh
+/// \file WLSSteppingAction.hh
 /// \brief Definition of the WLSSteppingAction class
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef WLSSteppingAction_h
 #define WLSSteppingAction_h 1
 
+#include "G4Types.hh"
 #include "G4UserSteppingAction.hh"
 
 class WLSDetectorConstruction;
 class WLSSteppingActionMessenger;
-
-class G4Track;
-class G4StepPoint;
+class WLSEventAction;
 
 class G4OpBoundaryProcess;
+class G4Track;
+class G4StepPoint;
 
 class WLSSteppingAction : public G4UserSteppingAction
 {
   public:
+    WLSSteppingAction(WLSDetectorConstruction*, WLSEventAction*);
+    ~WLSSteppingAction() override;
 
-    WLSSteppingAction(WLSDetectorConstruction*);
-    virtual ~WLSSteppingAction();
+    void UserSteppingAction(const G4Step*) override;
 
-    virtual void UserSteppingAction(const G4Step*);
- 
     // Set the bounce limit, 0 for no limit
-    void  SetBounceLimit(G4int);
- 
+    void SetBounceLimit(G4int);
+
     G4int GetNumberOfBounces();
     G4int GetNumberOfClad1Bounces();
     G4int GetNumberOfClad2Bounces();
     G4int GetNumberOfWLSBounces();
     // return number of successful events and reset the counter
     G4int ResetSuccessCounter();
- 
-  private:
 
+  private:
     // Artificially kill the photon after it has bounced more than this number
-    G4int fBounceLimit;
+    G4int fBounceLimit = 100000;
     // number of photons that reach the end
-    G4int fCounterEnd;
+    G4int fCounterEnd = 0;
     // number of photons that didn't make it to the end
-    G4int fCounterMid;
+    G4int fCounterMid = 0;
     // total number of bounces that a photon been through
-    G4int fCounterBounce;
+    G4int fCounterBounce = 0;
     // number of bounces that a photon been through within the fibre
-    G4int fCounterWLSBounce;
+    G4int fCounterWLSBounce = 0;
     // number of bounces that a photon been through from Cladding 1 to 2
-    G4int fCounterClad1Bounce;
+    G4int fCounterClad1Bounce = 0;
     // number of bounces that a photon been through from Cladding 2 to World
-    G4int fCounterClad2Bounce;
+    G4int fCounterClad2Bounce = 0;
 
     // initial gamma of the photon
-    G4double fInitGamma;
+    G4double fInitGamma = -1.;
     // initial theta of the photon
-    G4double fInitTheta;
+    G4double fInitTheta = -1.;
 
-    G4OpBoundaryProcess* fOpProcess;
+    G4OpBoundaryProcess* fOpProcess = nullptr;
 
-    // maximum number of save states
-    static G4int fMaxRndmSave;
- 
-    WLSDetectorConstruction* fDetector;
-
-    WLSSteppingActionMessenger* fSteppingMessenger;
+    WLSDetectorConstruction* fDetector = nullptr;
+    WLSSteppingActionMessenger* fSteppingMessenger = nullptr;
+    WLSEventAction* fEventAction = nullptr;
 
     inline void ResetCounters()
-    { 
-      fCounterBounce = fCounterWLSBounce =
-      fCounterClad1Bounce = fCounterClad2Bounce = 0;
-      fInitGamma = fInitTheta = -1;
+    {
+      fCounterBounce = 0;
+      fCounterWLSBounce = 0;
+      fCounterClad1Bounce = 0;
+      fCounterClad2Bounce = 0;
+      fInitGamma = -1;
+      fInitTheta = -1;
     }
-
-    // save the random status into a sub-directory
-    // Pre: subDir must be empty or ended with "/"
-    inline void SaveRandomStatus(G4String subDir);
-
 };
 
 #endif

@@ -23,7 +23,6 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ActionInitialization.hh
 /// \brief Definition of the ActionInitialization class
 
@@ -41,15 +40,13 @@ class ActionInitialization : public G4VUserActionInitialization
 {
   public:
     ActionInitialization(DetectorConstruction* detector);
-    virtual ~ActionInitialization();
+    ~ActionInitialization() override;
 
-    virtual void BuildForMaster() const;
-    virtual void Build() const;
+    void BuildForMaster() const override;
+    void Build() const override;
 
   private:
-    DetectorConstruction* fDetector;
+    DetectorConstruction* fDetector = nullptr;
 };
 
 #endif
-
-    

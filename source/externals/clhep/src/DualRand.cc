@@ -54,7 +54,11 @@
 #include "CLHEP/Random/engineIDulong.h"
 #include "CLHEP/Utility/atomic_int.h"
 
+#include <atomic>
+#include <ostream>
 #include <string.h>	// for strcmp
+#include <vector>
+#include <iostream>
 
 namespace CLHEP {
 
@@ -178,7 +182,7 @@ void DualRand::restoreStatus(const char filename[]) {
 }
 
 void DualRand::showStatus() const {
-  int pr=std::cout.precision(20);
+  long pr=std::cout.precision(20);
   std::cout << std::endl;
   std::cout <<         "-------- DualRand engine status ---------"
 	    << std::endl;
@@ -383,7 +387,7 @@ void DualRand::Tausworthe::put(std::ostream & os) const {
   char beginMarker[] = "Tausworthe-begin";
   char endMarker[]   = "Tausworthe-end";
 
-  int pr=os.precision(20);
+  long pr=os.precision(20);
   os << " " << beginMarker << " ";
   for (int i = 0; i < 4; ++i) {
     os << words[i] << " ";
@@ -433,9 +437,9 @@ void DualRand::Tausworthe::get(std::istream & is) {
 bool 
 DualRand::Tausworthe::get(std::vector<unsigned long>::const_iterator & iv){
   for (int i = 0; i < 4; ++i) {
-    words[i] = *iv++;
+    words[i] = (unsigned int)*iv++;
   }
-  wordIndex = *iv++;
+  wordIndex = (int)*iv++;
   return true;
 }
 
@@ -474,7 +478,7 @@ void DualRand::IntegerCong::put(std::ostream & os) const {
   char beginMarker[] = "IntegerCong-begin";
   char endMarker[]   = "IntegerCong-end";
 
-  int pr=os.precision(20);
+  long pr=os.precision(20);
   os << " " << beginMarker << " ";
   os << state << " " << multiplier << " " << addend;
   os << " " <<  endMarker  << " ";
@@ -516,9 +520,9 @@ void DualRand::IntegerCong::get(std::istream & is) {
 
 bool 
 DualRand::IntegerCong::get(std::vector<unsigned long>::const_iterator & iv) {
-  state      = *iv++;
-  multiplier = *iv++;
-  addend     = *iv++;
+  state      = (unsigned int)*iv++;
+  multiplier = (unsigned int)*iv++;
+  addend     = (unsigned int)*iv++;
   return true;
 }
 

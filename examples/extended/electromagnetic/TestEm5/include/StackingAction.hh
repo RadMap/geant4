@@ -23,12 +23,8 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm5/include/StackingAction.hh
+/// \file StackingAction.hh
 /// \brief Definition of the StackingAction class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef StackingAction_h
 #define StackingAction_h 1
@@ -45,45 +41,19 @@ class StackingAction : public G4UserStackingAction
 {
   public:
     StackingAction(EventAction*);
-   ~StackingAction();
-   
-    void SetKillStatus(G4int value) { fKillSecondary = value;};
-     
-    virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*);
-    
+    ~StackingAction() override;
+
+    void SetKillStatus(G4int value) { fKillSecondary = value; };
+
+    G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*) override;
+
   private:
-    EventAction*        fEventAction;    
-    
-    G4int               fKillSecondary;
-    StackingMessenger*  fStackMessenger;
+    EventAction* fEventAction;
 
-    G4int               fPhotoGamma;
-    G4int               fComptGamma;
-    G4int               fPhotoAuger;
-    G4int               fComptAuger;
-    G4int               fPixeGamma;
-    G4int               fPixeAuger;
-
-    G4int               fElectronDNAGamma;
-    G4int               fElectronDNAAuger;
-    G4int               fProtonDNAGamma;
-    G4int               fProtonDNAAuger;
-    G4int               fHydrogenDNAGamma;
-    G4int               fHydrogenDNAAuger;
-    G4int               fAlphaDNAGamma;
-    G4int               fAlphaDNAAuger;
-    G4int               fAlphaPlusDNAGamma;
-    G4int               fAlphaPlusDNAAuger;
-    G4int               fHeliumDNAGamma;
-    G4int               fHeliumDNAAuger;
-    G4int               fGenericIonDNAGamma;
-    G4int               fGenericIonDNAAuger;
-
-    G4bool              fIDdefined;
-        
+    G4bool fKillSecondary = false;
+    StackingMessenger* fStackMessenger = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

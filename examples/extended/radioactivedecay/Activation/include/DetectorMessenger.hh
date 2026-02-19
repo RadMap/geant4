@@ -25,10 +25,6 @@
 //
 /// \file DetectorMessenger.hh
 /// \brief Definition of the DetectorMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef DetectorMessenger_h
 #define DetectorMessenger_h 1
@@ -45,25 +41,23 @@ class G4UIcmdWithoutParameter;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class DetectorMessenger: public G4UImessenger
+class DetectorMessenger : public G4UImessenger
 {
   public:
-  
-    DetectorMessenger(DetectorConstruction* );
-   ~DetectorMessenger();
-    
-    virtual void SetNewValue(G4UIcommand*, G4String);
-    
+    DetectorMessenger(DetectorConstruction*);
+    ~DetectorMessenger() override;
+
+    void SetNewValue(G4UIcommand*, G4String) override;
+
   private:
-  
-    DetectorConstruction*      fDetector;
-    
-    G4UIdirectory*             fTestemDir;
-    G4UIdirectory*             fDetDir;
-    G4UIcmdWithAString*        fMaterCmd;
-    G4UIcmdWithADoubleAndUnit* fThickCmd;
-    G4UIcmdWithADoubleAndUnit* fSizeYZCmd;
-    G4UIcommand*               fIsotopeCmd;    
+    DetectorConstruction* fDetector = nullptr;
+
+    G4UIdirectory* fTestemDir = nullptr;
+    G4UIdirectory* fDetDir = nullptr;
+    G4UIcmdWithAString* fMaterCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fThickCmd = nullptr;
+    G4UIcmdWithADoubleAndUnit* fSizeYZCmd = nullptr;
+    G4UIcommand* fIsotopeCmd = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

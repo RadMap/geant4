@@ -25,46 +25,33 @@
 //
 /// \file HadronElasticPhysicsHP.hh
 /// \brief Definition of the HadronElasticPhysicsHP class
-//
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #ifndef HadronElasticPhysicsHP_h
 #define HadronElasticPhysicsHP_h 1
 
-#include "globals.hh"
 #include "G4HadronElasticPhysics.hh"
+#include "globals.hh"
 
-class NeutronHPMessenger;
+class G4GenericMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class HadronElasticPhysicsHP : public G4HadronElasticPhysics
 {
-  public: 
-    HadronElasticPhysicsHP(G4int ver = 1); 
-   ~HadronElasticPhysicsHP();
-
-  public: 
-    virtual void ConstructProcess();
-    
   public:
-    void SetThermalPhysics(G4bool flag) {fThermal = flag;};
-      
+    HadronElasticPhysicsHP(G4int ver = 1);
+    ~HadronElasticPhysicsHP() override;
+
+  public:
+    void ConstructProcess() override;
+
   private:
-    G4bool                  fThermal;
-    NeutronHPMessenger*     fNeutronMessenger;          
+    void DefineCommands();
+
+    G4GenericMessenger* fMessenger = nullptr;
+    G4bool fThermal = false;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-
-
-
-
-
-
-

@@ -23,13 +23,12 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file hadronic/Hadr02/src/HadronPhysicsUrQMD.cc
+/// \file HadronPhysicsUrQMD.cc
 /// \brief Implementation of the HadronPhysicsUrQMD class
-//
-//
+
 //---------------------------------------------------------------------------
 //
-// ClassName:   
+// ClassName:
 //
 // Author: 2012 A. Dotti
 //   created from HadronPhysicsUrQMD
@@ -39,39 +38,37 @@
 //----------------------------------------------------------------------------
 //
 #ifdef G4_USE_URQMD
-#include "HadronPhysicsUrQMD.hh"
+#  include "HadronPhysicsUrQMD.hh"
 
-#include "globals.hh"
-#include "G4ios.hh"
-#include <iomanip>   
-#include "G4ParticleDefinition.hh"
-#include "G4ParticleTable.hh"
-#include "G4PhysicalConstants.hh"
-#include "G4SystemOfUnits.hh"
+#  include "G4BaryonConstructor.hh"
+#  include "G4ChipsKaonMinusInelasticXS.hh"
+#  include "G4ChipsKaonPlusInelasticXS.hh"
+#  include "G4ChipsKaonZeroInelasticXS.hh"
+#  include "G4CrossSectionDataSetRegistry.hh"
+#  include "G4MesonConstructor.hh"
+#  include "G4ParticleDefinition.hh"
+#  include "G4ParticleTable.hh"
+#  include "G4PhysicalConstants.hh"
+#  include "G4ProcessManager.hh"
+#  include "G4ShortLivedConstructor.hh"
+#  include "G4SystemOfUnits.hh"
+#  include "G4ios.hh"
+#  include "globals.hh"
 
-#include "G4MesonConstructor.hh"
-#include "G4BaryonConstructor.hh"
-#include "G4ShortLivedConstructor.hh"
-
-#include "G4ChipsKaonMinusInelasticXS.hh"
-#include "G4ChipsKaonPlusInelasticXS.hh"
-#include "G4ChipsKaonZeroInelasticXS.hh"
-#include "G4CrossSectionDataSetRegistry.hh"
-
-#include "G4ProcessManager.hh"
+#  include <iomanip>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-HadronPhysicsUrQMD::HadronPhysicsUrQMD(G4int)
-  :  G4VPhysicsConstructor("hInelastic UrQMD")
+HadronPhysicsUrQMD::HadronPhysicsUrQMD(G4int) : G4VPhysicsConstructor("hInelastic UrQMD")
 {
   fNeutrons = 0;
   fUrQMDNeutron = 0;
   fPiK = 0;
   fUrQMDPiK = 0;
   fPro = 0;
-  fUrQMDPro = 0;    
+  fUrQMDPro = 0;
   fHyperon = 0;
+  fFTFPHyperon = 0;
   fAntiBaryon = 0;
 }
 
@@ -79,24 +76,26 @@ HadronPhysicsUrQMD::HadronPhysicsUrQMD(G4int)
 
 void HadronPhysicsUrQMD::CreateModels()
 {
-  fNeutrons=new G4NeutronBuilder;
-  fUrQMDNeutron=new UrQMDNeutronBuilder();  // put fission and capture here
+  fNeutrons = new G4NeutronBuilder;
+  fUrQMDNeutron = new UrQMDNeutronBuilder();  // put fission and capture here
   fNeutrons->RegisterMe(fUrQMDNeutron);
 
-  fPro=new G4ProtonBuilder;
-  fUrQMDPro=new UrQMDProtonBuilder();
+  fPro = new G4ProtonBuilder;
+  fUrQMDPro = new UrQMDProtonBuilder();
   fPro->RegisterMe(fUrQMDPro);
 
-  fPiK=new G4PiKBuilder;
-  fUrQMDPiK=new UrQMDPiKBuilder();
+  fPiK = new G4PiKBuilder;
+  fUrQMDPiK = new UrQMDPiKBuilder();
   fPiK->RegisterMe(fUrQMDPiK);
-  
-  //For Hyperons use FTF model
-  fHyperon=new G4HyperonFTFPBuilder;
-    
-  fAntiBaryon=new G4AntiBarionBuilder;
-  fUrQMDAntiBaryon=new  UrQMDAntiBarionBuilder();
-  fAntiBaryon->RegisterMe( fUrQMDAntiBaryon );
+
+  // For Hyperons use FTF model
+  fHyperon = new G4HyperonBuilder;
+  fFTFPHyperon = new G4HyperonFTFPBuilder;
+  fHyperon->RegisterMe(fFTFPHyperon);
+
+  fAntiBaryon = new G4AntiBarionBuilder;
+  fUrQMDAntiBaryon = new UrQMDAntiBarionBuilder();
+  fAntiBaryon->RegisterMe(fUrQMDAntiBaryon);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -108,11 +107,12 @@ HadronPhysicsUrQMD::~HadronPhysicsUrQMD()
 
   delete fPiK;
   delete fUrQMDPiK;
-    
+
   delete fPro;
-  delete fUrQMDPro;    
-    
+  delete fUrQMDPro;
+
   delete fHyperon;
+  delete fFTFPHyperon;
   delete fAntiBaryon;
   delete fUrQMDAntiBaryon;
 }
@@ -128,7 +128,7 @@ void HadronPhysicsUrQMD::ConstructParticle()
   pBaryonConstructor.ConstructParticle();
 
   G4ShortLivedConstructor pShortLivedConstructor;
-  pShortLivedConstructor.ConstructParticle();  
+  pShortLivedConstructor.ConstructParticle();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -139,24 +139,20 @@ void HadronPhysicsUrQMD::ConstructProcess()
   fNeutrons->Build();
   fPro->Build();
   fPiK->Build();
-    
+
   // use CHIPS cross sections also for Kaons
-  ChipsKaonMinus = G4CrossSectionDataSetRegistry::Instance()->
-    GetCrossSectionDataSet(G4ChipsKaonMinusInelasticXS::Default_Name());
-  ChipsKaonPlus = G4CrossSectionDataSetRegistry::Instance()->
-    GetCrossSectionDataSet(G4ChipsKaonPlusInelasticXS::Default_Name());
-  ChipsKaonZero = G4CrossSectionDataSetRegistry::Instance()->
-    GetCrossSectionDataSet(G4ChipsKaonZeroInelasticXS::Default_Name());
-    //
-    
-  G4PhysListUtil::FindInelasticProcess(G4KaonMinus::KaonMinus())->
-    AddDataSet(ChipsKaonMinus);
-  G4PhysListUtil::FindInelasticProcess(G4KaonPlus::KaonPlus())->
-    AddDataSet(ChipsKaonPlus);
-  G4PhysListUtil::FindInelasticProcess(G4KaonZeroShort::KaonZeroShort())->
-    AddDataSet(ChipsKaonZero );
-  G4PhysListUtil::FindInelasticProcess(G4KaonZeroLong::KaonZeroLong())->
-    AddDataSet(ChipsKaonZero );
+  ChipsKaonMinus = G4CrossSectionDataSetRegistry::Instance()->GetCrossSectionDataSet(
+    G4ChipsKaonMinusInelasticXS::Default_Name());
+  ChipsKaonPlus = G4CrossSectionDataSetRegistry::Instance()->GetCrossSectionDataSet(
+    G4ChipsKaonPlusInelasticXS::Default_Name());
+  ChipsKaonZero = G4CrossSectionDataSetRegistry::Instance()->GetCrossSectionDataSet(
+    G4ChipsKaonZeroInelasticXS::Default_Name());
+  //
+
+  G4PhysListUtil::FindInelasticProcess(G4KaonMinus::KaonMinus())->AddDataSet(ChipsKaonMinus);
+  G4PhysListUtil::FindInelasticProcess(G4KaonPlus::KaonPlus())->AddDataSet(ChipsKaonPlus);
+  G4PhysListUtil::FindInelasticProcess(G4KaonZeroShort::KaonZeroShort())->AddDataSet(ChipsKaonZero);
+  G4PhysListUtil::FindInelasticProcess(G4KaonZeroLong::KaonZeroLong())->AddDataSet(ChipsKaonZero);
 
   fHyperon->Build();
   fAntiBaryon->Build();
@@ -164,23 +160,22 @@ void HadronPhysicsUrQMD::ConstructProcess()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4HadronicProcess* 
-HadronPhysicsUrQMD::FindInelasticProcess(const G4ParticleDefinition* p)
+G4HadronicProcess* HadronPhysicsUrQMD::FindInelasticProcess(const G4ParticleDefinition* p)
 {
   G4HadronicProcess* had = 0;
-  if(p) {
-     G4ProcessVector*  pvec = p->GetProcessManager()->GetProcessList();
-     size_t n = pvec->size();
-     if(0 < n) {
-       for(size_t i=0; i<n; ++i) {
-         if(fHadronInelastic == ((*pvec)[i])->GetProcessSubType()) {
-           had = static_cast<G4HadronicProcess*>((*pvec)[i]);
-           break;
-         }
-       }
-     }
+  if (p) {
+    G4ProcessVector* pvec = p->GetProcessManager()->GetProcessList();
+    size_t n = pvec->size();
+    if (0 < n) {
+      for (size_t i = 0; i < n; ++i) {
+        if (fHadronInelastic == ((*pvec)[i])->GetProcessSubType()) {
+          had = static_cast<G4HadronicProcess*>((*pvec)[i]);
+          break;
+        }
+      }
+    }
   }
   return had;
 }
 
-#endif //G4_USE_URQMD
+#endif  // G4_USE_URQMD

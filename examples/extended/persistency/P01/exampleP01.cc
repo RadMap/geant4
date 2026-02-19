@@ -23,47 +23,38 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P01/exampleP01.cc
+/// \file exampleP01.cc
 /// \brief Main program of the persistency/P01 example
-//
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-#include "G4Types.hh"
 
 #include "ExP01DetectorConstruction.hh"
+#include "ExP01EventAction.hh"
 #include "ExP01PrimaryGeneratorAction.hh"
 #include "ExP01RunAction.hh"
-#include "ExP01EventAction.hh"
 #include "ExP01SteppingAction.hh"
 #include "ExP01SteppingVerbose.hh"
-
 #include "FTFP_BERT.hh"
 
-#include "G4RunManager.hh"
-#include "G4UImanager.hh"
-
-#include "G4VisExecutive.hh"
+#include "G4RunManagerFactory.hh"
+#include "G4Types.hh"
 #include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
+#include "G4VisExecutive.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-int main(int argc,char** argv) {
-
+int main(int argc, char** argv)
+{
   // Instantiate G4UIExecutive if interactive mode
   G4UIExecutive* ui = nullptr;
-  if ( argc == 1 ) {
+  if (argc == 1) {
     ui = new G4UIExecutive(argc, argv);
   }
 
-  //my Verbose output class
+  // my Verbose output class
   G4VSteppingVerbose::SetInstance(new ExP01SteppingVerbose);
-  
+
   // Run manager
-  G4RunManager * runManager = new G4RunManager;
+  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::SerialOnly);
 
   // UserInitialization classes (mandatory)
   ExP01DetectorConstruction* ExP01detector = new ExP01DetectorConstruction;
@@ -71,36 +62,36 @@ int main(int argc,char** argv) {
 
   G4VModularPhysicsList* physicsList = new FTFP_BERT;
   runManager->SetUserInitialization(physicsList);
-  
+
   // Visualization
   G4VisManager* visManager = new G4VisExecutive;
   visManager->Initialize();
 
   // UserAction classes
   runManager->SetUserAction(new ExP01PrimaryGeneratorAction(ExP01detector));
-  runManager->SetUserAction(new ExP01RunAction);  
+  runManager->SetUserAction(new ExP01RunAction);
   runManager->SetUserAction(new ExP01EventAction);
   runManager->SetUserAction(new ExP01SteppingAction);
 
-  //Initialize G4 kernel
+  // Initialize G4 kernel
   runManager->Initialize();
-      
-  //get the pointer to the User Interface manager 
-  G4UImanager * UImanager = G4UImanager::GetUIpointer();  
 
-  if(ui)
-  // Define (G)UI terminal for interactive mode  
-  { 
+  // get the pointer to the User Interface manager
+  G4UImanager* UImanager = G4UImanager::GetUIpointer();
+
+  if (ui)
+  // Define (G)UI terminal for interactive mode
+  {
     UImanager->ApplyCommand("/control/execute vis.mac");
     ui->SessionStart();
     delete ui;
   }
   else
   // Batch mode
-  { 
+  {
     G4String command = "/control/execute ";
     G4String fileName = argv[1];
-    UImanager->ApplyCommand(command+fileName);
+    UImanager->ApplyCommand(command + fileName);
   }
 
   delete visManager;
@@ -111,4 +102,3 @@ int main(int argc,char** argv) {
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

@@ -48,7 +48,7 @@ G4PVDivision::G4PVDivision(const G4String& pName,
                            const G4int nDivs,
                            const G4double width,
                            const G4double offset )
-  : G4VPhysicalVolume(nullptr,G4ThreeVector(),pName,pLogical,nullptr)
+  : G4PVReplica(pName, nDivs, pAxis, pLogical, pMotherLogical)
 {
   if (pMotherLogical == nullptr)
   {
@@ -82,7 +82,7 @@ G4PVDivision::G4PVDivision(const G4String& pName,
                            const EAxis pAxis,
                            const G4int nDivs,
                            const G4double offset )
-  : G4VPhysicalVolume(nullptr,G4ThreeVector(),pName,pLogical,nullptr)
+  : G4PVReplica(pName, nDivs, pAxis, pLogical, pMotherLogical)
 {
   if (pMotherLogical == nullptr)
   {
@@ -114,7 +114,7 @@ G4PVDivision::G4PVDivision(const G4String& pName,
                            const EAxis pAxis,
                            const G4double width,
                            const G4double offset )
-  : G4VPhysicalVolume(nullptr,G4ThreeVector(),pName,pLogical,nullptr)
+  : G4PVReplica(pName, 0, pAxis, pLogical, pMotherLogical)
 {
   if (pMotherLogical == nullptr)
   {
@@ -147,7 +147,8 @@ G4PVDivision::G4PVDivision(const G4String& pName,
                            const G4int nDivs,
                            const G4double width,
                            const G4double offset )
-  : G4VPhysicalVolume(nullptr,G4ThreeVector(),pName,pLogical,nullptr)
+  : G4PVReplica(pName, nDivs, pAxis, pLogical,
+                pMotherPhysical != nullptr ? pMotherPhysical->GetLogicalVolume() : nullptr)
 {
   if (pMotherPhysical == nullptr)
   {
@@ -230,7 +231,7 @@ G4PVDivision::CheckAndSetParameters( const EAxis pAxis,
   // in G4VPVParameterisation::ComputeTransformation, for others
   // it will stay the unity
   //
-  G4RotationMatrix* pRMat = new G4RotationMatrix();
+  auto  pRMat = new G4RotationMatrix();
   SetRotation(pRMat);
   
   switch (faxis)
@@ -268,9 +269,7 @@ G4PVDivision::CheckAndSetParameters( const EAxis pAxis,
 }
 
 //--------------------------------------------------------------------------
-G4PVDivision::~G4PVDivision()
-{
-}
+G4PVDivision::~G4PVDivision() = default;
 
 //--------------------------------------------------------------------------
 EAxis G4PVDivision::GetDivisionAxis() const
@@ -288,18 +287,6 @@ G4bool G4PVDivision::IsParameterised() const
 G4bool G4PVDivision::IsMany() const
 {
   return false; 
-}
-
-//--------------------------------------------------------------------------
-G4int G4PVDivision::GetCopyNo() const
-{
-  return fcopyNo;
-}
-
-//--------------------------------------------------------------------------
-void  G4PVDivision::SetCopyNo(G4int newCopyNo)
-{
-  fcopyNo = newCopyNo;
 }
 
 //--------------------------------------------------------------------------

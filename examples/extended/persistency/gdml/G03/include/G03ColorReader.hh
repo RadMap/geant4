@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G03/include/G03ColorReader.hh
+/// \file G03ColorReader.hh
 /// \brief Definition of the G03ColorReader class
-//
-//
-//
-//
+
 // class G03ColorReader
 //
 // Custom reader for handling "color" tags extensions in GDML.
@@ -37,8 +34,9 @@
 #ifndef G03ColorReader_H
 #define G03ColorReader_H 1
 
-#include <map>
 #include "G4GDMLReadStructure.hh"
+
+#include <map>
 
 class G4VisAttributes;
 
@@ -46,24 +44,20 @@ class G4VisAttributes;
 
 class G03ColorReader : public G4GDMLReadStructure
 {
+  public:
+    G03ColorReader();
+    ~G03ColorReader();
 
- public:
+    void ExtensionRead(const xercesc::DOMElement* const element);
+    void ColorRead(const xercesc::DOMElement* const element);
 
-   G03ColorReader();
-  ~G03ColorReader();
+    G4VisAttributes* GetVisAttribute(const G4String& ref);
 
-   void ExtensionRead(const xercesc::DOMElement* const element);
-   void ColorRead(const xercesc::DOMElement* const element);
+  protected:
+    virtual void VolumeRead(const xercesc::DOMElement* const);
 
-   G4VisAttributes* GetVisAttribute(const G4String& ref);
-
- protected:
-
-   virtual void VolumeRead(const xercesc::DOMElement* const);
-
- private:
-
-   std::map<G4String, G4VisAttributes*> fAttribs;
+  private:
+    std::map<G4String, G4VisAttributes*> fAttribs;
 };
 
 #endif

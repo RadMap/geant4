@@ -48,6 +48,7 @@
 #include "G4ITReactionTable.hh"
 #include "G4MolecularConfiguration.hh"
 #include "G4ReferenceCast.hh"
+#include "G4VDNAMolecularGeometry.hh"
 #include <vector>
 #include <map>
 #include <functional>
@@ -89,9 +90,21 @@ public:
 
     void SetObservedReactionRateConstant(G4double rate);
     G4double GetObservedReactionRateConstant() const;
+    G4double GetActivationRateConstant() const;
+    G4double GetDiffusionRateConstant() const;
 
-    G4double GetEffectiveReactionRadius() const;
+    void SetReactionRadius(G4double radius);
+    G4double GetReactionRadius() const;
+
     void SetEffectiveReactionRadius(G4double radius);
+    G4double GetEffectiveReactionRadius() const;
+    G4double GetOnsagerRadius() const;
+
+    void SetProbability(G4double prob);
+    G4double GetProbability() const;
+
+    void SetReactionType(G4int type);
+    G4int GetReactionType() const;
 
     void SetReactant1(Reactant* reactive);
     void SetReactant2(Reactant* reactive);
@@ -114,7 +127,7 @@ public:
 
     //----------------------------------------------------------------------------
     // Temperature scaling
-    typedef std::function<double(double)> RateParam;
+    using RateParam = std::function<double (double)>;
 
     static double PolynomialParam(double temp_K, std::vector<double> P);
     static double ArrehniusParam(double temp_K, std::vector<double> P);
@@ -130,15 +143,24 @@ public:
 
     void ScaleForNewTemperature(double temp_K);
 
-private:
     void ComputeEffectiveRadius();
 
 protected:
     G4DNAMolecularReactionData();
     Reactant* fpReactant1;
     Reactant* fpReactant2;
+
     G4double fObservedReactionRate;
+    G4double fActivationRate;
+    G4double fDiffusionRate;
+
+    G4double fOnsagerRadius;
+
+    G4double fReactionRadius;
     G4double fEffectiveReactionRadius;
+
+    G4double fProbability;
+    G4int fType;
 
     ReactionProducts fProducts;
     RateParam fRateParam;
@@ -159,7 +181,7 @@ public:
     static G4DNAMolecularReactionTable* GetReactionTable();
     static G4DNAMolecularReactionTable* Instance();
     static void DeleteInstance();
-    virtual ~G4DNAMolecularReactionTable();
+    ~G4DNAMolecularReactionTable() override;
 
     using Reactant = const G4MolecularConfiguration;
     using Data = const G4DNAMolecularReactionData;
@@ -186,6 +208,9 @@ public:
 
     void SetReaction(G4DNAMolecularReactionData*);
 
+    void SetGeometry(G4VDNAMolecularGeometry* geometry){fGeometry = geometry;};
+    G4VDNAMolecularGeometry* GetGeometry() const;
+
     Data* GetReactionData(Reactant*, Reactant*) const;
 
     Data* GetReactionData(const G4String&, const G4String&) const;
@@ -211,11 +236,14 @@ public:
     void ScaleReactionRateForNewTemperature(double temp_K);
 
     //_________________________________________________________________
-    void PrintTable(G4VDNAReactionModel* = 0);
+    void PrintTable(G4VDNAReactionModel* = nullptr);
+
+    void Reset();
 
 protected:
-    G4bool fVerbose;
+    G4bool fVerbose{false};
 
+    G4VDNAMolecularGeometry* fGeometry{nullptr};
     ReactionDataMap fReactionData;
     ReactivesMV     fReactantsMV;
     ReactionDataMV  fReactionDataMV;

@@ -23,11 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/gdml/G03/include/G03DetectorConstruction.hh
+/// \file G03DetectorConstruction.hh
 /// \brief Definition of the G03DetectorConstruction class
-//
-//
-//
+
 // Class G03DetectorConstruction
 //
 // A detector construction class loading the geometry from GDML files.
@@ -37,9 +35,9 @@
 #ifndef G03DetectorConstruction_H
 #define G03DetectorConstruction_H 1
 
-#include "globals.hh"
-#include "G4VUserDetectorConstruction.hh"
 #include "G4GDMLParser.hh"
+#include "G4VUserDetectorConstruction.hh"
+#include "globals.hh"
 
 class G4Material;
 class G03DetectorMessenger;
@@ -49,11 +47,10 @@ class G03DetectorMessenger;
 class G03DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-
     // Constructor and destructor
     //
     G03DetectorConstruction();
-   ~G03DetectorConstruction();
+    ~G03DetectorConstruction();
 
     // Construction of Detector
     //
@@ -65,13 +62,12 @@ class G03DetectorConstruction : public G4VUserDetectorConstruction
 
     // Reading/writing GDML
     //
-    void SetReadFile( const G4String& fname );
-    void SetWriteFile( const G4String& fname );
+    void SetReadFile(const G4String& fname);
+    void SetWriteFile(const G4String& fname);
 
   private:
-
-    G4Material* fAir ;
-    G4Material* fAluminum ;
+    G4Material* fAir;
+    G4Material* fAluminum;
     G4Material* fPb;
     G4Material* fXenon;
 
@@ -86,12 +82,12 @@ class G03DetectorConstruction : public G4VUserDetectorConstruction
     // GDMLparser
     //
     G4GDMLParser* fParser;
-        
+
     // Read/write Settings
     //
     G4String fReadFile, fWriteFile;
     G4bool fWritingChoice;
- 
+
     // Detector Messenger
     //
     G03DetectorMessenger* fDetectorMessenger;

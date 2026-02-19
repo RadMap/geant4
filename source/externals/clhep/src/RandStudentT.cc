@@ -17,9 +17,13 @@
 // =======================================================================
 
 #include <float.h>
-#include <cmath>	// for std::log() std::exp()
 #include "CLHEP/Random/RandStudentT.h"
 #include "CLHEP/Random/DoubConv.h"
+
+#include <cmath>	// for std::log() std::exp()
+#include <iostream>
+#include <string>
+#include <vector>
 
 namespace CLHEP {
 
@@ -136,7 +140,7 @@ double RandStudentT::shoot( HepRandomEngine *anEngine, double a ) {
 }
 
 std::ostream & RandStudentT::put ( std::ostream & os ) const {
-  int pr=os.precision(20);
+  long pr=os.precision(20);
   std::vector<unsigned long> t(2);
   os << " " << name() << "\n";
   os << "Uvec" << "\n";

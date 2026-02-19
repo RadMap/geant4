@@ -62,9 +62,11 @@
 
 namespace G4INCL {
 
+  enum AnnihilationType {Def=0, PType, NType, PTypeInFlight, NTypeInFlight, NbarPTypeInFlight, NbarNTypeInFlight, DNbarNPbarPType, DNbarNPbarNType, DNbarPPbarPType, DNbarPPbarNType};
+
   class Nucleus : public Cluster {
   public:
-    Nucleus(G4int mass, G4int charge, G4int strangess, Config const * const conf, const G4double universeRadius=-1.);
+    Nucleus(G4int mass, G4int charge, G4int strangess, Config const * const conf, const G4double universeRadius=-1., AnnihilationType AType=Def);
     virtual ~Nucleus();
 
     /// \brief Dummy copy constructor to silence Coverity warning
@@ -72,6 +74,9 @@ namespace G4INCL {
 
     /// \brief Dummy assignment operator to silence Coverity warning
     Nucleus &operator=(const Nucleus &rhs);
+
+    AnnihilationType getAType() const;
+    void setAType(AnnihilationType type);
 
     /**
      * Call the Cluster method to generate the initial distribution of
@@ -89,6 +94,15 @@ namespace G4INCL {
         theNpInitial += Math::heaviside(ParticleTable::getIsospin(p->getType()));
         theNnInitial += Math::heaviside(-ParticleTable::getIsospin(p->getType()));
       }
+      if(p->isLambda())
+        theNlInitial++;
+      if(p->getType() == SigmaPlus)
+        theNSpInitial++;
+      if(p->getType() == SigmaZero)
+        theNSzInitial++;
+      if(p->getType() == SigmaMinus)
+        theNSmInitial++;
+      
       if(p->isPion()) {
         theNpionplusInitial += Math::heaviside(ParticleTable::getIsospin(p->getType()));
         theNpionminusInitial += Math::heaviside(-ParticleTable::getIsospin(p->getType()));
@@ -96,6 +110,10 @@ namespace G4INCL {
       if(p->isKaon() || p->isAntiKaon()) {
         theNkaonplusInitial += Math::heaviside(ParticleTable::getIsospin(p->getType()));
         theNkaonminusInitial += Math::heaviside(-ParticleTable::getIsospin(p->getType()));
+      }
+      if(p->isAntiNucleon()) {
+        if (p->getZ()<0) theNantiprotonInitial += Math::heaviside(-ParticleTable::getIsospin(p->getType()));
+        else theNantineutronInitial += Math::heaviside(ParticleTable::getIsospin(p->getType()));
       }
       if(!p->isTargetSpectator()) theStore->getBook().incrementCascading();
     };
@@ -120,6 +138,8 @@ namespace G4INCL {
     G4int getNumberOfEnteringNeutrons() const { return theNnInitial; };
     G4int getNumberOfEnteringPions() const { return theNpionplusInitial+theNpionminusInitial; };
     G4int getNumberOfEnteringKaons() const { return theNkaonplusInitial+theNkaonminusInitial; };
+    G4int getNumberOfEnteringantiProtons() const { return theNantiprotonInitial; };
+    G4int getNumberOfEnteringantiNeutrons() const { return theNantineutronInitial; };
 
     /** \brief Outgoing - incoming separation energies.
      *
@@ -151,10 +171,22 @@ namespace G4INCL {
           case SigmaMinus:
             S += thePotential->getSeparationEnergy(*i);
             break;
+          case antiSigmaPlus:
+          case antiSigmaZero:
+          case antiSigmaMinus:
+          case antiLambda:
+          case antiProton:
+          case antiNeutron:
+            S -= thePotential->getSeparationEnergy(*i);
+            break;
           case Composite:
             S += (*i)->getZ() * thePotential->getSeparationEnergy(Proton)
               + ((*i)->getA() + (*i)->getS() - (*i)->getZ()) * thePotential->getSeparationEnergy(Neutron) 
               - (*i)->getS() * thePotential->getSeparationEnergy(Lambda);
+            break;
+          case antiComposite:
+            S -= (*i)->getZ() * thePotential->getSeparationEnergy(antiProton)
+              + ((*i)->getA() + (*i)->getS() - (*i)->getZ()) * thePotential->getSeparationEnergy(antiNeutron);
             break;
           default:
             break;
@@ -163,10 +195,16 @@ namespace G4INCL {
 
       S -= theNpInitial * thePotential->getSeparationEnergy(Proton);
       S -= theNnInitial * thePotential->getSeparationEnergy(Neutron);
+      S -= theNlInitial * thePotential->getSeparationEnergy(Lambda);
+      S -= theNSpInitial * thePotential->getSeparationEnergy(SigmaPlus);
+      S -= theNSzInitial * thePotential->getSeparationEnergy(SigmaZero);
+      S -= theNSmInitial * thePotential->getSeparationEnergy(SigmaMinus);
       S -= theNpionplusInitial*thePotential->getSeparationEnergy(PiPlus);;
       S -= theNkaonplusInitial*thePotential->getSeparationEnergy(KPlus);
       S -= theNpionminusInitial*thePotential->getSeparationEnergy(PiMinus);
       S -= theNkaonminusInitial*thePotential->getSeparationEnergy(KMinus);
+      S += theNantiprotonInitial*thePotential->getSeparationEnergy(antiProton);
+      S += theNantineutronInitial*thePotential->getSeparationEnergy(antiNeutron);
       return S;
     }
 
@@ -228,9 +266,15 @@ namespace G4INCL {
     
     /// \brief Force emission of all Lambda (desexitation code with strangeness not implanted yet)
     G4int emitInsideLambda();
+     
+    /// \brief Force emission of all Antilambda
+    G4int emitInsideAntilambda();
     
     /// \brief Force emission of all Kaon inside the nucleus
     G4bool emitInsideKaon();
+ 
+    /// \brief Force emission of all Antinucleon inside the nucleus
+    G4bool emitInsideAnnihilationProducts();
 
     /** \brief Compute the recoil momentum and spin of the nucleus. */
     void computeRecoilKinematics();
@@ -306,6 +350,14 @@ namespace G4INCL {
         if((*i)->isLambda()) return true;
       return false;
     }
+     
+    ///\brief Returns true if the nucleus contains any Antilambda.
+    inline G4bool containsAntilambda() {
+      ParticleList const &inside = theStore->getParticles();
+      for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+        if((*i)->isAntiLambda()) return true;
+      return false;
+    }
     
     ///\brief Returns true if the nucleus contains any Sigma.
     inline G4bool containsSigma() {
@@ -322,22 +374,51 @@ namespace G4INCL {
         if((*i)->isKaon()) return true;
       return false;
     }
+       
+    ///\brief Returns true if the nucleus contains any Antinucleons.
+    inline G4bool containsAntinucleon() {
+      ParticleList const &inside = theStore->getParticles();
+      for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+        if((*i)->isAntiNucleon()) return true;
+      return false;
+    }
       
-      ///\brief Returns true if the nucleus contains any etas.
-      inline G4bool containsEtas() {
-          ParticleList const &inside = theStore->getParticles();
-          for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
-              if((*i)->isEta()) return true;
-          return false;
-      }
+    ///\brief Returns true if the nucleus contains any etas.
+    inline G4bool containsEtas() {
+      ParticleList const &inside = theStore->getParticles();
+      for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+        if((*i)->isEta()) return true;
+      return false;
+    }
       
-      ///\brief Returns true if the nucleus contains any omegas.
-      inline G4bool containsOmegas() {
-          ParticleList const &inside = theStore->getParticles();
-          for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
-              if((*i)->isOmega()) return true;
-          return false;
-      }
+    ///\brief Returns true if the nucleus contains any omegas.
+    inline G4bool containsOmegas() {
+      ParticleList const &inside = theStore->getParticles();
+      for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+        if((*i)->isOmega()) return true;
+      return false;
+    }
+ 
+    ///\brief Resets the src partners.
+    inline void resetSrc(){
+      ParticleList const &inside = theStore->getParticles();
+      for(ParticleIter i=inside.begin(), e=inside.end(); i!=e; ++i)
+        (*i)->resetSrcPartner();
+    }
+      
+    inline void setSrcInternalEnergy(double value){
+      srcInternalEnergy = value;    
+    }
+      
+    inline void updateInternalEnergy(double value){
+      initialInternalEnergy += value;
+    }
+      
+    G4double getSrcInternalEnergy() const {
+      return srcInternalEnergy;
+    }      
+
+
       
     /**
      * Print the nucleus info
@@ -345,9 +426,9 @@ namespace G4INCL {
     std::string print();
 
     Store* getStore() const {return theStore; };
-    void setStore(Store *s) {
+    void setStore(Store *str) {
       delete theStore;
-      theStore = s;
+      theStore = str;
     };
 
     G4double getInitialInternalEnergy() const { return initialInternalEnergy; };
@@ -384,6 +465,8 @@ namespace G4INCL {
       G4double energy;
       G4int Z, A, S;
     };
+ 
+    void restoreSrcPartner(Particle *particle, ThreeVector m);
 
     /// \brief Compute charge, mass, energy and momentum balance
     ConservationBalance getConservationBalance(EventInfo const &theEventInfo, const G4bool afterRecoil) const;
@@ -472,6 +555,14 @@ namespace G4INCL {
     /// \brief Getter for thePotential
     NuclearPotential::INuclearPotential const *getPotential() const { return thePotential; };
 
+    /// \brief Getter for theAnnihilationType
+    AnnihilationType getAnnihilationType() const { return theAType; }; //D
+
+    /// \brief Setter for theAnnihilationType
+    void setAnnihilationType(const AnnihilationType at){
+      theAType = at;
+    }; //D
+
   private:
     /** \brief Compute the recoil kinematics for a 1-nucleon remnant.
      *
@@ -481,19 +572,30 @@ namespace G4INCL {
     void computeOneNucleonRecoilKinematics();
 
   private:
+
     G4int theInitialZ, theInitialA, theInitialS;
     /// \brief The number of entering protons
     G4int theNpInitial;
     /// \brief The number of entering neutrons
     G4int theNnInitial;
+    /// \brief The number of entering hyperons
+    G4int theNlInitial;
+    G4int theNSpInitial;
+    G4int theNSzInitial;
+    G4int theNSmInitial;
     /// \brief The number of entering pions
     G4int theNpionplusInitial;
     G4int theNpionminusInitial;
     /// \brief The number of entering kaons
     G4int theNkaonplusInitial;
     G4int theNkaonminusInitial;
+    /// \brief The number of entering antiprotons
+    G4int theNantiprotonInitial;
+    /// \brief The number of entering antineutrons
+    G4int theNantineutronInitial;
     
     G4double initialInternalEnergy;
+    G4double srcInternalEnergy;
     ThreeVector incomingAngularMomentum, incomingMomentum;
     ThreeVector initialCenterOfMass;
     G4bool remnant;
@@ -501,14 +603,7 @@ namespace G4INCL {
     G4double initialEnergy;
     Store *theStore;
     G4bool tryCN;
-
-    /// \brief The charge number of the projectile
-    G4int projectileZ;
-    /// \brief The mass number of the projectile
-    G4int projectileA;
-    /// \brief The strangeness number of the projectile
-    G4int projectileS;
-    
+  
     /// \brief The radius of the universe
     G4double theUniverseRadius;
 
@@ -529,6 +624,8 @@ namespace G4INCL {
 
     /// \brief Pointer to the NuclearPotential object
     NuclearPotential::INuclearPotential const *thePotential;
+
+    AnnihilationType theAType; //D same order as in the cc
 
     INCL_DECLARE_ALLOCATION_POOL(Nucleus)
   };

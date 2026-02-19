@@ -23,19 +23,18 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// G4EnhancedVecAllocator
+//
 // Class Description:
 //
 // A class for fast allocation of STL vectors through a static pool.
 // It's meant to be used as alternative allocator for STL vectors.
        
-//      ---------------- G4EnhancedVecAllocator ----------------
-//
 // Original author: X.Dong (NorthEastern Univ.), November 2009
 // Reviewed implementation: G.Cosmo (CERN), December 2009
 // ------------------------------------------------------------
-
-#ifndef G4EnhancedVecAllocator_h
-#define G4EnhancedVecAllocator_h 1
+#ifndef G4EnhancedVecAllocator_hh
+#define G4EnhancedVecAllocator_hh
 
 #include "G4Types.hh"
 
@@ -47,18 +46,18 @@ typedef struct
 
 typedef struct
 {
-  size_t size;
+  std::size_t size;
   G4int totalspace;
   G4ChunkType *preAllocated;
 } G4ChunkIndexType;
 
 class G4AllocStats
 {
-  // --------------------------------------------------------------------
-  // Utility class, placeholder for global data on allocation.
-  // Initialisation to zero of the data below *must* be added ONCE only
-  // directly in the client code, where this allocator is to be applied
-  // --------------------------------------------------------------------
+  /**
+   * @brief Utility class, placeholder for global data on allocation.
+   * Initialisation to zero of the data below *must* be added ONCE only
+   * directly in the client code, where this allocator is to be applied
+   */
 
   public:
 
@@ -66,6 +65,12 @@ class G4AllocStats
     static G4ThreadLocal G4int totSpace;
     static G4ThreadLocal G4int numCat;
 };
+
+/**
+ * @brief G4EnhancedVecAllocator is a class for fast allocation of STL vectors
+ * through a static pool. It's meant to be used as alternative allocator
+ * for STL vectors.
+ */
 
 template<typename _Tp>
 class G4EnhancedVecAllocator : public std::allocator<_Tp>
@@ -88,11 +93,11 @@ class G4EnhancedVecAllocator : public std::allocator<_Tp>
 
     // override allocate / deallocate
     //
-    void deallocate(_Tp* _Ptr, size_t _Count);
+    void deallocate(_Tp* _Ptr, std::size_t _Count);
 #ifdef __IBMCPP__
-    _Tp* allocate(size_t _Count, void * const hint = 0);  // IBM AIX
+    _Tp* allocate(std::size_t _Count, void * const hint = 0);  // IBM AIX
 #else
-    _Tp* allocate(size_t _Count);
+    _Tp* allocate(std::size_t _Count);
 #endif
 };
 
@@ -105,7 +110,7 @@ class G4EnhancedVecAllocator : public std::allocator<_Tp>
 // ************************************************************
 //
 template<typename _Tp>
-void G4EnhancedVecAllocator<_Tp>::deallocate(_Tp* _Ptr, size_t _Count)
+void G4EnhancedVecAllocator<_Tp>::deallocate(_Tp* _Ptr, std::size_t _Count)
 {
   G4int found = -1;
   if (G4AllocStats::allocStat != 0)
@@ -140,13 +145,13 @@ void G4EnhancedVecAllocator<_Tp>::deallocate(_Tp* _Ptr, size_t _Count)
 //
 #ifdef __IBMCPP__
 template<typename _Tp>
-_Tp* G4EnhancedVecAllocator<_Tp>::allocate(size_t _Count, void * const hint)
+_Tp* G4EnhancedVecAllocator<_Tp>::allocate(std::size_t _Count, void * const hint)
 #else
 template<typename _Tp>
-_Tp* G4EnhancedVecAllocator<_Tp>::allocate(size_t _Count)
+_Tp* G4EnhancedVecAllocator<_Tp>::allocate(std::size_t _Count)
 #endif
 {
-  size_t totalsize = _Count * sizeof(_Tp);
+  std::size_t totalsize = _Count * sizeof(_Tp);
 
   G4int found = -1;
   if (G4AllocStats::allocStat != 0)

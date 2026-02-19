@@ -105,8 +105,6 @@
 #include "G4Electron.hh"
 #include "G4Positron.hh"
 #include "G4Gamma.hh"
-#include "G4MuonPlus.hh"
-#include "G4MuonMinus.hh"
 #include "G4IonTable.hh"
 #include "G4NucleiProperties.hh"
 
@@ -122,12 +120,6 @@
 
 #include <cassert>
 
-// // Q : Use enum G4EmProcessSubType hire ?
-// enum G45DConversionMode
-//   {
-//     kEPair, kMuPair
-//   };
-
 const G4int kEPair = 0;
 const G4int kMuPair = 1;
 
@@ -136,11 +128,13 @@ const G4int kMuPair = 1;
 
 G4BetheHeitler5DModel::G4BetheHeitler5DModel(const G4ParticleDefinition* pd,
                                              const G4String& nam)
-  : G4PairProductionRelModel(pd, nam),fVerbose(1),fConversionType(0),
-    iraw(false),
+  : G4PairProductionRelModel(pd, nam),
     fLepton1(G4Electron::Definition()),fLepton2(G4Positron::Definition()),
+    fTheMuPlus(nullptr),fTheMuMinus(nullptr),
+    fVerbose(1),
+    fConversionType(0),
     fConvMode(kEPair),
-    fTheMuPlus(G4MuonPlus::Definition()),fTheMuMinus(G4MuonMinus::Definition())
+    iraw(false)
 {
   theIonTable = G4IonTable::GetIonTable();
   //Q: Do we need this on Model
@@ -149,8 +143,7 @@ G4BetheHeitler5DModel::G4BetheHeitler5DModel(const G4ParticleDefinition* pd,
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-G4BetheHeitler5DModel::~G4BetheHeitler5DModel()
-{}
+G4BetheHeitler5DModel::~G4BetheHeitler5DModel() = default;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -167,7 +160,7 @@ void G4BetheHeitler5DModel::Initialise(const G4ParticleDefinition* part,
   // > 3 print rejection warning from transformation (fix bug from gammaray .. )
   // > 4 print photon direction & polarisation
   fVerbose = theManager->Verbose();
-  fConversionType  = theManager->GetConversionType();
+  fConversionType = theManager->GetConversionType();
   //////////////////////////////////////////////////////////////
   // iraw :
   //      true  : isolated electron or nucleus.
@@ -179,18 +172,6 @@ void G4BetheHeitler5DModel::Initialise(const G4ParticleDefinition* part,
   //Q: Do we need this on Model
   // The Leptons defined via SetLeptonPair(..) method
   SetLowEnergyLimit(2*CLHEP::electron_mass_c2);
-
-  if (fConvMode == kEPair) {
-    assert(fLepton1->GetPDGEncoding() == fTheElectron->GetPDGEncoding()) ;
-    if (fVerbose > 3)
-      G4cout << "BH5DModel::Initialise conversion to e+ e-" << G4endl;
-  }
-
-  if (fConvMode == kMuPair) {
-    assert(fLepton1->GetPDGEncoding() == fTheMuMinus->GetPDGEncoding()) ;
-    if (fVerbose > 3)
-      G4cout << "BH5DModel::Initialise conversion to mu+ mu-" << G4endl;
-  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -198,66 +179,43 @@ void G4BetheHeitler5DModel::Initialise(const G4ParticleDefinition* part,
 void G4BetheHeitler5DModel::SetLeptonPair(const G4ParticleDefinition* p1,
 		     const G4ParticleDefinition* p2)
 {
-  // Lepton1 - nagative charged particle
-  if ( p1->GetPDGEncoding() < 0 ){
-    if ( p1->GetPDGEncoding() ==
-	 G4Positron::Definition()->GetPDGEncoding() ) {
-      SetConversionMode(kEPair);
-      fLepton1 = p2;
-      fLepton2 = p1;
-      // if (fVerbose)
-	G4cout << "G4BetheHeitler5DModel::SetLeptonPair conversion to e+ e-"
-	       << G4endl;
-    } else   if ( p1->GetPDGEncoding() ==
-		  G4MuonPlus::Definition()->GetPDGEncoding() ) {
-      SetConversionMode(kMuPair);
-      fLepton1 = p2;
-      fLepton2 = p1;
-      // if (fVerbose)
-	G4cout << "G4BetheHeitler5DModel::SetLeptonPair conversion to mu+ mu-"
-	       << G4endl;
-    } else {
-      // Exception
-      G4ExceptionDescription ed;
-      ed << "Model not applicable to particle(s) "
-	 << p1->GetParticleName() << ", "
-	 << p2->GetParticleName();
-      G4Exception("G4BetheHeitler5DModel::SetLeptonPair","em0002",
-		  FatalException, ed);
-    }
-  } else {
-    if ( p1->GetPDGEncoding() ==
-	 G4Electron::Definition()->GetPDGEncoding() ) {
-      SetConversionMode(kEPair);
-      fLepton1 = p1;
-      fLepton2 = p2;
-      // if (fVerbose)
-	G4cout << "G4BetheHeitler5DModel::SetLeptonPair conversion to e+ e-"
-	       << G4endl;
-    } else   if ( p1->GetPDGEncoding() ==
-		  G4MuonMinus::Definition()->GetPDGEncoding() ) {
-      SetConversionMode(kMuPair);
-      fLepton1 = p1;
-      fLepton2 = p2;
-      // if (fVerbose)
-	G4cout << "G4BetheHeitler5DModel::SetLeptonPair conversion to mu+ mu-"
-	       << G4endl;
-    } else {
-      // Exception
-      G4ExceptionDescription ed;
-      ed << "Model not applicable to particle(s) "
-	 << p1->GetParticleName() << ", "
-	 << p2->GetParticleName();
-      G4Exception("G4BetheHeitler5DModel::SetLeptonPair","em0002",
-		  FatalException, ed);
-    }
-  }
-  if ( fLepton1->GetPDGEncoding() != fLepton2->GetAntiPDGEncoding() ) {
+  G4int pdg1 = p1->GetPDGEncoding();
+  G4int pdg2 = p2->GetPDGEncoding();
+  G4int pdg = std::abs(pdg1);
+  if ( pdg1 != -pdg2 || (pdg != 11 && pdg != 13) ) {
+    G4ExceptionDescription ed;
+    ed << " Wrong pair of leptons: " << p1->GetParticleName()
+       << " and " << p1->GetParticleName();
     G4Exception("G4BetheHeitler5DModel::SetLeptonPair","em0007",
-		FatalErrorInArgument, "pair must be particle, antiparticle ");
-      G4cerr << "BH5DModel::SetLeptonPair BAD paricle/anti particle pair"
-	     << fLepton1->GetParticleName() << ", "
-	     << fLepton2->GetParticleName() << G4endl;
+		FatalErrorInArgument, ed, "");
+  } else {
+    if ( pdg == 11 ) {
+      SetConversionMode(kEPair);
+      if( pdg1 == 11 ) {
+	fLepton1 = p1;
+	fLepton2 = p2;
+      } else {
+	fLepton1 = p2;
+	fLepton2 = p1;
+      }
+      if (fVerbose > 0)
+	G4cout << "G4BetheHeitler5DModel::SetLeptonPair conversion to e+ e-"
+	       << G4endl;
+    } else {
+      SetConversionMode(kMuPair);
+      if( pdg1 == 13 ) {
+	fLepton1 = p1;
+	fLepton2 = p2;
+      } else {
+	fLepton1 = p2;
+	fLepton2 = p1;
+      }
+      fTheMuPlus = fLepton2;
+      fTheMuMinus= fLepton1;
+      if (fVerbose > 0)
+	G4cout << "G4BetheHeitler5DModel::SetLeptonPair conversion to mu+ mu-"
+	       << G4endl;
+    }
   }
 }
 
@@ -349,7 +307,7 @@ G4BetheHeitler5DModel::SampleSecondaries(std::vector<G4DynamicParticle*>* fvect,
   // End of Protection
   //
   const G4double GammaPolarizationMag = GammaPolarization.mag();
-
+  
   //////////////////////////////////////////////////////////////
   // target element
   // select randomly one element constituting the material
@@ -430,7 +388,12 @@ G4BetheHeitler5DModel::SampleSecondaries(std::vector<G4DynamicParticle*>* fvect,
   G4LorentzVector LeptonMinus;
   G4double pdf    = 0.;
 
-  G4double rndmv6[6];
+  G4double rndmv6[6] = {0.0};
+  const G4double corrFac = 1.0/(correctionIndex + 1.0);
+  const G4double expLowLim = -20.;
+  const G4double logLowLim = G4Exp(expLowLim/corrFac);
+  G4double z0, z1, z2, x0, x1;
+  G4double betheheitler, sinTheta, cosTheta, dum0;
   // START Sampling
   do {
 
@@ -441,18 +404,25 @@ G4BetheHeitler5DModel::SampleSecondaries(std::vector<G4DynamicParticle*>* fvect,
     // integral y = pow(x,(c+1))/(c+1) @ x = 1 =>  y = 1 /(1+c)
     // invCdf exp( log(y /* *( c + 1.0 )/ (c + 1.0 ) */ ) /( c + 1.0) )
     //////////////////////////////////////////////////
-    const G4double X1 =
-      G4Exp(G4Log(rndmv6[0])/(correctionIndex + 1.0));
 
-    const G4double x0       = G4Exp(xl1 + (xu1 - xl1)*rndmv6[1]);
-    const G4double dum0     = 1./(1.+x0);
-    const G4double cosTheta = (x0-1.)*dum0;
-    const G4double sinTheta = std::sqrt(4.*x0)*dum0;
+    z0 = (rndmv6[0] > logLowLim) ? G4Log(rndmv6[0])*corrFac : expLowLim;  
+    G4double X1 = (z0 > expLowLim) ? G4Exp(z0) : 0.0;
+    z1 = xl1 + (xu1 - xl1)*rndmv6[1];
+    if (z1 > expLowLim) {
+      x0 = G4Exp(z1);
+      dum0 = 1.0/(1.0 + x0);
+      x1 = dum0*x0;
+      cosTheta = -1.0 + 2.0*x1;
+      sinTheta = 2*std::sqrt(x1*(1.0 - x1));
+    } else {
+      x0 = 0.0;
+      dum0 = 1.0;
+      cosTheta = -1.0;
+      sinTheta = 0.0;
+    }
 
-    const G4double PairInvMass  = PairInvMassMin*G4Exp(X1*X1*lnPairInvMassRange);
-
-    //    G4double rndmv3[3];
-    //    rndmEngine->flatArray(3, rndmv3);
+    z2 = X1*X1*lnPairInvMassRange;
+    const G4double PairInvMass = PairInvMassMin*((z2 > 1.e-3) ? G4Exp(z2) : 1 + z2 + 0.5*z2*z2);
 
     // cos and sin theta-lepton
     const G4double cosThetaLept = std::cos(pi*rndmv6[2]);
@@ -465,7 +435,7 @@ G4BetheHeitler5DModel::SampleSecondaries(std::vector<G4DynamicParticle*>* fvect,
     const G4double sinPhiLept   = std::copysign(std::sqrt((1.-cosPhiLept)*(1.+cosPhiLept)),rndmv6[3]-0.5);
     // cos and sin phi
     const G4double cosPhi       = std::cos(twoPi*rndmv6[4]-pi);
-    const G4double sinPhi        = std::copysign(std::sqrt((1.-cosPhi)*(1.+cosPhi)),rndmv6[4]-0.5);
+    const G4double sinPhi       = std::copysign(std::sqrt((1.-cosPhi)*(1.+cosPhi)),rndmv6[4]-0.5);
 
     //////////////////////////////////////////////////
     // frames:
@@ -535,16 +505,22 @@ G4BetheHeitler5DModel::SampleSecondaries(std::vector<G4DynamicParticle*>* fvect,
     const G4double Jacob1 = 2.*X1*lnPairInvMassRange*PairInvMass;
     const G4double Jacob2 = std::abs(sinThetaLept);
 
+    // there is no probability to have a lepton with zero momentum
+    // X and Y components of momentum may be zero, in that case SinPhi=1, cosPhi=0
     const G4double EPlus = LeptonPlus.t();
     const G4double PPlus = LeptonPlus.vect().mag();
-    const G4double sinThetaPlus = LeptonPlus.vect().perp()/PPlus;
-    const G4double cosThetaPlus = LeptonPlus.vect().cosTheta();
-
-    const G4double pPX  = LeptonPlus.x();
-    const G4double pPY  = LeptonPlus.y();
-    const G4double dum1 = 1./std::sqrt( pPX*pPX + pPY*pPY );
-    const G4double cosPhiPlus = pPX*dum1;
-    const G4double sinPhiPlus = pPY*dum1;
+    const G4double pPX = LeptonPlus.x();
+    const G4double pPY = LeptonPlus.y();
+    const G4double pPZ = LeptonPlus.z();
+    G4double sinPhiPlus = 1.0;
+    G4double cosPhiPlus = 0.0;
+    G4double sinThetaPlus = 0.0;
+    G4double cosThetaPlus = pPZ/PPlus;
+    if (cosThetaPlus < 1.0 && cosThetaPlus > -1.0) {
+      sinThetaPlus = std::sqrt((1.0 - cosThetaPlus)*(1.0 + cosThetaPlus));
+      sinPhiPlus = pPY/(PPlus*sinThetaPlus);
+      cosPhiPlus = pPX/(PPlus*sinThetaPlus);
+    }
 
     // denominators:
     // the two cancelling leading terms for forward emission at high energy, removed
@@ -553,16 +529,22 @@ G4BetheHeitler5DModel::SampleSecondaries(std::vector<G4DynamicParticle*>* fvect,
     const G4double DPlus     = (elMassCTP*elMassCTP + ePlusSTP*ePlusSTP)
                               /(EPlus + PPlus*cosThetaPlus);
 
+    // there is no probability to have a lepton with zero momentum
+    // X and Y components of momentum may be zero, in that case SinPhi=0, cosPhi=1
     const G4double EMinus = LeptonMinus.t();
     const G4double PMinus = LeptonMinus.vect().mag();
-    const G4double sinThetaMinus = LeptonMinus.vect().perp()/PMinus;
-    const G4double cosThetaMinus = LeptonMinus.vect().cosTheta();
-
-    const G4double ePX  = LeptonMinus.x();
-    const G4double ePY  = LeptonMinus.y();
-    const G4double dum2 = 1./std::sqrt( ePX*ePX + ePY*ePY );
-    const G4double cosPhiMinus =  ePX*dum2;
-    const G4double sinPhiMinus =  ePY*dum2;
+    const G4double ePX = LeptonMinus.x();
+    const G4double ePY = LeptonMinus.y();
+    const G4double ePZ = LeptonMinus.z();
+    G4double sinPhiMinus = 0.0;
+    G4double cosPhiMinus = 1.0;
+    G4double sinThetaMinus = 0.0;
+    G4double cosThetaMinus = ePZ/PMinus;
+    if (cosThetaMinus < 1.0 && cosThetaMinus > -1.0) {
+      sinThetaMinus = std::sqrt((1.0 - cosThetaMinus)*(1.0 + cosThetaMinus));
+      sinPhiMinus = ePY/(PMinus*sinThetaMinus);
+      cosPhiMinus = ePX/(PMinus*sinThetaMinus);
+    }
 
     const G4double elMassCTM = LeptonMass*cosThetaMinus;
     const G4double eMinSTM   = EMinus*sinThetaMinus;
@@ -592,7 +574,6 @@ G4BetheHeitler5DModel::SampleSecondaries(std::vector<G4DynamicParticle*>* fvect,
       }
     } // else FormFactor = 1 by default
 
-    G4double betheheitler;
     if (GammaPolarizationMag==0.) {
       const G4double pPlusSTP   = PPlus*sinThetaPlus;
       const G4double pMinusSTM  = PMinus*sinThetaMinus;
@@ -623,7 +604,7 @@ G4BetheHeitler5DModel::SampleSecondaries(std::vector<G4DynamicParticle*>* fvect,
     pdf = cross * (xu1 - xl1) / G4Exp(correctionIndex*G4Log(X1)); // cond1;
   } while ( pdf < ymax * rndmv6[5] );
   // END of Sampling
-
+  
   if ( fVerbose > 2 ) {
     G4double recul = std::sqrt(Recoil.x()*Recoil.x()+Recoil.y()*Recoil.y()
                               +Recoil.z()*Recoil.z());
@@ -670,8 +651,8 @@ G4BetheHeitler5DModel::SampleSecondaries(std::vector<G4DynamicParticle*>* fvect,
   }
 
   // Create secondaries
-  G4DynamicParticle* aParticle1 = new G4DynamicParticle(fLepton1,LeptonMinus);
-  G4DynamicParticle* aParticle2 = new G4DynamicParticle(fLepton2,LeptonPlus);
+  auto aParticle1 = new G4DynamicParticle(fLepton1,LeptonMinus);
+  auto aParticle2 = new G4DynamicParticle(fLepton2,LeptonPlus);
 
   // create G4DynamicParticle object for the particle3 ( recoil )
   G4ParticleDefinition* RecoilPart;
@@ -681,7 +662,7 @@ G4BetheHeitler5DModel::SampleSecondaries(std::vector<G4DynamicParticle*>* fvect,
   } else{
     RecoilPart = theIonTable->GetIon(Z, A, 0);
   }
-  G4DynamicParticle* aParticle3 = new G4DynamicParticle(RecoilPart,Recoil);
+  auto aParticle3 = new G4DynamicParticle(RecoilPart,Recoil);
 
   // Fill output vector
   fvect->push_back(aParticle1);

@@ -65,7 +65,7 @@ struct CompareMaterial
   bool operator()(const G4Material* mat1, const G4Material* mat2) const;
 };
 
-typedef std::map<const G4Material*, double, CompareMaterial> ComponentMap;
+using ComponentMap = std::map<const G4Material*, G4double, CompareMaterial>;
 
 /**
  * \class G4DNAMolecularMaterial
@@ -95,17 +95,19 @@ typedef std::map<const G4Material*, double, CompareMaterial> ComponentMap;
 class G4DNAMolecularMaterial: public G4VStateDependent
 {
 public:
+  G4DNAMolecularMaterial(const G4DNAMolecularMaterial& right) = delete;
+  G4DNAMolecularMaterial& operator=(const G4DNAMolecularMaterial&) = delete;
+ 
   static G4DNAMolecularMaterial* Instance();
-  static void DeleteInstance();
   void Initialize();
   void Clear();
 
-  virtual G4bool Notify(G4ApplicationState requestedState);
+  G4bool Notify(G4ApplicationState requestedState) override;
   
   //----------------------------------------------------------------------------
 
   /**
-   * \fn const std::vector<double>* \
+   * \fn const std::vector<G4double>* \
    *     GetDensityTableFor(const G4Material* searchedMaterial) const
    * \brief Retrieve a table of volumetric mass densities (mass per unit volume)
    * in the G4 unit system for chosen material.
@@ -120,10 +122,10 @@ public:
    * indexed on the (parent) material index.
    *
    */
-  const std::vector<double>* GetDensityTableFor(const G4Material*) const;
+  const std::vector<G4double>* GetDensityTableFor(const G4Material*) const;
   
   /**
-   * \fn const std::vector<double>* \
+   * \fn const std::vector<G4double>* \
    *     GetNumMolPerVolTableFor(const G4Material* searchedMaterial) const
    * \brief Retrieve a table of molecular densities (number of molecules per
    * unit volume) in the G4 unit system for chosen material.
@@ -137,7 +139,7 @@ public:
    * Pointer to a table of molecular densities for the \p searchedMaterial 
    * indexed on the (parent) material index.
    */
-  const std::vector<double>* GetNumMolPerVolTableFor(const G4Material*) const;
+  const std::vector<G4double>* GetNumMolPerVolTableFor(const G4Material*) const;
   
   inline const std::vector<ComponentMap>* GetMassFractionTable() const{
     return fpCompFractionTable;
@@ -222,9 +224,7 @@ public:
 protected:
   static G4DNAMolecularMaterial* fInstance;
   G4DNAMolecularMaterial();
-  G4DNAMolecularMaterial(const G4DNAMolecularMaterial& right);
-  G4DNAMolecularMaterial& operator=(const G4DNAMolecularMaterial&);
-  virtual ~G4DNAMolecularMaterial();
+  ~G4DNAMolecularMaterial() override;
   void Create();
   void InitializeNumMolPerVol();
   void InitializeDensity();
@@ -233,9 +233,9 @@ protected:
                                G4double fraction);
   void SearchMolecularMaterial(G4Material* parentMaterial,
                                G4Material* material,
-                               double currentFraction);
+                               G4double currentFraction);
 
-  void AddMaterial(const G4Material*, double fraction);
+  void AddMaterial(const G4Material*, G4double fraction);
 
   void PrintNotAMolecularMaterial(const char* methodName,
                                   const G4Material* lookForMaterial) const;
@@ -245,17 +245,17 @@ protected:
   std::vector<ComponentMap>* fpCompDensityTable;
   std::vector<ComponentMap>* fpCompNumMolPerVolTable;
 
-  mutable std::map<const G4Material*, std::vector<double>*, CompareMaterial>
+  mutable std::map<const G4Material*, std::vector<G4double>*, CompareMaterial>
             fAskedDensityTable;
-  mutable std::map<const G4Material*, std::vector<double>*, CompareMaterial>
+  mutable std::map<const G4Material*, std::vector<G4double>*, CompareMaterial>
             fAskedNumPerVolTable;
-  mutable std::map<const G4Material*, bool, CompareMaterial> fWarningPrinted;
+  mutable std::map<const G4Material*, G4bool, CompareMaterial> fWarningPrinted;
   
-  std::map<int /*Material ID*/,
+  std::map<G4int /*Material ID*/,
            G4MolecularConfiguration*> fMaterialToMolecularConf;
 
   G4bool fIsInitialized;
-  size_t fNMaterials;
+  std::size_t fNMaterials;
 };
 
 #endif // G4DNAMolecularMaterial_HH

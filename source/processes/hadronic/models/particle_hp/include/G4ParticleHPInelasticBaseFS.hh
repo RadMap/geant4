@@ -25,82 +25,65 @@
 //
 //
 // P. Arce, June-2014 Conversion neutron_hp to particle_hp
+// V. Ivanchenko, July-2023 Basic revision of particle HP classes
 //
+
 #ifndef G4ParticleHPInelasticBaseFS_h
 #define G4ParticleHPInelasticBaseFS_h 1
 
-#include "globals.hh"
-#include "G4HadProjectile.hh"
 #include "G4HadFinalState.hh"
-#include "G4ParticleHPFinalState.hh"
-#include "G4ParticleHPAngular.hh"
-#include "G4ParticleHPEnergyDistribution.hh"
-#include "G4ParticleHPEnAngCorrelation.hh"
-#include "G4ParticleHPPhotonDist.hh"
-#include "G4ParticleHPDeExGammas.hh"
+#include "G4HadProjectile.hh"
 #include "G4Nucleus.hh"
+#include "G4ParticleHPAngular.hh"
+#include "G4ParticleHPDeExGammas.hh"
+#include "G4ParticleHPEnAngCorrelation.hh"
+#include "G4ParticleHPEnergyDistribution.hh"
+#include "G4ParticleHPFinalState.hh"
+#include "G4ParticleHPPhotonDist.hh"
+#include "G4ParticleHPNBodyPhaseSpace.hh"
+#include "globals.hh"
 
 class G4ParticleHPInelasticBaseFS : public G4ParticleHPFinalState
 {
-  public:
-    
-    G4ParticleHPInelasticBaseFS()
-    {
-      hasXsec = true; 
-      theXsection = new G4ParticleHPVector;
-    
-      theEnergyDistribution = 0;
-      theFinalStatePhotons = 0;
-      theEnergyAngData = 0;
-      theAngularDistribution = 0;
+ public:
 
-      theNuclearMassDifference = 0.0;
-      Qvalue = 0.0;
-    }
+  G4ParticleHPInelasticBaseFS();
+  ~G4ParticleHPInelasticBaseFS() override;
 
-    virtual ~G4ParticleHPInelasticBaseFS()
-    {
-      delete theXsection;
-      if (theEnergyDistribution != 0) delete theEnergyDistribution;
-      if (theFinalStatePhotons != 0) delete theFinalStatePhotons;
-      if (theEnergyAngData != 0) delete theEnergyAngData;
-      if (theAngularDistribution != 0) delete theAngularDistribution;
-    }
-  
-    void Init (G4double A, G4double Z, G4int M, G4String& dirName,
-               G4String& bit, G4ParticleDefinition*);
+  void Init(G4double A, G4double Z, G4int M, const G4String& dirName,
+            const G4String& bit, G4ParticleDefinition*) override;
 
-    void BaseApply(const G4HadProjectile& theTrack,
-                   G4ParticleDefinition** theDefs, G4int nDef);
+  void BaseApply(const G4HadProjectile& theTrack, G4ParticleDefinition** theDefs, G4int nDef);
 
-    void InitGammas(G4double AR, G4double ZR);
+  void InitGammas(G4double AR, G4double ZR);
 
-    virtual G4HadFinalState* ApplyYourself(const G4HadProjectile& theTrack) = 0;
+  G4HadFinalState* ApplyYourself(const G4HadProjectile& theTrack) override = 0;
 
-    virtual G4ParticleHPFinalState* New() = 0;
-  
-    virtual G4double GetXsec(G4double anEnergy)
-    {
-      return std::max(0., theXsection->GetY(anEnergy));
-    }
+  G4ParticleHPFinalState* New() override = 0;
 
-    virtual G4ParticleHPVector* GetXsec() {return theXsection;}
+  G4double GetXsec(G4double anEnergy) const override
+  {
+    return std::max(0., theXsection->GetY(anEnergy));
+  }
 
-  protected:
-  
-    G4ParticleHPVector* theXsection;
-    G4ParticleHPEnergyDistribution* theEnergyDistribution;
-    G4ParticleHPAngular* theAngularDistribution;
-    G4ParticleHPEnAngCorrelation* theEnergyAngData;
-  
-    G4ParticleHPPhotonDist* theFinalStatePhotons;
-    G4double theNuclearMassDifference;
-    G4ParticleHPDeExGammas theGammas;
-    G4String gammaPath;
+  G4ParticleHPVector* GetXsec() const override { return theXsection; }
 
-    G4double Qvalue;
+  G4ParticleHPInelasticBaseFS& operator=(const G4ParticleHPInelasticBaseFS& right) = delete;
+  G4ParticleHPInelasticBaseFS(const G4ParticleHPInelasticBaseFS&) = delete;
 
-  private:
+ protected:
+
+  G4ParticleHPVector* theXsection;
+  G4ParticleHPEnergyDistribution* theEnergyDistribution{nullptr};
+  G4ParticleHPAngular* theAngularDistribution{nullptr};
+  G4ParticleHPEnAngCorrelation* theEnergyAngData{nullptr};
+
+  G4ParticleHPPhotonDist* theFinalStatePhotons{nullptr};
+  G4double theNuclearMassDifference{0.0};
+  G4double Qvalue{0.0};
+
+  G4ParticleHPDeExGammas theGammas;
+  G4String gammaPath{""};
 };
 
 #endif

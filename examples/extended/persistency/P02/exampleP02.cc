@@ -23,52 +23,38 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P02/exampleP02.cc
+/// \file exampleP02.cc
 /// \brief Main program of the persistency/P02 example
-//
-//
-//
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include "G4Types.hh"
-
-#include "ExP02DetectorConstruction.hh"
 #include "ExP02DetConstrReader.hh"
+#include "ExP02DetectorConstruction.hh"
 #include "ExP02PrimaryGeneratorAction.hh"
-
 #include "FTFP_BERT.hh"
 
-#include "G4RunManager.hh"
-#include "G4UImanager.hh"
-
-#include "G4VisExecutive.hh"
+#include "G4RunManagerFactory.hh"
+#include "G4Types.hh"
 #include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
+#include "G4VisExecutive.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 int main(int argc, char** argv)
-{  
-
-  if(argc==1)
-  {
+{
+  if (argc == 1) {
     G4cout << "Please give 'write' or 'read' as argument " << G4endl;
     return 0;
   }
 
   G4VUserDetectorConstruction* det;
 
-  if(std::string(argv[1]) == "read")
-    {
-      det = new ExP02DetConstrReader;
-    }
-  else if(std::string(argv[1]) == "write")
-  {
+  if (std::string(argv[1]) == "read") {
+    det = new ExP02DetConstrReader;
+  }
+  else if (std::string(argv[1]) == "write") {
     det = new ExP02DetectorConstruction;
   }
-  else
-  {
+  else {
     G4cout << "Wrong argument!" << G4endl;
     return 0;
   }
@@ -77,14 +63,14 @@ int main(int argc, char** argv)
   G4UIExecutive* ui = new G4UIExecutive(argc, argv);
 
   // Run manager
-  G4RunManager * runManager = new G4RunManager;
+  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::SerialOnly);
 
   // UserInitialization classes (mandatory)
   runManager->SetUserInitialization(det);
 
   G4VModularPhysicsList* physicsList = new FTFP_BERT;
   runManager->SetUserInitialization(physicsList);
-  
+
   // Visualization
   G4VisManager* visManager = new G4VisExecutive;
   visManager->Initialize();
@@ -92,11 +78,11 @@ int main(int argc, char** argv)
   // UserAction classes
   runManager->SetUserAction(new ExP02PrimaryGeneratorAction());
 
-  //Initialize G4 kernel
+  // Initialize G4 kernel
   runManager->Initialize();
-      
-  //get the pointer to the User Interface manager 
-  G4UImanager * UImanager = G4UImanager::GetUIpointer();  
+
+  // get the pointer to the User Interface manager
+  G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
   UImanager->ApplyCommand("/control/execute vis.mac");
   ui->SessionStart();
@@ -109,4 +95,3 @@ int main(int argc, char** argv)
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

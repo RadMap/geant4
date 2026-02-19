@@ -25,8 +25,10 @@
 //
 // G4VSolid implementation for solid base class
 //
-// 10.10.18 E.Tcherniaev, more robust EstimateSurfaceArea() based on distance
-// 30.06.95 P.Kent, Created.
+// Author: Paul Kent (CERN), 30.06.1995 - Initial version
+//         John Allison (Manchester Univ.), 27.03.1996 - Added methods for vis
+//         Paul Kent (CERN), 26.07.1996 - Added replication mechanism
+//         Evgueni Tcherniaev (CERN), 10.10.2018 - EstimateSurfaceArea() rewrite
 // --------------------------------------------------------------------
 
 #include "G4VSolid.hh"
@@ -38,6 +40,15 @@
 #include "G4VoxelLimits.hh"
 #include "G4AffineTransform.hh"
 #include "G4VisExtent.hh"
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Streaming operator dumping solid contents
+
+std::ostream& operator<< ( std::ostream& os, const G4VSolid& e )
+{
+    return e.StreamInfo(os);
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -58,7 +69,6 @@ G4VSolid::G4VSolid(const G4String& name)
 //////////////////////////////////////////////////////////////////////////
 //
 // Copy constructor
-//
 
 G4VSolid::G4VSolid(const G4VSolid& rhs)
   : kCarTolerance(rhs.kCarTolerance), fshapeName(rhs.fshapeName)
@@ -72,7 +82,7 @@ G4VSolid::G4VSolid(const G4VSolid& rhs)
 //
 // Fake default constructor - sets only member data and allocates memory
 //                            for usage restricted to object persistency.
-//
+
 G4VSolid::G4VSolid( __void__& )
   : fshapeName("")
 {
@@ -95,7 +105,7 @@ G4VSolid::~G4VSolid()
 //
 // Assignment operator
 
-G4VSolid& G4VSolid::operator = (const G4VSolid& rhs) 
+G4VSolid& G4VSolid::operator = (const G4VSolid& rhs)
 {
    // Check assignment to self
    //
@@ -107,15 +117,16 @@ G4VSolid& G4VSolid::operator = (const G4VSolid& rhs)
    fshapeName = rhs.fshapeName;
 
    return *this;
-}  
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Streaming operator dumping solid contents
+// Set solid name and notify store of the change
 
-std::ostream& operator<< ( std::ostream& os, const G4VSolid& e )
+void G4VSolid::SetName(const G4String& name)
 {
-    return e.StreamInfo(os);
+  fshapeName = name;
+  G4SolidStore::GetInstance()->SetMapValid(false);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -145,7 +156,26 @@ G4ThreeVector G4VSolid::GetPointOnSurface() const
             << "Returning origin.";
     G4Exception("G4VSolid::GetPointOnSurface()", "GeomMgt1001",
                 JustWarning, message);
-    return G4ThreeVector(0,0,0);
+    return {0,0,0};
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Returns total number of constituents that was used for construction
+// of the solid. For non-Boolean solids the return value is one.
+
+G4int G4VSolid::GetNumOfConstituents() const
+{
+  return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Returns true if the solid has only planar faces, false otherwise.
+
+G4bool G4VSolid::IsFaceted() const
+{
+  return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -153,16 +183,24 @@ G4ThreeVector G4VSolid::GetPointOnSurface() const
 // Dummy implementations ...
 
 const G4VSolid* G4VSolid::GetConstituentSolid(G4int) const
-{ return nullptr; } 
+{
+  return nullptr;
+}
 
 G4VSolid* G4VSolid::GetConstituentSolid(G4int)
-{ return nullptr; } 
+{
+  return nullptr;
+}
 
 const G4DisplacedSolid* G4VSolid::GetDisplacedSolidPtr() const
-{ return nullptr; } 
+{
+  return nullptr;
+}
 
-G4DisplacedSolid* G4VSolid::GetDisplacedSolidPtr() 
-{ return nullptr; } 
+G4DisplacedSolid* G4VSolid::GetDisplacedSolidPtr()
+{
+  return nullptr;
+}
 
 ////////////////////////////////////////////////////////////////
 //
@@ -191,27 +229,26 @@ G4double G4VSolid::GetCubicVolume()
 G4double G4VSolid::EstimateCubicVolume(G4int nStat, G4double epsilon) const
 {
   G4int iInside=0;
-  G4double px,py,pz,minX,maxX,minY,maxY,minZ,maxZ,volume,halfepsilon;
+  G4double px, py, pz, volume, halfepsilon;
+  G4double minX=0., maxX=0., minY=0., maxY=0., minZ=0., maxZ=0.;
   G4ThreeVector p;
   EInside in;
 
   // values needed for CalculateExtent signature
-
-  G4VoxelLimits limit;                // Unlimited
+  G4VoxelLimits limit; // unlimited
   G4AffineTransform origin;
 
   // min max extents of pSolid along X,Y,Z
-
   CalculateExtent(kXAxis,limit,origin,minX,maxX);
   CalculateExtent(kYAxis,limit,origin,minY,maxY);
   CalculateExtent(kZAxis,limit,origin,minZ,maxZ);
 
   // limits
-
-  if(nStat < 100)    nStat   = 100;
-  if(epsilon > 0.01) epsilon = 0.01;
+  if(nStat < 100) { nStat   = 100; }
+  if(epsilon > 0.01) { epsilon = 0.01; }
   halfepsilon = 0.5*epsilon;
 
+  G4QuickRand(1234567890); // set seed
   for(auto i = 0; i < nStat; ++i )
   {
     px = minX-halfepsilon+(maxX-minX+epsilon)*G4QuickRand();
@@ -219,7 +256,7 @@ G4double G4VSolid::EstimateCubicVolume(G4int nStat, G4double epsilon) const
     pz = minZ-halfepsilon+(maxZ-minZ+epsilon)*G4QuickRand();
     p  = G4ThreeVector(px,py,pz);
     in = Inside(p);
-    if(in != kOutside) ++iInside;    
+    if(in != kOutside) { ++iInside; }
   }
   volume = (maxX-minX+epsilon)*(maxY-minY+epsilon)
          * (maxZ-minZ+epsilon)*iInside/nStat;
@@ -303,7 +340,7 @@ G4double G4VSolid::EstimateSurfaceArea(G4int nstat, G4double ell) const
   G4double dX = bmax.x() - bmin.x();
   G4double dY = bmax.y() - bmin.y();
   G4double dZ = bmax.z() - bmin.z();
-  
+
   // Define statistics and shell thickness
   //
   G4int npoints = (nstat < 1000) ? 1000 : nstat;
@@ -322,6 +359,7 @@ G4double G4VSolid::EstimateSurfaceArea(G4int nstat, G4double ell) const
 
   // Calculate surface area
   //
+  G4QuickRand(1234567890); // set seed
   G4int icount = 0;
   for(auto i = 0; i < npoints; ++i)
   {
@@ -333,15 +371,15 @@ G4double G4VSolid::EstimateSurfaceArea(G4int nstat, G4double ell) const
     G4double dist = 0;
     if (in == kInside)
     {
-      if (DistanceToOut(p) >= eps) continue;
+      if (DistanceToOut(p) >= eps) { continue; }
       G4int icase = 0;
-      if (Inside(G4ThreeVector(px-del, py, pz)) != kInside) icase += 1;
-      if (Inside(G4ThreeVector(px+del, py, pz)) != kInside) icase += 2;
-      if (Inside(G4ThreeVector(px, py-del, pz)) != kInside) icase += 4;
-      if (Inside(G4ThreeVector(px, py+del, pz)) != kInside) icase += 8;
-      if (Inside(G4ThreeVector(px, py, pz-del)) != kInside) icase += 16;
-      if (Inside(G4ThreeVector(px, py, pz+del)) != kInside) icase += 32;
-      if (icase == 0) continue;
+      if (Inside(G4ThreeVector(px-del, py, pz)) != kInside) { icase += 1; }
+      if (Inside(G4ThreeVector(px+del, py, pz)) != kInside) { icase += 2; }
+      if (Inside(G4ThreeVector(px, py-del, pz)) != kInside) { icase += 4; }
+      if (Inside(G4ThreeVector(px, py+del, pz)) != kInside) { icase += 8; }
+      if (Inside(G4ThreeVector(px, py, pz-del)) != kInside) { icase += 16; }
+      if (Inside(G4ThreeVector(px, py, pz+del)) != kInside) { icase += 32; }
+      if (icase == 0) { continue; }
       G4ThreeVector v = directions[icase];
       dist = DistanceToOut(p, v);
       G4ThreeVector n = SurfaceNormal(p + v*dist);
@@ -349,28 +387,28 @@ G4double G4VSolid::EstimateSurfaceArea(G4int nstat, G4double ell) const
     }
     else if (in == kOutside)
     {
-      if (DistanceToIn(p) >= eps) continue;
+      if (DistanceToIn(p) >= eps) { continue; }
       G4int icase = 0;
-      if (Inside(G4ThreeVector(px-del, py, pz)) != kOutside) icase += 1;
-      if (Inside(G4ThreeVector(px+del, py, pz)) != kOutside) icase += 2;
-      if (Inside(G4ThreeVector(px, py-del, pz)) != kOutside) icase += 4;
-      if (Inside(G4ThreeVector(px, py+del, pz)) != kOutside) icase += 8;
-      if (Inside(G4ThreeVector(px, py, pz-del)) != kOutside) icase += 16;
-      if (Inside(G4ThreeVector(px, py, pz+del)) != kOutside) icase += 32;
-      if (icase == 0) continue;
+      if (Inside(G4ThreeVector(px-del, py, pz)) != kOutside) { icase += 1; }
+      if (Inside(G4ThreeVector(px+del, py, pz)) != kOutside) { icase += 2; }
+      if (Inside(G4ThreeVector(px, py-del, pz)) != kOutside) { icase += 4; }
+      if (Inside(G4ThreeVector(px, py+del, pz)) != kOutside) { icase += 8; }
+      if (Inside(G4ThreeVector(px, py, pz-del)) != kOutside) { icase += 16; }
+      if (Inside(G4ThreeVector(px, py, pz+del)) != kOutside) { icase += 32; }
+      if (icase == 0) { continue; }
       G4ThreeVector v = directions[icase];
       dist = DistanceToIn(p, v);
-      if (dist == kInfinity) continue;
+      if (dist == kInfinity) { continue; }
       G4ThreeVector n = SurfaceNormal(p + v*dist);
       dist *= -(v.dot(n));
     }
-    if (dist < eps) ++icount;
+    if (dist < eps) { ++icount; }
   }
   return dX*dY*dZ*icount/npoints/dd;
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// 
+//
 // Returns a pointer of a dynamically allocated copy of the solid.
 // Returns NULL pointer with warning in case the concrete solid does not
 // implement this method. The caller has responsibility for ownership.
@@ -387,7 +425,7 @@ G4VSolid* G4VSolid::Clone() const
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// 
+//
 // Calculate the maximum and minimum extents of the polygon described
 // by the vertices: pSectionIndex->pSectionIndex+1->
 //                   pSectionIndex+2->pSectionIndex+3->pSectionIndex
@@ -402,7 +440,7 @@ G4VSolid* G4VSolid::Clone() const
 void G4VSolid::ClipCrossSection(       G4ThreeVectorList* pVertices,
                                  const G4int pSectionIndex,
                                  const G4VoxelLimits& pVoxelLimit,
-                                 const EAxis pAxis, 
+                                 const EAxis pAxis,
                                        G4double& pMin, G4double& pMax) const
 {
 
@@ -432,7 +470,7 @@ void G4VSolid::ClipCrossSection(       G4ThreeVectorList* pVertices,
 void G4VSolid::ClipBetweenSections(      G4ThreeVectorList* pVertices,
                                    const G4int pSectionIndex,
                                    const G4VoxelLimits& pVoxelLimit,
-                                   const EAxis pAxis, 
+                                   const EAxis pAxis,
                                          G4double& pMin, G4double& pMax) const
 {
   G4ThreeVectorList polygon;
@@ -476,7 +514,7 @@ void G4VSolid::ClipBetweenSections(      G4ThreeVectorList* pVertices,
 void
 G4VSolid::CalculateClippedPolygonExtent(G4ThreeVectorList& pPolygon,
                                   const G4VoxelLimits& pVoxelLimit,
-                                  const EAxis pAxis, 
+                                  const EAxis pAxis,
                                         G4double& pMin,
                                         G4double& pMax) const
 {
@@ -484,22 +522,22 @@ G4VSolid::CalculateClippedPolygonExtent(G4ThreeVectorList& pPolygon,
   G4double component;
 
   ClipPolygon(pPolygon,pVoxelLimit,pAxis);
-  noLeft = pPolygon.size();
+  noLeft = (G4int)pPolygon.size();
 
-  if ( noLeft )
+  if ( noLeft != 0 )
   {
     for (i=0; i<noLeft; ++i)
     {
       component = pPolygon[i].operator()(pAxis);
- 
-      if (component < pMin) 
-      { 
-        pMin = component;      
+
+      if (component < pMin)
+      {
+        pMin = component;
       }
       if (component > pMax)
-      {  
-        pMax = component;  
-      }    
+      {
+        pMax = component;
+      }
     }
   }
 }
@@ -537,17 +575,17 @@ void G4VSolid::ClipPolygon(      G4ThreeVectorList& pPolygon,
       G4VoxelLimits simpleLimit1;
       simpleLimit1.AddLimit(kXAxis,pVoxelLimit.GetMinXExtent(),kInfinity);
       ClipPolygonToSimpleLimits(pPolygon,outputPolygon,simpleLimit1);
-   
+
       pPolygon.clear();
 
-      if ( !outputPolygon.size() )  return;
+      if ( outputPolygon.empty() ) {  return; }
 
       G4VoxelLimits simpleLimit2;
       simpleLimit2.AddLimit(kXAxis,-kInfinity,pVoxelLimit.GetMaxXExtent());
       ClipPolygonToSimpleLimits(outputPolygon,pPolygon,simpleLimit2);
 
-      if ( !pPolygon.size() )       return;
-      else                          outputPolygon.clear();
+      if ( pPolygon.empty() ) { return; }
+      outputPolygon.clear();
     }
     if ( pVoxelLimit.IsYLimited() ) // && pAxis != kYAxis)
     {
@@ -560,14 +598,14 @@ void G4VSolid::ClipPolygon(      G4ThreeVectorList& pPolygon,
 
       pPolygon.clear();
 
-      if ( !outputPolygon.size() )  return;
+      if ( outputPolygon.empty() ) { return; }
 
       G4VoxelLimits simpleLimit2;
       simpleLimit2.AddLimit(kYAxis,-kInfinity,pVoxelLimit.GetMaxYExtent());
       ClipPolygonToSimpleLimits(outputPolygon,pPolygon,simpleLimit2);
 
-      if ( !pPolygon.size() )       return;
-      else                          outputPolygon.clear();
+      if ( pPolygon.empty() ) { return; }
+      outputPolygon.clear();
     }
     if ( pVoxelLimit.IsZLimited() ) // && pAxis != kZAxis)
     {
@@ -580,7 +618,7 @@ void G4VSolid::ClipPolygon(      G4ThreeVectorList& pPolygon,
 
       pPolygon.clear();
 
-      if ( !outputPolygon.size() )  return;
+      if ( outputPolygon.empty() ) {  return; }
 
       G4VoxelLimits simpleLimit2;
       simpleLimit2.AddLimit(kZAxis,-kInfinity,pVoxelLimit.GetMaxZExtent());
@@ -602,14 +640,14 @@ G4VSolid::ClipPolygonToSimpleLimits( G4ThreeVectorList& pPolygon,
                                const G4VoxelLimits& pVoxelLimit       ) const
 {
   G4int i;
-  G4int noVertices=pPolygon.size();
+  auto  noVertices = (G4int)pPolygon.size();
   G4ThreeVector vEnd,vStart;
 
   for (i = 0 ; i < noVertices ; ++i )
   {
     vStart = pPolygon[i];
-    if ( i == noVertices-1 )    vEnd = pPolygon[0];
-    else                        vEnd = pPolygon[i+1];
+    if ( i == noVertices-1 ) { vEnd = pPolygon[0]; }
+    else { vEnd = pPolygon[i+1]; }
 
     if ( pVoxelLimit.Inside(vStart) )
     {
@@ -625,7 +663,7 @@ G4VSolid::ClipPolygonToSimpleLimits( G4ThreeVectorList& pPolygon,
         //
         pVoxelLimit.ClipToLimits(vStart,vEnd);
         outputPolygon.push_back(vEnd);
-      }    
+      }
     }
     else
     {
@@ -635,12 +673,12 @@ G4VSolid::ClipPolygonToSimpleLimits( G4ThreeVectorList& pPolygon,
         //
         pVoxelLimit.ClipToLimits(vStart,vEnd);
         outputPolygon.push_back(vStart);
-        outputPolygon.push_back(vEnd);  
+        outputPolygon.push_back(vEnd);
       }
       else  // Both point outside -> no output
       {
         // outputPolygon.push_back(vStart);
-        // outputPolygon.push_back(vEnd);  
+        // outputPolygon.push_back(vEnd);
       }
     }
   }
@@ -667,7 +705,7 @@ void G4VSolid::BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const
 //
 // Get G4VisExtent - bounding box for graphics
 
-G4VisExtent G4VSolid::GetExtent () const 
+G4VisExtent G4VSolid::GetExtent () const
 {
   G4VisExtent extent;
   G4VoxelLimits voxelLimits;  // Defaults to "infinite" limits.

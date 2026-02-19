@@ -23,29 +23,26 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file medical/GammaTherapy/src/StepLimiterMessenger.cc
+/// \file StepLimiterMessenger.cc
 /// \brief Implementation of the StepLimiterMessenger class
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "StepLimiterMessenger.hh"
+
 #include "StepLimiter.hh"
+
 #include "G4UIcmdWithADoubleAndUnit.hh"
 #include "globals.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-StepLimiterMessenger::StepLimiterMessenger(StepLimiter* limiter)
-:fStepLimiter(limiter)
+StepLimiterMessenger::StepLimiterMessenger(StepLimiter* limiter) : fStepLimiter(limiter)
 {
-  fStepMaxCmd = new G4UIcmdWithADoubleAndUnit("/testem/phys/fStepMax",this);
+  fStepMaxCmd = new G4UIcmdWithADoubleAndUnit("/testem/phys/fStepMax", this);
   fStepMaxCmd->SetGuidance("Set max allowed step length for the default region");
-  fStepMaxCmd->SetParameterName("mxStep",false);
+  fStepMaxCmd->SetParameterName("mxStep", false);
   fStepMaxCmd->SetRange("mxStep>0.");
   fStepMaxCmd->SetUnitCategory("Length");
-  fStepMaxCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  fStepMaxCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -59,8 +56,9 @@ StepLimiterMessenger::~StepLimiterMessenger()
 
 void StepLimiterMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
 {
-  if (command == fStepMaxCmd)
-    { fStepLimiter->SetMaxStep(fStepMaxCmd->GetNewDoubleValue(newValue)); }
+  if (command == fStepMaxCmd) {
+    fStepLimiter->SetMaxStep(fStepMaxCmd->GetNewDoubleValue(newValue));
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

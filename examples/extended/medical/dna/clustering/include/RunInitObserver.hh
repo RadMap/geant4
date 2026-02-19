@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file RunInitObserver.hh
+/// \brief Definition of the RunInitObserver class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -30,43 +33,41 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file RunInitObserver.hh
-/// \brief Definition of the RunInitObserver class
 
 #ifndef RUNINITOBSERVER_HH_
 #define RUNINITOBSERVER_HH_
 
 #include "globals.hh"
+
 #include <vector>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class RunInitObserver
 {
-public:
-  RunInitObserver();
-  virtual
-  ~RunInitObserver();
+  public:
+    RunInitObserver();
+    virtual ~RunInitObserver();
 
-  virtual void Initialize() = 0;
+    virtual void Initialize() = 0;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class RunInitManager
 {
-public:
-  static RunInitManager* Instance();
-  void Initialize();
+  public:
+    static RunInitManager* Instance();
+    void Initialize();
 
-protected:
-  friend class RunInitObserver;
-  RunInitManager();
-  ~RunInitManager();
-  void Insert(RunInitObserver*);
+  protected:
+    friend class RunInitObserver;
+    RunInitManager();
+    ~RunInitManager();
+    void Insert(RunInitObserver*);
 
-  std::vector<RunInitObserver*> fObservers;
-  static G4ThreadLocal RunInitManager* fgInstance;
+    std::vector<RunInitObserver*> fObservers;
+    static G4ThreadLocal RunInitManager* fgInstance;
 };
 
 #endif /* RUNINITOBSERVER_HH_ */

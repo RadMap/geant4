@@ -69,14 +69,20 @@ namespace G4INCL {
     thePosition(ThreeVector(0.,0.,0.)),
     nCollisions(0),
     nDecays(0),
+    nSrcPair(0),
     thePotentialEnergy(0.0),
     rpCorrelated(false),
     uncorrelatedMomentum(0.),
     theParticleBias(1.),
     theNKaon(0),
+#ifdef INCLXX_IN_GEANT4_MODE
+    theParentResonancePDGCode(0),
+    theParentResonanceID(0),
+#endif
     theHelicity(0.0),
     emissionTime(0.0),
     outOfWell(false),
+    theSrcPartner(false),
     theMass(0.)
   {
     ID = nextID;
@@ -92,14 +98,18 @@ namespace G4INCL {
     thePropagationMomentum(&theMomentum),
     theFrozenMomentum(theMomentum),
     thePosition(position),
-    nCollisions(0), nDecays(0),
+    nCollisions(0), nDecays(0), nSrcPair(0),
     thePotentialEnergy(0.),
     rpCorrelated(false),
     uncorrelatedMomentum(theMomentum.mag()),
     theParticleBias(1.),
     theNKaon(0),
+#ifdef INCLXX_IN_GEANT4_MODE
+    theParentResonancePDGCode(0),
+    theParentResonanceID(0),
+#endif
     theHelicity(0.0),
-    emissionTime(0.0), outOfWell(false)
+    emissionTime(0.0), outOfWell(false), theSrcPartner(false)
   {
     theParticipantType = TargetSpectator;
     ID = nextID;
@@ -119,13 +129,18 @@ namespace G4INCL {
     theFrozenMomentum(theMomentum),
     thePosition(position),
     nCollisions(0), nDecays(0),
+    nSrcPair(0),
     thePotentialEnergy(0.),
     rpCorrelated(false),
     uncorrelatedMomentum(theMomentum.mag()),
     theParticleBias(1.),
     theNKaon(0),
+#ifdef INCLXX_IN_GEANT4_MODE
+    theParentResonancePDGCode(0),
+    theParentResonanceID(0),
+#endif
     theHelicity(0.0),
-    emissionTime(0.0), outOfWell(false)
+    emissionTime(0.0), outOfWell(false), theSrcPartner(false)
   {
     theParticipantType = TargetSpectator;
     ID = nextID;
@@ -187,7 +202,7 @@ namespace G4INCL {
     for(ParticleIter i = (*this).begin(), e = (*this).end(); i!=e; ++i){
         MergedVector = Particle::MergeVectorBias(MergedVector,(*i));
     }
-    return Particle::getBiasFromVector(MergedVector);
+    return Particle::getBiasFromVector(std::move(MergedVector));
   }
 
   std::vector<G4int> ParticleList::getParticleListBiasVector() const {
@@ -304,6 +319,6 @@ namespace G4INCL {
   }
 
   void Particle::setINCLBiasVector(std::vector<G4double> NewVector) {
-      Particle::INCLBiasVector = NewVector;
+      Particle::INCLBiasVector = std::move(NewVector);
   }
 }

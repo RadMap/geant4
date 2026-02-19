@@ -23,15 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file persistency/P03/include/ExTGDetectorConstructionWithCuts.hh
+/// \file ExTGDetectorConstructionWithCuts.hh
 /// \brief Definition of the ExTGDetectorConstructionWithCuts class
-//
 
 #ifndef ExTGDetectorConstructionWithCuts_HH
 #define ExTGDetectorConstructionWithCuts_HH
 
-#include "globals.hh"
 #include "G4VUserDetectorConstruction.hh"
+#include "globals.hh"
 
 class G4tgrMessenger;
 
@@ -40,14 +39,12 @@ class G4tgrMessenger;
 class ExTGDetectorConstructionWithCuts : public G4VUserDetectorConstruction
 {
   public:
-
     ExTGDetectorConstructionWithCuts();
-   ~ExTGDetectorConstructionWithCuts();
+    ~ExTGDetectorConstructionWithCuts();
 
     G4VPhysicalVolume* Construct();
 
   private:
-
     G4tgrMessenger* fMessenger;
 };
 

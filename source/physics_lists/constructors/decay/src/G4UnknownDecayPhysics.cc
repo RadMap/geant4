@@ -37,14 +37,13 @@
 
 #include "G4ProcessManager.hh"
 #include "G4UnknownParticle.hh"
+#include "G4ChargedUnknownParticle.hh"
+#include "G4UnknownDecay.hh"
 
 // factory
 #include "G4PhysicsConstructorFactory.hh"
 //
 G4_DECLARE_PHYSCONSTR_FACTORY(G4UnknownDecayPhysics);
-
-G4ThreadLocal G4UnknownDecay* G4UnknownDecayPhysics::fDecayProcess = 0;
-G4ThreadLocal G4bool G4UnknownDecayPhysics::wasActivated = false;
 
 G4UnknownDecayPhysics::G4UnknownDecayPhysics(G4int ver)
   :  G4VPhysicsConstructor("UnknownDecay"), verbose(ver)
@@ -63,17 +62,15 @@ G4UnknownDecayPhysics::~G4UnknownDecayPhysics()
 void G4UnknownDecayPhysics::ConstructParticle()
 {
   G4UnknownParticle::UnknownParticleDefinition();
+  G4ChargedUnknownParticle::ChargedUnknownParticleDefinition();
 }
 
 void G4UnknownDecayPhysics::ConstructProcess()
 {
-  if(wasActivated) { return; }
-  wasActivated = true;
-
   G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
 
   // Add Decay Process
-  fDecayProcess = new G4UnknownDecay();
+  G4UnknownDecay* fDecayProcess = new G4UnknownDecay();
   auto myParticleIterator=GetParticleIterator();
   myParticleIterator->reset();
   G4ParticleDefinition* particle=0;

@@ -26,7 +26,7 @@
 // Implementation for G4Trd class
 //
 // 12.01.95 P.Kent: First version
-// 28.04.05 V.Grichine: new SurfaceNormal according to J.Apostolakis proposal 
+// 28.04.05 V.Grichine: new SurfaceNormal according to J.Apostolakis proposal
 // 25.05.17 E.Tcherniaev: complete revision, speed-up
 // --------------------------------------------------------------------
 
@@ -39,13 +39,19 @@
 #include "G4VoxelLimits.hh"
 #include "G4AffineTransform.hh"
 #include "G4BoundingEnvelope.hh"
-#include "Randomize.hh"
+#include "G4QuickRand.hh"
 
 #include "G4VPVParameterisation.hh"
 
 #include "G4VGraphicsScene.hh"
+#include "G4AutoLock.hh"
 
 using namespace CLHEP;
+
+namespace
+{
+  G4Mutex trdMutex = G4MUTEX_INITIALIZER;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -76,20 +82,13 @@ G4Trd::G4Trd( __void__& a )
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Destructor
-
-G4Trd::~G4Trd()
-{
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Copy constructor
 
 G4Trd::G4Trd(const G4Trd& rhs)
   : G4CSGSolid(rhs), halfCarTolerance(rhs.halfCarTolerance),
     fDx1(rhs.fDx1), fDx2(rhs.fDx2),
-    fDy1(rhs.fDy1), fDy2(rhs.fDy2), fDz(rhs.fDz)
+    fDy1(rhs.fDy1), fDy2(rhs.fDy2), fDz(rhs.fDz),
+    fHx(rhs.fHx), fHy(rhs.fHy)
 {
   for (G4int i=0; i<4; ++i) { fPlanes[i] = rhs.fPlanes[i]; }
 }
@@ -114,6 +113,7 @@ G4Trd& G4Trd::operator = (const G4Trd& rhs)
    fDx1 = rhs.fDx1; fDx2 = rhs.fDx2;
    fDy1 = rhs.fDy1; fDy2 = rhs.fDy2;
    fDz = rhs.fDz;
+   fHx = rhs.fHx; fHy = rhs.fHy;
    for (G4int i=0; i<4; ++i) { fPlanes[i] = rhs.fPlanes[i]; }
 
    return *this;
@@ -171,14 +171,14 @@ void G4Trd::MakePlanes()
   G4double dx = fDx1 - fDx2;
   G4double dy = fDy1 - fDy2;
   G4double dz = 2*fDz;
-  G4double magx = std::sqrt(dx*dx + dz*dz);
-  G4double magy = std::sqrt(dy*dy + dz*dz);
+  fHx = std::sqrt(dy*dy + dz*dz);
+  fHy = std::sqrt(dx*dx + dz*dz);
 
-  // Set -Y & +Y planes
+  // Set X planes at -Y & +Y
   //
   fPlanes[0].a =  0.;
-  fPlanes[0].b = -dz/magy;
-  fPlanes[0].c =  dy/magy;
+  fPlanes[0].b = -dz/fHx;
+  fPlanes[0].c =  dy/fHx;
   fPlanes[0].d = fPlanes[0].b*fDy1 + fPlanes[0].c*fDz;
 
   fPlanes[1].a =  fPlanes[0].a;
@@ -186,47 +186,17 @@ void G4Trd::MakePlanes()
   fPlanes[1].c =  fPlanes[0].c;
   fPlanes[1].d =  fPlanes[0].d;
 
-  // Set -X & +X planes
+  // Set Y planes at -X & +X
   //
-  fPlanes[2].a = -dz/magx;
+  fPlanes[2].a = -dz/fHy;
   fPlanes[2].b =  0.;
-  fPlanes[2].c =  dx/magx;
+  fPlanes[2].c =  dx/fHy;
   fPlanes[2].d = fPlanes[2].a*fDx1 + fPlanes[2].c*fDz;
 
   fPlanes[3].a = -fPlanes[2].a;
   fPlanes[3].b =  fPlanes[2].b;
   fPlanes[3].c =  fPlanes[2].c;
   fPlanes[3].d =  fPlanes[2].d;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Get volume
-
-G4double G4Trd::GetCubicVolume()
-{
-  if (fCubicVolume == 0.)
-  {
-    fCubicVolume = 2*fDz*( (fDx1+fDx2)*(fDy1+fDy2) +
-                           (fDx2-fDx1)*(fDy2-fDy1)/3 );
-  }
-  return fCubicVolume;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Get surface area
-
-G4double G4Trd::GetSurfaceArea()
-{
-  if (fSurfaceArea == 0.)
-  {
-    fSurfaceArea =
-      4*(fDx1*fDy1+fDx2*fDy2) +
-      2*(fDy1+fDy2)*std::hypot(fDx1-fDx2,2*fDz) +
-      2*(fDx1+fDx2)*std::hypot(fDy1-fDy2,2*fDz);
-  }
-  return fSurfaceArea;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -293,7 +263,7 @@ G4bool G4Trd::CalculateExtent( const EAxis pAxis,
 #endif
   if (bbox.BoundingBoxVsVoxelLimits(pAxis,pVoxelLimit,pTransform,pMin,pMax))
   {
-    return exist = (pMin < pMax) ? true : false;
+    return exist = pMin < pMax;
   }
 
   // Set bounding envelope (benv) and calculate extent
@@ -328,7 +298,7 @@ G4bool G4Trd::CalculateExtent( const EAxis pAxis,
 // Return whether point inside/outside/on surface, using tolerance
 
 EInside G4Trd::Inside( const G4ThreeVector& p ) const
-{  
+{
   G4double dx = fPlanes[3].a*std::abs(p.x())+fPlanes[3].c*p.z()+fPlanes[3].d;
   G4double dy = fPlanes[1].b*std::abs(p.y())+fPlanes[1].c*p.z()+fPlanes[1].d;
   G4double dxy = std::max(dx,dy);
@@ -336,8 +306,8 @@ EInside G4Trd::Inside( const G4ThreeVector& p ) const
   G4double dz = std::abs(p.z())-fDz;
   G4double dist = std::max(dz,dxy);
 
-  if (dist > halfCarTolerance) return kOutside;
-  return (dist > -halfCarTolerance) ? kSurface : kInside;
+  return (dist > halfCarTolerance) ? kOutside :
+    ((dist > -halfCarTolerance) ? kSurface : kInside);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -396,28 +366,32 @@ G4ThreeVector G4Trd::SurfaceNormal( const G4ThreeVector& p ) const
 
   // Return normal
   //
-  if (nsurf == 1)      return G4ThreeVector(nx,ny,nz);
-  else if (nsurf != 0) return G4ThreeVector(nx,ny,nz).unit(); // edge or corner
-  else
+  if (nsurf == 1)
   {
-    // Point is not on the surface
-    //
-#ifdef G4CSGDEBUG
-    std::ostringstream message;
-    G4int oldprc = message.precision(16);
-    message << "Point p is not on surface (!?) of solid: "
-            << GetName() << G4endl;
-    message << "Position:\n";
-    message << "   p.x() = " << p.x()/mm << " mm\n";
-    message << "   p.y() = " << p.y()/mm << " mm\n";
-    message << "   p.z() = " << p.z()/mm << " mm";
-    G4cout.precision(oldprc) ;
-    G4Exception("G4Trd::SurfaceNormal(p)", "GeomSolids1002",
-                JustWarning, message );
-    DumpInfo();
-#endif
-    return ApproxSurfaceNormal(p);
+    return {nx,ny,nz};
   }
+  if (nsurf != 0)
+  {
+    return G4ThreeVector(nx,ny,nz).unit(); // edge or corner
+  }
+
+  // Point is not on the surface
+  //
+#ifdef G4CSGDEBUG
+  std::ostringstream message;
+  G4long oldprc = message.precision(16);
+  message << "Point p is not on surface (!?) of solid: "
+          << GetName() << G4endl;
+  message << "Position:\n";
+  message << "   p.x() = " << p.x()/mm << " mm\n";
+  message << "   p.y() = " << p.y()/mm << " mm\n";
+  message << "   p.z() = " << p.z()/mm << " mm";
+  G4cout.precision(oldprc) ;
+  G4Exception("G4Trd::SurfaceNormal(p)", "GeomSolids1002",
+              JustWarning, message );
+  DumpInfo();
+#endif
+  return ApproxSurfaceNormal(p);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -439,9 +413,11 @@ G4ThreeVector G4Trd::ApproxSurfaceNormal( const G4ThreeVector& p ) const
 
   G4double distz = std::abs(p.z()) - fDz;
   if (dist > distz)
-    return G4ThreeVector(fPlanes[iside].a, fPlanes[iside].b, fPlanes[iside].c);
-  else
-    return G4ThreeVector(0, 0, (p.z() < 0) ? -1 : 1);
+  {
+    return { fPlanes[iside].a, fPlanes[iside].b, fPlanes[iside].c };
+  }
+
+  return { 0, 0, (G4double)((p.z() < 0) ? -1 : 1) };
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -455,9 +431,11 @@ G4double G4Trd::DistanceToIn(const G4ThreeVector& p,
   // Z intersections
   //
   if ((std::abs(p.z()) - fDz) >= -halfCarTolerance && p.z()*v.z() >= 0)
+  {
     return kInfinity;
+  }
   G4double invz = (-v.z() == 0) ? DBL_MAX : -1./v.z();
-  G4double dz = (invz < 0) ? fDz : -fDz; 
+  G4double dz = (invz < 0) ? fDz : -fDz;
   G4double tzmin = (p.z() + dz)*invz;
   G4double tzmax = (p.z() - dz)*invz;
 
@@ -470,14 +448,14 @@ G4double G4Trd::DistanceToIn(const G4ThreeVector& p,
   G4double dis0 = yd + yc;
   if (dis0 >= -halfCarTolerance)
   {
-    if (cos0 >= 0) return kInfinity;
+    if (cos0 >= 0) { return kInfinity; }
     G4double tmp  = -dis0/cos0;
-    if (tmin0 < tmp) tmin0 = tmp;
+    if (tmin0 < tmp) { tmin0 = tmp; }
   }
   else if (cos0 > 0)
   {
     G4double tmp  = -dis0/cos0;
-    if (tmax0 > tmp) tmax0 = tmp;
+    if (tmax0 > tmp) { tmax0 = tmp; }
   }
 
   G4double tmin1 = tmin0, tmax1 = tmax0;
@@ -485,14 +463,14 @@ G4double G4Trd::DistanceToIn(const G4ThreeVector& p,
   G4double dis1 = yd - yc;
   if (dis1 >= -halfCarTolerance)
   {
-    if (cos1 >= 0) return kInfinity;
+    if (cos1 >= 0) { return kInfinity; }
     G4double tmp  = -dis1/cos1;
-    if (tmin1 < tmp) tmin1 = tmp;
+    if (tmin1 < tmp) { tmin1 = tmp; }
   }
   else if (cos1 > 0)
   {
     G4double tmp  = -dis1/cos1;
-    if (tmax1 > tmp) tmax1 = tmp;
+    if (tmax1 > tmp) { tmax1 = tmp; }
   }
 
   // X intersections
@@ -504,14 +482,14 @@ G4double G4Trd::DistanceToIn(const G4ThreeVector& p,
   G4double dis2 = xd + xc;
   if (dis2 >= -halfCarTolerance)
   {
-    if (cos2 >= 0) return kInfinity;
+    if (cos2 >= 0) { return kInfinity; }
     G4double tmp  = -dis2/cos2;
-    if (tmin2 < tmp) tmin2 = tmp;
+    if (tmin2 < tmp) { tmin2 = tmp; }
   }
   else if (cos2 > 0)
   {
     G4double tmp  = -dis2/cos2;
-    if (tmax2 > tmp) tmax2 = tmp;
+    if (tmax2 > tmp) { tmax2 = tmp; }
   }
 
   G4double tmin3 = tmin2, tmax3 = tmax2;
@@ -519,20 +497,21 @@ G4double G4Trd::DistanceToIn(const G4ThreeVector& p,
   G4double dis3 = xd - xc;
   if (dis3 >= -halfCarTolerance)
   {
-    if (cos3 >= 0) return kInfinity;
+    if (cos3 >= 0) { return kInfinity; }
     G4double tmp  = -dis3/cos3;
-    if (tmin3 < tmp) tmin3 = tmp;
+    if (tmin3 < tmp) { tmin3 = tmp; }
   }
   else if (cos3 > 0)
   {
     G4double tmp  = -dis3/cos3;
-    if (tmax3 > tmp) tmax3 = tmp;
+    if (tmax3 > tmp) { tmax3 = tmp; }
   }
 
   // Find distance
   //
   G4double tmin = tmin3, tmax = tmax3;
-  if (tmax <= tmin + halfCarTolerance) return kInfinity; // touch or no hit
+  if (tmax <= tmin + halfCarTolerance) { return kInfinity; // touch or no hit
+}
   return (tmin < halfCarTolerance ) ? 0. : tmin;
 }
 
@@ -626,13 +605,17 @@ G4double G4Trd::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v,
 
   // Set normal, if required, and return distance
   //
-  if (calcNorm) 
+  if (calcNorm)
   {
     *validNorm = true;
     if (iside < 0)
+    {
       n->set(0, 0, iside + 3); // (-4+3)=-1, (-2+3)=+1
+    }
     else
+    {
       n->set(fPlanes[iside].a, fPlanes[iside].b, fPlanes[iside].c);
+    }
   }
   return tmax;
 }
@@ -648,13 +631,13 @@ G4double G4Trd::DistanceToOut( const G4ThreeVector& p ) const
   if( Inside(p) == kOutside )
   {
     std::ostringstream message;
-    G4int oldprc = message.precision(16);
+    G4long oldprc = message.precision(16);
     message << "Point p is outside (!?) of solid: " << GetName() << G4endl;
     message << "Position:\n";
     message << "   p.x() = " << p.x()/mm << " mm\n";
     message << "   p.y() = " << p.y()/mm << " mm\n";
     message << "   p.z() = " << p.z()/mm << " mm";
-    G4cout.precision(oldprc) ;
+    G4cout.precision(oldprc);
     G4Exception("G4Trd::DistanceToOut(p)", "GeomSolids1002",
                 JustWarning, message );
     DumpInfo();
@@ -666,7 +649,7 @@ G4double G4Trd::DistanceToOut( const G4ThreeVector& p ) const
 
   G4double dz = std::abs(p.z())-fDz;
   G4double dist = std::max(dz,dxy);
-  
+
   return (dist < 0) ? -dist : 0.;
 }
 
@@ -676,7 +659,16 @@ G4double G4Trd::DistanceToOut( const G4ThreeVector& p ) const
 
 G4GeometryType G4Trd::GetEntityType() const
 {
-  return G4String("G4Trd");
+  return {"G4Trd"};
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// IsFaceted
+
+G4bool G4Trd::IsFaceted() const
+{
+  return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -694,7 +686,7 @@ G4VSolid* G4Trd::Clone() const
 
 std::ostream& G4Trd::StreamInfo( std::ostream& os ) const
 {
-  G4int oldprc = os.precision(16);
+  G4long oldprc = os.precision(16);
   os << "-----------------------------------------------------------\n"
      << "    *** Dump for solid - " << GetName() << " ***\n"
      << "    ===================================================\n"
@@ -717,56 +709,88 @@ std::ostream& G4Trd::StreamInfo( std::ostream& os ) const
 
 G4ThreeVector G4Trd::GetPointOnSurface() const
 {
-  // Set vertices
-  //
-  G4ThreeVector pt[8];
-  pt[0].set(-fDx1,-fDy1,-fDz);
-  pt[1].set( fDx1,-fDy1,-fDz);
-  pt[2].set(-fDx1, fDy1,-fDz);
-  pt[3].set( fDx1, fDy1,-fDz);
-  pt[4].set(-fDx2,-fDy2, fDz);
-  pt[5].set( fDx2,-fDy2, fDz);
-  pt[6].set(-fDx2, fDy2, fDz);
-  pt[7].set( fDx2, fDy2, fDz);
+  G4double sbot = 4.*fDx1*fDy1;  // area of bottom base
+  G4double stop = 4.*fDx2*fDy2;  // area of top base
+  G4double sbase = sbot + stop;
+  G4double sxz = (fDx1 + fDx2)*fHx; // area of Y face
+  G4double syz = (fDy1 + fDy2)*fHy; // area of X face
+  G4double stotal = sbase + 2.*(sxz + syz);
+  G4double select = stotal*G4QuickRand();
 
-  // Set faces  (-Z, -Y, +Y, -X, +X, +Z)
-  //
-  G4int iface [6][4] =
-    { {0,1,3,2}, {0,4,5,1}, {2,3,7,6}, {0,2,6,4}, {1,5,7,3}, {4,6,7,5} };
+  G4ThreeVector p;
+  G4double u = G4QuickRand();
+  G4double v = G4QuickRand();
+  if (select < sbase)
+  {
+    G4bool ifbottom = (select < sbot);
+    G4double x = (ifbottom) ? fDx1 : fDx2;
+    G4double y = (ifbottom) ? fDy1 : fDy2;
+    G4double z = (ifbottom) ? -fDz : fDz;
+    p.set((2.*u - 1.)*x, (2.*v - 1.)*y, z);
+  }
+  else if (select < sbase + 2.*sxz)
+  {
+    G4double ysign = (select < sbase + sxz) ? 1. : -1.;
+    if (ysign < 0.) { select -= sxz; }
+    if (u + v > 1.)
+    {
+      u = 1. - u;
+      v = 1. - v;
+    }
+    G4ThreeVector p0(-fDx1,-fDy1,-fDz);
+    G4ThreeVector p1( fDx2,-fDy2, fDz);
+    G4ThreeVector p2 = (select < sbase + fDx1*fHx) ?
+      G4ThreeVector( fDx1,-fDy1,-fDz) : G4ThreeVector(-fDx2,-fDy2, fDz);
+    p = p0*(1. - u - v) + p1*u + p2*v;
+    p.setY(ysign*p.y());
+  }
+  else
+  {
+    G4double xsign = (select < sbase + 2.*sxz + syz) ? 1. : -1.;
+    if (xsign < 0.) { select -= syz; }
+    if (u + v > 1.)
+    {
+      u = 1. - u;
+      v = 1. - v;
+    }
+    G4ThreeVector p0(-fDx1, fDy1,-fDz);
+    G4ThreeVector p1(-fDx2,-fDy2, fDz);
+    G4ThreeVector p2 = (select < sbase + 2.*sxz + fDy1*fHy) ?
+      G4ThreeVector(-fDx1,-fDy1,-fDz) : G4ThreeVector(-fDx2, fDy2, fDz);
+    p = p0*(1. - u - v) + p1*u + p2*v;
+    p.setX(xsign*p.x());
+  }
+  return p;
+}
 
-  // Set areas
-  // 
-  G4double sxz = (fDy1 + fDy2)*std::hypot(fDx1 - fDx2, 2*fDz);
-  G4double syz = (fDx1 + fDx2)*std::hypot(fDy1 - fDy2, 2*fDz);
-  G4double sface[6] = { 4*fDx1*fDy1, syz, syz, sxz, sxz, 4*fDx2*fDy2 };
-  for (G4int i=1; i<6; ++i) { sface[i] += sface[i-1]; }
+//////////////////////////////////////////////////////////////////////////
+//
+// Get volume
 
-  // Select face
-  //
-  G4double select = sface[5]*G4UniformRand();
-  G4int k = 5;
-  if (select <= sface[4]) k = 4;
-  if (select <= sface[3]) k = 3;
-  if (select <= sface[2]) k = 2;
-  if (select <= sface[1]) k = 1;
-  if (select <= sface[0]) k = 0;
+G4double G4Trd::GetCubicVolume()
+{
+  if (fCubicVolume == 0)
+  {
+    G4AutoLock l(&trdMutex);
+    fCubicVolume = 2*fDz*((fDx1+fDx2)*(fDy1+fDy2) + (fDx2-fDx1)*(fDy2-fDy1)/3);
+    l.unlock();
+  }
+  return fCubicVolume;
+}
 
-  // Select sub-triangle
-  //
-  G4int i0 = iface[k][0];
-  G4int i1 = iface[k][1];
-  G4int i2 = iface[k][2];
-  G4int i3 = iface[k][3];
-  G4double s1 = G4GeomTools::TriangleAreaNormal(pt[i0],pt[i1],pt[i3]).mag();
-  G4double s2 = G4GeomTools::TriangleAreaNormal(pt[i2],pt[i1],pt[i3]).mag();
-  if ((s1+s2)*G4UniformRand() > s1) i0 = i2;
+//////////////////////////////////////////////////////////////////////////
+//
+// Get surface area
 
-  // Generate point
-  //
-  G4double u = G4UniformRand();
-  G4double v = G4UniformRand();
-  if (u + v > 1.) { u = 1. - u; v = 1. - v; }
-  return (1.-u-v)*pt[i0] + u*pt[i1] + v*pt[i3];
+G4double G4Trd::GetSurfaceArea()
+{
+  if (fSurfaceArea == 0)
+  {
+    G4AutoLock l(&trdMutex);
+    fSurfaceArea = 4*(fDx1*fDy1+fDx2*fDy2)+2*(fDx1+fDx2)*fHx+2*(fDy1+fDy2)*fHy;
+    l.unlock();
+  }
+  return fSurfaceArea;
 }
 
 //////////////////////////////////////////////////////////////////////////

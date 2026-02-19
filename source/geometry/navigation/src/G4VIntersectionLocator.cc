@@ -25,7 +25,7 @@
 //
 // Class G4VIntersectionLocator implementation
 //
-// 27.10.08 - John Apostolakis, Tatiana Nikitina.
+// Authors: John Apostolakis, Tatiana Nikitina (CERN), 27 October 2008
 // ---------------------------------------------------------------------------
  
 #include <iomanip>
@@ -36,6 +36,7 @@
 #include "G4AutoDelete.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4VIntersectionLocator.hh"
+#include "G4TouchableHandle.hh"
 #include "G4GeometryTolerance.hh"
 
 ///////////////////////////////////////////////////////////////////////////
@@ -103,7 +104,7 @@ G4VIntersectionLocator::printStatus( const G4FieldTrack& StartFT,
   const G4ThreeVector CurrentUnitVelocity = CurrentFT.GetMomentumDir();
 
   G4double step_len = CurrentFT.GetCurveLength() - StartFT.GetCurveLength();
-  G4int oldprc;  // cout/cerr precision settings
+  G4long oldprc;  // cout/cerr precision settings
 
   if( ((stepNo == 0) && (verboseLevel <3)) || (verboseLevel >= 3) )
   {
@@ -296,17 +297,19 @@ ReEstimateEndpoint( const G4FieldTrack& CurrentStateA,
       G4Exception("G4VIntersectionLocator::ReEstimateEndpoint()",
                   "GeomNav1002", JustWarning, message);
     }
+/*
 #else
   // Statistics on the RMS value of the corrections
 
-  static G4ThreadLocal G4int    noCorrections = 0;
-  static G4ThreadLocal G4double sumCorrectionsSq = 0;
+  static G4ThreadLocal G4int noCorrections = 0;
   ++noCorrections; 
   if( goodAdvance )
   {
+    static G4ThreadLocal G4double sumCorrectionsSq;
     sumCorrectionsSq += (EstimatedEndStateB.GetPosition() - 
                          newEndPoint.GetPosition()).mag2();
   }
+*/
 #endif
 
   return retEndPoint;
@@ -401,7 +404,7 @@ GetLocalSurfaceNormal(const G4ThreeVector& CurrentE_Point, G4bool& validNormal)
   //        which side you are located onto (can return vector with wrong sign.)
   // TO-DO: use direction (of chord) to identify volume we will be "entering"
 
-  if( located != 0)
+  if( located != nullptr)
   { 
     G4LogicalVolume* pLogical= located->GetLogicalVolume(); 
     G4VSolid*        pSolid; 
@@ -684,7 +687,7 @@ LocateGlobalPointWithinVolumeAndCheck( const G4ThreeVector& position )
 
     // Identify the current volume
     
-    G4TouchableHistoryHandle startTH= nav->CreateTouchableHistoryHandle();
+    G4TouchableHandle startTH= nav->CreateTouchableHistoryHandle();
     G4VPhysicalVolume* motherPhys = startTH->GetVolume();
     G4VSolid*          motherSolid = startTH->GetSolid();
     G4AffineTransform transform = nav->GetGlobalToLocalTransform();
@@ -777,26 +780,30 @@ ReportReversedPoints( std::ostringstream& msg,
    G4VIntersectionLocator::printStatus( A_PtVel,  B_PtVel,
                            -1.0, NewSafety,  substep_no, msg, verboseLevel );
    msg << "Error in advancing propagation." << G4endl
-       << "        Point A (start) is " << A_PtVel  << G4endl
-       << "        Point B (end)   is " << B_PtVel << G4endl
-       << "        Curve distance is " << curveDist << G4endl
+       << "   The final curve point is NOT further along"
+       << "  than the original!" << G4endl
+       << "   Going *backwards* from len(A) = " << A_PtVel.GetCurveLength()
+       << "  to len(B) = " << B_PtVel.GetCurveLength() << G4endl
+       << "      Curve distance is " << curveDist / CLHEP::millimeter << " mm "
        << G4endl
-       << "The final curve point is not further along"
-       << " than the original!" << G4endl;
-   msg << " Value of fEpsStep= " << epsStep << G4endl;
+       << "      Point A' (start) is " << A_PtVel  << G4endl
+       << "      Point B' (end)   is " << B_PtVel << G4endl;
+   msg << "      fEpsStep= " << epsStep << G4endl << G4endl;
 
-   G4int oldprc = msg.precision(20);
-   msg << " Point A (Curve start) is " << StartPointVel << G4endl
-       << " Point B (Curve   end)   is " << EndPointVel << G4endl
-       << " Point A (Current start) is " << A_PtVel << G4endl
-       << " Point B (Current end)   is " << B_PtVel << G4endl
-       << " Point S (Sub start)     is " << SubStart_PtVel
-       << " Point E (Trial Point)   is " << E_Point << G4endl
-       << " Point F (Intersection)  is " << ApproxIntersecPointV 
+   G4long oldprc = msg.precision(20);
+   msg << " In full precision, the position, momentum, E_kin, length, rest mass "
+       << " ... are: " << G4endl;
+   msg << " Point A[0] (Curve   start) is " << StartPointVel << G4endl
+       << " Point S    (Sub     start) is " << SubStart_PtVel
+       << " Point A'   (Current start) is " << A_PtVel << G4endl
+       << " Point E    (Trial Point)   is " << E_Point << G4endl
+       << " Point F    (Intersection)  is " << ApproxIntersecPointV << G4endl
+       << " Point B'   (Current end)   is " << B_PtVel << G4endl
+       << " Point B[0] (Curve   end)   is " << EndPointVel << G4endl
        << G4endl
        << " LocateIntersection parameters are : " << G4endl
        << "      Substep no (total) = "  << substep_no << G4endl
-       << "      Substep (depth= " << depth << substep_no_p;
+       << "      Substep no         = "  << substep_no_p << " at depth= " << depth;
    msg.precision(oldprc);
 }
 
@@ -815,7 +822,7 @@ void G4VIntersectionLocator::ReportProgress( std::ostream& oss,
 
 {
   oss << "ReportProgress: Current status of intersection search: " << G4endl;
-  if( depth > 0 ) oss << " Depth= " << depth;
+  if( depth > 0 ) { oss << " Depth= " << depth; }
   oss << " Substep no = " << substep_no << G4endl;
   G4int  verboseLevel = 5; 
   G4double safetyPrev = -1.0;  // Add as argument ?
@@ -873,7 +880,7 @@ G4VIntersectionLocator::ReportImmediateHit( const char*          MethodName,
      {
         numStill = 0; 
      }
-     G4cout << " Occured: " << ++occurredOnTop;  
+     G4cout << " Occurred: " << ++occurredOnTop;  
      G4cout <<  " out of total calls= " << numCalls;
      G4cout << G4endl;
      lastStart = StartPosition;

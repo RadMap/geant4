@@ -23,12 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file parallel/ThreadsafeScorers/include/TSPhysicsList.hh
+/// \file TSPhysicsList.hh
 /// \brief Definition of the TSPhysicsList class
-//
-//
-//
-//
+///
 /// This is a very, very extensive physics list and step-limiters are applied
 ///     to many particles. The reasoning behind this is because we wan't to put
 ///     as much pressure on the atomics as possible and produce as much
@@ -39,36 +36,29 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-
 #ifndef tsphysicslist_hh
 #define tsphysicslist_hh 1
 
-
-#include "globals.hh"
-#include "G4VUserPhysicsList.hh"
 #include "G4VPhysicsConstructor.hh"
+#include "G4VUserPhysicsList.hh"
+#include "globals.hh"
 
 #include <deque>
 class TSPhysicsList : public G4VUserPhysicsList
 {
-public:
+  public:
     typedef std::deque<G4VPhysicsConstructor*> PhysicsSet_t;
 
-public:
+  public:
     TSPhysicsList();
     virtual ~TSPhysicsList();
 
-public:
-    static TSPhysicsList* Instance();
-    void ConstructParticle();
-    void ConstructProcess();
-    void SetCuts();
+  public:
+    void ConstructParticle() override;
+    void ConstructProcess() override;
 
-private:
-    static TSPhysicsList* fgInstance;
+  private:
     PhysicsSet_t fConstructors;
-    G4double fDefaultCutValue;
-
 };
 
 #endif

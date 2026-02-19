@@ -23,32 +23,27 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-/// \file electromagnetic/TestEm13/src/PhysicsListMessenger.cc
+/// \file PhysicsListMessenger.cc
 /// \brief Implementation of the PhysicsListMessenger class
-//
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "PhysicsListMessenger.hh"
 
 #include "PhysicsList.hh"
-#include "G4UIdirectory.hh"
+
 #include "G4UIcmdWithAString.hh"
+#include "G4UIdirectory.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PhysicsListMessenger::PhysicsListMessenger(PhysicsList* pPhys)
-:G4UImessenger(),fPhysicsList(pPhys),
- fPhysDir(0), fListCmd(0)
-{ 
+PhysicsListMessenger::PhysicsListMessenger(PhysicsList* pPhys) : fPhysicsList(pPhys)
+{
   fPhysDir = new G4UIdirectory("/testem/phys/");
   fPhysDir->SetGuidance("physics list commands");
 
-  fListCmd = new G4UIcmdWithAString("/testem/phys/addPhysics",this);  
+  fListCmd = new G4UIcmdWithAString("/testem/phys/addPhysics", this);
   fListCmd->SetGuidance("Add modula physics list.");
-  fListCmd->SetParameterName("PList",false);
-  fListCmd->AvailableForStates(G4State_PreInit);  
+  fListCmd->SetParameterName("PList", false);
+  fListCmd->AvailableForStates(G4State_PreInit);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -61,11 +56,11 @@ PhysicsListMessenger::~PhysicsListMessenger()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void PhysicsListMessenger::SetNewValue(G4UIcommand* command,
-                                          G4String newValue)
-{          
-  if( command == fListCmd )
-   { fPhysicsList->AddPhysicsList(newValue);}
+void PhysicsListMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
+{
+  if (command == fListCmd) {
+    fPhysicsList->AddPhysicsList(newValue);
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
